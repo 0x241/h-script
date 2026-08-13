@@ -27,6 +27,9 @@ variables:
   DOCKERHUB_NAMESPACE: "0x241"
   GHCR_NAMESPACE: "0x241"
   TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db:2
+  # One-time compare-and-swap guard for replacing the unrelated legacy GitHub
+  # history. It becomes inert after the first successful public sync.
+  GITHUB_LEGACY_MAIN_SHA: "15669648e78656653bf57759306b3a456cac55f5"
 
 .shared-archive:
   script:
@@ -540,8 +543,28 @@ publish:github-source:
 
       GITHUB_AUTH="$(printf 'x-access-token:%s' "${GITHUB_RELEASE_TOKEN}" | base64 | tr -d '\n')"
       GITHUB_URL="https://github.com/0x241/h-script.git"
-      git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
-        push "${GITHUB_URL}" "${PUBLIC_COMMIT}:refs/heads/main"
+      GITHUB_MAIN="$(git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
+        ls-remote "${GITHUB_URL}" refs/heads/main | awk '{print $1}')"
+
+      if [ -z "${GITHUB_MAIN}" ]; then
+        git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
+          push "${GITHUB_URL}" "${PUBLIC_COMMIT}:refs/heads/main"
+      else
+        git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
+          fetch --no-tags "${GITHUB_URL}" refs/heads/main
+        test "${GITHUB_MAIN}" = "$(git rev-parse FETCH_HEAD)"
+
+        if git merge-base --is-ancestor "${GITHUB_MAIN}" "${PUBLIC_COMMIT}"; then
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
+            push "${GITHUB_URL}" "${PUBLIC_COMMIT}:refs/heads/main"
+        else
+          test "${GITHUB_MAIN}" = "${GITHUB_LEGACY_MAIN_SHA}"
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
+            push --force-with-lease="refs/heads/main:${GITHUB_MAIN}" \
+            "${GITHUB_URL}" "${PUBLIC_COMMIT}:refs/heads/main"
+        fi
+      fi
+
       GITHUB_MAIN="$(git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
         ls-remote "${GITHUB_URL}" refs/heads/main | awk '{print $1}')"
       test "${PUBLIC_COMMIT}" = "${GITHUB_MAIN}"

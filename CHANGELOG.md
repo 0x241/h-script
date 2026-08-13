@@ -86,6 +86,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added a documented one-way GitLab to GitHub migration procedure.
 - Added guarded manual CI jobs that promote an exact tested staging tree into
   clean-history `release/public` and mirror only that branch to GitHub `main`.
+- Added a compare-and-swap guard for the one-time replacement of the unrelated
+  legacy GitHub `main` history; all later source publications remain
+  fast-forward-only.
 
 ### Changed
 
