@@ -1,0 +1,10 @@
+{% set sms_statuses = {
+	0: _t({"key": 'sms.status.waiting', "default": 'ожидает'}),
+	1: _t({"key": 'sms.status.processing', "default": 'обрабатывается'}),
+	2: _t({"key": 'sms.status.sent', "default": 'отправлено'}),
+	3: _t({"key": 'sms.status.delivered', "default": 'доставлено'}),
+	4: _t({"key": 'sms.status.error', "default": 'ошибка'}),
+	9: _t({"key": 'sms.status.delayed', "default": 'отложено'})
+} %}
+
+{% set sms_errors = {'low_balance': 'недостаточно средств', 'no_suitable_text': 'нет подходящего текста', 'from_wrong': 'неверный формат отправителя', 'to_wrong': 'неверный формат номера получателя', 'msg_empty': 'не задан текст', 'msg_too_long': 'текст слишком длинный', 'S1': 'в очереди у оператора', 'S0': 'подготовка к отправке', 'E1': 'не доставлено', 'E2': 'не принято', 'E3': 'не известно'} %}

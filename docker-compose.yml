@@ -1,0 +1,223 @@
+x-app-build: &app-build
+  context: .
+  dockerfile: Dockerfile
+
+services:
+  app:
+    build: *app-build
+    image: ${APP_IMAGE:-h-script}:${APP_IMAGE_TAG:-local}
+    pull_policy: ${APP_PULL_POLICY:-build}
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-8080}:80"
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-0}
+      APP_DOMAIN: ${APP_DOMAIN:?set APP_DOMAIN}
+      APP_SYS_ID: ${APP_SYS_ID:?set stable APP_SYS_ID}
+      APP_SYS_MAIL: ${APP_SYS_MAIL:?set APP_SYS_MAIL}
+      APP_CFG_LINK: ${APP_CFG_LINK:-_cfg}
+      APP_HTTP_USER_AGENT: ${APP_HTTP_USER_AGENT:-}
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-127.0.0.1/32,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+      APP_GENERATE_CONFIG: ${APP_GENERATE_CONFIG:-1}
+      APP_DEMO_MODE: ${APP_DEMO_MODE:-0}
+      APP_DATA_KEY: ${APP_DATA_KEY:-}
+      APP_DATA_KEY_FILE: ${APP_DATA_KEY_FILE:-}
+      TELEMETRY_ENDPOINT: ${TELEMETRY_ENDPOINT:-https://h-script.com/api/v1/installations}
+      TELEMETRY_COLLECTOR_ENABLED: ${TELEMETRY_COLLECTOR_ENABLED:-0}
+      TELEMETRY_COLLECTOR_DOMAIN: ${TELEMETRY_COLLECTOR_DOMAIN:-h-script.com}
+      TELEMETRY_RATE_LIMIT: ${TELEMETRY_RATE_LIMIT:-30}
+      CONFIGURATOR_PASSWORD: ${CONFIGURATOR_PASSWORD:-}
+      CONFIGURATOR_PASSWORD_FILE: ${CONFIGURATOR_PASSWORD_FILE:-}
+      ALLOW_EMPTY_CONFIGURATOR_PASSWORD: ${ALLOW_EMPTY_CONFIGURATOR_PASSWORD:-0}
+      REQUIRE_TURNSTILE: ${REQUIRE_TURNSTILE:-1}
+      DB_HOST: database:3306
+      DB_NAME: ${DB_NAME:-hscript}
+      DB_USER: ${DB_USER:-hscript}
+      DB_PASSWORD: ${DB_PASSWORD:-}
+      DB_PASSWORD_FILE: ${DB_PASSWORD_FILE:-}
+      DB_TYPE: ${DB_TYPE:-1}
+      REDIS_ENABLED: ${REDIS_ENABLED:-1}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_PREFIX: ${REDIS_PREFIX:-hs:}
+      REDIS_CONNECT_TIMEOUT: ${REDIS_CONNECT_TIMEOUT:-1}
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+      TURNSTILE_SITE_KEY_FILE: ${TURNSTILE_SITE_KEY_FILE:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      TURNSTILE_SECRET_KEY_FILE: ${TURNSTILE_SECRET_KEY_FILE:-}
+      APP_AUTO_INSTALL: ${APP_AUTO_INSTALL:-0}
+      APP_INSTALL_FORCE: ${APP_INSTALL_FORCE:-0}
+      INSTALL_ADMIN_NAME: ${INSTALL_ADMIN_NAME:-Administrator}
+      INSTALL_ADMIN_LOGIN: ${INSTALL_ADMIN_LOGIN:-admin}
+      INSTALL_ADMIN_PASSWORD: ${INSTALL_ADMIN_PASSWORD:-}
+      INSTALL_ADMIN_PASSWORD_FILE: ${INSTALL_ADMIN_PASSWORD_FILE:-}
+      INSTALL_ADMIN_MAIL: ${INSTALL_ADMIN_MAIL:-}
+      INSTALL_ADMIN_SECRET_QUESTION: ${INSTALL_ADMIN_SECRET_QUESTION:-That is your name}
+      INSTALL_ADMIN_SECRET_ANSWER: ${INSTALL_ADMIN_SECRET_ANSWER:-}
+      INSTALL_ADMIN_SECRET_ANSWER_FILE: ${INSTALL_ADMIN_SECRET_ANSWER_FILE:-}
+      INSTALL_ADMIN_PIN: ${INSTALL_ADMIN_PIN:-}
+      INSTALL_ADMIN_PIN_FILE: ${INSTALL_ADMIN_PIN_FILE:-}
+      INSTALL_MAIL_HOST: ${INSTALL_MAIL_HOST:-}
+      INSTALL_MAIL_PORT: ${INSTALL_MAIL_PORT:-587}
+      INSTALL_MAIL_SECURE: ${INSTALL_MAIL_SECURE:-1}
+      INSTALL_MAIL_USERNAME: ${INSTALL_MAIL_USERNAME:-}
+      INSTALL_MAIL_PASSWORD: ${INSTALL_MAIL_PASSWORD:-}
+      INSTALL_MAIL_PASSWORD_FILE: ${INSTALL_MAIL_PASSWORD_FILE:-}
+      INSTALL_MAIL_PASSWORD_B64: ${INSTALL_MAIL_PASSWORD_B64:-}
+      INSTALL_MAIL_FROM_ADDRESS: ${INSTALL_MAIL_FROM_ADDRESS:-}
+      INSTALL_MAIL_ADMIN_ADDRESS: ${INSTALL_MAIL_ADMIN_ADDRESS:-}
+      INSTALL_MAIL_ADMIN_LANG: ${INSTALL_MAIL_ADMIN_LANG:-en}
+      INSTALL_DEMO_ADMIN_NAME: ${INSTALL_DEMO_ADMIN_NAME:-Demo Administrator}
+      INSTALL_DEMO_ADMIN_LOGIN: ${INSTALL_DEMO_ADMIN_LOGIN:-demo-admin}
+      INSTALL_DEMO_ADMIN_PASSWORD: ${INSTALL_DEMO_ADMIN_PASSWORD:-}
+      INSTALL_DEMO_ADMIN_PASSWORD_FILE: ${INSTALL_DEMO_ADMIN_PASSWORD_FILE:-}
+      INSTALL_DEMO_ADMIN_MAIL: ${INSTALL_DEMO_ADMIN_MAIL:-}
+      INSTALL_DEMO_ADMIN_SECRET_QUESTION: ${INSTALL_DEMO_ADMIN_SECRET_QUESTION:-That is your demo name}
+      INSTALL_DEMO_ADMIN_SECRET_ANSWER: ${INSTALL_DEMO_ADMIN_SECRET_ANSWER:-}
+      INSTALL_DEMO_ADMIN_SECRET_ANSWER_FILE: ${INSTALL_DEMO_ADMIN_SECRET_ANSWER_FILE:-}
+      INSTALL_DEMO_ADMIN_PIN: ${INSTALL_DEMO_ADMIN_PIN:-}
+      INSTALL_DEMO_ADMIN_PIN_FILE: ${INSTALL_DEMO_ADMIN_PIN_FILE:-}
+      INSTALL_NO_LOGINS: ${INSTALL_NO_LOGINS:-0}
+      INSTALL_INT_CURR: ${INSTALL_INT_CURR:-0}
+      INSTALL_INT_CURR_ID: ${INSTALL_INT_CURR_ID:-USD}
+      INSTALL_TELEMETRY_STATS: ${INSTALL_TELEMETRY_STATS:-1}
+    volumes:
+      - hscript_upload:/var/www/html/upload
+      - hscript_logs:/var/www/html/logs
+      - hscript_tpl_c:/var/www/html/tpl_c
+      - hscript_backup:/var/www/html/backup
+    networks:
+      internal:
+      proxy:
+        aliases:
+          - ${APP_NETWORK_ALIAS:-hscript-app}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -H \"Host: $${APP_DOMAIN}\" http://127.0.0.1/ -o /dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  cron:
+    build: *app-build
+    image: ${APP_IMAGE:-h-script}:${APP_IMAGE_TAG:-local}
+    pull_policy: ${APP_PULL_POLICY:-build}
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["hscript-cron"]
+    environment:
+      START_PHP_FPM: 0
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-0}
+      APP_DOMAIN: ${APP_DOMAIN:?set APP_DOMAIN}
+      APP_SYS_ID: ${APP_SYS_ID:?set stable APP_SYS_ID}
+      APP_SYS_MAIL: ${APP_SYS_MAIL:?set APP_SYS_MAIL}
+      APP_CFG_LINK: ${APP_CFG_LINK:-_cfg}
+      APP_HTTP_USER_AGENT: ${APP_HTTP_USER_AGENT:-}
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-127.0.0.1/32,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+      APP_GENERATE_CONFIG: ${APP_GENERATE_CONFIG:-1}
+      APP_DEMO_MODE: ${APP_DEMO_MODE:-0}
+      APP_DATA_KEY: ${APP_DATA_KEY:-}
+      APP_DATA_KEY_FILE: ${APP_DATA_KEY_FILE:-}
+      TELEMETRY_ENDPOINT: ${TELEMETRY_ENDPOINT:-https://h-script.com/api/v1/installations}
+      CONFIGURATOR_PASSWORD: ${CONFIGURATOR_PASSWORD:-}
+      CONFIGURATOR_PASSWORD_FILE: ${CONFIGURATOR_PASSWORD_FILE:-}
+      ALLOW_EMPTY_CONFIGURATOR_PASSWORD: ${ALLOW_EMPTY_CONFIGURATOR_PASSWORD:-0}
+      REQUIRE_TURNSTILE: ${REQUIRE_TURNSTILE:-1}
+      DB_HOST: database:3306
+      DB_NAME: ${DB_NAME:-hscript}
+      DB_USER: ${DB_USER:-hscript}
+      DB_PASSWORD: ${DB_PASSWORD:-}
+      DB_PASSWORD_FILE: ${DB_PASSWORD_FILE:-}
+      DB_TYPE: ${DB_TYPE:-1}
+      REDIS_ENABLED: ${REDIS_ENABLED:-1}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_DB: ${REDIS_DB:-0}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_PREFIX: ${REDIS_PREFIX:-hs:}
+      REDIS_CONNECT_TIMEOUT: ${REDIS_CONNECT_TIMEOUT:-1}
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+      TURNSTILE_SITE_KEY_FILE: ${TURNSTILE_SITE_KEY_FILE:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      TURNSTILE_SECRET_KEY_FILE: ${TURNSTILE_SECRET_KEY_FILE:-}
+      APP_AUTO_INSTALL: 0
+      CRON_ENABLED: ${CRON_ENABLED:-1}
+      CRON_URL: ${CRON_URL:-http://app/cron}
+      CRON_HOST_HEADER: ${CRON_HOST_HEADER:-}
+      CRON_INTERVAL_SECONDS: ${CRON_INTERVAL_SECONDS:-60}
+      CRON_TIMEOUT_SECONDS: ${CRON_TIMEOUT_SECONDS:-30}
+      CRON_START_DELAY_SECONDS: ${CRON_START_DELAY_SECONDS:-10}
+    volumes:
+      - hscript_upload:/var/www/html/upload
+      - hscript_logs:/var/www/html/logs
+      - hscript_tpl_c:/var/www/html/tpl_c
+      - hscript_backup:/var/www/html/backup
+    networks:
+      - internal
+
+  database:
+    image: mysql:8.4
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-hscript}
+      MYSQL_USER: ${DB_USER:-hscript}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-}
+      MYSQL_PASSWORD_FILE: ${DB_PASSWORD_FILE:-}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-}
+      MYSQL_ROOT_PASSWORD_FILE: ${MYSQL_ROOT_PASSWORD_FILE:-}
+    volumes:
+      - hscript_db:/var/lib/mysql
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "if [ -n \"$${MYSQL_ROOT_PASSWORD_FILE:-}\" ]; then export MYSQL_PWD=\"$$(cat \"$${MYSQL_ROOT_PASSWORD_FILE}\")\"; else export MYSQL_PWD=\"$${MYSQL_ROOT_PASSWORD}\"; fi; mysqladmin ping -h 127.0.0.1 -uroot --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  hscript_backup:
+  hscript_db:
+  hscript_logs:
+  redis_data:
+  hscript_tpl_c:
+  hscript_upload:
+
+networks:
+  internal:
+  proxy:
+    external: true
+    name: ${APP_EXTERNAL_NETWORK:?set APP_EXTERNAL_NETWORK}

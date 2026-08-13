@@ -1,0 +1,46 @@
+{% set op_names = {
+	'BONUS': _t({"key": 'operation.name.bonus', "default": 'Бонус'}),
+	'PENALTY': _t({"key": 'operation.name.penalty', "default": 'Штраф'}),
+	'CASHIN': _t({"key": 'operation.name.cashin', "default": 'Пополнение'}),
+	'CASHOUT': _t({"key": 'operation.name.cashout', "default": 'Вывод'}),
+	'EX': _t({"key": 'operation.name.exchange_out', "default": 'Исх. обмен'}),
+	'EXIN': _t({"key": 'operation.name.exchange_in', "default": 'Вх. обмен'}),
+	'TR': _t({"key": 'operation.name.transfer_out', "default": 'Перевод'}),
+	'TRIN': _t({"key": 'operation.name.transfer_in', "default": 'Приход'}),
+	'BUY': _t({"key": 'operation.name.buy', "default": 'Покупка'}),
+	'SELL': _t({"key": 'operation.name.sell', "default": 'Продажа'}),
+	'BUY2': _t({"key": 'operation.name.service_buy', "default": 'Услуга'}),
+	'SELL2': _t({"key": 'operation.name.service_sell', "default": 'Оказание услуги'}),
+	'REF': _t({"key": 'operation.name.referral', "default": 'Реферальное начисление'}),
+	'GIVE': _t({"key": 'operation.name.deposit_open', "default": 'Вклад'}),
+	'TAKE': _t({"key": 'operation.name.deposit_close', "default": 'Снятие'}),
+	'CALCIN': _t({"key": 'operation.name.accrual', "default": 'Начисление'}),
+	'CALCOUT': _t({"key": 'operation.name.deduction', "default": 'Отчисление'})
+} %}
+{% set op_statuses = {
+	0: _t({"key": 'operation.status.confirmation', "default": 'Ожидает подтверждения'}),
+	1: _t({"key": 'operation.status.payment', "default": 'Ожидает пополнения'}),
+	2: _t({"key": 'operation.status.processing', "default": 'Ожидает выполнения'}),
+	3: _t({"key": 'operation.status.completed', "default": 'Выполнена'}),
+	4: _t({"key": 'operation.status.rejected', "default": 'Отклонена'}),
+	5: _t({"key": 'operation.status.cancelled', "default": 'Отменена'})
+} %}
+{% set op_sums = {
+	'BONUS': _t({"key": 'operation.amount.default', "default": 'Сумма'}),
+	'PENALTY': _t({"key": 'operation.amount.default', "default": 'Сумма'}),
+	'CASHIN': _t({"key": 'operation.amount.cashin', "default": 'Сумма к пополнению'}),
+	'CASHOUT': _t({"key": 'operation.amount.cashout', "default": 'Сумма к выводу'}),
+	'EX': _t({"key": 'operation.amount.exchange', "default": 'Сумма к обмену'}),
+	'EXIN': _t({"key": 'operation.amount.received', "default": 'Полученная сумма'}),
+	'TR': _t({"key": 'operation.amount.to_receive', "default": 'Сумма к получению'}),
+	'TRIN': _t({"key": 'operation.amount.received', "default": 'Полученная сумма'}),
+	'BUY': _t({"key": 'operation.amount.default', "default": 'Сумма'}),
+	'SELL': _t({"key": 'operation.amount.default', "default": 'Сумма'}),
+	'BUY2': _t({"key": 'operation.amount.default', "default": 'Сумма'}),
+	'SELL2': _t({"key": 'operation.amount.default', "default": 'Сумма'}),
+	'REF': _t({"key": 'operation.amount.default', "default": 'Сумма'}),
+	'GIVE': _t({"key": 'operation.amount.deposit', "default": 'Сумма вклада'}),
+	'TAKE': _t({"key": 'operation.amount.to_receive', "default": 'Сумма к получению'}),
+	'CALCIN': _t({"key": 'operation.amount.default', "default": 'Сумма'}),
+	'CALCOUT': _t({"key": 'operation.amount.default', "default": 'Сумма'})
+} %}

@@ -1,0 +1,9 @@
+
+{% set sms_queue_title = _t({"key": 'sms.queue.title', "default": 'Очередь'}) %}
+{% include "admin/header.twig" with {"title": sms_queue_title} %}
+
+{% include "sms/_statuses.twig" %}
+
+{% include "list.twig" with {"title": sms_queue_title, "url": '*', "fields": {'jID': [_t({"key": 'common.id', "default": 'ID'})], 'user': [_t({"key": 'sms.queue.sent', "default": 'Отправлено'})], 'destination': [_t({"key": 'sms.queue.to', "default": 'Кому'})], 'message': [_t({"key": 'sms.field.text', "default": 'Текст'})], 'jState': [_t({"key": 'sms.queue.state', "default": 'Статус'})], 'result': ['<small>'|cat(_t({"key": 'sms.queue.parts', "default": 'Кол-во частей'}))|cat('</small>')], 'jError': [_t({"key": 'sms.queue.error', "default": 'Описание'})], 'jAttempts': ['<small>'|cat(_t({"key": 'sms.queue.attempts', "default": 'Попыток'}))|cat('</small>')]}, "values": list, "row": '*', "btns": {'del': _t({"key": 'common.delete', "default": 'Удалить'})}} %}
+
+{% include "admin/footer.twig" %}

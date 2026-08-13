@@ -1,0 +1,732 @@
+stages:
+  - validate
+  - build
+  - scan
+  - package
+  - deploy
+  - release
+  - publish
+
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+    - if: '$CI_COMMIT_BRANCH == "release/public"'
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+    - when: never
+
+default:
+  tags:
+    - hscript-staging
+
+variables:
+  COMPOSE_PROJECT_NAME: hscript_staging
+  RELEASE_PLATFORMS: linux/amd64,linux/arm64
+  PUBLIC_IMAGE_NAME: h-script
+  DOCKERHUB_NAMESPACE: "0x241"
+  GHCR_NAMESPACE: "0x241"
+  TRIVY_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-db:2
+
+.shared-archive:
+  script:
+    - &build_shared_archive |
+      : "${PACKAGE_VERSION:?PACKAGE_VERSION is required}"
+      case "${PACKAGE_VERSION}" in
+        *[!0-9A-Za-z._-]*|'') echo "Invalid package version" >&2; exit 1 ;;
+      esac
+
+      SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)"
+      BUILD_DATE="$(git show -s --format=%cI HEAD)"
+      mkdir -p dist
+      docker buildx build \
+        --target shared-release \
+        --build-arg "APP_VERSION=${PACKAGE_VERSION}" \
+        --build-arg "VCS_REF=${CI_COMMIT_SHA}" \
+        --build-arg "BUILD_DATE=${BUILD_DATE}" \
+        --build-arg "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}" \
+        --output type=local,dest=dist \
+        .
+
+      ARCHIVE="dist/h-script-${PACKAGE_VERSION}-shared-hosting.tar.gz"
+      test -s "${ARCHIVE}"
+      test -s dist/SHA256SUMS
+      ARCHIVE_CONTENTS="dist/.archive-contents-${CI_JOB_ID}.txt"
+      tar -tzf "${ARCHIVE}" > "${ARCHIVE_CONTENTS}"
+      for required in \
+        h-script/README.md \
+        h-script/LICENSE \
+        h-script/RELEASE \
+        h-script/vendor/autoload.php \
+        h-script/static/css/app.css \
+        h-script/logs/.htaccess \
+        h-script/tpl_c/.htaccess \
+        h-script/upload/.htaccess
+      do
+        grep -Fxq "${required}" "${ARCHIVE_CONTENTS}"
+      done
+      if grep -Eq '^h-script/(\.agents|\.codex|\.git|tests|node_modules|docker|dist)(/|$)|^h-script/(\.env($|\.)|_config\.php|future_works?\.md|AGENTS\.md)$|^h-script/static/css/input\.css$' "${ARCHIVE_CONTENTS}"; then
+        echo "Forbidden development or secret-bearing file found in ${ARCHIVE}" >&2
+        exit 1
+      fi
+      rm -f -- "${ARCHIVE_CONTENTS}"
+      (cd dist && sha256sum -c SHA256SUMS)
+
+validate:compose:
+  stage: validate
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+    - if: '$CI_COMMIT_BRANCH == "release/public"'
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+  script:
+    - docker compose --env-file docker/env.example config --quiet
+
+validate:frontend:
+  stage: validate
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+    - if: '$CI_COMMIT_BRANCH == "release/public"'
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+  script:
+    - docker build --target frontend-build --tag "h-script-frontend:${CI_COMMIT_SHORT_SHA}" .
+
+build:image-candidate:
+  stage: build
+  interruptible: true
+  resource_group: staging-image-build
+  id_tokens:
+    SIGSTORE_ID_TOKEN:
+      aud: sigstore
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+  script:
+    - umask 077
+    - |
+      RELEASE_DOCKER_CONFIG="$(mktemp -d)"
+      RELEASE_BUILDER="hscript-release"
+      export BUILDX_CONFIG="${H_SCRIPT_BUILDX_CONFIG:-/tmp/h-script-buildx}"
+      cleanup_release_build() {
+        if [ -n "${RELEASE_DOCKER_CONFIG:-}" ] && [ -d "${RELEASE_DOCKER_CONFIG}" ]; then
+          rm -rf -- "${RELEASE_DOCKER_CONFIG}"
+        fi
+      }
+      trap cleanup_release_build EXIT HUP INT TERM
+      export DOCKER_CONFIG="${RELEASE_DOCKER_CONFIG}"
+      mkdir -p "${BUILDX_CONFIG}"
+      chmod 0700 "${BUILDX_CONFIG}"
+
+      printf '%s' "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" --username "${CI_REGISTRY_USER}" --password-stdin
+
+      TREE_SHA="$(git rev-parse 'HEAD^{tree}')"
+      CANDIDATE_TAG="tree-${TREE_SHA}"
+      CANDIDATE_REF="${CI_REGISTRY_IMAGE}:${CANDIDATE_TAG}"
+      APP_VERSION="$(awk -F '"' '/"version"[[:space:]]*:/ { print $4; exit }' package.json)"
+
+      if docker buildx inspect "${RELEASE_BUILDER}" >/dev/null 2>&1; then
+        docker buildx use "${RELEASE_BUILDER}"
+      else
+        docker buildx create --driver docker-container --name "${RELEASE_BUILDER}" --use
+      fi
+      docker buildx inspect --bootstrap
+      mkdir -p dist
+      build_candidate_image() {
+        docker buildx build \
+          --platform "${RELEASE_PLATFORMS}" \
+          --target app \
+          --build-arg "APP_VERSION=${APP_VERSION}" \
+          --build-arg "VCS_REF=${CI_COMMIT_SHA}" \
+          --build-arg "BUILD_DATE=${CI_COMMIT_TIMESTAMP}" \
+          --cache-from "type=registry,ref=${CI_REGISTRY_IMAGE}:buildcache" \
+          --provenance=mode=max \
+          --sbom=true \
+          --metadata-file dist/build-metadata.json \
+          --tag "${CANDIDATE_REF}" \
+          --tag "${CI_REGISTRY_IMAGE}:sha-${CI_COMMIT_SHORT_SHA}" \
+          --push \
+          .
+      }
+
+      BUILD_ATTEMPT=1
+      until build_candidate_image; do
+        if [ "${BUILD_ATTEMPT}" -ge 3 ]; then
+          echo "Candidate image push failed after ${BUILD_ATTEMPT} attempts" >&2
+          exit 1
+        fi
+        BUILD_ATTEMPT=$((BUILD_ATTEMPT + 1))
+        echo "Registry did not accept the complete manifest; retrying push (attempt ${BUILD_ATTEMPT}/3)" >&2
+        sleep 5
+      done
+
+      # Keep cache publication separate from the release manifest. A cache
+      # backend outage must not invalidate an image that was already pushed.
+      if ! docker buildx build \
+        --platform "${RELEASE_PLATFORMS}" \
+        --target app \
+        --build-arg "APP_VERSION=${APP_VERSION}" \
+        --build-arg "VCS_REF=${CI_COMMIT_SHA}" \
+        --build-arg "BUILD_DATE=${CI_COMMIT_TIMESTAMP}" \
+        --cache-from "type=registry,ref=${CI_REGISTRY_IMAGE}:buildcache" \
+        --cache-to "type=registry,ref=${CI_REGISTRY_IMAGE}:buildcache,mode=max" \
+        --output type=cacheonly \
+        .
+      then
+        echo "WARNING: candidate image is valid, but registry cache export failed" >&2
+      fi
+
+      CANDIDATE_DIGEST="$(docker buildx imagetools inspect "${CANDIDATE_REF}" --format '{{.Manifest.Digest}}')"
+      docker run --rm \
+        --user "$(id -u):$(id -g)" \
+        --env HOME=/tmp \
+        --env SIGSTORE_ID_TOKEN \
+        --env COSIGN_YES=true \
+        --env DOCKER_CONFIG=/tmp/docker-config \
+        --volume "${DOCKER_CONFIG}:/tmp/docker-config:ro" \
+        ghcr.io/sigstore/cosign/cosign:v3.0.6@sha256:de9c65609e6bde17e6b48de485ee788407c9502fa08b8f4459f595b21f56cd00 \
+        sign \
+        --yes \
+        -a "com.gitlab.ci.pipeline.id=${CI_PIPELINE_ID}" \
+        -a "com.gitlab.ci.commit.sha=${CI_COMMIT_SHA}" \
+        -a "org.opencontainers.image.source=${CI_PROJECT_URL}" \
+        "${CANDIDATE_REF}@${CANDIDATE_DIGEST}"
+      docker run --rm \
+        --user "$(id -u):$(id -g)" \
+        --env HOME=/tmp \
+        --env DOCKER_CONFIG=/tmp/docker-config \
+        --volume "${DOCKER_CONFIG}:/tmp/docker-config:ro" \
+        ghcr.io/sigstore/cosign/cosign:v3.0.6@sha256:de9c65609e6bde17e6b48de485ee788407c9502fa08b8f4459f595b21f56cd00 \
+        verify \
+        --certificate-identity "${CI_PROJECT_URL}//.gitlab-ci.yml@refs/heads/${CI_COMMIT_REF_NAME}" \
+        --certificate-oidc-issuer "${CI_SERVER_URL}" \
+        "${CANDIDATE_REF}@${CANDIDATE_DIGEST}"
+      {
+        printf 'TREE_SHA=%s\n' "${TREE_SHA}"
+        printf 'CANDIDATE_TAG=%s\n' "${CANDIDATE_TAG}"
+        printf 'CANDIDATE_REF=%s\n' "${CANDIDATE_REF}"
+        printf 'CANDIDATE_DIGEST=%s\n' "${CANDIDATE_DIGEST}"
+      } > dist/candidate.env
+      printf '%s@%s\n' "${CANDIDATE_REF}" "${CANDIDATE_DIGEST}" | tee dist/candidate-image.txt
+  artifacts:
+    reports:
+      dotenv: dist/candidate.env
+    paths:
+      - dist/build-metadata.json
+      - dist/candidate-image.txt
+    expire_in: 30 days
+
+build:verify-release-candidate:
+  stage: build
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "release/public"'
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+  script:
+    - umask 077
+    - |
+      if [ -n "${CI_COMMIT_TAG:-}" ]; then
+        git fetch origin release/public --depth=1
+        test "${CI_COMMIT_SHA}" = "$(git rev-parse FETCH_HEAD)"
+      fi
+
+      RELEASE_DOCKER_CONFIG="$(mktemp -d)"
+      cleanup_release_verify() {
+        if [ -n "${RELEASE_DOCKER_CONFIG:-}" ] && [ -d "${RELEASE_DOCKER_CONFIG}" ]; then
+          rm -rf -- "${RELEASE_DOCKER_CONFIG}"
+        fi
+      }
+      trap cleanup_release_verify EXIT HUP INT TERM
+      export DOCKER_CONFIG="${RELEASE_DOCKER_CONFIG}"
+
+      printf '%s' "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" --username "${CI_REGISTRY_USER}" --password-stdin
+      TREE_SHA="$(git rev-parse 'HEAD^{tree}')"
+      CANDIDATE_TAG="tree-${TREE_SHA}"
+      CANDIDATE_REF="${CI_REGISTRY_IMAGE}:${CANDIDATE_TAG}"
+      CANDIDATE_DIGEST="$(docker buildx imagetools inspect "${CANDIDATE_REF}" --format '{{.Manifest.Digest}}')"
+      docker run --rm \
+        --user "$(id -u):$(id -g)" \
+        --env HOME=/tmp \
+        --env DOCKER_CONFIG=/tmp/docker-config \
+        --volume "${DOCKER_CONFIG}:/tmp/docker-config:ro" \
+        ghcr.io/sigstore/cosign/cosign:v3.0.6@sha256:de9c65609e6bde17e6b48de485ee788407c9502fa08b8f4459f595b21f56cd00 \
+        verify \
+        --certificate-identity "${CI_PROJECT_URL}//.gitlab-ci.yml@refs/heads/stage/docker-release" \
+        --certificate-oidc-issuer "${CI_SERVER_URL}" \
+        "${CANDIDATE_REF}@${CANDIDATE_DIGEST}"
+      mkdir -p dist
+      {
+        printf 'TREE_SHA=%s\n' "${TREE_SHA}"
+        printf 'CANDIDATE_TAG=%s\n' "${CANDIDATE_TAG}"
+        printf 'CANDIDATE_REF=%s\n' "${CANDIDATE_REF}"
+        printf 'CANDIDATE_DIGEST=%s\n' "${CANDIDATE_DIGEST}"
+      } > dist/release-candidate.env
+      printf '%s@%s\n' "${CANDIDATE_REF}" "${CANDIDATE_DIGEST}"
+  artifacts:
+    reports:
+      dotenv: dist/release-candidate.env
+    expire_in: 30 days
+
+scan:image-candidate:
+  stage: scan
+  needs:
+    - job: build:image-candidate
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+  script:
+    - umask 077
+    - |
+      RELEASE_DOCKER_CONFIG="$(mktemp -d)"
+      TRIVY_CACHE_DIR="${CI_PROJECT_DIR}/.trivy-cache-${CI_JOB_ID}"
+      cleanup_release_scan() {
+        if [ -n "${RELEASE_DOCKER_CONFIG:-}" ] && [ -d "${RELEASE_DOCKER_CONFIG}" ]; then
+          rm -rf -- "${RELEASE_DOCKER_CONFIG}"
+        fi
+        if [ -n "${TRIVY_CACHE_DIR:-}" ] && [ -d "${TRIVY_CACHE_DIR}" ]; then
+          rm -rf -- "${TRIVY_CACHE_DIR}"
+        fi
+      }
+      trap cleanup_release_scan EXIT HUP INT TERM
+      export DOCKER_CONFIG="${RELEASE_DOCKER_CONFIG}"
+      printf '%s' "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" --username "${CI_REGISTRY_USER}" --password-stdin
+      mkdir -p dist "${TRIVY_CACHE_DIR}"
+
+      docker run --rm \
+        --user "$(id -u):$(id -g)" \
+        --env DOCKER_CONFIG=/tmp/docker-config \
+        --volume "${DOCKER_CONFIG}:/tmp/docker-config:ro" \
+        --volume "${TRIVY_CACHE_DIR}:/tmp/trivy" \
+        --volume "${CI_PROJECT_DIR}/dist:/reports" \
+        aquasec/trivy:0.73.0@sha256:7cced7cae583819fc7806d4cbc0dbbc7cad18b99f7d3e235192e6da8c091045c \
+        image --cache-dir /tmp/trivy --db-repository "${TRIVY_DB_REPOSITORY}" --scanners vuln --format cyclonedx --output /reports/h-script.cdx.json "${CANDIDATE_REF}"
+
+      docker run --rm \
+        --user "$(id -u):$(id -g)" \
+        --env DOCKER_CONFIG=/tmp/docker-config \
+        --volume "${DOCKER_CONFIG}:/tmp/docker-config:ro" \
+        --volume "${TRIVY_CACHE_DIR}:/tmp/trivy" \
+        aquasec/trivy:0.73.0@sha256:7cced7cae583819fc7806d4cbc0dbbc7cad18b99f7d3e235192e6da8c091045c \
+        image --cache-dir /tmp/trivy --db-repository "${TRIVY_DB_REPOSITORY}" --scanners vuln,secret --severity CRITICAL --ignore-unfixed --exit-code 1 "${CANDIDATE_REF}"
+  artifacts:
+    paths:
+      - dist/h-script.cdx.json
+    expire_in: 30 days
+
+package:shared-candidate:
+  stage: package
+  needs:
+    - job: scan:image-candidate
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+  script:
+    - PACKAGE_VERSION="$(awk -F '"' '/"version"[[:space:]]*:/ { print $4; exit }' package.json)-stage.${CI_COMMIT_SHORT_SHA}"
+    - *build_shared_archive
+  artifacts:
+    paths:
+      - dist/h-script-*-shared-hosting.tar.gz
+      - dist/SHA256SUMS
+    expire_in: 14 days
+
+package:shared-release:
+  stage: package
+  id_tokens:
+    SIGSTORE_ID_TOKEN:
+      aud: sigstore
+  needs:
+    - job: build:verify-release-candidate
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+  script:
+    - PACKAGE_VERSION="${CI_COMMIT_TAG#v}"
+    - *build_shared_archive
+    - |
+      ARCHIVE="dist/h-script-${CI_COMMIT_TAG#v}-shared-hosting.tar.gz"
+      docker run --rm \
+        --user "$(id -u):$(id -g)" \
+        --env HOME=/tmp \
+        --env SIGSTORE_ID_TOKEN \
+        --env COSIGN_YES=true \
+        --volume "${CI_PROJECT_DIR}/dist:/artifacts" \
+        ghcr.io/sigstore/cosign/cosign:v3.0.6@sha256:de9c65609e6bde17e6b48de485ee788407c9502fa08b8f4459f595b21f56cd00 \
+        sign-blob \
+        --yes \
+        --bundle "/artifacts/$(basename "${ARCHIVE}").sigstore.json" \
+        "/artifacts/$(basename "${ARCHIVE}")"
+      docker run --rm \
+        --user "$(id -u):$(id -g)" \
+        --env HOME=/tmp \
+        --volume "${CI_PROJECT_DIR}/dist:/artifacts:ro" \
+        ghcr.io/sigstore/cosign/cosign:v3.0.6@sha256:de9c65609e6bde17e6b48de485ee788407c9502fa08b8f4459f595b21f56cd00 \
+        verify-blob \
+        --bundle "/artifacts/$(basename "${ARCHIVE}").sigstore.json" \
+        --certificate-identity "${CI_PROJECT_URL}//.gitlab-ci.yml@refs/tags/${CI_COMMIT_TAG}" \
+        --certificate-oidc-issuer "${CI_SERVER_URL}" \
+        "/artifacts/$(basename "${ARCHIVE}")"
+  artifacts:
+    paths:
+      - dist/h-script-*-shared-hosting.tar.gz
+      - dist/h-script-*-shared-hosting.tar.gz.sigstore.json
+      - dist/SHA256SUMS
+    expire_in: never
+
+deploy:staging:
+  stage: deploy
+  needs:
+    - job: build:image-candidate
+      artifacts: true
+    - job: scan:image-candidate
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+  script:
+    - umask 077
+    - |
+      RELEASE_DOCKER_CONFIG="$(mktemp -d)"
+      cleanup_staging_deploy() {
+        if [ -n "${RELEASE_DOCKER_CONFIG:-}" ] && [ -d "${RELEASE_DOCKER_CONFIG}" ]; then
+          rm -rf -- "${RELEASE_DOCKER_CONFIG}"
+        fi
+      }
+      trap cleanup_staging_deploy EXIT HUP INT TERM
+      export DOCKER_CONFIG="${RELEASE_DOCKER_CONFIG}"
+      printf '%s' "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" --username "${CI_REGISTRY_USER}" --password-stdin
+
+      # Shell variables have higher Compose precedence than --env-file values.
+      # Override legacy project variables such as APP_IMAGE_TAG=staging so the
+      # deployment always uses the exact tree candidate built by this pipeline.
+      export APP_IMAGE="${CI_REGISTRY_IMAGE}"
+      export APP_IMAGE_TAG="${CANDIDATE_TAG}"
+      export APP_PULL_POLICY=always
+
+      INSTALL_MAIL_PASSWORD_B64_VALUE="$(printf '%s' "${INSTALL_MAIL_PASSWORD:-}" | base64 | tr -d '\n')"
+      {
+        printf 'APP_ENV=%s\n' "${APP_ENV:-production}"
+        printf 'APP_DEBUG=%s\n' "${APP_DEBUG:-0}"
+        printf 'APP_DOMAIN=%s\n' "$APP_DOMAIN"
+        printf 'APP_SYS_ID=%s\n' "$APP_SYS_ID"
+        printf 'APP_SYS_MAIL=%s\n' "$APP_SYS_MAIL"
+        printf 'APP_CFG_LINK=%s\n' "${APP_CFG_LINK:-_cfg}"
+        printf 'APP_DEMO_MODE=%s\n' "${APP_DEMO_MODE:-0}"
+        printf 'APP_DATA_KEY=%s\n' "$APP_DATA_KEY"
+        printf 'APP_IMAGE=%s\n' "${APP_IMAGE}"
+        printf 'APP_IMAGE_TAG=%s\n' "${APP_IMAGE_TAG}"
+        printf 'APP_PULL_POLICY=%s\n' "${APP_PULL_POLICY}"
+        printf 'TELEMETRY_ENDPOINT=%s\n' "${TELEMETRY_ENDPOINT:-https://h-script.com/api/v1/installations}"
+        printf 'TELEMETRY_COLLECTOR_ENABLED=%s\n' "${TELEMETRY_COLLECTOR_ENABLED:-0}"
+        printf 'TELEMETRY_COLLECTOR_DOMAIN=%s\n' "${TELEMETRY_COLLECTOR_DOMAIN:-h-script.com}"
+        printf 'TELEMETRY_RATE_LIMIT=%s\n' "${TELEMETRY_RATE_LIMIT:-30}"
+        printf 'APP_PORT=%s\n' "${APP_PORT:-8080}"
+        printf 'APP_EXTERNAL_NETWORK=%s\n' "$APP_EXTERNAL_NETWORK"
+        printf 'APP_NETWORK_ALIAS=%s\n' "${APP_NETWORK_ALIAS:-hscript-app}"
+        printf 'TRUSTED_PROXY_CIDRS=%s\n' "${TRUSTED_PROXY_CIDRS:-127.0.0.1/32,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}"
+        printf 'CONFIGURATOR_PASSWORD=%s\n' "$CONFIGURATOR_PASSWORD"
+        printf 'ALLOW_EMPTY_CONFIGURATOR_PASSWORD=%s\n' "${ALLOW_EMPTY_CONFIGURATOR_PASSWORD:-0}"
+        printf 'DB_NAME=%s\n' "${DB_NAME:-hscript}"
+        printf 'DB_USER=%s\n' "${DB_USER:-hscript}"
+        printf 'DB_PASSWORD=%s\n' "$DB_PASSWORD"
+        printf 'MYSQL_ROOT_PASSWORD=%s\n' "$MYSQL_ROOT_PASSWORD"
+        printf 'DB_TYPE=%s\n' "${DB_TYPE:-1}"
+        printf 'REQUIRE_TURNSTILE=%s\n' "${REQUIRE_TURNSTILE:-1}"
+        printf 'TURNSTILE_SITE_KEY=%s\n' "$TURNSTILE_SITE_KEY"
+        printf 'TURNSTILE_SECRET_KEY=%s\n' "$TURNSTILE_SECRET_KEY"
+        printf 'APP_AUTO_INSTALL=%s\n' "${APP_AUTO_INSTALL:-0}"
+        printf 'APP_INSTALL_FORCE=%s\n' "${APP_INSTALL_FORCE:-0}"
+        printf 'INSTALL_ADMIN_NAME=%s\n' "${INSTALL_ADMIN_NAME:-Administrator}"
+        printf 'INSTALL_ADMIN_LOGIN=%s\n' "${INSTALL_ADMIN_LOGIN:-admin}"
+        printf 'INSTALL_ADMIN_PASSWORD=%s\n' "$INSTALL_ADMIN_PASSWORD"
+        printf 'INSTALL_ADMIN_MAIL=%s\n' "${INSTALL_ADMIN_MAIL:-$APP_SYS_MAIL}"
+        printf 'INSTALL_ADMIN_SECRET_QUESTION=%s\n' "${INSTALL_ADMIN_SECRET_QUESTION:-That is your name}"
+        printf 'INSTALL_ADMIN_SECRET_ANSWER=%s\n' "$INSTALL_ADMIN_SECRET_ANSWER"
+        printf 'INSTALL_ADMIN_PIN=%s\n' "$INSTALL_ADMIN_PIN"
+        printf 'INSTALL_MAIL_HOST=%s\n' "${INSTALL_MAIL_HOST:-}"
+        printf 'INSTALL_MAIL_PORT=%s\n' "${INSTALL_MAIL_PORT:-587}"
+        printf 'INSTALL_MAIL_SECURE=%s\n' "${INSTALL_MAIL_SECURE:-1}"
+        printf 'INSTALL_MAIL_USERNAME=%s\n' "${INSTALL_MAIL_USERNAME:-}"
+        printf 'INSTALL_MAIL_PASSWORD_B64=%s\n' "$INSTALL_MAIL_PASSWORD_B64_VALUE"
+        printf 'INSTALL_MAIL_FROM_ADDRESS=%s\n' "${INSTALL_MAIL_FROM_ADDRESS:-$APP_SYS_MAIL}"
+        printf 'INSTALL_MAIL_ADMIN_ADDRESS=%s\n' "${INSTALL_MAIL_ADMIN_ADDRESS:-${INSTALL_ADMIN_MAIL:-$APP_SYS_MAIL}}"
+        printf 'INSTALL_MAIL_ADMIN_LANG=%s\n' "${INSTALL_MAIL_ADMIN_LANG:-en}"
+        printf 'INSTALL_DEMO_ADMIN_NAME=%s\n' "${INSTALL_DEMO_ADMIN_NAME:-Demo Administrator}"
+        printf 'INSTALL_DEMO_ADMIN_LOGIN=%s\n' "${INSTALL_DEMO_ADMIN_LOGIN:-demo-admin}"
+        printf 'INSTALL_DEMO_ADMIN_PASSWORD=%s\n' "${INSTALL_DEMO_ADMIN_PASSWORD:-}"
+        printf 'INSTALL_DEMO_ADMIN_MAIL=%s\n' "${INSTALL_DEMO_ADMIN_MAIL:-demo-admin@$APP_DOMAIN}"
+        printf 'INSTALL_DEMO_ADMIN_SECRET_QUESTION=%s\n' "${INSTALL_DEMO_ADMIN_SECRET_QUESTION:-That is your demo name}"
+        printf 'INSTALL_DEMO_ADMIN_SECRET_ANSWER=%s\n' "${INSTALL_DEMO_ADMIN_SECRET_ANSWER:-$INSTALL_ADMIN_SECRET_ANSWER}"
+        printf 'INSTALL_DEMO_ADMIN_PIN=%s\n' "${INSTALL_DEMO_ADMIN_PIN:-$INSTALL_ADMIN_PIN}"
+        printf 'INSTALL_NO_LOGINS=%s\n' "${INSTALL_NO_LOGINS:-0}"
+        printf 'INSTALL_INT_CURR=%s\n' "${INSTALL_INT_CURR:-0}"
+        printf 'INSTALL_INT_CURR_ID=%s\n' "${INSTALL_INT_CURR_ID:-USD}"
+        printf 'INSTALL_TELEMETRY_STATS=%s\n' "${INSTALL_TELEMETRY_STATS:-1}"
+        printf 'CRON_ENABLED=%s\n' "${CRON_ENABLED:-1}"
+        printf 'CRON_URL=%s\n' "${CRON_URL:-http://app/cron}"
+        printf 'CRON_HOST_HEADER=%s\n' "${CRON_HOST_HEADER:-$APP_DOMAIN}"
+        printf 'CRON_INTERVAL_SECONDS=%s\n' "${CRON_INTERVAL_SECONDS:-60}"
+        printf 'CRON_TIMEOUT_SECONDS=%s\n' "${CRON_TIMEOUT_SECONDS:-30}"
+        printf 'CRON_START_DELAY_SECONDS=%s\n' "${CRON_START_DELAY_SECONDS:-10}"
+        printf 'SESSION_COOKIE_SECURE=%s\n' "${SESSION_COOKIE_SECURE:-1}"
+        printf 'SESSION_COOKIE_SAMESITE=%s\n' "${SESSION_COOKIE_SAMESITE:-Lax}"
+        printf 'SESSION_GC_MAXLIFETIME=%s\n' "${SESSION_GC_MAXLIFETIME:-2592000}"
+      } > .env
+    - docker compose --env-file .env config --quiet
+    - docker compose --env-file .env pull app cron
+    - |
+      if ! docker compose --env-file .env up -d --no-build --remove-orphans; then
+        docker compose --env-file .env ps || true
+        docker compose --env-file .env logs --no-color --tail=200 app cron database || true
+        docker compose --env-file .env exec -T app sh -c 'test ! -f logs/error.log || tail -200 logs/error.log' || true
+        exit 1
+      fi
+    - docker compose --env-file .env ps
+  environment:
+    name: staging
+
+release:promote-public:
+  stage: release
+  needs:
+    - job: package:shared-candidate
+      artifacts: false
+    - job: deploy:staging
+      artifacts: false
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+      when: manual
+  allow_failure: true
+  resource_group: public-source-promotion
+  script:
+    - umask 077
+    - |
+      test "${CI_COMMIT_SHA}" = "$(git rev-parse HEAD)"
+      SOURCE_TREE="$(git rev-parse "${CI_COMMIT_SHA}^{tree}")"
+      PUBLIC_TREE_FILES="$(mktemp)"
+      cleanup_public_tree_files() {
+        rm -f -- "${PUBLIC_TREE_FILES}"
+      }
+      trap cleanup_public_tree_files EXIT HUP INT TERM
+
+      git ls-tree -r --name-only "${CI_COMMIT_SHA}" > "${PUBLIC_TREE_FILES}"
+      if grep -Eq '(^|/)(\.agents|\.codex|docker/release)(/|$)|(^|/)(future_works?|release-process)\.md$' "${PUBLIC_TREE_FILES}"; then
+        echo "Forbidden private file found in the public release tree" >&2
+        exit 1
+      fi
+
+      git fetch origin release/public
+      PUBLIC_PARENT="$(git rev-parse FETCH_HEAD)"
+      RELEASE_AUTHOR_NAME="${GITLAB_USER_NAME:-H-Script Release Bot}"
+      git config user.name "${RELEASE_AUTHOR_NAME}"
+      git config user.email "no-reply@h-script.com"
+      PUBLIC_COMMIT="$(printf 'release: promote staging %s\n' "${CI_COMMIT_SHORT_SHA}" | git commit-tree "${SOURCE_TREE}" -p "${PUBLIC_PARENT}")"
+      test "${SOURCE_TREE}" = "$(git rev-parse "${PUBLIC_COMMIT}^{tree}")"
+
+      PUSH_URL="https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+      git push "${PUSH_URL}" "${PUBLIC_COMMIT}:refs/heads/release/public"
+      git fetch origin release/public
+      test "${PUBLIC_COMMIT}" = "$(git rev-parse FETCH_HEAD)"
+      printf 'Promoted %s to release/public as %s\n' "${CI_COMMIT_SHA}" "${PUBLIC_COMMIT}"
+
+publish:github-source:
+  stage: publish
+  needs:
+    - job: release:promote-public
+      artifacts: false
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+      when: manual
+  allow_failure: true
+  resource_group: public-github-source
+  script:
+    - umask 077
+    - |
+      : "${GITHUB_RELEASE_TOKEN:?Set protected masked GITHUB_RELEASE_TOKEN}"
+      git fetch origin release/public
+      PUBLIC_COMMIT="$(git rev-parse FETCH_HEAD)"
+      test "$(git rev-parse "${CI_COMMIT_SHA}^{tree}")" = "$(git rev-parse "${PUBLIC_COMMIT}^{tree}")"
+
+      GITHUB_AUTH="$(printf 'x-access-token:%s' "${GITHUB_RELEASE_TOKEN}" | base64 | tr -d '\n')"
+      GITHUB_URL="https://github.com/0x241/h-script.git"
+      git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
+        push "${GITHUB_URL}" "${PUBLIC_COMMIT}:refs/heads/main"
+      GITHUB_MAIN="$(git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
+        ls-remote "${GITHUB_URL}" refs/heads/main | awk '{print $1}')"
+      test "${PUBLIC_COMMIT}" = "${GITHUB_MAIN}"
+      printf 'Published release/public %s to GitHub main\n' "${PUBLIC_COMMIT}"
+
+release:promote-images:
+  stage: release
+  id_tokens:
+    SIGSTORE_ID_TOKEN:
+      aud: sigstore
+  needs:
+    - job: build:verify-release-candidate
+      artifacts: true
+    - job: package:shared-release
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+      when: manual
+  allow_failure: false
+  resource_group: public-container-release
+  script:
+    - umask 077
+    - |
+      : "${DOCKERHUB_USERNAME:?Set protected DOCKERHUB_USERNAME}"
+      : "${DOCKERHUB_TOKEN:?Set protected masked DOCKERHUB_TOKEN}"
+      : "${GHCR_USERNAME:?Set protected GHCR_USERNAME}"
+      : "${GHCR_TOKEN:?Set protected masked GHCR_TOKEN}"
+
+      RELEASE_DOCKER_CONFIG="$(mktemp -d)"
+      cleanup_public_release() {
+        if [ -n "${RELEASE_DOCKER_CONFIG:-}" ] && [ -d "${RELEASE_DOCKER_CONFIG}" ]; then
+          rm -rf -- "${RELEASE_DOCKER_CONFIG}"
+        fi
+      }
+      trap cleanup_public_release EXIT HUP INT TERM
+      export DOCKER_CONFIG="${RELEASE_DOCKER_CONFIG}"
+
+      printf '%s' "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" --username "${CI_REGISTRY_USER}" --password-stdin
+      printf '%s' "${DOCKERHUB_TOKEN}" | docker login docker.io --username "${DOCKERHUB_USERNAME}" --password-stdin
+      printf '%s' "${GHCR_TOKEN}" | docker login ghcr.io --username "${GHCR_USERNAME}" --password-stdin
+
+      VERSION="${CI_COMMIT_TAG#v}"
+      MINOR="${VERSION%.*}"
+      MAJOR="${VERSION%%.*}"
+      RELEASE_TAGS="${VERSION} ${MINOR} ${MAJOR} sha-${CI_COMMIT_SHORT_SHA}"
+      DOCKERHUB_IMAGE="docker.io/${DOCKERHUB_NAMESPACE}/${PUBLIC_IMAGE_NAME}"
+      GHCR_IMAGE="ghcr.io/${GHCR_NAMESPACE}/${PUBLIC_IMAGE_NAME}"
+
+      promote_image() {
+        source_image=$1
+        destination_repository=$2
+        shift 2
+
+        source_digest="$(docker buildx imagetools inspect "${source_image}" --format '{{.Manifest.Digest}}')"
+        test "${source_digest}" = "${CANDIDATE_DIGEST}"
+        for release_tag in "$@"; do
+          case "${release_tag}" in
+            *[!0-9A-Za-z._-]*|'') echo "Invalid destination tag: ${release_tag}" >&2; return 1 ;;
+          esac
+          destination="${destination_repository}:${release_tag}"
+          docker buildx imagetools create \
+            --tag "${destination}" \
+            "${source_image%@*}@${source_digest}"
+          destination_digest="$(docker buildx imagetools inspect "${destination}" --format '{{.Manifest.Digest}}')"
+          test "${destination_digest}" = "${source_digest}"
+          printf '%s@%s\n' "${destination}" "${destination_digest}"
+        done
+      }
+
+      mkdir -p dist
+      : > dist/published-images.txt
+      promote_image "${CANDIDATE_REF}" "${CI_REGISTRY_IMAGE}" ${RELEASE_TAGS} | tee -a dist/published-images.txt
+      promote_image "${CANDIDATE_REF}" "${DOCKERHUB_IMAGE}" ${RELEASE_TAGS} | tee -a dist/published-images.txt
+      promote_image "${CANDIDATE_REF}" "${GHCR_IMAGE}" ${RELEASE_TAGS} | tee -a dist/published-images.txt
+
+      for image in "${DOCKERHUB_IMAGE}" "${GHCR_IMAGE}"; do
+        docker run --rm \
+          --user "$(id -u):$(id -g)" \
+          --env HOME=/tmp \
+          --env SIGSTORE_ID_TOKEN \
+          --env COSIGN_YES=true \
+          --env DOCKER_CONFIG=/tmp/docker-config \
+          --volume "${DOCKER_CONFIG}:/tmp/docker-config:ro" \
+          ghcr.io/sigstore/cosign/cosign:v3.0.6@sha256:de9c65609e6bde17e6b48de485ee788407c9502fa08b8f4459f595b21f56cd00 \
+          sign \
+          --yes \
+          -a "com.gitlab.ci.pipeline.id=${CI_PIPELINE_ID}" \
+          -a "com.gitlab.ci.commit.sha=${CI_COMMIT_SHA}" \
+          -a "org.opencontainers.image.source=${CI_PROJECT_URL}" \
+          "${image}@${CANDIDATE_DIGEST}"
+        docker run --rm \
+          --user "$(id -u):$(id -g)" \
+          --env HOME=/tmp \
+          --env DOCKER_CONFIG=/tmp/docker-config \
+          --volume "${DOCKER_CONFIG}:/tmp/docker-config:ro" \
+          ghcr.io/sigstore/cosign/cosign:v3.0.6@sha256:de9c65609e6bde17e6b48de485ee788407c9502fa08b8f4459f595b21f56cd00 \
+          verify \
+          --certificate-identity "${CI_PROJECT_URL}//.gitlab-ci.yml@refs/tags/${CI_COMMIT_TAG}" \
+          --certificate-oidc-issuer "${CI_SERVER_URL}" \
+          "${image}@${CANDIDATE_DIGEST}"
+      done
+  artifacts:
+    paths:
+      - dist/published-images.txt
+      - dist/h-script-*-shared-hosting.tar.gz
+      - dist/h-script-*-shared-hosting.tar.gz.sigstore.json
+      - dist/SHA256SUMS
+    expire_in: never
+
+publish:shared-github-release:
+  stage: publish
+  needs:
+    - job: release:promote-images
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+      when: manual
+  allow_failure: false
+  resource_group: public-github-release
+  script:
+    - umask 077
+    - |
+      : "${GITHUB_RELEASE_TOKEN:?Set protected masked GITHUB_RELEASE_TOKEN}"
+
+      RELEASE_DOCKER_CONFIG="$(mktemp -d)"
+      cleanup_github_release() {
+        if [ -n "${RELEASE_DOCKER_CONFIG:-}" ] && [ -d "${RELEASE_DOCKER_CONFIG}" ]; then
+          rm -rf -- "${RELEASE_DOCKER_CONFIG}"
+        fi
+      }
+      trap cleanup_github_release EXIT HUP INT TERM
+      export DOCKER_CONFIG="${RELEASE_DOCKER_CONFIG}"
+      export GITHUB_TOKEN="${GITHUB_RELEASE_TOKEN}"
+      printf '%s' "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" --username "${CI_REGISTRY_USER}" --password-stdin
+
+      ARCHIVE="h-script-${CI_COMMIT_TAG#v}-shared-hosting.tar.gz"
+      CANDIDATE_REF="${CI_REGISTRY_IMAGE}:tree-$(git rev-parse 'HEAD^{tree}')"
+      docker run --rm \
+        --entrypoint /bin/sh \
+        --env GITHUB_TOKEN \
+        --env GITHUB_REPOSITORY=0x241/h-script \
+        --env "RELEASE_TAG=${CI_COMMIT_TAG}" \
+        --env "EXPECTED_SHA=${CI_COMMIT_SHA}" \
+        --env "ARCHIVE=${ARCHIVE}" \
+        --volume "${CI_PROJECT_DIR}/dist:/artifacts:ro" \
+        "${CANDIDATE_REF}" \
+        -s <<'RELEASE_SH'
+      set -eu
+      API="https://api.github.com/repos/${GITHUB_REPOSITORY}"
+      ACCEPT="Accept: application/vnd.github+json"
+      AUTH="Authorization: Bearer ${GITHUB_TOKEN}"
+      VERSION_HEADER="X-GitHub-Api-Version: 2022-11-28"
+
+      commit_status="$(curl -sS -o /tmp/commit.json -w '%{http_code}' \
+        -H "${ACCEPT}" -H "${AUTH}" -H "${VERSION_HEADER}" \
+        "${API}/commits/${RELEASE_TAG}")"
+      test "${commit_status}" = 200
+      actual_sha="$(php -r '$v=json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); echo $v["sha"] ?? "";' /tmp/commit.json)"
+      test "${actual_sha}" = "${EXPECTED_SHA}"
+
+      release_status="$(curl -sS -o /tmp/release.json -w '%{http_code}' \
+        -H "${ACCEPT}" -H "${AUTH}" -H "${VERSION_HEADER}" \
+        "${API}/releases/tags/${RELEASE_TAG}")"
+      if [ "${release_status}" = 404 ]; then
+        payload="$(php -r 'echo json_encode(["tag_name"=>$argv[1],"name"=>"H-Script ".substr($argv[1],1),"body"=>"Compiled shared-hosting release. Verify SHA256SUMS and the Sigstore bundle before installation.","draft"=>false,"prerelease"=>false,"make_latest"=>"true"], JSON_THROW_ON_ERROR);' "${RELEASE_TAG}")"
+        curl --fail-with-body -sS -o /tmp/release.json \
+          -X POST -H "${ACCEPT}" -H "${AUTH}" -H "${VERSION_HEADER}" \
+          -H 'Content-Type: application/json' --data "${payload}" \
+          "${API}/releases"
+      else
+        test "${release_status}" = 200
+      fi
+
+      upload_url="$(php -r '$v=json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); echo preg_replace("~\\{.*$~", "", $v["upload_url"] ?? "");' /tmp/release.json)"
+      test -n "${upload_url}"
+      for filename in "${ARCHIVE}" SHA256SUMS "${ARCHIVE}.sigstore.json"; do
+        test -s "/artifacts/${filename}"
+        exists="$(php -r '$v=json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); foreach (($v["assets"] ?? []) as $asset) { if (($asset["name"] ?? "") === $argv[2]) { echo "1"; exit; } } echo "0";' /tmp/release.json "${filename}")"
+        test "${exists}" = 0
+        encoded_name="$(php -r 'echo rawurlencode($argv[1]);' "${filename}")"
+        curl --fail-with-body -sS -o /tmp/upload.json \
+          -X POST -H "${ACCEPT}" -H "${AUTH}" -H "${VERSION_HEADER}" \
+          -H 'Content-Type: application/octet-stream' \
+          --data-binary "@/artifacts/${filename}" \
+          "${upload_url}?name=${encoded_name}"
+        printf 'Published %s\n' "${filename}"
+      done
+      RELEASE_SH

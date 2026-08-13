@@ -1,0 +1,57 @@
+
+{% include "admin/header.twig" with {"title": _t({"key": 'admin.refsys.title', "default": 'Настройки реферальной системы'})} %}
+
+{% set ref_method_options = {
+	0: _t({"key": 'admin.refsys.method.levels', "default": 'Процент по уровням'}),
+	2: _t({"key": 'admin.refsys.method.active_refs', "default": 'По количеству активных рефералов'}),
+	3: _t({"key": 'admin.refsys.method.ref_deposits', "default": 'По сумме вкладов рефералов'}),
+	4: _t({"key": 'admin.refsys.method.user_deposits', "default": 'По сумме активных вкладов пользователя'})
+} %}
+
+<div class="mb-6 rounded-xl border border-blue-100 bg-blue-50/70 p-5 text-sm text-blue-950 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
+	<div class="flex gap-4">
+		<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-500 text-white"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i></span>
+		<div class="space-y-2">
+			<h2 class="font-extrabold">{{ _t({"key": 'admin.refsys.help.title', "default": 'Как задавать уровни и проценты'}) }}</h2>
+			<p class="leading-6 opacity-80"><b>{{ _t({"key": 'admin.refsys.help.levels_label', "default": 'Процент по уровням:'}) }}</b> {{ _t({"key": 'admin.refsys.help.levels_intro', "default": 'одна строка соответствует одному уровню вверх. Например, строки'}) }} <code class="rounded bg-white/70 px-1.5 py-0.5 font-mono dark:bg-black/20">5</code>, <code class="rounded bg-white/70 px-1.5 py-0.5 font-mono dark:bg-black/20">3</code>, <code class="rounded bg-white/70 px-1.5 py-0.5 font-mono dark:bg-black/20">1</code> {{ _t({"key": 'admin.refsys.help.levels_tail', "default": 'означают 5% рефереру первого уровня, 3% второго и 1% третьего.'}) }}</p>
+			<p class="leading-6 opacity-80"><b>{{ _t({"key": 'admin.refsys.help.conditions_label', "default": 'Методы по условию:'}) }}</b> {{ _t({"key": 'admin.refsys.help.conditions_text', "default": 'указывайте порог и процент через дефис, по одной строке в порядке возрастания:'}) }} <code class="rounded bg-white/70 px-1.5 py-0.5 font-mono dark:bg-black/20">0-2</code>, <code class="rounded bg-white/70 px-1.5 py-0.5 font-mono dark:bg-black/20">10-3</code>, <code class="rounded bg-white/70 px-1.5 py-0.5 font-mono dark:bg-black/20">50-5</code>.</p>
+		</div>
+	</div>
+</div>
+
+{% include "edit.twig" with {
+	"values": cfg,
+	"fields": {
+		0: {
+			0: _t({"key": 'admin.refsys.main', "default": 'Основные параметры'}),
+			"icon": "fa-link",
+			"description": _t({"key": 'admin.refsys.main_text', "default": 'Включение реферальной системы и глубина отображаемой партнёрской структуры.'})
+		},
+		'Word': {0: 'T', 1: _t({"key": 'admin.refsys.word', "default": 'Параметр реферальной ссылки'}), 'comment': _t({"key": 'admin.refsys.word_hint', "default": 'Например, <b>ref</b> создаст ссылку вида <code>../?ref=login</code>. Пустое значение отключает реферальную систему.'}), 'hint': 'ref'},
+		'Force': {0: 'C', 1: _t({"key": 'admin.refsys.force', "default": 'Обновлять пригласителя в cookie'}), 'comment': _t({"key": 'admin.refsys.force_hint', "default": 'Если включено, новая реферальная ссылка заменит ранее сохраненного пригласителя.'})},
+		'Levels': {0: 'I', 1: _t({"key": 'admin.refsys.levels', "default": 'Отображаемых уровней'}), 'comment': _t({"key": 'admin.refsys.levels_hint', "default": 'Сколько уровней партнерской структуры показывать пользователю в кабинете.'}), 'default': 1},
+		10: {
+			0: _t({"key": 'admin.refsys.cashin', "default": 'Пополнение баланса'}),
+			"icon": "fa-wallet",
+			"description": _t({"key": 'admin.refsys.cashin_text', "default": 'Вознаграждение после подтверждённого пополнения пользовательского баланса.'})
+		},
+		'Type': {0: 'S', 1: _t({"key": 'admin.refsys.method', "default": 'Метод расчета'}), 2: _t({"key": 'admin.refsys.cashin_hint', "default": 'Вознаграждение рассчитывается после успешного пополнения баланса.'}), 3: ref_method_options},
+		'_Perc': {0: 'A', 1: _t({"key": 'admin.refsys.rates', "default": 'Проценты и пороги'}), 'comment': _t({"key": 'admin.refsys.rates_hint', "default": 'Для процентов по уровням: один процент на строку. Для методов по условию: <code>порог-процент</code>.'}), 'rows': 5, 'hint': "5\n3\n1"},
+		20: {
+			0: _t({"key": 'admin.refsys.deposit_open', "default": 'Открытие вклада'}),
+			"icon": "fa-piggy-bank",
+			"description": _t({"key": 'admin.refsys.deposit_open_text', "default": 'Разовое вознаграждение от суммы нового вклада реферала.'})
+		},
+		'DType': {0: 'S', 1: _t({"key": 'admin.refsys.method', "default": 'Метод расчета'}), 2: _t({"key": 'admin.refsys.deposit_open_hint', "default": 'Разовое вознаграждение от суммы нового вклада.'}), 3: ref_method_options},
+		'_DPerc': {0: 'A', 1: _t({"key": 'admin.refsys.rates', "default": 'Проценты и пороги'}), 'comment': _t({"key": 'admin.refsys.rates_hint', "default": 'Для процентов по уровням: один процент на строку. Для методов по условию: <code>порог-процент</code>.'}), 'rows': 5, 'hint': "5\n3\n1"},
+		30: {
+			0: _t({"key": 'admin.refsys.accrual', "default": 'Начисление по вкладу'}),
+			"icon": "fa-coins",
+			"description": _t({"key": 'admin.refsys.accrual_text', "default": 'Вознаграждение от каждого начисления прибыли по активному вкладу.'})
+		},
+		'PType': {0: 'S', 1: _t({"key": 'admin.refsys.method', "default": 'Метод расчета'}), 2: _t({"key": 'admin.refsys.accrual_hint', "default": 'Вознаграждение от каждого начисления прибыли по вкладу.'}), 3: ref_method_options},
+		'_PPerc': {0: 'A', 1: _t({"key": 'admin.refsys.rates', "default": 'Проценты и пороги'}), 'comment': _t({"key": 'admin.refsys.rates_hint', "default": 'Для процентов по уровням: один процент на строку. Для методов по условию: <code>порог-процент</code>.'}), 'rows': 5, 'hint': "5\n3\n1"}
+	}
+} %}
+
+{% include "admin/footer.twig" %}

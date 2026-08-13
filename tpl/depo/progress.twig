@@ -1,0 +1,48 @@
+{% set is_active = el.dState == 1 %}
+{% set period_progress = el.PeriodProgress|default(valueIf(is_active, 0, 100)) %}
+{% if period_progress > 100 %}
+	{% set period_progress = 100 %}
+{% elseif period_progress < 0 %}
+	{% set period_progress = 0 %}
+{% endif %}
+
+<div id="deposit-progress-live" class="relative overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-gray-900 to-black p-8 text-white shadow-xl"{% if is_active %} hx-get="{{ _link('ajax', false, 0) }}?module=depo&do=progress&id={{ el.dID }}" hx-trigger="every 5s" hx-target="#deposit-progress-live" hx-swap="outerHTML" hx-sync="this:replace"{% endif %}>
+	<div class="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl"></div>
+	<div class="relative z-10 grid grid-cols-1 gap-8 md:grid-cols-2">
+		<div>
+			<div class="mb-1 text-sm font-bold text-gray-400">{{ _t({"key": 'deposit.amount', "default": 'Сумма вклада'}) }}</div>
+			<div class="font-mono text-4xl font-bold">{{ _z(el.dZD, el.dcID, -1) }}</div>
+			<div class="mt-4 flex flex-wrap items-center gap-2 text-sm font-bold">
+				<div class="rounded bg-white/10 px-2 py-1">{{ el.cName }}</div>
+				<div class="rounded bg-emerald-500/20 px-2 py-1 text-emerald-400">{{ el.pName }}</div>
+			</div>
+		</div>
+
+		<div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+			<div class="mb-3 flex items-center justify-between gap-3">
+				<span class="text-sm font-bold text-gray-400">{{ _t({"key": 'deposit.progress', "default": 'Прогресс'}) }} ({{ el.PeriodNumber }} {{ _t({"key": 'common.of', "default": 'из'}) }} {% if el.PeriodTotal > 0 %}{{ el.PeriodTotal }}{% else %}&infin;{% endif %})</span>
+			</div>
+			<progress value="{{ period_progress }}" max="100" class="mb-3 h-2 w-full overflow-hidden rounded-full bg-black/50 align-middle [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-bar]:bg-black/50 [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:bg-emerald-500 [&::-moz-progress-bar]:bg-emerald-500"></progress>
+			{% if is_active and el.Timer %}
+				<div class="mb-4 flex items-center justify-between text-xs font-bold">
+					<span class="text-gray-400">{{ _t({"key": 'deposits.col.timer', "default": 'Таймер'}) }}</span>
+					{% if el.Timer.D == 0 and el.Timer.H == 0 and el.Timer.M == 0 and el.Timer.S == 0 %}
+						<span class="text-amber-400">{{ _t({"key": 'deposits.timer.pending', "default": 'Ожидает начисления'}) }}</span>
+					{% else %}
+						<span class="font-mono text-blue-300">{{ el.Timer.D }}д {% if el.Timer.H < 10 %}0{% endif %}{{ el.Timer.H }}:{% if el.Timer.M < 10 %}0{% endif %}{{ el.Timer.M }}:{% if el.Timer.S < 10 %}0{% endif %}{{ el.Timer.S }}</span>
+					{% endif %}
+				</div>
+			{% endif %}
+			<div class="grid grid-cols-2 gap-4 text-sm">
+				<div>
+					<div class="mb-1 text-gray-400">{{ _t({"key": 'deposit.profit', "default": 'Начислено'}) }}</div>
+					<div class="font-mono font-bold text-emerald-400">{{ _z(el.dZP, el.dcID, -1) }}</div>
+				</div>
+				<div>
+					<div class="mb-1 text-gray-400">{{ _t({"key": 'deposit.compound.short', "default": 'Реинвест'}) }}</div>
+					<div class="font-mono font-bold">{{ el.dCompnd|number_format(2, '.', ' ') }}%</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

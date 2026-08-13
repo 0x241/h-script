@@ -1,0 +1,22 @@
+{% if not isset(auth_form_name) %}{% set auth_form_name = getFormName('') %}{% endif %}
+{% if not isset(auth_captcha) %}{% set auth_captcha = 0 %}{% endif %}
+{% if not isset(auth_focus_class) %}{% set auth_focus_class = 'focus:border-blue-500 focus:ring-blue-500/10 dark:focus:border-blue-500 dark:focus:ring-blue-500/20' %}{% endif %}
+{% set auth_captcha_html = _getFormCaptcha({"form": auth_form_name, "captcha": auth_captcha}) %}
+{% set auth_captcha_error = formErrorText(auth_form_name, {'captcha_wrong': _t({"key": 'captcha.wrong', "default": 'неверный код'})}, true) %}
+{% set auth_captcha_service = _cfg.Captcha_Service|default('turnstile') %}
+{% if auth_captcha_html %}
+	<div class="hs-captcha-shell w-full">
+		{% if auth_captcha_service == 'default' %}
+			<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ auth_form_name }}_capt">{{ _t({"key": 'captcha.enter_code', "default": 'Код с картинки'}) }}</label>
+			<div class="grid min-w-0 gap-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
+				<div class="hs-captcha-image overflow-hidden rounded">{{ auth_captcha_html|raw }}</div>
+				<input name="__Capt" id="{{ auth_form_name }}_capt" type="text" placeholder="{{ _t({"key": 'captcha.placeholder', "default": 'Введите код'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-3 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:ring-4 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 {{ auth_focus_class }}">
+			</div>
+		{% else %}
+			<div class="w-full">{{ auth_captcha_html|raw }}</div>
+		{% endif %}
+		{% if auth_captcha_error %}
+			<p class="mt-2 text-sm font-semibold text-red-500">{{ auth_captcha_error }}</p>
+		{% endif %}
+	</div>
+{% endif %}

@@ -1,0 +1,14 @@
+<div id="admin-operation-preview-content" class="grid gap-3 sm:grid-cols-3" aria-live="polite">
+	<div class="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
+		<span class="block text-xs font-extrabold uppercase text-gray-400">{{ _t({"key": 'balance.preview.currency', "default": 'Валюта'}) }}</span>
+		<strong class="mt-2 block font-mono text-lg text-brand dark:text-white">{{ preview_currency|default('—') }}</strong>
+	</div>
+	<div class="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
+		<span class="block text-xs font-extrabold uppercase text-gray-400">{{ _t({"key": 'balance.commission', "default": 'Комиссия'}) }}</span>
+		<strong class="mt-2 block font-mono text-lg text-brand dark:text-white">{{ preview_commission|default('—') }}</strong>
+	</div>
+	<div class="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
+		<span class="block text-xs font-extrabold uppercase text-gray-400">{% if oper == 'CASHIN' %}{{ _t({"key": 'balance.preview.credit', "default": 'К пополнению'}) }}{% else %}{{ _t({"key": 'balance.preview.receive', "default": 'К получению'}) }}{% endif %}</span>
+		<strong class="mt-2 block font-mono text-lg text-emerald-600 dark:text-emerald-400">{{ preview_total|default('—') }}</strong>
+	</div>
+</div>

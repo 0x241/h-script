@@ -1,0 +1,17 @@
+	{% if not short %}
+			</div>
+			<footer class="mt-auto border-t border-gray-100 bg-white/60 px-6 py-5 backdrop-blur-xl dark:border-gray-800 dark:bg-[#151515]/60">
+				<div class="mx-auto flex w-full max-w-7xl flex-col gap-3 text-sm font-medium text-gray-400 sm:flex-row sm:items-center sm:justify-between">
+					<div>
+						<strong class="text-brand dark:text-white">{{ _cfg.Sys_SiteName }}</strong> &copy; {% if isset(tpl_time) %}{{ tpl_time|date_format("%Y") }}{% else %}2026{% endif %} - {{ _t({"key": 'site.fintech_cms', "default": 'финансовая CMS'}) }}
+					</div>
+					<a href="{{ fullURL() }}#content" hx-boost="false" class="inline-flex items-center gap-2 rounded-full px-4 py-2 font-bold text-gray-500 transition-colors hover:bg-gray-100 hover:text-brand dark:text-gray-300 dark:hover:bg-[#202020] dark:hover:text-white">
+						<i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+						<span>{{ _t({"key": 'site.back_to_top', "default": 'Наверх'}) }}</span>
+					</a>
+				</div>
+			</footer>
+		</main>
+	{% endif %}
+</body>
+</html>

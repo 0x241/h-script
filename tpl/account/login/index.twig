@@ -1,0 +1,109 @@
+{% include "external/auth.header.twig" with {"title": _t({"key": 'nav.login', "default": 'Вход в кабинет'})} %}
+
+{% set login_form_name = getFormName('login_frm') %}
+{% set txt_login = valueIf(_cfg.Const_NoLogins, _t({"key": 'auth.field.email', "default": 'E-mail'}), _t({"key": 'auth.field.login', "default": 'Логин'})) %}
+{% set login_value = '' %}
+{% if isset_IN('Login') %}{% set login_value = _IN('Login') %}{% endif %}
+{% set login_error = formErrorText(login_form_name, {
+	'login_empty': _t({"key": 'auth.error.login_empty', "login": txt_login, "default": 'Укажите {{login}}/пароль'}),
+	'login_not_found': _t({"key": 'auth.error.login_not_found', "login": txt_login, "default": 'Неверная пара {{login}}/пароль'}),
+	'not_active': _t({"key": 'auth.error.not_active', "default": 'E-mail аккаунта не подтверждён'}),
+	'banned': _t({"key": 'auth.error.banned', "date": ban_date, "default": 'Доступ в аккаунт приостановлен до {{date}}'}),
+	'blocked': _t({"key": 'auth.error.blocked', "default": 'Аккаунт заблокирован'})
+}, true) %}
+{% set pass_error = formErrorText(login_form_name, {'GA_wrong': _t({"key": 'auth.error.ga_wrong', "default": 'Неверный код Google Authenticator'})}, true) %}
+
+<main class="flex min-h-screen">
+	<section class="relative z-10 flex w-full flex-col justify-between bg-white p-6 dark:bg-[#0A0A0A] sm:p-12 lg:w-1/2">
+		<div class="mb-10 flex items-center justify-between">
+			{% include "external/auth.logo.twig" %}
+			{% include "external/auth.controls.twig" %}
+		</div>
+
+		<div class="mx-auto my-auto w-full max-w-md">
+			<h1 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'auth.login.title', "default": 'С возвращением'}) }}</h1>
+			<p class="mb-8 text-textDim dark:text-gray-400">{{ _t({"key": 'auth.login.text', "default": 'Войдите в личный кабинет для управления активами.'}) }}</p>
+
+			{% if demo %}
+				<div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+					<div class="font-bold">{{ _t({"key": 'home.demo.line1'}) }}</div>
+					<div class="text-sm">{{ _t({"key": 'home.demo.line2'}) }}</div>
+				</div>
+			{% endif %}
+
+			{% if isset(_GET.ip_changed) %}
+				<div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+					<div class="font-bold">{{ _t({"key": 'auth.security.title', "default": 'Система безопасности'}) }}</div>
+					<div class="text-sm">{{ _t({"key": 'auth.ip_changed.text', "default": 'Вы пытаетесь войти в аккаунт с другого IP-адреса.'}) }} <a href="{{ _link('confirm', false, 0) }}" class="font-bold underline">{{ _t({"key": 'auth.confirm_code', "default": 'Введите код подтверждения'}) }}</a>.</div>
+				</div>
+			{% elseif isset(_GET.brute_force) %}
+				<div class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+					<div class="font-bold">{{ _t({"key": 'auth.bruteforce.title', "default": 'Система защиты от подбора'}) }}</div>
+					<div class="text-sm">{{ _t({"key": 'auth.bruteforce.text', "default": 'Зафиксировано несколько неверных попыток ввода пароля.'}) }} <a href="{{ _link('confirm', false, 0) }}" class="font-bold underline">{{ _t({"key": 'auth.confirm_code', "default": 'Введите код подтверждения'}) }}</a>.</div>
+				</div>
+			{% else %}
+				{% if url %}
+					<div class="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+						<div class="font-bold">{{ _t({"key": 'auth.required.title', "default": 'Авторизация'}) }}</div>
+						<div class="text-sm">{{ _t({"key": 'auth.required.text', "default": 'Запрашиваемая страница требует авторизации.'}) }}</div>
+					</div>
+				{% endif %}
+				{% if _cfg.Sys_LockSite %}
+					<div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+						<div class="font-bold">{{ _t({"key": 'auth.lock.title', "default": 'Технические работы'}) }}</div>
+						<div class="text-sm">{{ _t({"key": 'auth.lock.text', "default": 'В настоящее время на сайте идут технические работы. Вход только для обслуживающего персонала.'}) }}</div>
+					</div>
+				{% endif %}
+
+				<form method="post" action="{{ _link('account/login', false, 0) }}" name="{{ login_form_name }}" class="space-y-5">
+					{{ _getFormSecurity({"form": login_form_name}) }}
+					<input name="URL" value="{{ url }}" type="hidden">
+					<div>
+						<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ login_form_name }}_Login">{{ txt_login }}</label>
+						<input name="Login" id="{{ login_form_name }}_Login" value="{{ login_value }}" type="text" placeholder="{{ _t({"key": 'auth.placeholder.login_email', "default": 'admin@example.com'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20" autocomplete="username">
+						{% if login_error %}
+							<p class="mt-2 text-sm font-semibold text-red-500">{{ login_error }}</p>
+						{% endif %}
+					</div>
+					<div>
+						<div class="mb-2 flex items-center justify-between">
+							<label class="block text-sm font-bold text-brand dark:text-gray-300" for="{{ login_form_name }}_Pass">{{ _t({"key": 'auth.field.password', "default": 'Пароль'}) }}</label>
+							<a href="{{ _link('account/reset_pass', false, 0) }}" class="text-sm font-bold text-blue-600 transition-colors hover:text-blue-500">{{ _t({"key": 'auth.forgot_password', "default": 'Забыли пароль?'}) }}</a>
+						</div>
+						{% include "external/auth.password.twig" with {"password_name": 'Pass', "password_id": login_form_name ~ '_Pass', "password_autocomplete": 'current-password', "password_focus_class": 'focus:border-blue-500 focus:ring-blue-500/10 dark:focus:border-blue-500 dark:focus:ring-blue-500/20'} %}
+						{% if pass_error %}
+							<p class="mt-2 text-sm font-semibold text-red-500">{{ pass_error }}</p>
+						{% endif %}
+					</div>
+					{% include "external/auth.captcha.twig" with {"auth_form_name": login_form_name, "auth_captcha": _cfg.Account_LoginCaptcha} %}
+					<label class="flex items-center gap-3 pt-2 text-sm font-medium text-brand dark:text-gray-300">
+						<input name="Remember" value="1" type="checkbox" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:outline-none focus:ring-0 focus:ring-offset-0">
+						<span>{{ _t({"key": 'auth.remember', "default": 'Запомнить меня на этом устройстве'}) }}</span>
+					</label>
+					<button name="{{ login_form_name }}_btn" value="{{ _t({"key": 'nav.login', "default": 'Войти'}) }}" type="submit" class="mt-4 w-full rounded-2xl bg-brand p-4 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#2D2D2D] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-white dark:text-brand dark:hover:bg-gray-100">{{ _t({"key": 'auth.login.submit', "default": 'Войти в систему'}) }}</button>
+				</form>
+
+				{% if not _cfg.Sys_LockSite and _cfg.Account_RegMode >= 0 %}
+					<p class="mt-8 text-center text-textDim dark:text-gray-400">
+						{{ _t({"key": 'auth.no_account', "default": 'Нет аккаунта?'}) }} <a href="{{ _link('account/register', false, 0) }}" class="font-bold text-brand hover:underline dark:text-white">{{ _t({"key": 'auth.create_account', "default": 'Создать аккаунт'}) }}</a>
+					</p>
+				{% endif %}
+			{% endif %}
+		</div>
+
+		<div class="mt-10 text-center text-sm text-gray-400">{% include "external/product-copyright.twig" %}</div>
+	</section>
+
+	<aside class="relative hidden w-1/2 flex-col items-center justify-center overflow-hidden bg-brand p-12 lg:flex">
+		<div class="absolute inset-0 bg-gradient-to-br from-blue-600/20 via-purple-600/20 to-transparent"></div>
+		<div class="relative z-10 max-w-lg text-center">
+			<div class="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl border border-white/20 bg-white/10 text-white shadow-2xl backdrop-blur-md">
+				<i class="fa-solid fa-shield-halved text-4xl"></i>
+			</div>
+			<h2 class="mb-6 text-4xl font-bold text-white">{{ _t({"key": 'auth.login.aside_title', "default": 'Абсолютная защита'}) }}</h2>
+			<p class="text-xl font-medium leading-relaxed text-gray-400">{{ _t({"key": 'auth.login.aside_text', "default": 'Ваши средства и данные защищены многоуровневым шифрованием, двухфакторной аутентификацией и смарт-контрактами.'}) }}</p>
+		</div>
+	</aside>
+</main>
+
+{% include "external/auth.footer.twig" %}

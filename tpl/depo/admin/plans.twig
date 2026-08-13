@@ -1,0 +1,12 @@
+
+{% include "admin/header.twig" with {"title": 'Планы'} %}
+
+{% include "list.twig" with {"title": 'Планы', "url": '*', "fields": {'pID': ['ID'], 'pHidden': ['<small>Невид.</small>'], 'pNoCalc': ['<small>Не начислять</small>'], 'pGroup': ['Группа'], 'pName': ['Наменование'], 'pMin': ['Мин.'], 'pMax': ['Макс.'], 'pDays': ['Длит.'], 'pPerc': ['<small>Процент</small>'], 'z': ['<small>Всего вкладов</small>'], 'za': ['<small>Акт. вкладов</small>']}, "values": list, "row": '*', "btns": {'del': 'Удалить'}} %}
+
+<div class="mt-6 flex justify-center">
+	<a href="{{ _link('depo/admin/plan', false, 0) }}?add" class="inline-flex min-w-48 items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+		<i class="fa-solid fa-circle-plus" aria-hidden="true"></i><span>Добавить</span>
+	</a>
+</div>
+
+{% include "admin/footer.twig" %}

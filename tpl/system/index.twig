@@ -1,0 +1,16 @@
+
+{% include "header.twig" with {"title": 'Interface'} %}
+<div class="auth-layout auth-layout--compact">
+	<div class="auth-panel">
+		<h1>Select interface</h1>
+		{% include "edit.twig" with {"url": '*', "fields": {'lang': {0: 'S', 1: 'Language', 2: 0, 3: {'en': 'English', 'ru': 'Русский'}, 'default': _SESSION._lang}}, "btn_text": 'Select'} %}
+	</div>
+	<aside class="auth-aside auth-aside--blue">
+		<span class="auth-aside__icon" aria-hidden="true">
+			<i class="fa-solid fa-globe"></i>
+		</span>
+		<h3>Global Interface</h3>
+		<p>Select your preferred interface language to continue working with the system.</p>
+	</aside>
+</div>
+{% include "footer.twig" %}

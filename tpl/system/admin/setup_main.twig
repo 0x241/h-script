@@ -1,0 +1,23 @@
+
+{% include "admin/header.twig" with {"title": _t({"key": 'admin.main.title', "default": 'Основные'})} %}
+
+{% if cfg.NeedReConfig %}
+	<aside class="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+		<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+		{{ _t({"key": 'admin.main.reconfigure', "default": 'Проверьте все настройки скрипта'}) }}
+	</aside>
+{% endif %}
+
+{% set out_ip_country %}{% include "_country.twig" with {"ip": ip} %}{% endset %}
+{% set out_ip_value = '<span class="inline-flex flex-wrap items-center gap-3"><span class="whitespace-nowrap font-mono">'|cat(ip_display)|cat('</span>')|cat(out_ip_country)|cat('</span>') %}
+{% include "edit.twig" with {"values": cfg, "fields": {
+	'SiteName': ['T', _t({"key": 'admin.main.site_name', "default": 'Наименование сайта'})],
+	'ForceCharset': ['C', _t({"key": 'admin.main.force_charset', "default": 'Выставлять заголовок "Кодировка utf-8" <<для некоторых хостингов>>'})],
+	'AdminMail': ['T', _t({"key": 'admin.main.admin_mail', "default": 'E-mail для системных уведомлений'}), _t({"key": 'admin.main.admin_mail_hint', "default": 'Независимый служебный адрес. Его изменение не меняет e-mail учетной записи администратора uLevel 99.'})],
+	'NotifyMail': ['T', _t({"key": 'admin.main.notify_mail', "default": 'E-mail отправителя уведомлений'}), _t({"key": 'admin.main.notify_mail_hint', "default": 'Адрес, который будет указан в поле From исходящих писем.'})],
+	'AdminLang': ['S', _t({"key": 'admin.main.admin_lang', "default": 'Язык системных писем администратору'}), 0, available_languages],
+	'LockSite': ['C', _t({"key": 'admin.main.lock_site', "default": 'Технические работы <<запрет входа на сайт>>'})],
+	'OutIP': {0: 'X', 1: _t({"key": 'admin.main.out_ip', "default": 'Исходящий IP сервера'}), 'default': out_ip_value}
+}} %}
+
+{% include "admin/footer.twig" %}

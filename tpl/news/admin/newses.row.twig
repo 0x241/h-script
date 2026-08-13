@@ -1,0 +1,19 @@
+
+<td>
+	{{ l.nID }}
+</td>
+<td class="nowrap">
+	<small>{{ l.nTS }}</small>
+</td>
+<td class="max-w-80">
+	<a href="{{ _link('news/admin/news', false, 0) }}?id={{ l.nID }}" class="block max-w-80 truncate" title="{{ l.nAnnounce }}">{{ l.nAnnounce }}</a>
+</td>
+<td>
+	<small>{{ l.nDBegin }}</small>
+</td>
+<td>
+	<small>{{ l.nDEnd }}</small>
+</td>
+<td>
+	{% if l.nAttn %}Да{% endif %}
+</td>

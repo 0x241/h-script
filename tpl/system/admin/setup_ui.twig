@@ -1,0 +1,24 @@
+
+{% include "admin/header.twig" with {"title": _t({"key": 'admin.ui.title', "default": 'Интерфейс'})} %}
+
+{% include "edit.twig" with {
+	"values": cfg,
+	"fields": {
+		0: {
+			0: _t({"key": 'admin.ui.language_time', "default": 'Язык и время'}),
+			"icon": "fa-language",
+			"description": _t({"key": 'admin.ui.language_time_text', "default": 'Доступные локали интерфейса и базовый часовой пояс проекта.'})
+		},
+		"_Langs": {0: "A", 1: _t({"key": 'admin.ui.languages', "default": 'Языки интерфейса'}), "comment": _t({"key": 'admin.ui.languages_hint', "default": 'Одна строка — одно имя подпапки в <code>/tpl/</code>.'}), "rows": 4},
+		"DefaultTZ": {0: "I", 1: _t({"key": 'admin.ui.timezone', "default": 'Часовой пояс по умолчанию'}), "comment": _t({"key": 'admin.ui.timezone_hint', "default": 'Смещение от GMT в часах. Например, <b>+3</b> для Москвы.'})},
+		10: {
+			0: _t({"key": 'admin.ui.display', "default": 'Отображение'}),
+			"icon": "fa-display",
+			"description": _t({"key": 'admin.ui.display_text', "default": 'Поведение приветственной страницы и формат денежных значений.'})
+		},
+		"ShowIntro": {0: "S", 1: (_t({"key": 'admin.ui.show_intro_prefix', "default": 'Показывать'}) ~ " <a href=\"" ~ (_link('udp/intro', false, 0)) ~ "\" target=\"_blank\">" ~ _t({"key": 'admin.ui.show_intro_link', "default": 'страницу-приветствие'}) ~ "</a>"), 3: {0: _t({"key": 'admin.ui.never', "default": 'никогда'}), 1: _t({"key": 'admin.ui.first_visit', "default": 'только при первом заходе'}), 2: _t({"key": 'admin.security.always', "default": 'всегда'})}},
+		"NumDec": {0: "S", 1: _t({"key": 'admin.ui.decimals', "default": 'Знаков после запятой'}), 3: {0: _t({"key": 'admin.ui.no_decimals', "default": 'нет (целые числа)'}), 1: "1 (.0)", 2: "2 (.00)", 3: "3 (.000)"}}
+	}
+} %}
+
+{% include "admin/footer.twig" %}

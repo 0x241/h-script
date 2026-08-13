@@ -1,0 +1,201 @@
+{% include "header.twig" with {"title": _t({"key": 'wallets.title', "default": 'Платежные реквизиты'})} %}
+
+{% set wallets_form_name = getFormName('') %}
+{% set wallets_info = getInfoData(wallets_form_name) %}
+
+{% if not wfields %}
+	<div class="mx-auto w-full max-w-4xl">
+		<div class="rounded-[1.5rem] border border-gray-100 bg-white p-10 text-center shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-2xl text-gray-400 dark:bg-[#202020]">
+				<i class="fa-solid fa-wallet" aria-hidden="true"></i>
+			</div>
+			<h2 class="text-2xl font-bold text-brand dark:text-white">{{ _t({"key": 'wallets.empty.title', "default": 'Платежные системы не подключены'}) }}</h2>
+			<p class="mx-auto mt-2 max-w-xl text-sm text-gray-500">{{ _t({"key": 'wallets.empty.text', "default": 'В данный момент администратор не активировал платежные шлюзы для ввода реквизитов.'}) }}</p>
+		</div>
+	</div>
+{% else %}
+	{% if _cfg.Const_IntCurr %}
+		{% set wfields = merge_arrays({'DefCurr': {0: 'S', 1: _t({"key": 'wallets.default_psys', "default": 'Плат. система по умолчанию!!'}), 2: {'psys_wrong': _t({"key": 'wallets.error.psys_wrong', "default": 'укажите плат.систему'})}, 3: merge_arrays({0: _t({"key": 'form.select', "default": '- выберите -'})}, defcurr), 'default': user.aDefCurr}}, wfields) %}
+	{% endif %}
+
+	{% if showbutton and (_cfg.Sec_MinPIN > 0) %}
+		{% set wfields = array_append(wfields|default([]), '') %}
+		{% set wfields = array_set_path(wfields|default([]), ['PIN'], {0: '*', 1: _t({"key": 'wallets.pin', "default": 'Введите PIN-код!!<<чтобы подтвердить изменения>>'}), 2: {'pin_wrong': _t({"key": 'account.error.pin_wrong', "default": 'неверный код'})}, 'size': 8}) %}
+	{% endif %}
+
+	<div class="mx-auto w-full max-w-6xl">
+		<div class="mb-8">
+			<h2 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'wallets.heading', "default": 'Платежные реквизиты'}) }}</h2>
+			<p class="text-textDim dark:text-gray-400">{{ _t({"key": 'wallets.text', "default": 'Настройте адреса ваших кошельков для вывода заработанных средств.'}) }}</p>
+		</div>
+
+		{% if wallets_info %}
+			{% include "info.messages.twig" %}
+			{% if info_msg[wallets_info[0]] %}
+				<div class="mb-8 rounded-[1.5rem] border p-5 {% if substr(wallets_info[0], 0, 1) == '*' %}border-red-200 bg-red-50 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100{% else %}border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100{% endif %}">
+					<div class="flex items-center gap-3 font-bold">
+						<i class="fa-solid {% if substr(wallets_info[0], 0, 1) == '*' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}" aria-hidden="true"></i>
+						{{ info_msg[wallets_info[0]] }}
+					</div>
+				</div>
+			{% endif %}
+		{% endif %}
+
+		<div class="flex flex-col gap-8 lg:flex-row">
+			<div class="flex-1">
+				<form method="post" action="{{ _selfLink }}" name="{{ wallets_form_name }}" class="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515] sm:p-8">
+					{{ _getFormSecurity({"form": wallets_form_name}) }}
+					<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+						{% set wallet_section = '' %}
+						{% for f, v in wfields %}
+							{% if is_array(v) %}
+								{% if not (isset(v.skip) and v.skip) %}
+									{% if not isset(v[2]) %}{% set v = array_set_path(v|default([]), [2], []) %}{% endif %}
+									{% if not isset(v[3]) %}{% set v = array_set_path(v|default([]), [3], []) %}{% endif %}
+									{% if not isset(v.default) %}{% set v = array_set_path(v|default([]), ["default"], '') %}{% endif %}
+									{% if not isset(v.readonly) %}{% set v = array_set_path(v|default([]), ["readonly"], false) %}{% endif %}
+									{% if not isset(v.disabled) %}{% set v = array_set_path(v|default([]), ["disabled"], false) %}{% endif %}
+									{% if not isset(v.multiple) %}{% set v = array_set_path(v|default([]), ["multiple"], false) %}{% endif %}
+									{% if not isset(v.comment) %}{% set v = array_set_path(v|default([]), ["comment"], '') %}{% endif %}
+									{% set field_type = v[0]|default('T') %}
+									{% set field_id = wallets_form_name ~ '_' ~ f %}
+									{% set field_caption = str_replace('!!', '', str_replace('<<', ' (', str_replace('>>', ')', v[1]))) %}
+									{% set field_title = wallet_section ? wallet_section : field_caption %}
+									{% set field_hint = v.comment %}
+									{% if not field_hint %}
+										{% set lower_title = field_title|lower %}
+										{% if ('bitcoin' in lower_title) or ('btc' in lower_title) %}
+											{% set field_hint = _t({"key": 'wallets.hint.btc', "default": 'Пример: 1A1zP1... или bc1...'}) %}
+										{% elseif ('ethereum' in lower_title) or ('erc' in lower_title) or ('eth' in lower_title) %}
+											{% set field_hint = _t({"key": 'wallets.hint.eth', "default": 'Пример: 0x... (адрес в сети ERC-20)'}) %}
+										{% elseif ('usdt' in lower_title) or ('tether' in lower_title) or ('tron' in lower_title) or ('trc' in lower_title) %}
+											{% set field_hint = _t({"key": 'wallets.hint.usdt', "default": 'Пример: T... или адрес в нужной сети'}) %}
+										{% elseif f == 'DefCurr' %}
+											{% set field_hint = _t({"key": 'wallets.hint.default', "default": 'Используется для быстрых расчетов.'}) %}
+										{% elseif f == 'PIN' %}
+											{% set field_hint = _t({"key": 'wallets.hint.pin', "default": 'Введите секретный PIN-код для подтверждения.'}) %}
+										{% else %}
+											{% set field_hint = _t({"key": 'wallets.hint.default_field', "default": 'Укажите номер счета или адрес кошелька.'}) %}
+										{% endif %}
+									{% endif %}
+
+									{% set field_value = '' %}
+									{% if isset_IN(f) %}
+										{% set field_value = _IN(f) %}
+									{% elseif f == 'DefCurr' %}
+										{% set field_value = v.default %}
+									{% elseif strpos(f, '[') != false %}
+										{% set wallet_code = substr(f, 0, strpos(f, '[')) %}
+										{% set wallet_key = str_replace(']', '', substr(f, strpos(f, '[') + 1)) %}
+										{% if isset(wdata[wallet_code]) and isset(wdata[wallet_code][wallet_key]) %}
+											{% set field_value = wdata[wallet_code][wallet_key] %}
+										{% endif %}
+									{% elseif v.default %}
+										{% set field_value = v.default %}
+									{% endif %}
+
+									{% set field_error_text = is_array(v[2]) ? formErrorText(wallets_form_name, v[2], true) : '' %}
+									{% set field_hint_clean = str_replace('[', '', str_replace(']', '', field_hint)) %}
+									{% set lower_title = field_title|lower %}
+									{% set icon_class = 'fa-solid fa-wallet' %}
+									{% set icon_color = 'bg-blue-100 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400' %}
+									{% if ('bitcoin' in lower_title) or ('btc' in lower_title) %}
+										{% set icon_class = 'fa-brands fa-bitcoin' %}
+										{% set icon_color = 'bg-orange-100 text-orange-500 dark:bg-orange-900/30 dark:text-orange-400' %}
+									{% elseif ('ethereum' in lower_title) or ('eth' in lower_title) %}
+										{% set icon_class = 'fa-brands fa-ethereum' %}
+										{% set icon_color = 'bg-blue-100 text-blue-500 dark:bg-blue-900/30 dark:text-blue-400' %}
+									{% elseif ('perfect' in lower_title) %}
+										{% set icon_class = 'fa-solid fa-u' %}
+										{% set icon_color = 'bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400' %}
+									{% elseif ('payeer' in lower_title) %}
+										{% set icon_class = 'fa-solid fa-p' %}
+									{% elseif f == 'PIN' %}
+										{% set icon_class = 'fa-solid fa-lock' %}
+										{% set icon_color = 'bg-emerald-100 text-emerald-500 dark:bg-emerald-900/30 dark:text-emerald-400' %}
+									{% elseif f == 'DefCurr' %}
+										{% set icon_class = 'fa-solid fa-star' %}
+										{% set icon_color = 'bg-amber-100 text-amber-500 dark:bg-amber-900/30 dark:text-amber-400' %}
+									{% endif %}
+
+									<div class="{% if f == 'PIN' or f == 'DefCurr' %}sm:col-span-2 {% endif %}rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#1A1A1A]">
+										<label class="mb-2 flex items-center gap-2 text-sm font-bold text-brand dark:text-gray-300" for="{{ field_id }}">
+											<span class="flex h-6 w-6 items-center justify-center rounded-full text-xs {{ icon_color }}"><i class="{{ icon_class }}" aria-hidden="true"></i></span>
+											{{ field_title }}
+										</label>
+										{% if (field_type == 'S') and is_array(v[3]) %}
+											<div class="relative">
+												<select name="{{ f }}{% if v.multiple %}[]{% endif %}" id="{{ field_id }}" class="w-full appearance-none rounded-xl border border-black/10 bg-white px-5 py-3 pr-12 font-medium text-brand outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white"{% if v.multiple %} multiple="multiple"{% endif %}{% if v.readonly or v.disabled %} disabled{% endif %}>
+													{% for k, i in v[3] %}
+												<option value="{{ k }}"{% if (field_value == k) or (v.multiple and is_array(field_value) and in_array(k, field_value)) %} selected{% endif %}>{{ i }}</option>
+													{% endfor %}
+												</select>
+												{% if not v.multiple %}<i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400" aria-hidden="true"></i>{% endif %}
+											</div>
+										{% elseif in_array(field_type, ['P', '*']) %}
+											{% include "external/auth.password.twig" with {"password_name": f, "password_id": field_id, "password_placeholder": '••••', "password_autocomplete": 'one-time-code'} %}
+										{% else %}
+											<input name="{{ f }}" id="{{ field_id }}" value="{{ field_value }}" type="{% if field_type == 'I' %}number{% else %}text{% endif %}" placeholder="{{ field_hint_clean }}" class="w-full rounded-xl border border-black/10 bg-white px-5 py-3 font-mono font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500"{% if v.readonly %} readonly{% endif %}{% if v.disabled %} disabled{% endif %}>
+										{% endif %}
+										<p class="mt-2 text-xs text-gray-400">{{ field_hint_clean }}</p>
+										{% if field_error_text %}<p class="mt-2 text-sm font-semibold text-red-500">{{ field_error_text }}</p>{% endif %}
+										{% if (v.readonly or v.disabled) and field_type != 'X' %}
+											<input name="{{ f }}" value="{{ field_value }}" type="hidden">
+										{% endif %}
+									</div>
+								{% endif %}
+							{% else %}
+								{% set wallet_section = v %}
+							{% endif %}
+						{% endfor %}
+					</div>
+
+					{% set lost_wallet_error = formErrorText(wallets_form_name) %}
+					{% if lost_wallet_error %}
+						<div class="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">{{ lost_wallet_error }}</div>
+					{% endif %}
+
+					{% if showbutton %}
+						<div class="flex justify-end pt-8">
+							<button name="{{ wallets_form_name }}_btn" value="{{ _t({"key": 'wallets.save', "default": 'Сохранить реквизиты'}) }}" type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-brand px-10 py-4 text-lg font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100 sm:w-auto">
+								<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+								{{ _t({"key": 'wallets.save', "default": 'Сохранить реквизиты'}) }}
+							</button>
+						</div>
+					{% endif %}
+				</form>
+			</div>
+
+			<aside class="w-full shrink-0 lg:w-80">
+				<div class="sticky top-28 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-[#151515]">
+					<h3 class="mb-6 text-lg font-bold text-brand dark:text-white">{{ _t({"key": 'wallets.security.title', "default": 'Правила безопасности'}) }}</h3>
+					<div class="space-y-6">
+						<div class="flex gap-4">
+							<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><i class="fa-solid fa-shield-halved text-sm" aria-hidden="true"></i></div>
+							<div>
+								<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": 'wallets.security.verify', "default": 'Верификация изменений'}) }}</div>
+								<div class="text-xs text-gray-500">{{ _t({"key": 'wallets.security.verify_text', "default": 'Любое изменение кошельков подтверждается вашим секретным PIN-кодом.'}) }}</div>
+							</div>
+						</div>
+						<div class="flex gap-4">
+							<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600"><i class="fa-solid fa-user-check text-sm" aria-hidden="true"></i></div>
+							<div>
+								<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": 'wallets.security.addresses', "default": 'Контроль адресов'}) }}</div>
+								<div class="text-xs text-gray-500">{{ _t({"key": 'wallets.security.addresses_text', "default": 'Убедитесь в правильности сети. Транзакции в блокчейне необратимы.'}) }}</div>
+							</div>
+						</div>
+						<div class="flex gap-4">
+							<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-600"><i class="fa-solid fa-bolt text-sm" aria-hidden="true"></i></div>
+							<div>
+								<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": 'wallets.security.payouts', "default": 'Регламент выплат'}) }}</div>
+								<div class="text-xs text-gray-500">{{ _t({"key": 'wallets.security.payouts_text', "default": 'После привязки счета вы сможете заказывать выплаты в автоматическом режиме.'}) }}</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</aside>
+		</div>
+	</div>
+{% endif %}
+
+{% include "footer.twig" %}

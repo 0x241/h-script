@@ -1,0 +1,11 @@
+
+{% set setup_title_text = _t({"key": 'admin.settings.title', "default": 'Настройки'}) %}
+{% include "admin/header.twig" with {"title": setup_title_text} %}
+
+{% include "edit.twig" with {"values": cfg, "fields": {
+	'Mode': ['C', _t({"key": 'reviews.setup.mode', "default": 'Модерировать отзывы'})],
+	'ShowCount': {0: 'I', 1: _t({"key": 'reviews.setup.show_count', "default": 'Количество отзывов на странице'}), 'comment': 'Определяет размер одной страницы в разделе «Отзывы».'},
+	'InBlock': {0: 'I', 1: _t({"key": 'reviews.setup.in_block', "default": 'Количество отзывов на главной'}), 'comment': 'Сколько последних опубликованных отзывов показывать в блоке главной страницы. 0 — скрыть блок.'}
+}} %}
+
+{% include "admin/footer.twig" %}

@@ -1,0 +1,56 @@
+
+<span class="icon">
+{% if (module == 'index') or (module == 'home') %}
+	<i class="fa-solid fa-house" aria-hidden="true"></i>
+{% elseif strpos(module, 'account/register') != false %}
+	<i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+{% elseif strpos(module, 'account/login') != false %}
+	<i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+{% elseif strpos(module, 'account/logout') != false %}
+	<i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+{% elseif strpos(module, 'account/reset_pass') != false %}
+	<i class="fa-solid fa-key" aria-hidden="true"></i>
+{% elseif strpos(module, 'account') != false %}
+	<i class="fa-solid fa-user" aria-hidden="true"></i>
+{% elseif strpos(module, 'cabinet') != false %}
+	<i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+{% elseif strpos(module, 'balance/wallets') != false %}
+	<i class="fa-solid fa-wallet" aria-hidden="true"></i>
+{% elseif strpos(module, 'balance') != false %}
+	<i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i>
+{% elseif strpos(module, 'depo/calc') != false %}
+	<i class="fa-solid fa-calculator" aria-hidden="true"></i>
+{% elseif strpos(module, 'depo/topin') != false %}
+	<i class="fa-solid fa-ranking-star" aria-hidden="true"></i>
+{% elseif strpos(module, 'depo/lastin') != false %}
+	<i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i>
+{% elseif strpos(module, 'depo/lastout') != false %}
+	<i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
+{% elseif strpos(module, 'depo/top') != false %}
+	<i class="fa-solid fa-trophy" aria-hidden="true"></i>
+{% elseif strpos(module, 'depo') != false %}
+	<i class="fa-solid fa-piggy-bank" aria-hidden="true"></i>
+{% elseif strpos(module, 'refsys') != false %}
+	<i class="fa-solid fa-users" aria-hidden="true"></i>
+{% elseif strpos(module, 'tickets') != false %}
+	<i class="fa-solid fa-headset" aria-hidden="true"></i>
+{% elseif strpos(module, 'message') != false %}
+	<i class="fa-solid fa-envelope" aria-hidden="true"></i>
+{% elseif strpos(module, 'news') != false %}
+	<i class="fa-solid fa-newspaper" aria-hidden="true"></i>
+{% elseif strpos(module, 'faq') != false %}
+	<i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+{% elseif strpos(module, 'review') != false %}
+	<i class="fa-solid fa-star" aria-hidden="true"></i>
+{% elseif strpos(module, 'calendar') != false %}
+	<i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+{% elseif strpos(module, 'sms') != false %}
+	<i class="fa-solid fa-mobile-screen" aria-hidden="true"></i>
+{% elseif strpos(module, 'security') != false %}
+	<i class="fa-solid fa-lock" aria-hidden="true"></i>
+{% elseif strpos(module, 'admin') != false %}
+	<i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+{% else %}
+	<i class="fa-solid fa-puzzle-piece" aria-hidden="true"></i>
+{% endif %}
+</span>

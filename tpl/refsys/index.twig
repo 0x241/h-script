@@ -1,0 +1,189 @@
+{% include "header.twig" with {"title": _t({"key": 'refsys.title', "default": 'Реферальная система'})} %}
+
+{% if user.uID %}
+	{% set cid = ref_cids %}
+	<div class="mx-auto w-full max-w-6xl">
+		<div class="mb-8">
+			<h2 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'refsys.heading', "default": 'Ваша реферальная система'}) }}</h2>
+			<p class="text-textDim dark:text-gray-400">{{ _t({"key": 'refsys.text', "default": 'Приглашайте друзей и получайте вознаграждения в разных валютах.'}) }}</p>
+		</div>
+
+		<div class="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+			<div class="rounded-[1.5rem] bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white shadow-lg lg:col-span-2">
+				<h3 class="mb-2 text-xl font-bold">{{ _t({"key": 'refsys.link.title', "default": 'Ваша партнерская ссылка'}) }}</h3>
+				<p class="mb-6 max-w-md text-sm text-blue-100">{{ _t({"key": 'refsys.link.text', "default": 'Используйте эту ссылку для привлечения новых инвесторов. Система автоматически закрепит пользователя за вами.'}) }}</p>
+				<div data-copy-target="ref-link-copy" onclick="const target = document.getElementById(this.dataset.copyTarget); const helper = document.createElement('textarea'); helper.value = target.value; helper.setAttribute('readonly', ''); helper.style.position = 'fixed'; helper.style.opacity = '0'; document.body.appendChild(helper); helper.focus(); helper.select(); document.execCommand('copy'); helper.remove(); target.focus(); target.select(); target.setSelectionRange(0, target.value.length); if (window.navigator && window.navigator.clipboard && window.isSecureContext) { window.navigator.clipboard.writeText(target.value).catch(() => {}); }" class="flex cursor-copy flex-col gap-3 sm:flex-row" title="{{ _t({"key": 'button.copy_link', "default": 'Скопировать'}) }}">
+					<input id="ref-link-copy" value="{{ refurl }}" type="text" readonly class="w-full cursor-copy select-all rounded-xl border border-white/20 bg-black/20 px-5 py-3 font-mono font-medium text-white outline-none transition placeholder:text-white/50 selection:bg-white/25 hover:border-white/40 hover:bg-black/30 focus:border-white/60 focus:ring-4 focus:ring-white/10">
+					<button type="button" class="inline-flex shrink-0 cursor-copy items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 font-bold text-indigo-600 shadow-sm transition hover:-translate-y-0.5 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/20">
+						<i class="fa-regular fa-copy" aria-hidden="true"></i>
+						{{ _t({"key": 'button.copy_link', "default": 'Скопировать'}) }}
+					</button>
+				</div>
+			</div>
+
+			<div class="relative overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+				<div class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-500">{{ _t({"key": 'refsys.upline', "default": 'Вас пригласил'}) }}</div>
+				{% if reflogin %}
+					<div class="flex items-center gap-4">
+						<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xl font-bold text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">{{ reflogin|slice(0, 1)|upper }}</div>
+						<div class="min-w-0">
+							<div class="truncate text-lg font-bold text-brand dark:text-white">{{ reflogin }}</div>
+							{% if upref.uMail %}
+								<a href="mailto:{{ upref.uMail }}" class="truncate text-sm font-medium text-blue-500 transition-colors hover:text-blue-600">{{ upref.uMail }}</a>
+							{% endif %}
+						</div>
+					</div>
+				{% else %}
+					<div class="flex items-center gap-4">
+						<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xl text-gray-400 dark:bg-[#202020]"><i class="fa-solid fa-user" aria-hidden="true"></i></div>
+						<div class="text-sm font-medium text-gray-500">{{ _t({"key": 'refsys.no_upline', "default": 'Вы зарегистрированы без пригласителя.'}) }}</div>
+					</div>
+				{% endif %}
+			</div>
+		</div>
+
+		{% if maxlevel > 1 %}
+			<div class="mb-4 flex gap-2 overflow-x-auto pb-4">
+				{% for i in 1..maxlevel %}
+					<a href="{{ _link('refsys', false, 0) }}?level={{ i }}" class="shrink-0 rounded-full border px-6 py-2 text-sm font-bold shadow-sm transition-colors {% if level == i %}border-brand bg-brand text-white dark:border-white dark:bg-white dark:text-brand{% else %}border-gray-200 bg-white text-gray-500 hover:text-brand dark:border-gray-800 dark:bg-[#151515] dark:hover:text-white{% endif %}">
+						{{ _t({"key": 'refsys.level', "default": 'Уровень'}) }} {{ i }}
+					</a>
+				{% endfor %}
+			</div>
+		{% endif %}
+
+		<div class="mb-8 rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515] sm:p-8">
+			<h3 class="mb-6 text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'refsys.stats.title', "default": 'Статистика: Уровень'}) }} {{ level }}</h3>
+			<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+				{% set has_ref_stats = false %}
+				{% for curr, cids in vcurrs %}
+					{% if in_array(curr, ccurs) and ref_cids[curr] %}
+						{% set has_ref_stats = true %}
+						{% set curr_lower = curr|lower %}
+						{% set curr_icon = 'fa-solid fa-coins' %}
+						{% set curr_color = 'text-emerald-500' %}
+						{% if curr_lower == 'btc' %}
+							{% set curr_icon = 'fa-brands fa-bitcoin' %}
+							{% set curr_color = 'text-orange-500' %}
+						{% elseif curr_lower == 'eth' %}
+							{% set curr_icon = 'fa-brands fa-ethereum' %}
+							{% set curr_color = 'text-blue-500' %}
+						{% elseif curr_lower == 'usd' %}
+							{% set curr_icon = 'fa-solid fa-dollar-sign' %}
+						{% endif %}
+						<div class="rounded-2xl border border-gray-100 bg-gray-50 p-6 dark:border-gray-800 dark:bg-[#1A1A1A]">
+							<div class="mb-4 flex items-center gap-2 font-bold text-brand dark:text-white"><i class="{{ curr_icon }} {{ curr_color }}" aria-hidden="true"></i> {{ curr }}</div>
+							<div class="flex items-end justify-between gap-4">
+								<div>
+									<div class="mb-1 text-xs text-gray-500">{{ _t({"key": 'refsys.stats.turnover', "default": 'Оборот структуры'}) }}</div>
+									<div class="font-mono font-bold text-brand dark:text-white">{{ z({"value": list2[curr]['ZDepo'], "cid": cid[curr]}) }}</div>
+								</div>
+								<div class="text-right">
+									<div class="mb-1 text-xs text-gray-500">{{ _t({"key": 'refsys.stats.bonus', "default": 'Реф. бонус'}) }}</div>
+									<div class="font-mono font-bold text-emerald-500">{{ z({"value": list2[curr]['ZRef'], "cid": cid[curr]}) }}</div>
+								</div>
+							</div>
+						</div>
+					{% endif %}
+				{% endfor %}
+				{% if not has_ref_stats %}
+					<div class="rounded-2xl border border-gray-100 bg-gray-50 p-6 text-sm font-medium text-gray-500 dark:border-gray-800 dark:bg-[#1A1A1A] md:col-span-3">{{ _t({"key": 'refsys.stats.empty', "default": 'Статистика по валютам пока отсутствует.'}) }}</div>
+				{% endif %}
+			</div>
+		</div>
+
+		<div class="mb-8 overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="border-b border-gray-100 p-6 dark:border-gray-800">
+				<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'refsys.refs.title', "default": 'Список рефералов'}) }}</h3>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="w-full min-w-[760px] border-collapse text-left">
+					<thead>
+						<tr class="border-b border-gray-100 bg-gray-50/50 dark:border-gray-800 dark:bg-[#1A1A1A]">
+							<th class="px-6 py-4 text-sm font-bold text-gray-500">{{ _t({"key": 'refsys.refs.user', "default": 'Пользователь'}) }}</th>
+							<th class="px-6 py-4 text-sm font-bold text-gray-500">{{ _t({"key": 'refsys.refs.date', "default": 'Дата регистрации'}) }}</th>
+							{% for curr, cids in vcurrs %}
+								{% if in_array(curr, ccurs) and ref_cids[curr] %}
+									<th class="px-6 py-4 text-sm font-bold text-gray-500">{{ _t({"key": 'refsys.refs.turnover_bonus', "default": 'Оборот / Бонус'}) }} ({{ curr }})</th>
+								{% endif %}
+							{% endfor %}
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-100 text-sm dark:divide-gray-800">
+						{% if count(list) %}
+							{% for id, l in list %}
+								<tr class="transition-colors hover:bg-gray-50 dark:hover:bg-[#1A1A1A]">
+									<td class="px-6 py-4">
+										<div class="font-bold text-brand dark:text-white">{{ l.uLogin }}</div>
+										<div class="text-xs text-gray-500">{{ l.uMail }}</div>
+									</td>
+									<td class="px-6 py-4 text-gray-500">{{ l.aCTS }}</td>
+									{% for curr, cids in vcurrs %}
+										{% if in_array(curr, ccurs) and ref_cids[curr] %}
+											<td class="px-6 py-4 font-mono">
+												<span class="mr-2 text-gray-500">{{ _z(list2[curr][l.uID]['ZDepo'], cid[curr]) }}</span>
+												<span class="font-bold text-emerald-500">+{{ _z(list2[curr][l.uID]['ZRef'], cid[curr]) }}</span>
+											</td>
+										{% endif %}
+									{% endfor %}
+								</tr>
+							{% endfor %}
+						{% else %}
+							<tr>
+								<td colspan="{{ 2 + count(ccurs) }}" class="px-6 py-12 text-center">
+									<div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-[#202020]"><i class="fa-solid fa-users" aria-hidden="true"></i></div>
+									<div class="text-lg font-bold text-brand dark:text-white">{{ _t({"key": 'list.empty', "default": 'Нет записей'}) }}</div>
+									<div class="mt-1 text-sm text-gray-400">{{ _t({"key": 'refsys.refs.empty', "default": 'Рефералов на этом уровне пока нет.'}) }}</div>
+								</td>
+							</tr>
+						{% endif %}
+					</tbody>
+				</table>
+			</div>
+			{% if isset(pl_params.Pages) and is_array(pl_params.Pages) and (count(pl_params.Pages) > 0) %}
+				<div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
+					<div class="text-sm font-medium text-gray-500">{{ _t({"key": 'pagination.page_of', "page": pl_params.Page, "count": pl_params.PagesCount, "default": 'Страница'}) }}</div>
+					<div class="flex flex-wrap gap-2">
+						{% for i, pn in pl_params.Pages %}
+							<a href="{{ _link('refsys', false, 0) }}?page={{ pn[1] }}&level={{ level }}" class="rounded-full px-3 py-1.5 text-sm font-bold transition-colors {% if pn[1] == pl_params.Page %}bg-brand text-white dark:bg-white dark:text-brand{% else %}bg-white text-gray-500 hover:text-brand dark:bg-[#151515] dark:hover:text-white{% endif %}">
+								{% if pn[0] == '&lt;&lt;' %}{{ _t({"key": 'pagination.first', "default": 'Первая'}) }}{% elseif pn[0] == '&lt;' %}{{ _t({"key": 'pagination.back', "default": 'Назад'}) }}{% elseif pn[0] == '&gt;' %}{{ _t({"key": 'pagination.forward', "default": 'Вперед'}) }}{% elseif pn[0] == '&gt;&gt;' %}{{ _t({"key": 'pagination.last', "default": 'Последняя'}) }}{% else %}{{ pn[0] }}{% endif %}
+							</a>
+						{% endfor %}
+					</div>
+				</div>
+			{% endif %}
+		</div>
+
+		{% if _cfg.Account_RegMode == 3 %}
+			<div class="mb-8 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-6 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+				<div class="font-bold">{{ _t({"key": 'refsys.invites.title', "default": 'Инвайты'}) }}</div>
+				<p class="mt-1 text-sm opacity-80">{{ _t({"key": 'refsys.invites.text', "default": 'Инвайт-режим включен. Управление кодами будет перенесено отдельным экраном.'}) }}</p>
+			</div>
+		{% endif %}
+
+		<div class="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515] sm:p-8">
+			<div class="mb-6 flex items-center gap-3">
+				<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-lg text-orange-500 dark:bg-orange-900/30"><i class="fa-solid fa-rectangle-ad" aria-hidden="true"></i></div>
+				<div>
+					<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'refsys.promo.title', "default": 'Рекламные материалы'}) }}</h3>
+					<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'refsys.promo.text', "default": 'Готовые баннеры для вашего сайта или блога'}) }}</p>
+				</div>
+			</div>
+			<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+				{% for size in ['468x60', '728x90'] %}
+					<div>
+						<div class="mb-4 flex h-32 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 p-4 dark:border-gray-700 dark:bg-[#1A1A1A]">
+							<div class="font-bold text-gray-400">{{ _t({"key": 'refsys.promo.banner', "default": 'Баннер'}) }} {{ size }}</div>
+						</div>
+						<div data-copy-target="ref-banner-{{ size }}" onclick="const target = document.getElementById(this.dataset.copyTarget); const helper = document.createElement('textarea'); helper.value = target.value; helper.setAttribute('readonly', ''); helper.style.position = 'fixed'; helper.style.opacity = '0'; document.body.appendChild(helper); helper.focus(); helper.select(); document.execCommand('copy'); helper.remove(); target.focus(); target.select(); target.setSelectionRange(0, target.value.length); if (window.navigator && window.navigator.clipboard && window.isSecureContext) { window.navigator.clipboard.writeText(target.value).catch(() => {}); }" class="cursor-copy" title="{{ _t({"key": 'button.copy_link', "default": 'Скопировать'}) }}">
+							<label class="mb-2 block cursor-copy text-xs font-bold text-gray-500" for="ref-banner-{{ size }}">{{ _t({"key": 'refsys.promo.code', "default": 'HTML-код для вставки:'}) }}</label>
+							<textarea id="ref-banner-{{ size }}" readonly class="h-20 w-full cursor-copy resize-none rounded-xl border border-black/10 bg-white px-4 py-3 font-mono text-xs text-brand outline-none transition selection:bg-blue-500/20 hover:border-blue-500/40 hover:bg-gray-50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:hover:bg-[#1A1A1A]">&lt;a href="{{ refurl }}"&gt;&lt;img src="{{ root_url }}banners/{{ size }}.gif" alt="{{ _cfg.Sys_SiteName }}"&gt;&lt;/a&gt;</textarea>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+{% endif %}
+
+{% include "footer.twig" %}

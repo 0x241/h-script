@@ -1,0 +1,44 @@
+
+{% include "admin/header.twig" with {"title": 'Начисление'} %}
+
+{% if _cfg.Depo_ChargeMode == 2 %}
+
+	<div class="mb-6 flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+		<span class="mt-0.5"><i class="fa-solid fa-circle-info" aria-hidden="true"></i></span>
+		<div>
+			<strong>Внимание</strong>
+			<p>Произойдет <b>однократное</b> начисление процентов<br>на <b>{{ cdate }}</b> по всем вкладам, имеющим отмеченные планы</p>
+		</div>
+	</div>
+
+	{% include "list.twig" with {"title": 'Ручное начисление', "url": '*', "fields": {'pID': ['ID'], 'pHidden': ['Невид.'], 'pName': ['Наменование'], 'pMin': ['Мин.'], 'pMax': ['Макс.'], 'pDays': ['Длит.'], 'pPerc': ['<small>Процент</small>'], 'cnt': ['<small>Вкладов</small>']}, "values": list, "row": '*', "btns": {'del': 'Начислить'}} %}
+
+	<div class="mt-6 flex justify-center">
+		<a href="{{ _link('balance/admin/opers', false, 0) }}" class="inline-flex min-w-48 items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+			<i class="fa-solid fa-list-check" aria-hidden="true"></i><span>Операции</span>
+		</a>
+	</div>
+	
+{% elseif _cfg.Depo_ChargeMode == 1 %}
+	
+	<div class="mb-6 flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+		<span class="mt-0.5"><i class="fa-solid fa-circle-info" aria-hidden="true"></i></span>
+		<div>
+			<strong>Информация</strong>
+			<p>Начисление происходит <a href="{{ _link('depo/admin/setup', false, 0) }}" class="font-bold text-blue-600 underline dark:text-blue-300">автоматически</a></p>
+		</div>
+	</div>
+	
+{% else %}
+
+	<div class="mb-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+		<span class="mt-0.5"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
+		<div>
+			<strong>Информация</strong>
+			<p>Начисление <a href="{{ _link('depo/admin/setup', false, 0) }}" class="font-bold text-amber-700 underline dark:text-amber-300">отключено</a></p>
+		</div>
+	</div>
+
+{% endif %}
+
+{% include "admin/footer.twig" %}

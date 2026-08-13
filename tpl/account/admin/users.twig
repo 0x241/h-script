@@ -1,0 +1,41 @@
+
+{% include "admin/header.twig" with {"title": _t({"key": 'admin.users.title', "default": 'Пользователи'})} %}
+
+{% include "account/admin/_statuses.twig" %}
+
+{% set cid = {'USD': exValue(1, reset(vcurrs.USD)), 'EUR': exValue(1, reset(vcurrs.EUR)), 'RUB': exValue(1, reset(vcurrs.RUB)), 'BTC': exValue(1, reset(vcurrs.BTC)), 'ETH': exValue(1, reset(vcurrs.ETH)), 'XRP': exValue(1, reset(vcurrs.XRP))} %}
+{% set edit_form_name = getFormName('users_filter') %}
+
+{% set users_filter_values = valueIf(isset(_SESSION[edit_form_name]), _SESSION[edit_form_name], []) %}
+{% include "edit.twig" with {"form": 'users_filter', "url": '*', "values": users_filter_values, "fields": {
+	'uGroup': {0: 'T', 1: _t({"key": 'admin.users.group', "default": 'Группа'}), 'size': 10},
+	'uLogin': {0: 'T', 1: '<i>'|cat(_t({"key": 'admin.users.login', "default": 'Логин'}))|cat('</i>'), 'size': 10},
+	'aName': {0: 'T', 1: '<i>'|cat(_t({"key": 'admin.users.name', "default": 'Имя'}))|cat('</i>'), 'size': 10},
+	'uMail': {0: 'T', 1: '<i>e-mail</i>', 'size': 15},
+	'uState': {0: 'S', 1: _t({"key": 'admin.users.status', "default": 'Статус'}), 2: 0, 3: merge_arrays({9: _t({"key": 'admin.users.all', "default": '- все -'})}, usr_statuses), 'default': 9},
+	'RefLogin': {0: 'T', 1: _t({"key": 'admin.users.referrer', "default": 'Реферал'}), 'size': 10}
+}, "btn_text": _t({"key": 'admin.users.filter', "default": 'Отфильтровать'}), "btns": valueIf(isset(_SESSION[edit_form_name]), {'clear': _t({"key": 'admin.users.show_all', "default": 'Показать все'})})} %}
+
+{% set group_input = '<input name="Group" type="text" placeholder="'|cat(_t({"key": 'admin.users.group_placeholder', "default": 'Имя группы...'}))|cat('" class="ml-3 inline-flex w-40 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#151515] dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/20">') %}
+{% include "list.twig" with {"title": (_t({"key": 'admin.users.title', "default": 'Пользователи'}) ~ (valueIf(isset(_SESSION[edit_form_name]), _t({"key": 'admin.users.filtered', "default": ' (отфильтровано)'})))), "url": '*', "fields": {
+	'uID': ['ID'],
+	'uGroup': [_t({"key": 'admin.users.group', "default": 'Группа'})],
+	'uLogin': [_t({"key": 'admin.users.login', "default": 'Логин'})],
+	'aName': [_t({"key": 'admin.users.name', "default": 'Имя'})],
+	'uMail': ['e-mail'],
+	'uState': [_t({"key": 'admin.users.status', "default": 'Статус'})],
+	'uLevel': ['<small>'|cat(_t({"key": 'admin.users.access', "default": 'Доступ'}))|cat('</small>')],
+	'RefLogin': [_t({"key": 'admin.users.referrer', "default": 'Реферал'})],
+	'BalUSD': [_t({"key": 'admin.users.balance', "default": 'Баланс'})|cat(' USD')],
+	'BalEUR': [_t({"key": 'admin.users.balance', "default": 'Баланс'})|cat(' EUR')],
+	'BalRUB': [_t({"key": 'admin.users.balance', "default": 'Баланс'})|cat(' RUB')],
+	'BalBTC': [_t({"key": 'admin.users.balance', "default": 'Баланс'})|cat(' BTC')],
+	'BalETH': [_t({"key": 'admin.users.balance', "default": 'Баланс'})|cat(' ETH')],
+	'BalXRP': [_t({"key": 'admin.users.balance', "default": 'Баланс'})|cat(' XRP')]
+}, "values": list, "row": '*', "include_code": group_input, "btns": {'setgroup': _t({"key": 'admin.users.assign_group', "default": 'Назначить группу'}), 'del': _t({"key": 'common.delete', "default": 'Удалить'})}} %}
+
+<div class="mt-6 flex justify-center">
+	<a href="{{ _link('account/admin/user', false, 0) }}?add" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100"><i class="fa-solid fa-user-plus" aria-hidden="true"></i><span>{{ _t({"key": 'common.add', "default": 'Добавить'}) }}</span></a>
+</div>
+
+{% include "admin/footer.twig" %}

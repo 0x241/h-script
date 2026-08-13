@@ -1,0 +1,22 @@
+
+{% include "admin/header.twig" with {"title": 'Депозит'} %}
+
+{% if el %}
+
+	{% include "depo/_depo.admin.twig" with {"from_admin": true} %}
+
+{% else %}
+
+	{% if _GET.user %}
+
+		{% include "depo/_depo.new.twig" with {"from_admin": true} %}
+	
+	{% else %}
+	
+		{% include "edit.twig" with {"form": 'new', "title": 'Новый депозит', "fields": {'Login': {0: 'T', 1: 'Пользователь!!', 2: {'user_empty': 'пользователь не найден'}, 'default': _GET.user}}, "btn_text": 'Далее'} %}
+	
+	{% endif %}
+	
+{% endif %}
+
+{% include "admin/footer.twig" %}

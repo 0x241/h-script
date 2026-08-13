@@ -1,0 +1,89 @@
+{% include "external/auth.header.twig" with {"title": _t({"key": 'account.password.change_title', "default": 'Смена пароля'})} %}
+
+{% set change_form_name = getFormName('') %}
+{% set change_errors = {
+	'pass0_wrong': _t({"key": 'account.password.error_old', "default": 'неверный текущий пароль'}),
+	'pass_empty': _t({"key": 'account.password.error_empty', "default": 'укажите новый пароль'}),
+	'pass_short': _t({"key": 'account.password.error_short', "default": 'пароль слишком короткий'}) ~ ' (' ~ _t({"key": 'account.password.min_length', "default": 'минимум символов'}) ~ ': ' ~ _cfg.Account_MinPass ~ ')',
+	'pass_wrong': _t({"key": 'account.password.error_format', "default": 'пароль не соответствует формату'}),
+	'pass_not_equal': _t({"key": 'account.password.error_repeat', "default": 'пароли не совпадают'}),
+	'pin_wrong': _t({"key": 'account.password.error_pin', "default": 'неверный PIN-код'})
+} %}
+{% set change_error_text = formErrorText(change_form_name, change_errors, true) %}
+
+<main class="flex min-h-screen">
+	<aside class="relative hidden w-1/2 flex-col items-center justify-center overflow-hidden bg-[#1E3A8A] p-12 lg:flex">
+		<div class="absolute inset-0 bg-gradient-to-br from-blue-500/30 via-indigo-900/40 to-transparent"></div>
+		<div class="relative z-10 max-w-lg text-center">
+			<div class="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl border border-white/20 bg-white/10 text-white shadow-2xl backdrop-blur-md">
+				<i class="fa-solid fa-key text-4xl" aria-hidden="true"></i>
+			</div>
+			<h2 class="mb-6 text-4xl font-bold text-white">{{ _t({"key": 'account.password.aside_title', "default": 'Защита аккаунта'}) }}</h2>
+			<p class="text-xl font-medium leading-relaxed text-blue-100/70">{{ _t({"key": 'account.password.aside_text', "default": 'Используйте уникальный пароль, который не применяется в других сервисах.'}) }}</p>
+		</div>
+	</aside>
+
+	<section class="relative z-10 flex w-full flex-col justify-between bg-white p-6 dark:bg-[#0A0A0A] sm:p-12 lg:w-1/2">
+		<div class="mb-10 flex items-center justify-between">
+			{% include "external/auth.logo.twig" %}
+			{% include "external/auth.controls.twig" %}
+		</div>
+
+		<div class="mx-auto my-auto w-full max-w-md">
+			<h1 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'account.password.change_title', "default": 'Смена пароля'}) }}</h1>
+			<p class="mb-8 text-textDim dark:text-gray-400">{{ _t({"key": 'account.password.change_text', "default": 'Подтвердите текущий пароль и задайте новый.'}) }}</p>
+
+			{% if user.uPTS == 1 %}
+				<div class="mb-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+					<i class="fa-solid fa-triangle-exclamation mt-0.5" aria-hidden="true"></i>
+					<span>{{ _t({"key": 'account.password.temporary', "default": 'Вам был выдан временный пароль. Смените его на более сложный.'}) }}</span>
+				</div>
+			{% elseif isset(_GET.need_change) %}
+				<div class="mb-6 flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+					<i class="fa-solid fa-circle-info mt-0.5" aria-hidden="true"></i>
+					<span>{{ _t({"key": 'account.password.expired', "default": 'Политика безопасности требует периодически обновлять пароль.'}) }}</span>
+				</div>
+			{% endif %}
+
+			<form method="post" action="{{ _selfLink }}" name="{{ change_form_name }}" class="space-y-5">
+				{{ _getFormSecurity({"form": change_form_name}) }}
+				{% if change_error_text %}
+					<div class="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+						<i class="fa-solid fa-triangle-exclamation mt-0.5" aria-hidden="true"></i>
+						<span>{{ change_error_text }}</span>
+					</div>
+				{% endif %}
+
+				<div>
+					<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ change_form_name }}_Pass0">{{ _t({"key": 'account.password.current', "default": 'Текущий пароль'}) }}</label>
+					{% include "external/auth.password.twig" with {"password_name": 'Pass0', "password_id": change_form_name ~ '_Pass0', "password_autocomplete": 'current-password'} %}
+				</div>
+				<div>
+					<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ change_form_name }}_Pass">{{ _t({"key": 'account.password.new', "default": 'Новый пароль'}) }}</label>
+					{% include "external/auth.password.twig" with {"password_name": 'Pass', "password_id": change_form_name ~ '_Pass', "password_autocomplete": 'new-password'} %}
+				</div>
+				<div>
+					<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ change_form_name }}_Pass2">{{ _t({"key": 'account.password.repeat', "default": 'Повторите новый пароль'}) }}</label>
+					{% include "external/auth.password.twig" with {"password_name": 'Pass2', "password_id": change_form_name ~ '_Pass2', "password_autocomplete": 'new-password'} %}
+				</div>
+				{% if _cfg.Sec_MinPIN > 0 %}
+					<div>
+						<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ change_form_name }}_PIN">{{ _t({"key": 'account.password.pin', "default": 'PIN-код'}) }}</label>
+						{% include "external/auth.password.twig" with {"password_name": 'PIN', "password_id": change_form_name ~ '_PIN', "password_placeholder": _t({"key": 'auth.placeholder.pin', "default": 'PIN-код'}), "password_autocomplete": 'off'} %}
+					</div>
+				{% endif %}
+
+				<div class="flex flex-col gap-3 sm:flex-row">
+					<button name="{{ change_form_name }}_btn" value="{{ _t({"key": 'account.password.change_action', "default": 'Сменить пароль'}) }}" type="submit" class="flex-1 rounded-2xl bg-blue-600 p-4 font-bold text-white shadow-lg shadow-blue-500/30 transition hover:-translate-y-0.5 hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-blue-500 dark:hover:bg-blue-600">{{ _t({"key": 'account.password.change_action', "default": 'Сменить пароль'}) }}</button>
+					{% if isset(_GET.need_change) %}
+						<button name="{{ change_form_name }}_btnskip" value="{{ _t({"key": 'account.password.skip', "default": 'Не менять'}) }}" type="submit" class="rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-brand transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:border-gray-800 dark:bg-[#151515] dark:text-white dark:hover:bg-[#202020]">{{ _t({"key": 'account.password.skip', "default": 'Не менять'}) }}</button>
+					{% endif %}
+				</div>
+			</form>
+		</div>
+
+		<div class="mt-10 text-center text-sm text-gray-400">{% include "external/product-copyright.twig" %}</div>
+	</section>
+</main>
+
+{% include "external/auth.footer.twig" %}

@@ -1,0 +1,208 @@
+{% macro rule_section(section) %}
+	<section id="{{ section.anchor }}" class="scroll-mt-32 rounded-[1.75rem] border border-gray-200 bg-white p-7 shadow-sm dark:border-gray-800 dark:bg-[#151515] sm:p-9">
+		<div class="mb-6 flex items-start gap-4">
+			<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 font-mono text-sm font-black text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">{{ section.number }}</span>
+			<div>
+				<h2 class="text-2xl font-black text-brand dark:text-white">{{ section.title }}</h2>
+				<p class="mt-1 text-gray-500 dark:text-gray-400">{{ section.text }}</p>
+			</div>
+		</div>
+		<ul class="space-y-4 text-base font-medium leading-7 text-gray-600 dark:text-gray-300">
+			{% for item in section.items %}
+				<li class="flex gap-3"><i class="fa-solid {{ section.icon }} mt-1.5 text-blue-500" aria-hidden="true"></i><span>{{ item }}</span></li>
+			{% endfor %}
+		</ul>
+	</section>
+{% endmacro %}
+
+{% import _self as rules_ui %}
+{% set rules_title = _t({"key": 'rules.title', "default": 'Правила официальной демо-версии'}) %}
+{% set rules_sections = [
+	{
+		'anchor': 'general',
+		'number': '01',
+		'icon': 'fa-flask',
+		'title': _t({"key": 'rules.general.title', "default": 'Статус и назначение демо'}),
+		'text': _t({"key": 'rules.general.text', "default": 'Эти правила относятся только к официальной демонстрационной установке H-Script.'}),
+		'items': [
+			_t({"key": 'rules.general.item1', "default": 'Демо предназначено исключительно для ознакомления с интерфейсом, архитектурой и возможностями H-Script.'}),
+			_t({"key": 'rules.general.item2', "default": 'Демо не является банком, инвестиционной платформой, платёжным сервисом или предложением финансовых услуг.'}),
+			_t({"key": 'rules.general.item3', "default": 'Функции, данные, настройки и доступность демо могут изменяться, ограничиваться или сбрасываться без предварительного уведомления.'}),
+			_t({"key": 'rules.general.item4', "default": 'Используя демо, вы принимаете эти правила. Если вы с ними не согласны, прекратите использование сайта.'})
+		]
+	},
+	{
+		'anchor': 'opensource',
+		'number': '02',
+		'icon': 'fa-code-branch',
+		'title': _t({"key": 'rules.opensource.title', "default": 'Открытый исходный код и лицензия'}),
+		'text': _t({"key": 'rules.opensource.text', "default": 'H-Script является открытым программным продуктом и распространяется по лицензии MIT.'}),
+		'items': [
+			_t({"key": 'rules.opensource.item1', "default": 'Лицензия MIT разрешает использовать, копировать, изменять, объединять, публиковать, распространять, сублицензировать и продавать копии программы на её условиях.'}),
+			_t({"key": 'rules.opensource.item2', "default": 'Уведомление об авторских правах и текст разрешения MIT должны сохраняться во всех копиях или существенных частях программы.'}),
+			_t({"key": 'rules.opensource.item3', "default": 'Исходный код, документация и публичное демо предоставляются для самостоятельного изучения и использования на условиях лицензии.'}),
+			_t({"key": 'rules.opensource.item4', "default": 'При расхождении этих правил с LICENSE в вопросах прав на программный код приоритет имеет текст LICENSE.'})
+		]
+	},
+	{
+		'anchor': 'responsibility',
+		'number': '03',
+		'icon': 'fa-user-gear',
+		'title': _t({"key": 'rules.responsibility.title', "default": 'Ответственность пользователя и оператора'}),
+		'text': _t({"key": 'rules.responsibility.text', "default": 'Каждый, кто развёртывает H-Script, самостоятельно отвечает за свою установку и способ её применения.'}),
+		'items': [
+			_t({"key": 'rules.responsibility.item1', "default": 'До использования в рабочей среде вы обязаны самостоятельно оценить пригодность кода, безопасность, зависимости и соответствие законодательству.'}),
+			_t({"key": 'rules.responsibility.item2', "default": 'Оператор сторонней установки отвечает за сервер, конфигурацию, обновления, резервные копии, доступы, интеграции, пользовательские данные и операции.'}),
+			_t({"key": 'rules.responsibility.item3', "default": 'Владельцы репозитория и участники проекта не управляют независимыми установками и не отвечают за действия их операторов.'}),
+			_t({"key": 'rules.responsibility.item4', "default": 'Оператор сторонней установки обязан подготовить собственные правила, политику приватности, меры безопасности и обязательные раскрытия для своих пользователей.'}),
+			_t({"key": 'rules.responsibility.item5', "default": 'Последствия выбранной конфигурации, модификаций, расширений и коммерческого применения несёт лицо, которое разворачивает или использует соответствующую установку.'})
+		]
+	},
+	{
+		'anchor': 'account',
+		'number': '04',
+		'icon': 'fa-user-shield',
+		'title': _t({"key": 'rules.account.title', "default": 'Демо-аккаунты и данные'}),
+		'text': _t({"key": 'rules.account.text', "default": 'Демо-среда не предназначена для хранения реальных или конфиденциальных данных.'}),
+		'items': [
+			_t({"key": 'rules.account.item1', "default": 'Не вводите реальные персональные данные, пароли от других сервисов, приватные ключи, платёжные реквизиты и коммерческую тайну.'}),
+			_t({"key": 'rules.account.item2', "default": 'Используйте уникальные тестовые данные доступа и не рассчитывайте на долговременное сохранение профиля или результатов.'}),
+			_t({"key": 'rules.account.item3', "default": 'Тестовые аккаунты, записи и настройки могут быть изменены или удалены при обновлении либо сбросе демо.'}),
+			_t({"key": 'rules.account.item4', "default": 'Доступ может быть временно ограничен для обслуживания, защиты инфраструктуры или прекращения злоупотреблений.'})
+		]
+	},
+	{
+		'anchor': 'operations',
+		'number': '05',
+		'icon': 'fa-coins',
+		'title': _t({"key": 'rules.operations.title', "default": 'Демонстрационные операции'}),
+		'text': _t({"key": 'rules.operations.text', "default": 'Финансовые модули и показатели в официальном демо являются имитацией работы CMS.'}),
+		'items': [
+			_t({"key": 'rules.operations.item1', "default": 'Балансы, вклады, начисления, курсы, платёжные операции и статистика в демо не подтверждают движение реальных средств.'}),
+			_t({"key": 'rules.operations.item2', "default": 'Демо-показатели не являются обещанием доходности, финансовой рекомендацией, офертой или гарантией результата.'}),
+			_t({"key": 'rules.operations.item3', "default": 'Не отправляйте реальные деньги, криптовалюту или платёжные данные по реквизитам, показанным в демонстрационной среде.'}),
+			_t({"key": 'rules.operations.item4', "default": 'Подключение реальных шлюзов и проведение операций в собственной установке выполняются оператором на его риск и под его ответственность.'})
+		]
+	},
+	{
+		'anchor': 'data',
+		'number': '06',
+		'icon': 'fa-database',
+		'title': _t({"key": 'rules.data.title', "default": 'Данные, журналы и телеметрия'}),
+		'text': _t({"key": 'rules.data.text', "default": 'Для работы и защиты демо могут обрабатываться технические сведения о запросах и установке.'}),
+		'items': [
+			_t({"key": 'rules.data.item1', "default": 'Демо может журналировать время запроса, IP-адрес, пользовательский агент, события безопасности и технические ошибки.'}),
+			_t({"key": 'rules.data.item2', "default": 'Системная телеметрия H-Script относится к состоянию установки и не предназначена для передачи паролей или содержимого отдельных финансовых операций.'}),
+			_t({"key": 'rules.data.item3', "default": 'Для данных, добровольно введённых в открытую демо-среду, не гарантируются конфиденциальность, постоянное хранение или восстановление.'}),
+			_t({"key": 'rules.data.item4', "default": 'Операторы независимых установок самостоятельно определяют обработку данных и обязаны публиковать собственную политику приватности.'})
+		]
+	},
+	{
+		'anchor': 'vulnerabilities',
+		'number': '07',
+		'icon': 'fa-bug',
+		'title': _t({"key": 'rules.vulnerabilities.title', "default": 'Уязвимости и исследование безопасности'}),
+		'text': _t({"key": 'rules.vulnerabilities.text', "default": 'Открытый код и наличие публичного демо не означают отсутствие ошибок или разрешение на неограниченное тестирование.'}),
+		'items': [
+			_t({"key": 'rules.vulnerabilities.item1', "default": 'Обнаруженную уязвимость следует сообщать конфиденциально через приватный канал безопасности репозитория с понятными шагами воспроизведения.'}),
+			_t({"key": 'rules.vulnerabilities.item2', "default": 'Без отдельного письменного разрешения запрещены отказ в обслуживании, массовое сканирование, социальная инженерия, закрепление в системе, изменение данных и доступ к чужим данным.'}),
+			_t({"key": 'rules.vulnerabilities.item3', "default": 'Не публикуйте детали, эксплуатационный код или полученные данные до согласования раскрытия и предоставления разумного срока на проверку.'}),
+			_t({"key": 'rules.vulnerabilities.item4', "default": 'Факт сообщения об уязвимости не создаёт права на вознаграждение, компенсацию или исправление в заданный срок, если это отдельно не согласовано.'}),
+			_t({"key": 'rules.vulnerabilities.item5', "default": 'Владельцы репозитория самостоятельно определяют приоритет, способ и сроки рассмотрения сообщения и не гарантируют исправление каждой найденной проблемы.'})
+		]
+	},
+	{
+		'anchor': 'prohibited',
+		'number': '08',
+		'icon': 'fa-ban',
+		'title': _t({"key": 'rules.prohibited.title', "default": 'Запрещённое использование'}),
+		'text': _t({"key": 'rules.prohibited.text', "default": 'Демо нельзя использовать во вред проекту, инфраструктуре, другим пользователям или третьим лицам.'}),
+		'items': [
+			_t({"key": 'rules.prohibited.item1', "default": 'Запрещены несанкционированный доступ, эксплуатация уязвимостей, обход ограничений и получение контроля над чужими аккаунтами или данными.'}),
+			_t({"key": 'rules.prohibited.item2', "default": 'Запрещены вредоносный код, спам, чрезмерные автоматизированные запросы и действия, нарушающие стабильность сервиса.'}),
+			_t({"key": 'rules.prohibited.item3', "default": 'Запрещены мошенничество, незаконные операции, имитация официального представителя проекта и использование чужих реквизитов.'}),
+			_t({"key": 'rules.prohibited.item4', "default": 'Нельзя использовать демо как рабочий сервис для третьих лиц, для приёма реальных средств или хранения значимых данных.'})
+		]
+	},
+	{
+		'anchor': 'availability',
+		'number': '09',
+		'icon': 'fa-scale-balanced',
+		'title': _t({"key": 'rules.availability.title', "default": 'Отсутствие гарантий и ограничение ответственности'}),
+		'text': _t({"key": 'rules.availability.text', "default": 'Программное обеспечение и официальное демо предоставляются «как есть» и «по мере доступности».'}),
+		'items': [
+			_t({"key": 'rules.availability.item1', "default": 'Не предоставляются явные или подразумеваемые гарантии товарной пригодности, пригодности для конкретной цели, ненарушения прав, безопасности или отсутствия ошибок.'}),
+			_t({"key": 'rules.availability.item2', "default": 'Не гарантируются непрерывная работа, совместимость, сохранность данных, отсутствие уязвимостей, техническая поддержка, аудит или выпуск исправлений.'}),
+			_t({"key": 'rules.availability.item3', "default": 'В максимально допустимой законом степени авторы, правообладатель, владельцы репозитория и участники проекта не отвечают за требования, ущерб или иные последствия использования либо невозможности использования программы и демо.'}),
+			_t({"key": 'rules.availability.item4', "default": 'Ограничение включает последствия ошибок, известных и неизвестных уязвимостей, потери данных, упущенной выгоды, модификаций, зависимостей и сторонних установок.'}),
+			_t({"key": 'rules.availability.item5', "default": 'Ничто в этих правилах не исключает ответственность или права, которые не могут быть исключены применимым законодательством.'})
+		]
+	},
+	{
+		'anchor': 'changes',
+		'number': '10',
+		'icon': 'fa-rotate',
+		'title': _t({"key": 'rules.changes.title', "default": 'Изменение правил и обратная связь'}),
+		'text': _t({"key": 'rules.changes.text', "default": 'Актуальная редакция правил публикуется на этой странице.'}),
+		'items': [
+			_t({"key": 'rules.changes.item1', "default": 'Правила могут обновляться при изменении демо, проекта, рисков, лицензии или обязательных требований.'}),
+			_t({"key": 'rules.changes.item2', "default": 'Новая редакция применяется с момента публикации, если в ней не указана другая дата.'}),
+			_t({"key": 'rules.changes.item3', "default": 'Вопросы по демо направляйте через документацию и публичные каналы проекта, а сведения об уязвимостях — только через приватный канал безопасности.'}),
+			_t({"key": 'rules.changes.item4', "default": 'Продолжение использования демо после публикации изменений означает принятие новой редакции в допустимой законом степени.'})
+		]
+	}
+] %}
+
+{% include "external/header.twig" with {"title": rules_title, "public_active": 'rules'} %}
+
+<main id="content" class="w-full flex-1 px-6 pb-24 pt-36 sm:pt-40">
+	<section class="relative mx-auto mb-10 max-w-7xl overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-8 shadow-sm dark:border-blue-500/20 dark:from-blue-500/10 dark:via-[#151515] dark:to-emerald-500/10 sm:p-12 lg:p-16">
+		<div class="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-blue-400/10 blur-3xl" aria-hidden="true"></div>
+		<div class="absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-emerald-400/10 blur-3xl" aria-hidden="true"></div>
+		<div class="relative max-w-4xl">
+			<div class="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.18em] text-blue-600 dark:border-blue-500/30 dark:bg-black/20 dark:text-blue-300">
+				<i class="fa-solid fa-code" aria-hidden="true"></i>{{ _t({"key": 'rules.eyebrow', "default": 'H-Script Open Source Demo'}) }}
+			</div>
+			<h1 class="text-4xl font-black tracking-tight text-brand dark:text-white sm:text-5xl lg:text-6xl">{{ rules_title }}</h1>
+			<p class="mt-5 max-w-3xl text-lg font-medium leading-8 text-textDim dark:text-gray-300 sm:text-xl">{{ _t({"key": 'rules.lead', "default": 'Условия использования официального демо, открытого исходного кода и границы ответственности владельцев репозитория, участников проекта и операторов сторонних установок.'}) }}</p>
+			<div class="mt-8 flex flex-wrap gap-3 text-sm font-bold">
+				<span class="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-white dark:bg-white dark:text-brand"><i class="fa-solid fa-calendar-check" aria-hidden="true"></i>{{ _t({"key": 'rules.revision', "default": 'Редакция от 11.08.2026'}) }}</span>
+				<span class="inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/80 px-4 py-2 text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-gray-300"><i class="fa-solid fa-code-branch" aria-hidden="true"></i>H-Script {{ app_version }}</span>
+				<span class="inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/80 px-4 py-2 text-gray-600 dark:border-white/10 dark:bg-black/20 dark:text-gray-300"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>{{ app_license }}</span>
+			</div>
+		</div>
+	</section>
+
+	<div class="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+		<aside class="space-y-5 lg:sticky lg:top-28">
+			<nav class="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-[#151515]" aria-label="{{ _t({"key": 'rules.contents', "default": 'Содержание правил'}) }}">
+				<p class="px-3 pb-2 pt-1 text-xs font-extrabold uppercase tracking-[0.16em] text-gray-400">{{ _t({"key": 'rules.contents', "default": 'Содержание правил'}) }}</p>
+				<div class="space-y-1">
+					{% for section in rules_sections %}
+						<a href="{{ fullURL() }}#{{ section.anchor }}" hx-boost="false" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-600 transition hover:bg-blue-50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-blue-500/10 dark:hover:text-blue-300"><span class="font-mono text-xs text-gray-400">{{ section.number }}</span><span>{{ section.title }}</span></a>
+					{% endfor %}
+				</div>
+			</nav>
+
+			<div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-950 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+				<div class="flex gap-3"><i class="fa-solid fa-triangle-exclamation mt-1 text-amber-500" aria-hidden="true"></i><div><h2 class="font-extrabold">{{ _t({"key": 'rules.scope.title', "default": 'Только официальное демо'}) }}</h2><p class="mt-2 text-sm font-medium leading-6 opacity-80">{{ _t({"key": 'rules.scope.text', "default": 'Эти правила не становятся правилами сторонней установки. Её оператор обязан опубликовать собственные условия и несёт ответственность за свой сервис.'}) }}</p></div></div>
+			</div>
+		</aside>
+
+		<div class="space-y-6">
+			{% for section in rules_sections %}{{ rules_ui.rule_section(section) }}{% endfor %}
+
+			<section class="rounded-[1.75rem] bg-brand p-8 text-white shadow-xl dark:bg-white dark:text-brand sm:p-10">
+				<div class="flex flex-col justify-between gap-7 sm:flex-row sm:items-center">
+					<div><h2 class="text-2xl font-black">{{ _t({"key": 'rules.questions.title', "default": 'Документация и лицензия'}) }}</h2><p class="mt-2 max-w-2xl font-medium opacity-70">{{ _t({"key": 'rules.questions.text', "default": 'Перед развёртыванием изучите исходный код, документацию и полный текст MIT License в репозитории.'}) }}</p></div>
+					<div class="flex shrink-0 flex-wrap gap-3">
+						<a href="https://github.com/0x241/h-script" target="_blank" rel="noopener noreferrer" class="rounded-full bg-white px-6 py-3 text-sm font-extrabold text-brand transition hover:-translate-y-0.5 dark:bg-brand dark:text-white">GitHub</a>
+						<a href="https://github.com/0x241/h-script/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white/20 px-6 py-3 text-sm font-extrabold transition hover:-translate-y-0.5 hover:bg-white/10 dark:border-black/15 dark:hover:bg-black/5">MIT License</a>
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
+</main>
+
+{% include "external/footer.twig" %}

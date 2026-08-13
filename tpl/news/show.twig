@@ -1,0 +1,49 @@
+{% include "external/header.twig" with {"title": el.nTopic, "public_active": 'news', "include_ckeditor_content": true} %}
+
+<main id="content" class="flex-1 pt-40 pb-20 px-6 w-full">
+	<article class="max-w-4xl mx-auto">
+		<header class="mb-12 text-center">
+			<div class="flex justify-center items-center gap-3 mb-6">
+				<span class="text-sm font-mono text-gray-500">{{ el.nTS }}</span>
+				{% if el.nAttn %}
+					<span class="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold rounded-full uppercase tracking-wide">{{ _t({"key": 'news.important_update', "default": 'Важное обновление'}) }}</span>
+				{% endif %}
+			</div>
+			<h1 class="text-4xl md:text-6xl font-bold text-brand dark:text-white tracking-tight mb-8 leading-tight">{{ el.nTopic }}</h1>
+		</header>
+
+		<div class="bg-white dark:bg-[#151515] border border-gray-200 dark:border-gray-800 rounded-3xl p-8 md:p-16 shadow-sm">
+				<div class="ck-content [&_p]:mb-6 [&_p]:text-lg [&_p]:leading-8 [&_p]:text-gray-600 dark:[&_p]:text-gray-400 [&_h3]:mb-4 [&_h3]:mt-12 [&_h3]:text-3xl [&_h3]:font-bold [&_h3]:text-brand dark:[&_h3]:text-gray-100 [&_ul]:mb-6 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:text-lg [&_ul]:text-gray-600 dark:[&_ul]:text-gray-400 [&_li]:mb-2 [&_figure]:my-8 [&_iframe]:aspect-video [&_iframe]:w-full [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-xl">
+				{% if el.nAnnounce %}
+					<p class="text-xl md:text-2xl font-medium !text-brand dark:!text-gray-200 !leading-snug mb-10">{{ el.nAnnounce|nl2br }}</p>
+				{% endif %}
+				{{ el.nText|raw }}
+			</div>
+
+			<div class="mt-16 flex flex-col items-start gap-6 border-t border-gray-100 pt-8 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
+				<a href="{{ _link('news', false, 0) }}" class="flex items-center gap-2 rounded-full bg-gray-50 px-6 py-3 text-sm font-bold text-brand transition-colors hover:bg-gray-100 dark:bg-[#1A1A1A] dark:text-gray-300 dark:hover:bg-black">
+					<i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+					{{ _t({"key": 'news.back', "default": 'Назад к новостям'}) }}
+				</a>
+					{% set social_links = {
+						'telegram': {'url': _cfg.News_SocialTelegram, 'icon': 'fa-telegram', 'label': 'Telegram'},
+						'x': {'url': _cfg.News_SocialX, 'icon': 'fa-x-twitter', 'label': 'X'},
+						'vk': {'url': _cfg.News_SocialVK, 'icon': 'fa-vk', 'label': 'VK'},
+						'facebook': {'url': _cfg.News_SocialFacebook, 'icon': 'fa-facebook-f', 'label': 'Facebook'},
+						'instagram': {'url': _cfg.News_SocialInstagram, 'icon': 'fa-instagram', 'label': 'Instagram'},
+						'youtube': {'url': _cfg.News_SocialYouTube, 'icon': 'fa-youtube', 'label': 'YouTube'}
+					} %}
+					<div class="flex flex-wrap gap-4" aria-label="{{ _t({"key": 'news.social_links', "default": 'Мы в социальных сетях'}) }}">
+						{% for social in social_links %}
+							{% set social_url = social.url|trim %}
+							{% if textLeft(social_url, 8) == 'https://' or textLeft(social_url, 7) == 'http://' %}
+								<a href="{{ social_url }}" class="w-12 h-12 rounded-full border border-gray-200 dark:border-gray-800 flex items-center justify-center text-gray-500 hover:text-blue-500 hover:border-blue-500 transition-colors" target="_blank" rel="noopener noreferrer" aria-label="{{ social.label }}" title="{{ social.label }}"><i class="fa-brands {{ social.icon }} text-lg" aria-hidden="true"></i></a>
+							{% endif %}
+						{% endfor %}
+					</div>
+			</div>
+		</div>
+	</article>
+</main>
+
+{% include "external/footer.twig" %}

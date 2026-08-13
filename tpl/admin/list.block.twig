@@ -1,0 +1,124 @@
+{#
+	Admin premium list body. Preserves the legacy list.twig contract:
+	fields, values, row, btns, include_code, linkparams, pl_params.
+#}
+
+{% if not isset(title) %}{% set title = '' %}{% endif %}
+{% if not isset(url) %}{% set url = '' %}{% endif %}
+{% if not isset(form) %}{% set form = '' %}{% endif %}
+{% if not isset(fields) %}{% set fields = [] %}{% endif %}
+{% if not isset(values) %}{% set values = [] %}{% endif %}
+{% if not isset(row) %}{% set row = '' %}{% endif %}
+{% if not isset(row_class) %}{% set row_class = '' %}{% endif %}
+{% if not isset(linkparams) %}{% set linkparams = '' %}{% endif %}
+{% if not isset(include_code) %}{% set include_code = '' %}{% endif %}
+{% if not isset(btns) %}{% set btns = null %}{% endif %}
+{% set list_total = valueIf(isset(pl_params.RowsCount), pl_params.RowsCount, count(values)) %}
+
+{% if title and not up_category %}
+	<div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+		<h2 class="text-3xl font-bold text-brand dark:text-white">{{ title|raw }}</h2>
+		<div class="inline-flex shrink-0 items-center gap-2 self-start rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-gray-500 shadow-sm dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400 sm:self-auto">
+				<i class="fa-solid fa-database" aria-hidden="true"></i>
+				{% if tpl_module == 'review' or tpl_module == 'review/admin' or tpl_module == 'review/admin/index' %}
+					{{ _t({"key": 'reviews.text', "count": list_total, "default": "Всего отзывов: "|cat(list_total)}) }}
+				{% else %}
+					{{ _t({"key": 'admin.list.total', "count": list_total, "default": "Всего записей: "|cat(list_total)}) }}
+				{% endif %}
+		</div>
+	</div>
+{% elseif title and up_category and not isset(pl_params.RowsCount) %}
+	<div class="mb-6 flex justify-end">
+		<div class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-gray-500 shadow-sm dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400">
+			<i class="fa-solid fa-database" aria-hidden="true"></i>
+			{{ _t({"key": 'admin.list.total', "count": list_total, "default": "Всего записей: "|cat(list_total)}) }}
+		</div>
+	</div>
+{% endif %}
+
+{% if count(values) %}
+	{% if is_array(btns) %}
+		{% set list_form_name = getFormName(form) %}
+		{% include "info.twig" with {"_info": getInfoData(list_form_name)} %}
+		<form method="post"{% if url %} action="{% if url == '*' %}{{ _selfLink }}{% else %}{{ url }}{% endif %}"{% endif %} name="{{ list_form_name }}" class="min-w-0">
+	{% endif %}
+
+	<div class="min-w-0 overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="min-w-0 overflow-x-auto">
+			<table class="min-w-full whitespace-nowrap text-left text-sm [&_a]:font-semibold [&_a]:transition-colors [&_a:hover]:text-blue-500 dark:[&_a:hover]:text-blue-400 [&_td]:px-5 [&_td]:py-4 [&_td]:align-middle [&_th]:px-5 [&_th]:py-4{% if table_class %} {{ table_class }}{% endif %}">
+				<thead>
+					<tr class="border-b border-gray-100 text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-800">
+						{% if is_array(btns) %}
+							<th class="w-10 text-center">
+								<input type="checkbox" data-hs-select-all title="{{ _t({"key": 'list.select_all'}) }}" aria-label="{{ _t({"key": 'list.select_all'}) }}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:outline-none focus:ring-0 focus:ring-offset-0 dark:border-gray-700">
+							</th>
+						{% endif %}
+						{% for f, v in fields %}
+							<th>
+								{% if pl_params.Orders[f] %}
+									{% if textLeft(pl_params.Order, -1) == f %}
+										{% set z = 1 + textRight(pl_params.Order, 1) %}
+										<sup class="mr-1 text-blue-500">{{ z }}</sup>
+									{% else %}
+										{% set z = '' %}
+									{% endif %}
+									<a href="{{ _selfLink }}?sort={{ f }}{{ z }}" class="inline-flex items-center gap-2 text-gray-500 transition hover:text-brand dark:text-gray-400 dark:hover:text-white">{{ v[0]|raw }}</a>
+									{{ zn }}
+								{% else %}
+									{{ v[0]|raw }}
+								{% endif %}
+							</th>
+						{% endfor %}
+					</tr>
+				</thead>
+				<tbody>
+					{% if row_class %}
+						{% set row_class = ((row_class) ~ " ") %}
+					{% endif %}
+					{% for id, l in values %}
+						<tr class="{{ row_class }}group border-b border-gray-100 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-[#1A1A1A]{% if id == _GET.id or l._Marked %} bg-blue-50/70 dark:bg-blue-500/10{% endif %}">
+							{% if is_array(btns) %}
+								<td class="py-4 text-center align-middle">
+									<input name="ids[]" value="{{ id }}" id="b{{ loop.index }}" type="checkbox" data-hs-select-item class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:outline-none focus:ring-0 focus:ring-offset-0 dark:border-gray-700">
+								</td>
+							{% endif %}
+							{% if row == '*' %}
+								{% include (tpl_filename ~ ".row.twig") %}
+							{% elseif row %}
+								{% include tpl_name(row) %}
+							{% else %}
+								{% for f, v in fields %}
+									<td class="py-4 align-middle font-medium text-brand dark:text-white">{{ l[f] }}</td>
+								{% endfor %}
+							{% endif %}
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+		<div class="px-5">
+			{% include "pl.twig" with {"linkparams": linkparams} %}
+		</div>
+		{% if is_array(btns) %}
+				{{ _getFormSecurity({"form": list_form_name}) }}
+				<div class="flex flex-col gap-4 border-t border-gray-100 p-5 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
+					<span class="text-sm font-bold text-gray-500 dark:text-gray-400">{{ _t({"key": 'list.selected'}) }} {{ include_code|raw }}</span>
+					<div class="flex flex-wrap gap-2">
+						{% for f, v in btns %}
+							<button name="{{ list_form_name }}_btn{{ f }}" value="{{ v }}" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-extrabold transition {% if f == 'del' or f == 'close' %}border border-red-200 bg-white text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:bg-[#151515] dark:hover:bg-red-500/10{% else %}border border-gray-200 bg-white text-brand hover:bg-gray-50 dark:border-gray-800 dark:bg-[#151515] dark:text-white dark:hover:bg-[#202020]{% endif %}">
+								<i class="fa-solid {% if f == 'del' or f == 'close' %}fa-trash{% else %}fa-bolt{% endif %}" aria-hidden="true"></i>
+								<span>{{ v }}</span>
+							</button>
+						{% endfor %}
+					</div>
+				</div>
+		{% endif %}
+	</div>
+	{% if is_array(btns) %}</form>{% endif %}
+{% else %}
+	<div class="rounded-[1.5rem] border border-gray-100 bg-white p-10 text-center shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<span class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 text-gray-500 dark:bg-[#1A1A1A] dark:text-gray-400">{% include "icon.twig" with {"module": tpl_module} %}</span>
+		<h3 class="text-xl font-extrabold text-brand dark:text-white">{{ _t({"key": 'list.empty'}) }}</h3>
+		<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ _t({"key": 'list.empty_desc'}) }}</p>
+	</div>
+{% endif %}

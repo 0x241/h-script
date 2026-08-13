@@ -1,0 +1,5 @@
+
+<td class="font-mono text-gray-500">#{{ l.cID }}</td>
+<td class="text-gray-500">{{ l.cTS }}</td>
+<td><a href="{{ _link('calendar/admin/day', false, 0) }}?id={{ l.cID }}" class="font-mono font-bold text-brand dark:text-white">{{ l.cPerc }}</a></td>
+<td><a href="{{ _link('calendar/admin/day', false, 0) }}?id={{ l.cID }}" class="font-bold text-brand dark:text-white">{{ d_types[l.cType] }}</a></td>

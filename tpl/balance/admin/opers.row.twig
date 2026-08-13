@@ -1,0 +1,47 @@
+<td class="px-5 py-4 align-middle font-mono text-sm font-bold text-gray-500">#{{ l.oID }}</td>
+<td class="px-5 py-4 align-middle">
+	<a href="{{ _link('account/admin/user', false, 0) }}?id={{ l.ouID }}" target="_blank" class="font-bold text-brand transition-colors hover:text-blue-500 dark:text-white dark:hover:text-blue-400">{{ l.uLogin }}</a>
+	{% if l.oParams.user %}
+		<div class="mt-1 text-xs text-gray-500">{{ l.oParams.user }}</div>
+	{% endif %}
+</td>
+<td class="px-5 py-4 align-middle font-mono text-xs text-gray-500">
+	<div>{{ l.oCTS }}</div>
+	{% if l.oTS %}<div class="mt-1">{{ l.oTS }}</div>{% endif %}
+</td>
+<td class="px-5 py-4 align-middle">
+	<a href="{{ _link('balance/admin/oper', false, 0) }}?id={{ l.oID }}" class="font-bold text-brand transition-colors hover:text-blue-500 dark:text-white dark:hover:text-blue-400">
+		{{ op_names[l.oOper]|default(l.oOper) }}
+	</a>
+</td>
+<td class="px-5 py-4 align-middle">
+	<a href="{{ _link('balance/admin/curr', false, 0) }}?id={{ l.ocID }}" target="_blank" class="font-bold text-gray-700 transition-colors hover:text-blue-500 dark:text-gray-300 dark:hover:text-blue-400">{{ l.cName }}</a>
+	{% if l.oParams2.acc %}
+		<div class="mt-1 max-w-40 truncate font-mono text-xs text-gray-500">{{ l.oParams2.acc }}</div>
+	{% endif %}
+</td>
+<td class="px-5 py-4 text-right align-middle">
+	<div class="font-mono font-bold text-brand dark:text-white">{{ _z(l.oSum, l.ocID, -1) }}</div>
+	{% if l.oComis != 0 %}
+		<div class="mt-1 font-mono text-xs text-amber-500">{{ _z(l.oComis, l.ocID, -1) }}</div>
+	{% endif %}
+</td>
+<td class="px-5 py-4 align-middle font-mono text-xs text-gray-500">
+	{% if l.oBatch %}
+		<span class="rounded-lg bg-gray-100 px-2 py-1 dark:bg-gray-800">{{ l.oBatch }}</span>
+	{% else %}
+		&mdash;
+	{% endif %}
+</td>
+<td class="px-5 py-4 align-middle">
+	<a href="{{ _link('balance/admin/oper', false, 0) }}?id={{ l.oID }}" class="inline-flex rounded-full px-3 py-1 text-xs font-bold {% if l.oState == 3 %}bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400{% elseif l.oState == 2 %}bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400{% elseif l.oState == 4 %}bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400{% else %}bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300{% endif %}">
+		{{ op_statuses[l.oState]|default(l.oState) }}
+	</a>
+</td>
+<td class="max-w-56 px-5 py-4 align-middle text-sm text-gray-500">
+	{% if l.oMemo %}
+		<span class="block truncate">{{ l.oMemo }}</span>
+	{% else %}
+		&mdash;
+	{% endif %}
+</td>

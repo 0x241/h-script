@@ -1,0 +1,268 @@
+{% include "admin/header.twig" with {"title": 'Collector'} %}
+
+{% if collector_flash.message %}
+	<aside class="mb-6 flex items-start gap-3 rounded-xl border p-4 text-sm font-semibold {% if collector_flash.type == 'error' %}border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100{% else %}border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100{% endif %}">
+		<i class="fa-solid {% if collector_flash.type == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %} mt-0.5" aria-hidden="true"></i>
+		<div class="min-w-0">
+			<p>{{ collector_flash.message }}</p>
+			{% if collector_flash.secret %}
+				<label for="collector-new-secret" class="mt-3 block text-xs font-extrabold uppercase tracking-wider">Новый Bearer service token</label>
+				<input id="collector-new-secret" type="text" readonly value="{{ collector_flash.secret }}" class="mt-2 w-full rounded-lg border border-emerald-300 bg-white px-3 py-2 font-mono text-xs text-brand outline-none dark:border-emerald-500/40 dark:bg-black dark:text-white">
+			{% endif %}
+		</div>
+	</aside>
+{% endif %}
+
+<section class="mb-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+	<header class="flex flex-col gap-4 p-6 lg:flex-row lg:items-center lg:justify-between">
+		<div class="flex items-start gap-4">
+			<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"><i class="fa-solid fa-tower-broadcast" aria-hidden="true"></i></span>
+			<div>
+				<h2 class="text-lg font-extrabold text-brand dark:text-white">Центральный реестр установок</h2>
+				<p class="mt-1 max-w-3xl text-sm leading-relaxed text-gray-500 dark:text-gray-400">Этот раздел существует только на сервере collector, для главного администратора уровня 99. Обычная установка H-Script не получает доступ к центральной базе и управлению service token.</p>
+			</div>
+		</div>
+		<span class="inline-flex self-start items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-extrabold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+			<i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+			{{ collector_domain }}
+		</span>
+	</header>
+</section>
+
+{% if not collector.ready %}
+	<section class="mb-6 flex items-start gap-4 rounded-xl border border-amber-200 bg-amber-50 p-6 text-amber-900 shadow-sm dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+		<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"><i class="fa-solid fa-database" aria-hidden="true"></i></span>
+		<div>
+			<strong class="block text-sm font-extrabold">Требуется обновление структуры базы collector</strong>
+			<p class="mt-1 text-sm">{{ collector.error }}</p>
+			<p class="mt-2 font-mono text-xs opacity-80">migrations/20260725_add_installation_telemetry.sql</p>
+		</div>
+	</section>
+{% else %}
+	<div class="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+		<div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><span class="text-xs font-extrabold uppercase tracking-wider text-gray-400">Платформ / записей</span><strong class="mt-2 block font-mono text-2xl text-brand dark:text-white">{{ collector.summary.platforms_total }} / {{ collector.summary.installations_total }}</strong></div>
+		<div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><span class="text-xs font-extrabold uppercase tracking-wider text-gray-400">Активны за 24 часа</span><strong class="mt-2 block font-mono text-2xl text-emerald-600 dark:text-emerald-400">{{ collector.summary.installations_active_24h }}</strong></div>
+		<div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><span class="text-xs font-extrabold uppercase tracking-wider text-gray-400">Передают агрегаты</span><strong class="mt-2 block font-mono text-2xl text-blue-600 dark:text-blue-400">{{ collector.public_stats.installations_sharing }}</strong></div>
+		<div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><span class="text-xs font-extrabold uppercase tracking-wider text-gray-400">Активные service token</span><strong class="mt-2 block font-mono text-2xl text-violet-600 dark:text-violet-400">{{ collector_token_counts.active }}</strong></div>
+	</div>
+
+	<div class="grid gap-6 xl:grid-cols-[minmax(300px,.7fr)_minmax(0,1.3fr)]">
+		<section class="self-start rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="mb-5 flex items-start gap-3">
+				<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-key" aria-hidden="true"></i></span>
+				<div>
+					<h2 class="text-lg font-extrabold text-brand dark:text-white">Новый service token</h2>
+					<p class="text-sm text-gray-500 dark:text-gray-400">Создавайте отдельный токен для каждого внешнего сервиса. Секрет хранится только как SHA-256 и показывается один раз.</p>
+				</div>
+			</div>
+			<form method="post" name="collector_token_create" class="space-y-4">
+				{{ _getFormSecurity({"form": "collector_token_create"}) }}
+				<label class="block text-sm font-bold text-brand dark:text-white">
+					Пользователь-сборщик
+					<span class="relative mt-2 block">
+						<select name="user_id" required {% if not collector_users %}disabled{% endif %} class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 pr-10 font-semibold text-brand outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white">
+							<option value="">Выберите пользователя уровня 10</option>
+							{% for collector_user in collector_users %}
+								<option value="{{ collector_user.uID }}">#{{ collector_user.uID }} · {{ collector_user.uLogin }}{% if collector_user.uMail %} · {{ collector_user.uMail }}{% endif %}</option>
+							{% endfor %}
+						</select>
+						<i class="fa-solid fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400" aria-hidden="true"></i>
+					</span>
+					<small class="mt-1 block font-normal text-gray-500 dark:text-gray-400">Токен будет принадлежать выбранному активному аккаунту. Другой уровень сервер не примет.</small>
+				</label>
+				<label class="block text-sm font-bold text-brand dark:text-white">
+					Название сервиса
+					<input type="text" name="name" maxlength="100" required placeholder="Например, публичный мониторинг" class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white">
+				</label>
+				<label class="block text-sm font-bold text-brand dark:text-white">
+					Срок действия, UTC
+					<input type="datetime-local" name="expires_at" class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-brand outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white">
+					<small class="mt-1 block font-normal text-gray-500 dark:text-gray-400">Пустое поле — без срока. Разрешение фиксировано: <code>telemetry:read</code>.</small>
+				</label>
+				<button type="submit" name="collector_token_create_btncreate" value="1" {% if not collector_users %}disabled{% endif %} class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-extrabold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-brand dark:hover:bg-gray-100"><i class="fa-solid fa-plus" aria-hidden="true"></i>Создать токен</button>
+			</form>
+			{% if not collector_users %}
+				<p class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs font-semibold leading-relaxed text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">Нет активных сборщиков. Создайте или откройте пользователя и установите ему уровень доступа <code>10</code>.</p>
+			{% endif %}
+			<div class="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-4 text-xs leading-relaxed text-gray-500 dark:border-gray-800 dark:bg-black/20 dark:text-gray-400">
+				<p class="font-extrabold text-brand dark:text-white">Service API</p>
+				<p class="mt-2 break-all font-mono">{{ collector_endpoint }}</p>
+				<p class="mt-2">Передавайте секрет в заголовке <code>Authorization: Bearer hst_…</code>. Токен установки <code>hsi_…</code> здесь не подходит.</p>
+			</div>
+		</section>
+
+		<section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+				<div>
+					<h2 class="text-lg font-extrabold text-brand dark:text-white">Service token</h2>
+					<p class="text-sm text-gray-500 dark:text-gray-400">Приостановленный токен можно включить снова. Отозванный восстановить нельзя.</p>
+				</div>
+				<span class="self-start rounded-full bg-gray-100 px-3 py-1 text-xs font-extrabold text-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ collector_token_counts.active }} активных · {{ collector_token_counts.paused }} пауза · {{ collector_token_counts.expired }} истекло · {{ collector_token_counts.revoked }} отозвано</span>
+			</div>
+
+			{% if collector_tokens %}
+				<form method="post" name="collector_token_manage" class="space-y-4">
+					{{ _getFormSecurity({"form": "collector_token_manage"}) }}
+					{% for token in collector_tokens %}
+						<article class="rounded-xl border border-gray-200 p-5 dark:border-gray-800 {% if token.tstState == 0 %}opacity-70{% endif %}">
+							<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+								<div class="flex flex-wrap items-center gap-2">
+									<strong class="text-brand dark:text-white">#{{ token.tstID }} · {{ token.tstTokenPrefix }}…</strong>
+									{% if token.tstState == 1 and not token.Expired %}
+										<span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-extrabold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">Активен</span>
+									{% elseif token.tstState == 2 %}
+										<span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-extrabold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">Приостановлен</span>
+									{% elseif token.Expired and token.tstState != 0 %}
+										<span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-extrabold text-gray-600 dark:bg-gray-800 dark:text-gray-300">Истёк</span>
+									{% else %}
+										<span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-extrabold text-red-700 dark:bg-red-500/10 dark:text-red-300">Отозван</span>
+									{% endif %}
+								</div>
+								<span class="text-xs text-gray-400">{{ token.uLogin }} · {{ token.CreatedText }}</span>
+							</div>
+							<div class="grid gap-4 lg:grid-cols-3">
+								<label class="block text-xs font-bold text-gray-500 dark:text-gray-400">Название<input type="text" name="tokens[{{ token.tstID }}][name]" maxlength="100" required value="{{ token.tstName }}" {% if token.tstState == 0 %}disabled{% endif %} class="mt-2 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-semibold text-brand outline-none dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white"></label>
+								<label class="block text-xs font-bold text-gray-500 dark:text-gray-400">Состояние<span class="relative mt-2 block"><select name="tokens[{{ token.tstID }}][state]" {% if token.tstState == 0 %}disabled{% endif %} class="w-full appearance-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 pr-10 text-sm font-semibold text-brand outline-none dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white"><option value="active" {% if token.tstState == 1 %}selected{% endif %}>Активен</option><option value="paused" {% if token.tstState == 2 %}selected{% endif %}>Приостановлен</option></select><i class="fa-solid fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400" aria-hidden="true"></i></span></label>
+								<label class="block text-xs font-bold text-gray-500 dark:text-gray-400">Срок, UTC<input type="datetime-local" name="tokens[{{ token.tstID }}][expires_at]" value="{{ token.ExpiresInput }}" {% if token.tstState == 0 %}disabled{% endif %} class="mt-2 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-semibold text-brand outline-none dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white"></label>
+							</div>
+							<dl class="mt-4 grid gap-2 text-xs text-gray-500 sm:grid-cols-2 dark:text-gray-400">
+								<div><dt class="inline font-bold">Разрешение:</dt> <dd class="inline font-mono">{{ token.tstScope }}</dd></div>
+								<div><dt class="inline font-bold">Истекает:</dt> <dd class="inline">{{ token.ExpiresText }}</dd></div>
+								<div><dt class="inline font-bold">Последнее использование:</dt> <dd class="inline">{{ token.LastUsedText }}</dd></div>
+								<div><dt class="inline font-bold">Последний IP:</dt> <dd class="inline font-mono">{{ token.tstLastIP ?: 'Нет данных' }}</dd></div>
+							</dl>
+							{% if token.tstState != 0 %}
+								<div class="mt-4 flex flex-wrap gap-2">
+									<button type="submit" name="collector_token_manage_btnsave" value="{{ token.tstID }}" class="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-xs font-extrabold text-white dark:bg-white dark:text-brand"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Сохранить</button>
+									<button type="submit" name="collector_token_manage_btnrevoke" value="{{ token.tstID }}" class="inline-flex items-center gap-2 rounded-lg border border-red-200 px-4 py-2 text-xs font-extrabold text-red-700 dark:border-red-500/30 dark:text-red-300"><i class="fa-solid fa-ban" aria-hidden="true"></i>Отозвать</button>
+								</div>
+							{% endif %}
+						</article>
+					{% endfor %}
+				</form>
+			{% else %}
+				<p class="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm font-semibold text-gray-400 dark:border-gray-700">Service token ещё не создавались.</p>
+			{% endif %}
+		</section>
+	</div>
+
+	<section class="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<header class="flex flex-col gap-3 border-b border-gray-100 p-6 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
+			<div class="flex items-start gap-4">
+				<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-users-gear" aria-hidden="true"></i></span>
+				<div>
+					<h2 class="text-lg font-extrabold text-brand dark:text-white">Сборщики</h2>
+					<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Пользователи уровня 10 и сводное состояние принадлежащих им service token.</p>
+				</div>
+			</div>
+			<span class="self-start rounded-full bg-gray-100 px-3 py-1 text-xs font-extrabold text-gray-600 dark:bg-gray-800 dark:text-gray-300">Всего: {{ collector_accounts|length }}</span>
+		</header>
+		<div class="overflow-x-auto">
+			<table class="min-w-full divide-y divide-gray-100 text-left text-sm dark:divide-gray-800">
+				<thead class="bg-gray-50/80 text-xs font-extrabold uppercase tracking-wider text-gray-400 dark:bg-black/20">
+					<tr>
+						<th class="whitespace-nowrap px-5 py-4">Сборщик</th>
+						<th class="whitespace-nowrap px-5 py-4">Аккаунт</th>
+						<th class="whitespace-nowrap px-5 py-4">Токены</th>
+						<th class="whitespace-nowrap px-5 py-4">Последний выпуск</th>
+						<th class="whitespace-nowrap px-5 py-4">Последнее использование</th>
+						<th class="px-5 py-4 text-right"></th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+					{% for account in collector_accounts %}
+						<tr class="hover:bg-gray-50/70 dark:hover:bg-white/[.02]">
+							<td class="px-5 py-4">
+								<strong class="block text-brand dark:text-white">#{{ account.uID }} · {{ account.uLogin }}</strong>
+								<span class="mt-1 block text-xs text-gray-400">{{ account.uMail ?: 'E-mail не указан' }}</span>
+							</td>
+							<td class="px-5 py-4">
+								<span class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-extrabold {% if account.uState == 1 %}bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300{% else %}bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300{% endif %}">
+									<span class="h-2 w-2 rounded-full {% if account.uState == 1 %}bg-emerald-500{% else %}bg-red-500{% endif %}"></span>{{ account.StateText }}
+								</span>
+							</td>
+							<td class="whitespace-nowrap px-5 py-4">
+								<strong class="font-mono text-brand dark:text-white">{{ account.TokenActive }}</strong>
+								<span class="text-xs text-gray-400"> активных / {{ account.TokenTotal }} всего</span>
+								{% if account.TokenPaused %}<span class="mt-1 block text-xs text-amber-600 dark:text-amber-300">На паузе: {{ account.TokenPaused }}</span>{% endif %}
+							</td>
+							<td class="whitespace-nowrap px-5 py-4 text-xs text-gray-500 dark:text-gray-400">{{ account.LastTokenCreatedText }}</td>
+							<td class="whitespace-nowrap px-5 py-4 text-xs text-gray-500 dark:text-gray-400">{{ account.LastTokenUsedText }}</td>
+							<td class="px-5 py-4 text-right"><a href="{{ _link('account/admin/user', false, 0) }}?id={{ account.uID }}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-xs font-extrabold text-brand transition hover:bg-gray-50 dark:border-gray-700 dark:text-white dark:hover:bg-white/5"><i class="fa-solid fa-user-pen" aria-hidden="true"></i>Открыть</a></td>
+						</tr>
+					{% else %}
+						<tr><td colspan="6" class="px-6 py-10 text-center text-sm font-semibold text-gray-400">Пользователей с уровнем 10 пока нет.</td></tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<section class="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<header class="flex flex-col gap-4 border-b border-gray-100 p-6 dark:border-gray-800 lg:flex-row lg:items-center lg:justify-between">
+			<div class="flex items-start gap-4">
+				<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span>
+				<div>
+					<h2 class="text-lg font-extrabold text-brand dark:text-white">Установки и публичные агрегаты</h2>
+					<p class="mt-1 text-sm leading-relaxed text-gray-500 dark:text-gray-400">Полная таблица доступна только здесь. Повторные UUID одного домена видны в реестре, но не увеличивают публичные счётчики и суммы.</p>
+				</div>
+			</div>
+		</header>
+
+		{% if collector.summary.versions %}
+			<div class="flex flex-wrap items-center gap-2 border-b border-gray-100 px-6 py-4 text-xs dark:border-gray-800">
+				<span class="font-extrabold uppercase tracking-wider text-gray-400">Версии</span>
+				{% for version, count in collector.summary.versions %}
+					<span class="rounded-full bg-gray-100 px-3 py-1 font-mono font-bold text-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ version }} · {{ count }}</span>
+				{% endfor %}
+			</div>
+		{% endif %}
+
+		<div class="overflow-x-auto">
+			<table class="min-w-full divide-y divide-gray-100 text-left text-sm dark:divide-gray-800">
+				<thead class="bg-gray-50/80 text-xs font-extrabold uppercase tracking-wider text-gray-400 dark:bg-black/20">
+					<tr><th class="whitespace-nowrap px-5 py-4">Установка</th><th class="whitespace-nowrap px-5 py-4">Версия</th><th class="whitespace-nowrap px-5 py-4">Регистрация</th><th class="whitespace-nowrap px-5 py-4">Последняя связь</th><th class="whitespace-nowrap px-5 py-4">Публичные агрегаты</th><th class="whitespace-nowrap px-5 py-4">Состояние</th></tr>
+				</thead>
+				<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+					{% for installation in collector.installations %}
+						<tr class="align-top hover:bg-gray-50/70 dark:hover:bg-white/[.02]">
+							<td class="px-5 py-4"><strong class="block break-all text-brand dark:text-white">{{ installation.domain }}</strong><span class="mt-1 block break-all font-mono text-[11px] text-gray-400">{{ installation.id }}</span></td>
+							<td class="px-5 py-4"><span class="rounded-full px-2.5 py-1 font-mono text-xs font-bold {% if installation.outdated %}bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300{% else %}bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300{% endif %}">{{ installation.version }}</span></td>
+							<td class="whitespace-nowrap px-5 py-4 text-xs text-gray-500 dark:text-gray-400"><span class="block">{{ installation.installed_at_text }}</span><span class="mt-1 block text-gray-400">Принята: {{ installation.registered_at_text }}</span></td>
+							<td class="whitespace-nowrap px-5 py-4 text-xs text-gray-500 dark:text-gray-400"><span class="block">{{ installation.last_seen_at_text }}</span><span class="mt-1 block text-gray-400">Отчёт: {{ installation.last_report_at_text }}</span>{% if installation.report_day %}<span class="mt-1 block font-mono text-[11px] text-gray-400">Период: {{ installation.report_day }}</span>{% endif %}</td>
+							<td class="px-5 py-4 text-xs">
+								{% if installation.public_stats %}
+									<span class="block font-bold text-brand dark:text-white">Пользователи: {{ installation.public_stats.users_total }} · онлайн {{ installation.public_stats.users_online }}</span>
+									{% if installation.public_stats.base_currency %}
+										<span class="mt-1 block font-mono text-gray-500 dark:text-gray-400">Пополнения: {{ installation.public_stats.cash_in_base|number_format(2, '.', ' ') }} {{ installation.public_stats.base_currency }}</span>
+										<span class="mt-1 block font-mono text-gray-500 dark:text-gray-400">Выплаты: {{ installation.public_stats.cash_out_base|number_format(2, '.', ' ') }} {{ installation.public_stats.base_currency }}</span>
+									{% endif %}
+									<span class="mt-1 block text-gray-500 dark:text-gray-400">Дней работы: {{ installation.public_stats.worked_days }}</span>
+								{% elseif installation.shares_public_stats %}
+									<span class="font-bold text-amber-600 dark:text-amber-300">Ожидается первый отчёт</span>
+								{% else %}
+									<span class="font-bold text-gray-400">Передача отключена</span>
+								{% endif %}
+							</td>
+							<td class="px-5 py-4">
+								{% if installation.public_metric_state == 'ineligible_domain' %}
+									<span class="inline-flex items-center gap-2 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-extrabold text-gray-600 dark:bg-gray-800 dark:text-gray-300"><span class="h-2 w-2 rounded-full bg-gray-400"></span>Непубличный домен</span>
+									<span class="mt-2 block text-xs text-gray-400">Не входит в публичные показатели</span>
+								{% elseif not installation.counted_in_public_metrics %}
+									<span class="inline-flex items-center gap-2 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-extrabold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"><span class="h-2 w-2 rounded-full bg-amber-500"></span>Дубликат домена</span>
+									<span class="mt-2 block text-xs text-gray-400">Не входит в публичные показатели</span>
+								{% else %}
+									<span class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-extrabold {% if installation.active_24h %}bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300{% else %}bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400{% endif %}"><span class="h-2 w-2 rounded-full {% if installation.active_24h %}bg-emerald-500{% else %}bg-gray-400{% endif %}"></span>{% if installation.active_24h %}Активна{% else %}Нет связи 24ч{% endif %}</span>
+								{% endif %}
+							</td>
+						</tr>
+					{% else %}
+						<tr><td colspan="6" class="px-6 py-12 text-center text-sm font-semibold text-gray-400">Зарегистрированных установок пока нет.</td></tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</section>
+{% endif %}
+
+{% include "admin/footer.twig" %}

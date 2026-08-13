@@ -1,0 +1,154 @@
+{% include "header.twig" with {"title": valueIf(el.tID, _t({"key": 'tickets.ticket.title', "default": 'Тикет'}), _t({"key": 'tickets.new.title', "default": 'Создать тикет'}))} %}
+
+{% set ticket_errors = {'topic_empty': _t({"key": 'tickets.error.topic_empty', "default": 'укажите тему'}), 'text_empty': _t({"key": 'tickets.error.text_empty', "default": 'укажите текст'})} %}
+
+{% if el.tID %}
+	{% set ticket_form_name = getFormName('') %}
+	{% set close_form_name = 'ticket' %}
+	{% set ticket_state = _tstates[el.tState]|default(el.tState) %}
+	{% set ticket_state_class = 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400' %}
+	{% if el.tState == 2 %}
+		{% set ticket_state_class = 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500' %}
+	{% elseif el.tState == 5 %}
+		{% set ticket_state_class = 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' %}
+	{% elseif el.tState < 8 %}
+		{% set ticket_state_class = 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' %}
+	{% endif %}
+
+	<div id="ticket-panel" class="mx-auto flex h-full min-h-[calc(100vh-10rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="flex shrink-0 flex-col items-start justify-between gap-4 border-b border-gray-100 bg-white/80 p-5 backdrop-blur-xl dark:border-gray-800 dark:bg-[#151515]/80 sm:flex-row sm:items-center">
+			<div>
+				<div class="mb-2 flex flex-wrap items-center gap-3">
+					<span class="font-mono text-sm text-gray-400">#{{ el.tID }}</span>
+					<span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold {{ ticket_state_class }}">
+						<i class="fa-solid fa-circle-dot text-[10px]" aria-hidden="true"></i>
+						{{ ticket_state }}
+					</span>
+				</div>
+				<h2 class="text-xl font-bold text-brand dark:text-white">{{ el.tTopic }}</h2>
+			</div>
+			<div class="flex gap-2">
+				{% if el.tState < 8 %}
+					<form method="post" class="inline-flex" hx-post="{{ _selfLink }}?id={{ el.tID }}" hx-target="#ticket-panel" hx-select="#ticket-panel" hx-swap="outerHTML" hx-push-url="false" hx-disabled-elt="button" hx-sync="this:replace">
+						{{ _getFormSecurity({"form": close_form_name}) }}
+						<input name="tID" value="{{ el.tID }}" type="hidden">
+						<button name="{{ close_form_name }}_btnclose" value="{{ _t({"key": 'tickets.close', "default": 'Закрыть тикет'}) }}" type="submit" class="inline-flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-sm font-bold text-red-600 transition-colors hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40">
+							<i class="fa-solid fa-lock" aria-hidden="true"></i>
+							{{ _t({"key": 'tickets.close', "default": 'Закрыть тикет'}) }}
+						</button>
+					</form>
+				{% endif %}
+			</div>
+		</div>
+
+		<div class="flex-1 overflow-y-auto bg-gray-50/50 p-4 dark:bg-transparent sm:p-8">
+			<div class="mx-auto flex max-w-4xl flex-col gap-6">
+				<div class="flex max-w-[85%] items-end gap-4 self-end sm:max-w-[75%]">
+					<div class="flex w-full flex-col gap-1">
+						<div class="mb-1 flex items-center justify-end gap-2 px-1">
+							<span class="text-xs text-gray-400">{{ el.tTS|default(el.tLTS) }}</span>
+							<span class="text-xs font-bold text-gray-600 dark:text-gray-300">{{ _t({"key": 'tickets.you', "default": 'Вы'}) }}</span>
+						</div>
+						<div class="whitespace-pre-line rounded-2xl rounded-br-sm bg-blue-600 p-4 text-white shadow-sm">{{ el.tText }}</div>
+					</div>
+					{% include "_useravatar.twig" with {
+						"avatar_user": el,
+						"avatar_size": 64,
+						"avatar_class": "h-8 w-8 shrink-0 rounded-full object-cover shadow-sm",
+						"avatar_initial_class": "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-100 text-sm font-bold text-blue-600 shadow-sm dark:border-blue-900/50"
+					} %}
+				</div>
+
+				{% for id, l in list %}
+					{% set is_author = l.muID == el.tuID %}
+					<div class="flex max-w-[85%] items-end gap-4 {% if is_author %}self-end sm:max-w-[75%]{% else %}self-start sm:max-w-[75%]{% endif %}">
+						{% if not is_author %}
+							{% include "_useravatar.twig" with {
+								"avatar_user": l,
+								"avatar_size": 64,
+								"avatar_class": "h-8 w-8 shrink-0 rounded-full object-cover shadow-sm",
+								"avatar_initial_class": "flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-600 shadow-sm dark:bg-emerald-900/30 dark:text-emerald-400"
+							} %}
+						{% endif %}
+						<div class="flex w-full flex-col gap-1">
+							<div class="mb-1 flex items-center gap-2 px-1 {% if is_author %}justify-end{% endif %}">
+								<span class="text-xs font-bold {% if is_author %}text-gray-600 dark:text-gray-300{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">{% if is_author %}{{ _t({"key": 'tickets.you', "default": 'Вы'}) }}{% elseif l.uLevel >= 90 %}{{ _t({"key": 'tickets.staff', "default": 'Администратор'}) }}{% if l.uLogin %} ({{ l.uLogin }}){% endif %}{% else %}{{ _t({"key": 'tickets.operator', "default": 'Поддержка'}) }}{% if l.uLogin %} ({{ l.uLogin }}){% endif %}{% endif %}</span>
+								<span class="text-xs text-gray-400">{{ l.mTS }}</span>
+							</div>
+							<div class="whitespace-pre-line rounded-2xl p-4 shadow-sm {% if is_author %}rounded-br-sm bg-blue-600 text-white{% else %}rounded-bl-sm border border-gray-100 bg-white text-brand dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white{% endif %}">{{ l.mText }}</div>
+						</div>
+						{% if is_author %}
+							{% include "_useravatar.twig" with {
+								"avatar_user": l,
+								"avatar_size": 64,
+								"avatar_class": "h-8 w-8 shrink-0 rounded-full object-cover shadow-sm",
+								"avatar_initial_class": "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-100 text-sm font-bold text-blue-600 shadow-sm dark:border-blue-900/50"
+							} %}
+						{% endif %}
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+
+		{% if el.tState < 8 %}
+			<form method="post" class="shrink-0 border-t border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-[#151515] sm:p-6" hx-post="{{ _selfLink }}?id={{ el.tID }}" hx-target="#ticket-panel" hx-select="#ticket-panel" hx-swap="outerHTML" hx-push-url="false" hx-disabled-elt="button" hx-sync="this:replace">
+				{{ _getFormSecurity() }}
+				<input name="tID" value="{{ el.tID }}" type="hidden">
+				{% set answer_error = formErrorText(ticket_form_name, ticket_errors, true) %}
+				{% if answer_error %}
+					<div class="mx-auto mb-4 max-w-4xl rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">{{ answer_error }}</div>
+				{% endif %}
+				<div class="mx-auto flex max-w-4xl items-center gap-4">
+					<label class="sr-only" for="{{ ticket_form_name }}_mText">{{ _t({"key": 'tickets.reply.placeholder', "default": 'Написать сообщение...'}) }}</label>
+					<textarea id="{{ ticket_form_name }}_mText" name="mText" rows="2" placeholder="{{ _t({"key": 'tickets.reply.placeholder', "default": 'Написать сообщение...'}) }}" class="min-h-12 flex-1 resize-y rounded-2xl border border-transparent bg-gray-100 px-5 py-3 text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:bg-[#1A1A1A] dark:text-white dark:placeholder:text-gray-500 dark:focus:bg-[#151515]">{% if isset_IN('mText') %}{{ _IN('mText') }}{% endif %}</textarea>
+					<button name="{{ ticket_form_name }}_btnanswer" value="{{ _t({"key": 'tickets.reply.send', "default": 'Отправить сообщение'}) }}" type="submit" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700" aria-label="{{ _t({"key": 'tickets.reply.send', "default": 'Отправить сообщение'}) }}">
+						<i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+					</button>
+				</div>
+			</form>
+		{% endif %}
+	</div>
+{% else %}
+	{% set new_ticket_form_name = getFormName('') %}
+	{% set topic_value = '' %}
+	{% if isset_IN('tTopic') %}{% set topic_value = _IN('tTopic') %}{% endif %}
+	{% set text_value = '' %}
+	{% if isset_IN('tText') %}{% set text_value = _IN('tText') %}{% endif %}
+	{% set new_ticket_error = formErrorText(new_ticket_form_name, ticket_errors, true) %}
+
+	<div class="mx-auto w-full max-w-4xl">
+		<div class="mb-8 flex items-center justify-between gap-4">
+			<div>
+				<h2 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'tickets.new.heading', "default": 'Создать тикет'}) }}</h2>
+				<p class="text-textDim dark:text-gray-400">{{ _t({"key": 'tickets.new.text', "default": 'Опишите вашу проблему, и специалисты ответят в кратчайшие сроки.'}) }}</p>
+			</div>
+			<a href="{{ _link('tickets', false, 0) }}" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-brand transition-colors hover:bg-gray-50 dark:border-gray-800 dark:bg-[#151515] dark:text-white dark:hover:bg-[#202020]" aria-label="{{ _t({"key": 'button.close', "default": 'Закрыть'}) }}">
+				<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+			</a>
+		</div>
+
+		<form method="post" class="space-y-6 rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515] sm:p-8">
+			{{ _getFormSecurity() }}
+			<input name="tCat" value="" type="hidden">
+			{% if new_ticket_error %}
+				<div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">{{ new_ticket_error }}</div>
+			{% endif %}
+			<div>
+				<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ new_ticket_form_name }}_tTopic">{{ _t({"key": 'tickets.field.topic', "default": 'Тема'}) }}</label>
+				<input id="{{ new_ticket_form_name }}_tTopic" name="tTopic" value="{{ topic_value }}" type="text" placeholder="{{ _t({"key": 'tickets.field.topic_placeholder', "default": 'Кратко опишите суть вопроса'}) }}" class="w-full rounded-xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500">
+			</div>
+			<div>
+				<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ new_ticket_form_name }}_tText">{{ _t({"key": 'tickets.field.message', "default": 'Сообщение'}) }}</label>
+				<textarea id="{{ new_ticket_form_name }}_tText" name="tText" rows="9" placeholder="{{ _t({"key": 'tickets.field.message_placeholder', "default": 'Подробно опишите вашу проблему или вопрос...'}) }}" class="w-full resize-y rounded-xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500">{{ text_value }}</textarea>
+			</div>
+			<div class="flex justify-end pt-2">
+				<button name="{{ new_ticket_form_name }}_btncreate" value="{{ _t({"key": 'tickets.new.submit', "default": 'Отправить обращение'}) }}" type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-10 py-4 text-lg font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100 sm:w-auto">
+					<i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+					{{ _t({"key": 'tickets.new.submit', "default": 'Отправить обращение'}) }}
+				</button>
+			</div>
+		</form>
+	</div>
+{% endif %}
+
+{% include "footer.twig" %}

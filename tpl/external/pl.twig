@@ -1,0 +1,19 @@
+{% if isset(pl_params.Pages) and is_array(pl_params.Pages) and (count(pl_params.Pages) > 0) %}
+	<div class="py-12 flex flex-wrap justify-center gap-2">
+		{% for i, pn in pl_params.Pages %}
+			<a href="{{ _selfLink }}?page={{ pn[1] }}{{ linkparams }}" class="flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-sm font-bold transition-colors {% if pn[1] == pl_params.Page %}bg-brand text-white dark:bg-white dark:text-brand{% else %}border border-gray-200 text-brand hover:bg-gray-50 dark:border-gray-800 dark:text-gray-300 dark:hover:bg-[#1A1A1A]{% endif %}">
+				{% if pn[0] == '&lt;&lt;' %}
+					{{ _t({"key": 'pagination.first', "default": 'Первая'}) }}
+				{% elseif pn[0] == '&lt;' %}
+					{{ _t({"key": 'pagination.back', "default": 'Назад'}) }}
+				{% elseif pn[0] == '&gt;' %}
+					{{ _t({"key": 'pagination.forward', "default": 'Вперед'}) }}
+				{% elseif pn[0] == '&gt;&gt;' %}
+					{{ _t({"key": 'pagination.last', "default": 'Последняя'}) }}
+				{% else %}
+					{{ pn[0] }}
+				{% endif %}
+			</a>
+		{% endfor %}
+	</div>
+{% endif %}

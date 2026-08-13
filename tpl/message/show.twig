@@ -1,0 +1,97 @@
+{% include "header.twig" with {"title": valueIf(el.mID, _t({"key": 'messages.show.title', "default": 'Сообщение'}), _t({"key": 'messages.compose', "default": 'Новое сообщение'}))} %}
+
+{% set msg_form_name = getFormName('') %}
+{% set msg_errors = {'to_empty': _t({"key": 'messages.error.to_empty', "default": 'укажите получателя'}), 'to_wrong': _t({"key": 'messages.error.to_wrong', "default": 'получатель не найден'}), 'topic_empty': _t({"key": 'messages.error.topic_empty', "default": 'укажите тему'}), 'text_empty': _t({"key": 'messages.error.text_empty', "default": 'укажите текст'})} %}
+
+<div class="mx-auto w-full max-w-4xl">
+	<div class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+		<div>
+			<div class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-gray-500">
+				<i class="fa-solid {% if el.mID %}fa-envelope-open{% else %}fa-pen-to-square{% endif %} text-blue-500" aria-hidden="true"></i>
+				{% if el.mID %}{{ _t({"key": 'messages.show.eyebrow', "default": 'Просмотр сообщения'}) }}{% else %}{{ _t({"key": 'messages.compose.eyebrow', "default": 'Отправка сообщения'}) }}{% endif %}
+			</div>
+			<h2 class="text-3xl font-bold text-brand dark:text-white">{% if el.mID %}{{ el.mTopic }}{% else %}{{ _t({"key": 'messages.compose', "default": 'Новое сообщение'}) }}{% endif %}</h2>
+		</div>
+	</div>
+
+	{% if el.mID %}
+		<div id="message-panel" class="flex min-h-[calc(100vh-12rem)] flex-col overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="shrink-0 border-b border-gray-100 bg-white/80 p-5 backdrop-blur-xl dark:border-gray-800 dark:bg-[#151515]/80">
+				<div class="mb-2 flex flex-wrap items-center gap-3">
+					<span class="font-mono text-sm text-gray-400">#{{ el.bID|default(el.mID) }}</span>
+					<span class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"><i class="fa-solid fa-comments text-[10px]" aria-hidden="true"></i>{{ _t({"key": 'messages.conversation', "default": 'Диалог'}) }}</span>
+				</div>
+				<h3 class="text-xl font-bold text-brand dark:text-white">{{ el.mTopic }}</h3>
+			</div>
+			<div class="flex-1 overflow-y-auto bg-gray-50/50 p-4 dark:bg-transparent sm:p-8">
+				<div class="mx-auto flex max-w-3xl flex-col gap-6">
+					{% for l in list %}
+						{% set is_self = l.muID == user.uID %}
+						<div class="flex max-w-[85%] items-end gap-3 {% if is_self %}self-end sm:max-w-[75%]{% else %}self-start sm:max-w-[75%]{% endif %}">
+							{% if not is_self %}
+								{% include "_useravatar.twig" with {"avatar_user": l, "avatar_size": 64, "avatar_class": "h-8 w-8 shrink-0 rounded-full object-cover shadow-sm", "avatar_initial_class": "flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-600 shadow-sm dark:bg-emerald-900/30 dark:text-emerald-400"} %}
+							{% endif %}
+							<div class="flex w-full flex-col gap-1">
+								<div class="mb-1 flex items-center gap-2 px-1 {% if is_self %}justify-end{% endif %}">
+									<span class="text-xs font-bold {% if is_self %}text-gray-600 dark:text-gray-300{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">{% if is_self %}{{ _t({"key": 'tickets.you', "default": 'Вы'}) }}{% elseif l.uLevel >= 90 %}{{ _t({"key": 'tickets.staff', "default": 'Администратор'}) }}{% if l.uLogin %} ({{ l.uLogin }}){% endif %}{% elseif l.uLevel >= 50 %}{{ _t({"key": 'tickets.operator', "default": 'Поддержка'}) }}{% if l.uLogin %} ({{ l.uLogin }}){% endif %}{% else %}{{ l.uLogin|default(l.mMail|default('-')) }}{% endif %}</span>
+									<span class="text-xs text-gray-400">{{ l.mTS }}</span>
+								</div>
+								<div class="whitespace-pre-line rounded-2xl p-4 leading-relaxed shadow-sm {% if is_self %}rounded-br-sm bg-blue-600 text-white{% else %}rounded-bl-sm border border-gray-100 bg-white text-brand dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white{% endif %}">{{ l.mText }}</div>
+							</div>
+							{% if is_self %}
+								{% include "_useravatar.twig" with {"avatar_user": l, "avatar_size": 64, "avatar_class": "h-8 w-8 shrink-0 rounded-full object-cover shadow-sm", "avatar_initial_class": "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-100 text-sm font-bold text-blue-600 shadow-sm dark:border-blue-900/50"} %}
+							{% endif %}
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+			{% if _cfg.Msg_Mode > 1 %}
+				{% set reply_error = formErrorText(msg_form_name, msg_errors, true) %}
+				<form method="post" action="{{ _selfLink }}?id={{ el.bID }}" class="shrink-0 border-t border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-[#151515] sm:p-6" hx-post="{{ _selfLink }}?id={{ el.bID }}" hx-target="#message-panel" hx-select="#message-panel" hx-swap="outerHTML" hx-push-url="false" hx-disabled-elt="button" hx-sync="this:replace">
+					{{ _getFormSecurity() }}
+					<input name="ThreadBox" value="{{ el.bID }}" type="hidden">
+					{% if reply_error %}<div class="mx-auto mb-4 max-w-3xl rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">{{ reply_error }}</div>{% endif %}
+					<div class="mx-auto flex max-w-3xl items-center gap-4">
+						<label class="sr-only" for="{{ msg_form_name }}_mText">{{ _t({"key": 'messages.reply.placeholder', "default": 'Написать сообщение...'}) }}</label>
+						<textarea id="{{ msg_form_name }}_mText" name="mText" rows="2" placeholder="{{ _t({"key": 'messages.reply.placeholder', "default": 'Написать сообщение...'}) }}" class="min-h-12 flex-1 resize-y rounded-2xl border border-transparent bg-gray-100 px-5 py-3 text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:bg-[#1A1A1A] dark:text-white dark:placeholder:text-gray-500 dark:focus:bg-[#151515]">{% if isset_IN('mText') %}{{ _IN('mText') }}{% endif %}</textarea>
+						<button name="{{ msg_form_name }}_btnreply" value="{{ _t({"key": 'messages.send', "default": 'Отправить'}) }}" type="submit" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700" aria-label="{{ _t({"key": 'messages.send', "default": 'Отправить'}) }}"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></button>
+					</div>
+				</form>
+			{% elseif _cfg.Msg_Mode == 1 %}
+				<div class="flex items-center justify-between gap-4 border-t border-amber-100 bg-amber-50 p-4 text-sm font-semibold text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
+					<span>Ответы на внутренние сообщения отключены администратором.</span>
+					<a href="{{ _link('tickets/ticket', false, 0) }}?add" class="shrink-0 font-extrabold underline">Создать тикет</a>
+				</div>
+			{% endif %}
+		</div>
+	{% else %}
+		{% set msg_error_text = formErrorText(msg_form_name, msg_errors, true) %}
+		<form method="post" action="{{ _selfLink }}?new" name="{{ msg_form_name }}" class="space-y-6 rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515] sm:p-8">
+			{{ _getFormSecurity({"form": msg_form_name}) }}
+			<input name="Re" value="{{ el.Re|default(0) }}" type="hidden">
+			{% if msg_error_text %}
+				<div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">{{ msg_error_text }}</div>
+			{% endif %}
+			<div>
+				<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ msg_form_name }}_mTo">{{ _t({"key": 'messages.field.to', "default": 'Получатель'}) }}</label>
+				<input name="mTo" id="{{ msg_form_name }}_mTo" value="{% if isset_IN('mTo') %}{{ _IN('mTo') }}{% else %}{{ el.mTo }}{% endif %}" type="text" class="w-full rounded-xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500">
+			</div>
+			<div>
+				<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ msg_form_name }}_mTopic">{{ _t({"key": 'messages.field.topic', "default": 'Тема'}) }}</label>
+				<input name="mTopic" id="{{ msg_form_name }}_mTopic" value="{% if isset_IN('mTopic') %}{{ _IN('mTopic') }}{% else %}{{ el.mTopic }}{% endif %}" type="text" class="w-full rounded-xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500">
+			</div>
+			<div>
+				<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ msg_form_name }}_mText">{{ _t({"key": 'messages.field.text', "default": 'Текст'}) }}</label>
+				<textarea name="mText" id="{{ msg_form_name }}_mText" rows="10" class="w-full resize-y rounded-xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500">{% if isset_IN('mText') %}{{ _IN('mText') }}{% else %}{{ el.mText }}{% endif %}</textarea>
+			</div>
+			<div class="flex justify-end pt-2">
+				<button name="{{ msg_form_name }}_btnsend" value="{{ _t({"key": 'messages.send', "default": 'Отправить'}) }}" type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand px-8 py-4 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100 sm:w-auto">
+					<i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+					{{ _t({"key": 'messages.send', "default": 'Отправить'}) }}
+				</button>
+			</div>
+		</form>
+	{% endif %}
+</div>
+
+{% include "footer.twig" %}

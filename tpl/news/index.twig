@@ -1,0 +1,47 @@
+{% include "external/header.twig" with {"title": _t({"key": 'nav.news', "default": 'Новости'}), "public_active": 'news'} %}
+
+<main id="content" class="flex-1 pt-40 pb-20 px-6 max-w-7xl mx-auto w-full">
+	<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+		<div>
+			<div class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-textDim dark:text-gray-500">
+				<i class="fa-solid fa-newspaper" aria-hidden="true"></i>
+				<span>{{ _t({"key": 'news.total', "default": 'Всего новостей'}) }}</span>
+				<span class="inline-flex min-w-7 items-center justify-center rounded-full bg-blue-50 px-2 py-1 font-mono text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">{{ pl_params.RowsCount|default(list|count) }}</span>
+			</div>
+			<h1 class="text-4xl md:text-5xl font-bold text-brand dark:text-white tracking-tight">{{ _t({"key": 'news.heading', "default": 'Новости и обновления'}) }}</h1>
+		</div>
+	</div>
+
+	{% if list %}
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+			{% for id, l in list %}
+				<article class="bg-white dark:bg-[#151515] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 flex flex-col hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-blue-900/10 transition-all group">
+					<div class="flex justify-between items-start mb-6 gap-4">
+						<span class="text-sm font-mono text-gray-500">{{ l.nTS }}</span>
+						{% if l.nAttn %}
+							<span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold rounded uppercase tracking-wide">{{ _t({"key": 'news.important', "default": 'Важно!'}) }}</span>
+						{% endif %}
+					</div>
+					<h2 class="text-2xl font-bold text-brand dark:text-white mb-4 group-hover:text-blue-500 transition-colors">
+						<a href="{{ _link('news/show', [l.nID, l.nTopic], 0) }}">{{ l.nTopic }}</a>
+					</h2>
+					<p class="text-textDim dark:text-gray-400 mb-8 flex-1 leading-relaxed">{{ l.nAnnounce|nl2br }}</p>
+					<a href="{{ _link('news/show', [l.nID, l.nTopic], 0) }}" class="font-bold text-brand dark:text-white group-hover:text-blue-500 flex items-center gap-2 transition-colors mt-auto">
+						{{ _t({"key": 'news.read_more', "default": 'Читать полностью'}) }} <i class="fa-solid fa-arrow-right text-sm"></i>
+					</a>
+				</article>
+			{% endfor %}
+		</div>
+		{% include "external/pl.twig" %}
+	{% else %}
+		<div class="bg-white dark:bg-[#151515] border border-gray-200 dark:border-gray-800 rounded-2xl p-10 text-center">
+			<div class="w-14 h-14 mx-auto mb-5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] flex items-center justify-center text-gray-400">
+				<i class="fa-solid fa-newspaper text-2xl"></i>
+			</div>
+			<h3 class="text-2xl font-bold text-brand dark:text-white mb-2">{{ _t({"key": 'news.empty', "default": 'Нет новостей'}) }}</h3>
+			<p class="text-textDim dark:text-gray-400">{{ _t({"key": 'news.empty_desc', "default": 'В данном разделе пока нет опубликованных записей.'}) }}</p>
+		</div>
+	{% endif %}
+</main>
+
+{% include "external/footer.twig" %}

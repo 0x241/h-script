@@ -1,0 +1,88 @@
+{% set translations_title = _t({"key": 'translations.title'}) %}
+{% include "admin/header.twig" with {"title": translations_title} %}
+
+<h2 class="mb-6 text-3xl font-extrabold text-brand dark:text-white">{{ translations_title }}</h2>
+
+<div class="mb-6 flex flex-wrap items-center gap-2">
+	<a href="{{ translation_base_link }}" class="inline-flex items-center rounded-xl border px-4 py-2 text-xs font-extrabold transition {% if not translation_filter %}border-brand bg-brand text-white dark:border-white dark:bg-white dark:text-brand{% else %}border-gray-200 bg-white text-gray-600 dark:border-gray-800 dark:bg-[#151515] dark:text-gray-300{% endif %}">{{ _t({"key": 'translations.filter_all', "default": 'Все ключи'}) }}</a>
+	<a href="{{ translation_base_link }}?prefix=mail." class="inline-flex items-center rounded-xl border px-4 py-2 text-xs font-extrabold transition {% if translation_filter == 'mail.' %}border-brand bg-brand text-white dark:border-white dark:bg-white dark:text-brand{% else %}border-gray-200 bg-white text-gray-600 dark:border-gray-800 dark:bg-[#151515] dark:text-gray-300{% endif %}">{{ _t({"key": 'translations.filter_mail', "default": 'Письма'}) }}</a>
+	<a href="{{ mail_settings_link }}#email-preview" class="ml-auto inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-extrabold text-blue-700 transition hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-envelope-open-text" aria-hidden="true"></i>{{ _t({"key": 'translations.mail_preview', "default": 'Предпросмотр письма'}) }}</a>
+</div>
+
+<form method="post" class="mb-8 min-w-0" name="{{ translation_add_form }}">
+	{{ _getFormSecurity({"form": translation_add_form}) }}
+	<div class="min-w-0 overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="border-b border-gray-100 px-6 py-5 dark:border-gray-800">
+			<h3 class="text-lg font-extrabold text-brand dark:text-white">{{ _t({"key": 'translations.add_title', "default": 'Добавить ключ'}) }}</h3>
+			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ _t({"key": 'translations.key_hint'}) }}</p>
+		</div>
+		<div class="overflow-x-auto">
+			<table class="min-w-full whitespace-nowrap text-left text-sm">
+				<thead>
+					<tr>
+						<th class="sticky left-0 z-10 min-w-64 bg-gray-50 px-5 py-4 text-xs font-bold uppercase text-gray-500 dark:bg-[#1A1A1A]">{{ _t({"key": 'common.key'}) }}</th>
+						{% for lang in active_langs %}
+							<th class="min-w-72 bg-gray-50 px-5 py-4 text-xs font-bold uppercase text-gray-500 dark:bg-[#1A1A1A]">{{ lang|upper }}</th>
+						{% endfor %}
+					</tr>
+				</thead>
+				<tbody>
+					<tr class="border-t border-gray-100 dark:border-gray-800">
+						<td class="sticky left-0 z-10 bg-white p-4 dark:bg-[#151515]"><input name="Key" type="text" required pattern="[a-z0-9_.-]+" autocomplete="off" placeholder="nav.main" title="{{ _t({"key": 'translations.key_hint'}) }}" class="w-full min-w-56 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-brand outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/20"></td>
+						{% for lang in active_langs %}
+							<td class="p-4"><textarea name="Value[{{ lang }}]" rows="3" aria-label="{{ lang|upper }}" class="w-full min-w-64 resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-brand outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/20"></textarea></td>
+						{% endfor %}
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="flex justify-end border-t border-gray-100 bg-gray-50/60 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
+			<button name="{{ translation_add_form }}_btn" value="{{ _t({"key": 'common.add', "default": 'Добавить'}) }}" type="submit" class="inline-flex min-w-44 items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+				<i class="fa-solid fa-circle-plus" aria-hidden="true"></i><span>{{ _t({"key": 'common.add', "default": 'Добавить'}) }}</span>
+			</button>
+		</div>
+	</div>
+</form>
+
+<div class="min-w-0">
+	<div class="min-w-0 overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="border-b border-gray-100 px-6 py-5 dark:border-gray-800">
+			<h3 class="text-lg font-extrabold text-brand dark:text-white">{{ _t({"key": 'translations.list_title', "default": 'Список переводов'}) }}</h3>
+			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ _t({"key": 'translations.save_hint', "default": 'Измените переводы нужного ключа и сохраните эту строку.'}) }}</p>
+		</div>
+		<div class="overflow-x-auto">
+			<table class="min-w-full text-left text-sm">
+				<thead>
+					<tr>
+						<th class="sticky left-0 z-10 min-w-64 bg-gray-50 px-5 py-4 text-xs font-bold uppercase text-gray-500 dark:bg-[#1A1A1A]">{{ _t({"key": 'common.key'}) }}</th>
+						{% for lang in active_langs %}
+							<th class="min-w-72 bg-gray-50 px-5 py-4 text-xs font-bold uppercase text-gray-500 dark:bg-[#1A1A1A]">{{ lang|upper }}</th>
+						{% endfor %}
+					</tr>
+				</thead>
+				<tbody>
+					{% for row in translation_rows %}
+						{% set row_form_id = 'translation-row-' ~ loop.index %}
+						<tr class="border-t border-gray-100 dark:border-gray-800">
+							<td class="sticky left-0 z-10 bg-white px-5 py-4 align-top dark:bg-[#151515]">
+								<form id="{{ row_form_id }}" method="post" name="{{ translation_form }}" class="flex flex-col items-start gap-3">
+									{{ _getFormSecurity({"form": translation_form}) }}
+									<input type="hidden" name="Key" value="{{ row.key|escape }}">
+									<code class="rounded-lg bg-gray-100 px-2 py-1 text-xs font-bold text-brand dark:bg-[#202020] dark:text-white">{{ row.key|escape }}</code>
+									<button name="{{ translation_form }}_btnsave" value="{{ _t({"key": 'common.save', "default": 'Сохранить'}) }}" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2 text-xs font-extrabold text-white shadow-sm transition hover:bg-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+										<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i><span>{{ _t({"key": 'common.save', "default": 'Сохранить'}) }}</span>
+									</button>
+								</form>
+							</td>
+							{% for lang in active_langs %}
+								<td class="min-w-72 px-5 py-4"><textarea form="{{ row_form_id }}" name="Value[{{ lang }}]" rows="{% if substr(row.key, 0, 5) == 'mail.' %}4{% else %}2{% endif %}" aria-label="{{ row.key|escape }} — {{ lang|upper }}" class="w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-brand outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/20">{{ row[lang]|escape }}</textarea></td>
+							{% endfor %}
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+{% include "admin/footer.twig" %}

@@ -1,0 +1,41 @@
+
+{% include "admin/header.twig" with {"title": _t({"key": 'admin.security.title', "default": 'Безопасность'})} %}
+
+{% include "edit.twig" with {
+	"values": cfg,
+	"fields": {
+		0: {
+			0: _t({"key": 'admin.security.credentials', "default": 'Учётные данные и сессия'}),
+			"icon": "fa-key",
+			"description": _t({"key": 'admin.security.credentials_text', "default": 'Требования к защитным данным пользователя и сроку действия авторизации.'})
+		},
+		"MinPIN": {0: "I", 1: _t({"key": 'admin.security.min_pin', "default": 'Минимальная длина PIN-кода'}), 2: _t({"key": 'admin.security.zero_disable', "default": '0 — не использовать'})},
+		"MinSQA": {0: "I", 1: _t({"key": 'admin.security.min_sqa', "default": 'Минимальная длина вопроса и ответа'}), 2: _t({"key": 'admin.security.zero_disable', "default": '0 — не использовать'})},
+		"PassTime": {0: "I", 1: _t({"key": 'admin.security.pass_time', "default": 'Смена пароля каждые N дней'}), 2: _t({"key": 'admin.security.zero_not_required', "default": '0 — не требовать'})},
+		"TimeOut": {0: "I", 1: _t({"key": 'admin.security.timeout', "default": 'Автовыход через N минут'}), 2: _t({"key": 'admin.security.zero_disable', "default": '0 — не использовать'})},
+		10: {
+			0: _t({"key": 'admin.security.login_control', "default": 'Контроль входа'}),
+			"icon": "fa-shield-halved",
+			"description": _t({"key": 'admin.security.login_control_text', "default": 'HTTPS, проверка IP и дополнительное подтверждение подозрительных входов.'})
+		},
+		"HTTPSMode": {0: "S", 1: _t({"key": 'admin.security.https_mode', "default": 'Режим HTTPS'}), 2: _t({"key": 'admin.security.https_hint', "default": 'Изменяется только при открытии страницы по HTTPS.'}), 3: {0: _t({"key": 'admin.security.https_secure_only', "default": 'только на защищённых страницах'}), 1: _t({"key": 'admin.security.always', "default": 'всегда'})}, "readonly": not via_https},
+		"IP": {0: "S", 1: _t({"key": 'admin.security.ip_control', "default": 'Контроль смены IP-адреса'}), 3: {0: _t({"key": 'common.no', "default": 'нет'}), 1: "x.0.0.0", 2: "x.x.0.0", 3: "x.x.x.0", 4: "x.x.x.x"}},
+		"BFC": {0: "I", 1: _t({"key": 'admin.security.failed_confirm', "default": 'Подтверждение после неудачных входов'}), 2: _t({"key": 'admin.security.failed_confirm_hint', "default": 'Количество попыток подряд; 0 — не использовать'})},
+		"ForceReConfig": {0: "C", 1: _t({"key": 'admin.security.force_reconfig', "default": 'Проверять личные параметры после регистрации'})},
+		20: {
+			0: _t({"key": 'admin.security.admin_access', "default": 'Доступ в панель управления'}),
+			"icon": "fa-network-wired",
+			"description": _t({"key": 'admin.security.admin_access_text', "default": 'Ограничьте административный вход доверенными IP-адресами.'})
+		},
+		"_IPs": {0: "A", 1: _t({"key": 'admin.security.allowed_ips', "default": 'Разрешённые IP-адреса'}), 2: (_t({"key": 'admin.security.allowed_ips_hint', "default": 'Одна строка — один адрес в формате x.x.x.x. Текущий IP:'}) ~ " " ~ curr_ip), "rows": 5},
+		30: {
+			0: _t({"key": 'admin.security.proxy', "default": 'Прокси-сервер'}),
+			"icon": "fa-route",
+			"description": _t({"key": 'admin.security.proxy_text', "default": 'Необязательный исходящий прокси для внешних HTTP-запросов CMS.'})
+		},
+		"ProxyHost": {0: "T", 1: _t({"key": 'admin.security.proxy_host', "default": 'Адрес прокси'}), 2: "[scheme://]address[:port]"},
+		"ProxyAuth": {0: "T", 1: _t({"key": 'admin.security.proxy_auth', "default": 'Авторизация'}), 2: "login:password"}
+	}
+} %}
+
+{% include "admin/footer.twig" %}

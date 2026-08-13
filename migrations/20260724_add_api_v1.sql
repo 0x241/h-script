@@ -1,0 +1,24 @@
+CREATE TABLE IF NOT EXISTS ApiTokens (
+    atID INT(10) AUTO_INCREMENT,
+    atuID INT(10) NOT NULL,
+    atName VARCHAR(100) DEFAULT '',
+    atTokenHash CHAR(64) NOT NULL,
+    atScopes VARCHAR(500) DEFAULT '*',
+    atState INT(1) DEFAULT 1,
+    atCreatedAt BIGINT UNSIGNED DEFAULT 0,
+    atExpiresAt BIGINT UNSIGNED DEFAULT 0,
+    atLastUsedAt BIGINT UNSIGNED DEFAULT 0,
+    atLastIP VARCHAR(45) DEFAULT '',
+    PRIMARY KEY (atID),
+    UNIQUE KEY ATTOKENHASH (atTokenHash),
+    KEY ATUSER (atuID, atState)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS ApiRateLimits (
+    arlKey CHAR(64) NOT NULL,
+    arlWindow BIGINT UNSIGNED NOT NULL,
+    arlCount INT UNSIGNED DEFAULT 0,
+    arlUpdatedAt BIGINT UNSIGNED DEFAULT 0,
+    PRIMARY KEY (arlKey, arlWindow),
+    KEY ARLUPDATED (arlUpdatedAt)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

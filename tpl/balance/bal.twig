@@ -1,0 +1,46 @@
+
+{% if currs %}
+<div class="table-card" style="margin-top: 16px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-soft);">
+	<div class="table-wrap">
+		<table class="formatTable" style="width: 100%; border-collapse: collapse; text-align: left;">
+			<thead>
+				<tr style="border-bottom: 1px solid var(--color-border); background: var(--color-surface-muted);">
+					<th style="padding: 14px 20px; font-size: 0.75-rem; font-weight: 700; text-transform: uppercase; color: var(--color-text-muted); letter-spacing: 0.05em;">Платежная система</th>
+					<th style="padding: 14px 20px; font-size: 0.75-rem; font-weight: 700; text-transform: uppercase; color: var(--color-text-muted); letter-spacing: 0.05em; text-align: right;">Доступно</th>
+					<th style="padding: 14px 20px; font-size: 0.75-rem; font-weight: 700; text-transform: uppercase; color: var(--color-text-muted); letter-spacing: 0.05em; text-align: right;">Занято</th>
+					<th style="padding: 14px 20px; font-size: 0.75-rem; font-weight: 700; text-transform: uppercase; color: var(--color-text-muted); letter-spacing: 0.05em; text-align: right;">Ожидает</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for i, c in currs %}
+				{% if (c.wBal != 0) or (c.wLock != 0) or (c.wOut != 0) %}
+					<tr style="border-bottom: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent); transition: background 0.2s ease;" onmouseover="this.style.background='var(--color-surface-muted)'" onmouseout="this.style.background='transparent'">
+						<td style="padding: 14px 20px;">
+							<div style="display: flex; align-items: center; gap: 12px;">
+								<span style="width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--color-accent) 15%, transparent); color: var(--color-accent); font-size: 0.85-rem;">
+									<i class="fa-solid fa-wallet"></i>
+								</span>
+								<div>
+									<strong style="display: block; font-size: 0.95-rem; font-weight: 800; color: var(--color-primary-ink);">{{ c.cName }}</strong>
+									<small style="color: var(--color-text-soft); font-weight: 700; text-transform: uppercase; font-size: 0.7-rem;">{{ c.cCurr }}</small>
+								</div>
+							</div>
+						</td>
+						<td style="padding: 14px 20px; text-align: right; font-family: var(--font-mono); font-size: 1.05-rem; font-weight: 800; color: var(--color-primary-ink);">
+							{{ _z(c.wBal, c.wcID, -1) }}
+						</td>
+						<td style="padding: 14px 20px; text-align: right; font-family: var(--font-mono); font-size: 0.95-rem; font-weight: 700; color: {% if c.wLock > 0 %}var(--color-warning){% else %}var(--color-text-muted){% endif %};">
+							{{ _z(c.wLock, c.wcID, -1) }}
+						</td>
+						<td style="padding: 14px 20px; text-align: right; font-family: var(--font-mono); font-size: 0.95-rem; font-weight: 700; color: {% if c.wOut > 0 %}var(--color-cyan){% else %}var(--color-text-muted){% endif %};">
+							{{ _z(c.wOut, c.wcID, -1) }}
+						</td>
+					</tr>
+				{% endif %}
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+{% endif %}
+

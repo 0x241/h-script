@@ -1,0 +1,6 @@
+ALTER TABLE Review
+    ADD COLUMN oRating TINYINT UNSIGNED NOT NULL DEFAULT 5 AFTER oText;
+
+UPDATE Review
+SET oRating = 5
+WHERE oRating < 1 OR oRating > 5;

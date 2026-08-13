@@ -1,0 +1,14 @@
+
+{% include "admin/header.twig" with {"title": 'Поддержка'} %}
+
+{% include "tickets/_states.twig" %}
+
+{% include "list.twig" with {"title": 'Тикеты', "url": '*', "fields": {'tID': ['ID'], 'tLTS': ['Дата'], 'uLogin': ['Отправитель'], 'tTopic': ['Тема'], 'tText': ['Текст'], 'tState': ['Статус'], 'cnt': ['Ответов']}, "values": list, "row": '*', "btns": {'del': 'Удалить'}} %}
+
+<div class="mt-6 flex justify-center">
+	<a href="{{ _link('tickets/admin/ticket', false, 0) }}?add" class="inline-flex min-w-48 items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+		<i class="fa-solid fa-circle-plus" aria-hidden="true"></i><span>Создать</span>
+	</a>
+</div>
+
+{% include "admin/footer.twig" %}

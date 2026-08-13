@@ -1,0 +1,32 @@
+
+
+{% include "depo/_statuses.twig" %}
+
+{% set chg = ((el.dState == 1) and (el.pCompndMax > 0) and (el.pCompndMin < el.pCompndMax)) %}
+{% set modbuttons = [] %}
+{% if chg %}
+	{% set modbuttons = array_set_path(modbuttons|default([]), ['chg'], 'Сменить процент реинвеста') %}
+{% endif %}
+
+{% set add = el.pEnAdd %}
+{% set sub = ((el.pClComis < 100) and (el.dNPer >= el.pMPer)) %}
+{% set modform = [] %}
+{% if (el.dState == 1) and (add or sub) %}
+	{% set modform = {1: '', 'Sum': {0: '$', 1: 'Сумма изменения!!', 2: {'sum_empty': 'укажите сумму', 'sum_wrong': 'неверная сумма', 'low_balance': 'недостаточно средств', 'cant_add': 'невозможно довложить', 'cant_sub': 'невозможно снять', 'plan_not_found': 'нет подходящего плана'}, 'comment': (" <i><small>" ~ (el.cCurr) ~ "</small></i>"), 'default': 0}} %}
+	{% if add %}
+		{% set modbuttons = array_set_path(modbuttons|default([]), ['add'], 'ДОвложить') %} 
+	{% endif %}
+	{% if sub %}
+		{% set modbuttons = array_set_path(modbuttons|default([]), ['sub'], 'Снять') %}
+	{% endif %}
+{% endif %}
+{% if el.dState == 1 %}
+	{% set modbuttons = array_set_path(modbuttons|default([]), ['chp'], 'Сменить план') %}
+	{% set modbuttons = array_set_path(modbuttons|default([]), ['cls'], 'Закрыть') %}
+{% endif %}
+
+{% include "edit.twig" with {"title": valueIf(from_admin, 'Депозит'), "fields": merge_arrays({'dID': [], 'duID': [], 'dcID': [], 'dState': ['X', 'Статус', 0, ("<b>" ~ (ststrs[el.dState]) ~ "</b>")], 'dCTS': ['X', 'Создано'], 'uLogin': {0: 'X', 1: 'Пользователь', 'skip': not from_admin}, 'Bal': {0: 'U', 1: 'balance/bal.twig', 'skip': not from_admin}, 'cName': ['X', 'Плат. система'], 'dZD': ['X', 'Сумма', 0, _z(el.dZD, el.dcID, 1)], 'dpID': ['S', 'План', 0, plans], 'dN': ['X', 'Начислений', 0, ((el.dNPer) ~ " из " ~ (el.pNPer))], 'dLTS': ['X', 'Последнее начисление'], 'dNTS': ['X', 'Следующее начисление'], 'dCompnd': {0: 'X', 1: 'Процент реинвеста <<капитализация>>', 'skip': chg}, 'Compnd': {0: '%', 1: 'Процент реинвеста <<капитализация>>', 2: {'compnd_wrong': ("неверное значение [" ~ (cmin) ~ ".." ~ (cmax) ~ "]")}, 'default': el.dCompnd, 'skip': not chg}, 'dM': {0: 'X', 1: 'Досрочное снятие', 2: 0, 3: valueIf(el.pClComis >= 100, 'Невозможно',
+					valueIf(el.dNPer >= el.pMPer, "Возможно", 
+						("Осталось начислений: " ~ (el.pMPer - el.dNPer)))
+				), 'skip': (el.dState > 1)}}, modform), "values": el, "errors": {'oper_disabled': 'операция запрещена'}, "btn_text": ' ', "btns": modbuttons} %}
+

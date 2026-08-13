@@ -1,0 +1,234 @@
+{% include "admin/header.twig" with {"title": 'API'} %}
+
+{% if api_flash.message %}
+	<aside class="mb-6 flex items-start gap-3 rounded-xl border p-4 text-sm font-semibold {% if api_flash.type == 'error' %}border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100{% else %}border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100{% endif %}">
+		<i class="fa-solid {% if api_flash.type == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %} mt-0.5" aria-hidden="true"></i>
+		<div class="min-w-0">
+			<p>{{ api_flash.message }}</p>
+			{% if api_flash.secret %}
+				<label for="api-new-secret" class="mt-3 block text-xs font-extrabold uppercase tracking-wider">Новый Bearer-токен</label>
+				<input id="api-new-secret" type="text" readonly value="{{ api_flash.secret }}" class="mt-2 w-full rounded-lg border border-emerald-300 bg-white px-3 py-2 font-mono text-xs text-brand outline-none dark:border-emerald-500/40 dark:bg-black dark:text-white">
+			{% endif %}
+		</div>
+	</aside>
+{% endif %}
+
+<div class="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+	<div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<p class="text-xs font-extrabold uppercase tracking-wider text-gray-400">Состояние API</p>
+		<p class="mt-2 text-2xl font-extrabold {% if api_settings.enabled %}text-emerald-600 dark:text-emerald-400{% else %}text-red-600 dark:text-red-400{% endif %}">{% if api_settings.enabled %}Включён{% else %}Отключён{% endif %}</p>
+	</div>
+	<div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<p class="text-xs font-extrabold uppercase tracking-wider text-gray-400">Активные токены</p>
+		<p class="mt-2 text-2xl font-extrabold text-brand dark:text-white">{{ api_token_counts.active }}</p>
+	</div>
+	<div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<p class="text-xs font-extrabold uppercase tracking-wider text-gray-400">Приостановлены / отозваны</p>
+		<p class="mt-2 text-2xl font-extrabold text-brand dark:text-white">{{ api_token_counts.paused }} / {{ api_token_counts.revoked }}</p>
+	</div>
+	<div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<p class="text-xs font-extrabold uppercase tracking-wider text-gray-400">Запросы в счётчиках</p>
+		<p class="mt-2 text-2xl font-extrabold text-brand dark:text-white">{{ api_rate_stats.RequestCount }}</p>
+	</div>
+</div>
+
+<div class="space-y-6">
+	<section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="mb-5 flex items-center gap-3">
+			<span class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-sliders" aria-hidden="true"></i></span>
+			<div>
+				<h2 class="text-lg font-extrabold text-brand dark:text-white">Общие настройки</h2>
+				<p class="text-sm text-gray-500 dark:text-gray-400">Лимиты применяются отдельно к IP и токену за одну минуту.</p>
+			</div>
+		</div>
+		<form method="post" name="api_settings" class="grid gap-4 lg:grid-cols-[minmax(280px,1.4fr)_minmax(150px,.6fr)_minmax(150px,.6fr)_auto] lg:items-end">
+			{{ _getFormSecurity({"form": "api_settings"}) }}
+			<label class="flex items-center justify-between gap-4 rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+				<span>
+					<strong class="block text-sm text-brand dark:text-white">REST API v1</strong>
+					<small class="text-gray-500 dark:text-gray-400">При отключении все API-запросы получат HTTP 503.</small>
+				</span>
+				<input type="checkbox" name="enabled" value="1" class="h-5 w-5 rounded border-gray-300 text-blue-600" {% if api_settings.enabled %}checked{% endif %}>
+			</label>
+			<label class="block text-sm font-bold text-brand dark:text-white">
+				Лимит на IP
+				<input type="number" name="rate_limit_ip" min="1" max="10000" required value="{{ api_settings.rate_limit_ip }}" class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-brand outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white">
+			</label>
+			<label class="block text-sm font-bold text-brand dark:text-white">
+				Лимит на токен
+				<input type="number" name="rate_limit_token" min="1" max="10000" required value="{{ api_settings.rate_limit_token }}" class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-brand outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white">
+			</label>
+			<button type="submit" name="api_settings_btnsave" value="1" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-extrabold text-white transition hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+				<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+				Сохранить настройки
+			</button>
+		</form>
+	</section>
+
+	<section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="mb-5 flex items-center gap-3">
+			<span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="fa-solid fa-key" aria-hidden="true"></i></span>
+			<div>
+				<h2 class="text-lg font-extrabold text-brand dark:text-white">Создать токен</h2>
+				<p class="text-sm text-gray-500 dark:text-gray-400">Секрет показывается только один раз после создания.</p>
+			</div>
+		</div>
+		<form method="post" name="api_token_create" class="grid gap-4 lg:grid-cols-3">
+			{{ _getFormSecurity({"form": "api_token_create"}) }}
+			<label class="block text-sm font-bold text-brand dark:text-white">
+				Пользователь
+				<span class="relative mt-2 block">
+					<select name="user_id" required class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 pr-12 font-semibold text-brand outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white">
+						<option value="">— выберите пользователя —</option>
+						{% for user in api_users %}
+							<option value="{{ user.uID }}">{{ user.uLogin }} · {{ user.uMail }}</option>
+						{% endfor %}
+					</select>
+					<i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400" aria-hidden="true"></i>
+				</span>
+			</label>
+			<label class="block text-sm font-bold text-brand dark:text-white">
+				Название
+				<input type="text" name="name" maxlength="100" required placeholder="Например, интеграция CRM" class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white">
+			</label>
+			<label class="block text-sm font-bold text-brand dark:text-white">
+				Срок действия, UTC
+				<input type="datetime-local" name="expires_at" class="mt-2 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-brand outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white">
+				<small class="mt-1 block font-normal text-gray-500 dark:text-gray-400">Оставьте пустым для токена без срока.</small>
+			</label>
+			<fieldset class="lg:col-span-3">
+				<legend class="mb-2 text-sm font-bold text-brand dark:text-white">Разрешения</legend>
+				<div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+					{% for scope, description in api_scope_options %}
+						<label class="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-800">
+							<input type="checkbox" name="scopes[]" value="{{ scope }}" class="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600" {% if scope == '*' %}checked{% endif %}>
+							<span><code class="font-bold text-blue-600 dark:text-blue-300">{{ scope }}</code><small class="mt-0.5 block text-gray-500 dark:text-gray-400">{{ description }}</small></span>
+						</label>
+					{% endfor %}
+				</div>
+			</fieldset>
+			<button type="submit" name="api_token_create_btncreate" value="1" class="inline-flex items-center justify-center justify-self-start gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-emerald-700 lg:col-span-3">
+				<i class="fa-solid fa-plus" aria-hidden="true"></i>
+				Создать токен
+			</button>
+		</form>
+	</section>
+</div>
+
+<section class="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+	<div class="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+		<div>
+			<h2 class="text-lg font-extrabold text-brand dark:text-white">Выданные токены</h2>
+			<p class="text-sm text-gray-500 dark:text-gray-400">Приостановленный токен можно включить снова. Отозванный восстановить нельзя.</p>
+		</div>
+		<span class="self-start rounded-full bg-gray-100 px-3 py-1 text-xs font-extrabold text-gray-600 dark:bg-gray-800 dark:text-gray-300">Всего: {{ api_tokens|length }}</span>
+	</div>
+
+	{% if api_tokens %}
+		<form method="post" name="api_token_manage" class="space-y-4">
+			{{ _getFormSecurity({"form": "api_token_manage"}) }}
+			{% for token in api_tokens %}
+				<article class="rounded-xl border border-gray-200 p-5 dark:border-gray-800 {% if token.atState == 0 %}opacity-70{% endif %}">
+					<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+						<div class="min-w-0">
+							<div class="flex flex-wrap items-center gap-2">
+								<strong class="text-brand dark:text-white">#{{ token.atID }} · {{ token.uLogin }}</strong>
+								{% if token.atState == 1 and not token.Expired %}
+									<span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-extrabold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">Активен</span>
+								{% elseif token.atState == 2 %}
+									<span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-extrabold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">Приостановлен</span>
+								{% elseif token.Expired and token.atState != 0 %}
+									<span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-extrabold text-gray-600 dark:bg-gray-800 dark:text-gray-300">Истёк</span>
+								{% else %}
+									<span class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-extrabold text-red-700 dark:bg-red-500/10 dark:text-red-300">Отозван</span>
+								{% endif %}
+							</div>
+							<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ token.uMail }}</p>
+						</div>
+						<div class="text-xs text-gray-500 dark:text-gray-400 sm:text-right">
+							<p>Создан: {{ token.CreatedText }}</p>
+							<p>Последний запрос: {{ token.LastUsedText }}{% if token.atLastIP %} · {{ token.atLastIP }}{% endif %}</p>
+						</div>
+					</div>
+					<div class="grid gap-4 lg:grid-cols-3">
+						<label class="block text-sm font-bold text-brand dark:text-white">
+							Название
+							<input type="text" name="tokens[{{ token.atID }}][name]" maxlength="100" required value="{{ token.atName }}" {% if token.atState == 0 %}disabled{% endif %} class="mt-2 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 font-normal text-brand outline-none focus:border-blue-500 dark:border-gray-800 dark:bg-black dark:text-white">
+						</label>
+						<label class="block text-sm font-bold text-brand dark:text-white">
+							Срок действия, UTC
+							<input type="datetime-local" name="tokens[{{ token.atID }}][expires_at]" value="{{ token.ExpiresInput }}" {% if token.atState == 0 %}disabled{% endif %} class="mt-2 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 font-normal text-brand outline-none focus:border-blue-500 dark:border-gray-800 dark:bg-black dark:text-white">
+							<small class="mt-1 block font-normal text-gray-500 dark:text-gray-400">{{ token.ExpiresText }}</small>
+						</label>
+						<label class="block text-sm font-bold text-brand dark:text-white">
+							Состояние
+							<span class="relative mt-2 block">
+								<select name="tokens[{{ token.atID }}][state]" {% if token.atState == 0 %}disabled{% endif %} class="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 pr-12 font-normal text-brand outline-none focus:border-blue-500 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white">
+									<option value="active" {% if token.atState == 1 %}selected{% endif %}>Активен</option>
+									<option value="paused" {% if token.atState == 2 %}selected{% endif %}>Приостановлен</option>
+								</select>
+								<i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400" aria-hidden="true"></i>
+							</span>
+						</label>
+					</div>
+					<fieldset class="mt-4" {% if token.atState == 0 %}disabled{% endif %}>
+						<legend class="mb-2 text-sm font-bold text-brand dark:text-white">Разрешения</legend>
+						<div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+							{% for scope, description in api_scope_options %}
+								<label class="flex items-start gap-2 rounded-lg border border-gray-200 p-3 text-xs dark:border-gray-800">
+									<input type="checkbox" name="tokens[{{ token.atID }}][scopes][]" value="{{ scope }}" class="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600" {% if scope in token.ScopeList %}checked{% endif %}>
+									<span><code class="font-bold text-blue-600 dark:text-blue-300">{{ scope }}</code><small class="mt-0.5 block text-gray-500 dark:text-gray-400">{{ description }}</small></span>
+								</label>
+							{% endfor %}
+						</div>
+					</fieldset>
+					{% if token.atState != 0 %}
+						<div class="mt-4 flex flex-wrap gap-3">
+							<button type="submit" name="api_token_manage_btnsave" value="{{ token.atID }}" class="inline-flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-extrabold text-white transition hover:bg-black dark:bg-white dark:text-brand"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>Сохранить</button>
+							<button type="submit" name="api_token_manage_btnrevoke" value="{{ token.atID }}" class="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-extrabold text-red-700 transition hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"><i class="fa-solid fa-ban" aria-hidden="true"></i>Отозвать навсегда</button>
+						</div>
+					{% endif %}
+				</article>
+			{% endfor %}
+		</form>
+	{% else %}
+		<div class="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">Токены ещё не создавались.</div>
+	{% endif %}
+</section>
+
+<div class="mt-6 grid items-start gap-6 xl:grid-cols-2">
+	<section class="min-w-0 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<h2 class="text-lg font-extrabold text-brand dark:text-white">Методы и разрешения</h2>
+		<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Базовый URL: <code class="break-all font-bold text-blue-600 dark:text-blue-300">{{ api_base_url }}</code></p>
+		<div class="mt-4 overflow-x-auto">
+			<table class="w-full text-left text-sm">
+				<thead class="border-b border-gray-200 text-xs uppercase tracking-wider text-gray-400 dark:border-gray-800"><tr><th class="px-3 py-2">Метод</th><th class="px-3 py-2">Путь</th><th class="px-3 py-2">Scope</th></tr></thead>
+				<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+					<tr><td class="px-3 py-3 font-bold">GET</td><td class="px-3 py-3 font-mono">/user</td><td class="px-3 py-3 font-mono">user:read</td></tr>
+					<tr><td class="px-3 py-3 font-bold">GET</td><td class="px-3 py-3 font-mono">/balance</td><td class="px-3 py-3 font-mono">balance:read</td></tr>
+					<tr><td class="px-3 py-3 font-bold">GET</td><td class="px-3 py-3 font-mono">/operations</td><td class="px-3 py-3 font-mono">operations:read</td></tr>
+					<tr><td class="px-3 py-3 font-bold">POST</td><td class="px-3 py-3 font-mono">/deposit</td><td class="px-3 py-3 font-mono">deposit:write</td></tr>
+					<tr><td class="px-3 py-3 font-bold">POST</td><td class="px-3 py-3 font-mono">/withdraw</td><td class="px-3 py-3 font-mono">withdraw:write</td></tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<section class="min-w-0 rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<h2 class="text-lg font-extrabold text-brand dark:text-white">Счётчики ограничений</h2>
+		<dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+			<div class="rounded-lg bg-gray-50 p-4 dark:bg-black"><dt class="text-gray-500 dark:text-gray-400">Строк счётчиков</dt><dd class="mt-1 text-xl font-extrabold text-brand dark:text-white">{{ api_rate_stats.RowsCount }}</dd></div>
+			<div class="rounded-lg bg-gray-50 p-4 dark:bg-black"><dt class="text-gray-500 dark:text-gray-400">Последнее обновление</dt><dd class="mt-1 font-bold text-brand dark:text-white">{{ api_rate_stats.LastUpdatedText }}</dd></div>
+		</dl>
+		<form method="post" name="api_rate_clear" class="mt-5">
+			{{ _getFormSecurity({"form": "api_rate_clear"}) }}
+			<label class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-300">
+				<input type="checkbox" name="confirm" value="1" required class="mt-0.5 h-4 w-4 rounded border-gray-300 text-red-600">
+				<span>Подтверждаю очистку всех накопленных счётчиков IP и токенов.</span>
+			</label>
+			<button type="submit" name="api_rate_clear_btnclear" value="1" class="mt-4 inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-extrabold text-red-700 transition hover:bg-red-100 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"><i class="fa-solid fa-trash-can" aria-hidden="true"></i>Очистить счётчики</button>
+		</form>
+	</section>
+</div>
+
+{% include "admin/footer.twig" %}

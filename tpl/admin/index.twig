@@ -1,0 +1,86 @@
+{% include "admin/header.twig" with {"title": _t({"key": 'admin.dashboard', "default": 'Дашборд'})} %}
+{% include "balance/_statuses.twig" %}
+
+<div class="mb-8">
+	<h2 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'admin.overview.title', "default": 'Обзор системы'}) }}</h2>
+	<p class="font-medium text-textDim dark:text-gray-400">{{ _t({"key": 'admin.overview.text', "default": 'Статистика и показатели проекта H-Script.'}) }}</p>
+</div>
+
+<div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+	<a href="{{ _link('account/admin/users', false, 0) }}" class="group flex flex-col rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md dark:border-gray-800 dark:bg-[#151515] dark:hover:border-blue-500/40" aria-label="{{ _t({"key": 'admin.stats.users', "default": 'Всего пользователей'}) }}">
+		<div class="mb-4 flex items-center justify-between">
+			<div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"><i class="fa-solid fa-users" aria-hidden="true"></i></div>
+			<span class="rounded-full bg-green-100 px-2 py-1 text-xs font-bold text-green-500 dark:bg-green-900/30 dark:text-green-400">+{{ admin_stats.users_today }} {{ _t({"key": 'admin.stats.today', "default": 'сегодня'}) }}</span>
+		</div>
+		<div class="mb-1 text-sm font-bold text-gray-500">{{ _t({"key": 'admin.stats.users', "default": 'Всего пользователей'}) }}</div>
+		<div class="text-3xl font-black text-brand dark:text-white">{{ admin_stats.users_total }}</div>
+	</a>
+
+	<a href="{{ _link('depo/admin/depos', false, 0) }}" class="group flex flex-col rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md dark:border-gray-800 dark:bg-[#151515] dark:hover:border-emerald-500/40" aria-label="{{ _t({"key": 'admin.stats.active_deposits', "default": 'Активные депозиты'}) }}">
+		<div class="mb-4 flex items-center justify-between">
+			<div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"><i class="fa-solid fa-piggy-bank" aria-hidden="true"></i></div>
+			<span class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">+{{ admin_stats.active_deposits_today }} {{ _t({"key": 'admin.stats.today', "default": 'сегодня'}) }}</span>
+		</div>
+		<div class="mb-1 text-sm font-bold text-gray-500">{{ _t({"key": 'admin.stats.active_deposits', "default": 'Активные депозиты'}) }}</div>
+		<div class="flex items-end justify-between gap-4">
+			<span class="font-mono text-3xl font-black text-emerald-500">{{ admin_stats.active_deposits }}</span>
+			<span class="pb-1 text-right font-mono text-sm font-bold text-gray-500 dark:text-gray-300">{{ admin_stats.active_deposits_sum|number_format(2, '.', ' ') }}</span>
+		</div>
+	</a>
+
+	<a href="{{ _link('balance/admin/opers', false, 0) }}" class="group flex flex-col rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md dark:border-gray-800 dark:bg-[#151515] dark:hover:border-orange-500/40" aria-label="{{ _t({"key": 'admin.stats.inout', "default": 'Вводов / Выводов'}) }}">
+		<div class="mb-4 flex items-center justify-between">
+			<div class="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-orange-500 dark:bg-orange-900/30"><i class="fa-solid fa-arrow-right-arrow-left" aria-hidden="true"></i></div>
+			<span class="rounded-full bg-orange-100 px-2 py-1 text-xs font-bold text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">+{{ admin_stats.inout_today }} {{ _t({"key": 'admin.stats.today', "default": 'сегодня'}) }}</span>
+		</div>
+		<div class="mb-1 text-sm font-bold text-gray-500">{{ _t({"key": 'admin.stats.inout', "default": 'Вводов / Выводов'}) }}</div>
+		<div class="font-mono text-3xl font-black text-brand dark:text-white">{{ admin_stats.cashin_count }} / {{ admin_stats.cashout_count }}</div>
+	</a>
+
+	<a href="{{ _link('tickets/admin', false, 0) }}" class="group flex flex-col rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-purple-200 hover:shadow-md dark:border-gray-800 dark:bg-[#151515] dark:hover:border-purple-500/40" aria-label="{{ _t({"key": 'admin.stats.tickets', "default": 'Тикеты поддержки'}) }}">
+		<div class="mb-4 flex items-center justify-between">
+			<div class="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400"><i class="fa-solid fa-ticket" aria-hidden="true"></i></div>
+			<span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-500 dark:bg-amber-900/30 dark:text-amber-400">{{ admin_stats.tickets_open }} {{ _t({"key": 'admin.stats.open', "default": 'открытых'}) }}</span>
+		</div>
+		<div class="mb-1 text-sm font-bold text-gray-500">{{ _t({"key": 'admin.stats.tickets', "default": 'Тикеты поддержки'}) }}</div>
+		<div class="text-3xl font-black text-brand dark:text-white">{{ admin_stats.tickets_total }}</div>
+	</a>
+</div>
+
+<div>
+	<div class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="flex items-center justify-between border-b border-gray-100 p-6 dark:border-gray-800">
+			<h3 class="text-lg font-bold text-brand dark:text-white">{{ _t({"key": 'admin.recent_ops', "default": 'Последние операции'}) }}</h3>
+			<a href="{{ _link('balance/admin/opers', false, 0) }}" class="text-sm font-bold text-blue-500 hover:underline">{{ _t({"key": 'common.view_all', "default": 'Смотреть все'}) }}</a>
+		</div>
+		<div class="overflow-x-auto">
+			<table class="w-full border-collapse whitespace-nowrap text-left">
+				<thead>
+					<tr class="bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-500 dark:bg-[#1A1A1A]">
+						<th class="p-5">{{ _t({"key": 'admin.table.user', "default": 'Пользователь'}) }}</th>
+						<th class="p-5">{{ _t({"key": 'admin.table.operation', "default": 'Операция'}) }}</th>
+						<th class="p-5">{{ _t({"key": 'admin.table.sum', "default": 'Сумма'}) }}</th>
+						<th class="p-5 text-right">{{ _t({"key": 'admin.table.time', "default": 'Время'}) }}</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-100 text-sm dark:divide-gray-800">
+					{% for oper in admin_recent_opers %}
+						{% set is_in = in_array(oper.oOper, ['BONUS', 'CASHIN', 'EXIN', 'TRIN', 'SELL', 'REF', 'TAKE', 'CALCIN']) %}
+						<tr class="transition-colors hover:bg-gray-50 dark:hover:bg-[#1A1A1A]">
+							<td class="p-5 font-bold text-brand dark:text-white"><a href="{{ _link('account/admin/user', false, 0) }}?id={{ oper.ouID }}" class="transition hover:text-blue-500"><i class="fa-solid fa-user mr-2 text-gray-400" aria-hidden="true"></i>{{ oper.uLogin|default('-') }}</a></td>
+							<td class="p-5"><a href="{{ _link('balance/admin/oper', false, 0) }}?id={{ oper.oID }}" class="font-bold transition hover:opacity-70 {% if is_in %}text-emerald-500{% else %}text-orange-500{% endif %}">{{ op_names[oper.oOper]|default(oper.oOper) }}</a></td>
+							<td class="p-5"><a href="{{ _link('balance/admin/oper', false, 0) }}?id={{ oper.oID }}" class="font-mono font-bold text-brand transition hover:text-blue-500 dark:text-white">{{ _z(oper.oSum, oper.ocID, -1) }}</a></td>
+							<td class="p-5 text-right"><a href="{{ _link('balance/admin/oper', false, 0) }}?id={{ oper.oID }}" class="text-gray-400 transition hover:text-blue-500">{{ oper.oCTS|default(oper.oTS) }}</a></td>
+						</tr>
+					{% else %}
+						<tr>
+							<td colspan="4" class="p-10 text-center text-sm font-bold text-gray-500">{{ _t({"key": 'list.empty', "default": 'Нет записей'}) }}</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+{% include "admin/footer.twig" %}

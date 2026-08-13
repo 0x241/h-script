@@ -1,0 +1,28 @@
+
+<td>
+	#{{ l._RootMessageID }}
+</td>
+<td class="nowrap">
+	<small>{{ l.mTS }}</small>
+</td>
+<td>
+	<span class="block max-w-56 truncate font-semibold" title="{{ l._Peer }}">{{ l._Peer|default('-') }}</span>
+</td>
+<td class="max-w-64">
+	<a href="{{ _link('message/admin/message', false, 0) }}?id={{ l.mID }}" class="block max-w-64 truncate" title="{{ l.mTopic }}">{{ l.mTopic }}</a>
+</td>
+<td class="max-w-80">
+	<small class="block max-w-80 truncate" title="{{ l.mText }}">{{ l.mText }}</small>
+</td>
+<td class="text-center">
+	<span class="inline-flex min-w-8 justify-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ l._MessageCount }}</span>
+</td>
+<td>
+	{% if l._Marked %}
+		<span class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"><span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>Новое{% if l._UnreadCount > 1 %}: {{ l._UnreadCount }}{% endif %}</span>
+	{% elseif l._Important %}
+		<span class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="fa-solid fa-star text-[10px]" aria-hidden="true"></i>Важное</span>
+	{% else %}
+		<span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-500 dark:bg-gray-800 dark:text-gray-300">Прочитано</span>
+	{% endif %}
+</td>

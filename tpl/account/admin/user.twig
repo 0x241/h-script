@@ -1,0 +1,39 @@
+
+{% include "admin/header.twig" with {"title": 'Пользователь'} %}
+
+{% include "account/admin/_statuses.twig" %}
+
+{% if el %}
+	<div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+		<div>
+			<span class="mb-3 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-extrabold uppercase text-gray-500 shadow-sm dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400"><i class="fa-solid fa-user" aria-hidden="true"></i> Профиль пользователя</span>
+			<h2 class="text-3xl font-extrabold text-brand dark:text-white">Пользователь '{{ el.aName }}'</h2>
+		</div>
+		<a href="{{ _link('account/admin/user2', false, 0) }}?id={{ el.uID }}" hx-boost="false" hx-disable class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-extrabold text-brand shadow-sm transition hover:bg-gray-50 dark:border-gray-800 dark:bg-[#151515] dark:text-white dark:hover:bg-[#202020]"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Дополнительные параметры</span></a>
+	</div>
+{% else %}
+	<h2 class="mb-6 text-3xl font-extrabold text-brand dark:text-white">Новый пользователь</h2>
+{% endif %}
+
+{% set txt_login = valueIf(_cfg.Const_NoLogins, 'e-mail', 'логин') %}
+{% if el %}
+	{% set user_balance = _z(el.uBal, 1) %}
+	{% set user_activity %}
+		{{ el.uLTS }} <small>(IP {{ el.uLIP }} {% include "_country.twig" with {"ip": el.uLIP} %})</small>
+	{% endset %}
+{% else %}
+	{% set user_balance = '' %}
+	{% set user_activity = '' %}
+{% endif %}
+<div class="card hs-user-card">
+{% include "edit.twig" with {"fields": {'uID': [], 'uGroup': {0: 'T', 1: 'Группа', 'skip': not el}, 'uLogin': {0: 'T', 1: 'Логин!!', 2: {'login_empty': 'укажите логин', 'login_short': ("логин слишком короткий [не менее " ~ (_cfg.Account_MinLogin) ~ "]"), 'login_wrong': 'логин не может содержать пробел(ы)', 'login_used': 'логин уже используется'}, 'skip': (_cfg.Const_NoLogins)}, 'uMail': ['T', 'e-mail!!', {'mail_empty': 'укажите e-mail', 'mail_wrong': 'неверный e-mail', 'mail_used': 'e-mail уже используется'}], 'uPass': ['*', valueIf(not el, 'Пароль!!', 'Пароль'), {'pass_empty': 'укажите пароль', 'pass_short': ("пароль слишком короткий [не менее " ~ (_cfg.Account_MinPass) ~ "]"), 'pass_wrong': 'пароль не соответствует формату'}], 'uPIN': {0: '*', 1: valueIf(not el, 'PIN-код!!', 'PIN-код'), 2: {'pin_empty': 'укажите PIN-код', 'pin_short': ("PIN-код слишком короткий [не менее " ~ (_cfg.Account_MinPass) ~ "]"), 'pin_wrong': 'PIN-код не соответствует формату'}, 'skip': (_cfg.Sec_MinPIN == 0) or not el}, 'uState': {0: 'S', 1: 'Статус', 2: 0, 3: usr_statuses, 'skip': not el}, 'uBTS': {0: 'DT', 1: 'Забанен до', 2: {'bdate_empty': 'укажите срок'}, 'hint': 'ДД.ММ.ГГГГ ЧЧ:ММ', 'comment': 'Например: 25.07.2026 18:30', 'skip': not el}, 'uLevel': {0: 'I', 1: 'Уровень доступа', 2: {'lvl_wrong': 'неверное значение'}, 'size': 3, 'comment': '1 — пользователь, 10 — сборщик статистики, 50/70 — операторы, 90 — администратор, 99 — главный администратор', 'skip': not el}, 'uRef': {0: 'T', 1: 'Кто пригласил', 2: {'ref_empty': ("укажите " ~ (txt_login)), 'ref_not_found': ((txt_login) ~ " не найден"), 'ref_is_self': 'неверное значение'}, 'comment': 'Необязательно при создании пользователя администратором', 'skip': ((_cfg.Account_RegMode == 3) or not _cfg.Ref_Word)}, 'uBal': {0: 'X', 1: 'Баланс <<сумма по всем плат. системам>>', 2: 0, 3: user_balance, 'skip': not el}, 'Bal': {0: 'U', 1: 'balance/bal.twig', 'skip': not el}, 'uWDDisable': ['C', 'Запретить вывод средств'], 'uLang': {0: 'S', 1: 'Язык', 2: 0, 3: langs, 'skip': not el}, 'uMode': {0: 'T', 1: 'Шаблон', 2: {'mode_wrong': 'каталог должен существовать в tpl/themes и не совпадать с системной папкой tpl (до 10 символов)'}, 'size': 10, 'comment': 'Введите только имя: partner означает tpl/themes/partner/', 'skip': not el}, 'Act': {0: 'X', 1: 'Последняя активность', 2: 0, 3: user_activity, 'skip': not el.uLTS}}, "values": el} %}
+</div>
+
+{% if el %}
+	<div class="mt-6 flex flex-wrap justify-center gap-3">
+		<a href="{{ _link('balance/admin/opers', false, 0) }}?user={{ el.uLogin }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-extrabold text-brand transition hover:bg-gray-50 dark:border-gray-800 dark:bg-[#151515] dark:text-white dark:hover:bg-[#202020]"><i class="fa-solid fa-list-check" aria-hidden="true"></i><span>Все операции пользователя</span></a>
+		<a href="{{ _link('message/admin/message', false, 0) }}?add&to={{ el.uLogin }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-extrabold text-brand transition hover:bg-gray-50 dark:border-gray-800 dark:bg-[#151515] dark:text-white dark:hover:bg-[#202020]"><i class="fa-solid fa-envelope" aria-hidden="true"></i><span>Написать сообщение пользователю</span></a>
+		<a href="{{ _link('account/admin/user', false, 0) }}?id={{ el.uID }}&login" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i><span>Войти как пользователь</span></a>
+	</div>
+{% endif %}
+{% include "admin/footer.twig" %}

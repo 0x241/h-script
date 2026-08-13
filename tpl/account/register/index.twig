@@ -1,0 +1,197 @@
+{% include "external/auth.header.twig" with {"title": _t({"key": 'nav.register', "default": 'Регистрация'})} %}
+
+{% set register_form_name = getFormName('register_frm') %}
+{% set txt_login = valueIf(_cfg.Const_NoLogins, 'e-mail', 'логин') %}
+{% set field_name = _t({"key": 'auth.field.name', "default": 'Имя'}) %}
+{% set field_username = _t({"key": 'auth.field.username_create', "default": 'Логин'}) %}
+{% set field_email = _t({"key": 'auth.field.email', "default": 'E-mail адрес'}) %}
+{% set field_password = _t({"key": 'auth.field.password_create', "default": 'Пароль'}) %}
+{% set field_password_repeat = _t({"key": 'auth.field.password_repeat', "default": 'Повторите пароль'}) %}
+{% set field_phone = _t({"key": 'auth.field.phone', "default": 'Телефон'}) %}
+{% set field_referrer = _t({"key": 'auth.field.referrer', "default": 'Пригласил'}) %}
+{% set field_invite = _t({"key": 'auth.field.invite_code', "default": 'Инвайт-код'}) %}
+{% set field_secret_question = _t({"key": 'auth.field.secret_question', "default": 'Контрольный вопрос'}) %}
+{% set field_secret_answer = _t({"key": 'auth.field.secret_answer', "default": 'Контрольный ответ'}) %}
+{% set field_agree_prefix = _t({"key": 'auth.field.agree_prefix', "default": 'Я принимаю'}) %}
+{% set field_agree_rules = _t({"key": 'auth.field.agree_rules', "default": 'правила'}) %}
+{% set field_agree_suffix = _t({"key": 'auth.field.agree_suffix', "default": 'и соглашаюсь с условиями предоставления услуг'}) %}
+{% set btn_register = _t({"key": 'auth.register.submit', "default": 'Зарегистрироваться'}) %}
+{% set err_multi_reg = formErrorText(register_form_name, {'multi_reg': _t({"key": 'auth.error.multi_reg', "default": 'повторная регистрация невозможна'})}, true) %}
+{% set err_name = formErrorText(register_form_name, {'name_empty': _t({"key": 'auth.error.name_empty', "default": 'укажите имя'})}, true) %}
+{% set err_login = formErrorText(register_form_name, {'login_empty': _t({"key": 'auth.error.username_empty', "default": 'укажите логин'}), 'login_short': _t({"key": 'auth.error.login_short', "min": _cfg.Account_MinLogin, "default": 'логин слишком короткий'}), 'login_wrong': _t({"key": 'auth.error.login_wrong', "default": 'логин указан неверно'}), 'login_used': _t({"key": 'auth.error.login_used', "default": 'логин уже используется'})}, true) %}
+{% set err_mail = formErrorText(register_form_name, {'mail_empty': _t({"key": 'auth.error.mail_empty', "default": 'укажите e-mail'}), 'mail_wrong': _t({"key": 'auth.error.mail_wrong', "default": 'неверный e-mail'}), 'mail_used': _t({"key": 'auth.error.mail_used', "default": 'e-mail уже используется'})}, true) %}
+{% set err_pass = formErrorText(register_form_name, {'pass_empty': _t({"key": 'auth.error.pass_empty', "default": 'укажите пароль'}), 'pass_short': _t({"key": 'auth.error.pass_short', "min": _cfg.Account_MinPass, "default": 'пароль слишком короткий'}), 'pass_wrong': _t({"key": 'auth.error.pass_wrong', "default": 'пароль указан неверно'})}, true) %}
+{% set err_pass2 = formErrorText(register_form_name, {'pass_not_equal': _t({"key": 'auth.error.pass_not_equal', "default": 'пароли не совпадают'})}, true) %}
+{% set err_tel = formErrorText(register_form_name, {'tel_wrong': _t({"key": 'auth.error.tel_wrong', "default": 'телефон указан неверно'})}, true) %}
+{% set err_ref = formErrorText(register_form_name, {'ref_empty': _t({"key": 'auth.error.ref_empty', "login": txt_login, "default": 'укажите пригласившего'}), 'ref_not_found': _t({"key": 'auth.error.ref_not_found', "login": txt_login, "default": 'пригласивший не найден'})}, true) %}
+{% set err_invite = formErrorText(register_form_name, {'inv_empty': _t({"key": 'auth.error.inv_empty', "default": 'укажите инвайт-код'}), 'inv_not_found': _t({"key": 'auth.error.inv_not_found', "default": 'инвайт-код не найден'}), 'inv_used': _t({"key": 'auth.error.inv_used', "default": 'инвайт-код уже использован'})}, true) %}
+{% set err_secq = formErrorText(register_form_name, {'secq_empty': _t({"key": 'auth.error.secq_empty', "default": 'укажите контрольный вопрос'}), 'secq_short': _t({"key": 'auth.error.secq_short', "min": _cfg.Sec_MinSQA, "default": 'контрольный вопрос слишком короткий'})}, true) %}
+{% set err_seca = formErrorText(register_form_name, {'seca_empty': _t({"key": 'auth.error.seca_empty', "default": 'укажите контрольный ответ'}), 'seca_short': _t({"key": 'auth.error.seca_short', "min": _cfg.Sec_MinSQA, "default": 'контрольный ответ слишком короткий'}), 'seqa_equal_secq': _t({"key": 'auth.error.seqa_equal_secq', "default": 'ответ не должен совпадать с вопросом'})}, true) %}
+{% set err_agree = formErrorText(register_form_name, {'must_agree': _t({"key": 'auth.error.must_agree', "default": 'необходимо согласиться с правилами'})}, true) %}
+
+<main class="flex min-h-screen">
+	<aside class="relative hidden w-1/2 flex-col items-center justify-center overflow-hidden bg-[#004A25] p-12 lg:flex">
+		<div class="absolute inset-0 bg-gradient-to-br from-emerald-500/30 via-teal-900/40 to-transparent"></div>
+		<div class="relative z-10 max-w-lg text-center">
+			<div class="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl border border-white/20 bg-white/10 text-white shadow-2xl backdrop-blur-md">
+				<i class="fa-solid fa-rocket text-4xl"></i>
+			</div>
+			<h2 class="mb-6 text-4xl font-bold text-white">{{ _t({"key": 'auth.register.aside_title', "default": 'Добро пожаловать'}) }}</h2>
+			<p class="text-xl font-medium leading-relaxed text-emerald-100/70">{{ _t({"key": 'auth.register.aside_text', "default": 'Станьте частью современной финансовой экосистемы. Управляйте капиталом с максимальной доходностью и прозрачностью.'}) }}</p>
+		</div>
+	</aside>
+
+	<section class="relative z-10 flex w-full flex-col justify-between overflow-y-auto bg-white p-6 dark:bg-[#0A0A0A] sm:p-12 lg:w-1/2">
+		<div class="mb-6 flex items-center justify-between">
+			{% include "external/auth.logo.twig" %}
+			{% include "external/auth.controls.twig" %}
+		</div>
+
+		<div class="mx-auto my-auto w-full max-w-md">
+			<h1 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'auth.register.title', "default": 'Создать аккаунт'}) }}</h1>
+			<p class="mb-8 text-textDim dark:text-gray-400">{{ _t({"key": 'auth.register.text', "default": 'Заполните форму ниже, чтобы начать инвестировать.'}) }}</p>
+
+			{% if demo %}
+				<div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+					<div class="font-bold">{{ _t({"key": 'home.demo.line1'}) }}</div>
+					<div class="text-sm">{{ _t({"key": 'home.demo.line2'}) }}</div>
+				</div>
+			{% endif %}
+
+			{% if isset(_GET.done) %}
+				<div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
+					<div class="text-lg font-bold">{{ _t({"key": 'auth.register.done.title', "default": 'Регистрация успешно завершена!'}) }}</div>
+					<p class="mt-1 text-sm">{{ _t({"key": 'auth.register.done.text', "default": 'Теперь вы можете войти в личный кабинет, используя ваши данные.'}) }}</p>
+					<a href="{{ _link('account/login', false, 0) }}" class="mt-4 inline-flex rounded-full bg-emerald-600 px-5 py-2 text-sm font-bold text-white">{{ _t({"key": 'nav.login', "default": 'Войти'}) }}</a>
+				</div>
+			{% elseif isset(_GET.need_confirm) %}
+				<div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+					<div class="text-lg font-bold">{{ _t({"key": 'auth.register.need_confirm.title', "default": 'Подтверждение e-mail'}) }}</div>
+					<p class="mt-1 text-sm">{{ _t({"key": 'auth.register.need_confirm.text', "default": 'Для завершения регистрации необходимо подтвердить ваш электронный адрес.'}) }}</p>
+					<a href="{{ _link('confirm', false, 0) }}" class="mt-4 inline-flex rounded-full bg-amber-500 px-5 py-2 text-sm font-bold text-white">{{ _t({"key": 'auth.confirm_code', "default": 'Введите код подтверждения'}) }}</a>
+				</div>
+			{% elseif isset(_GET.need_confirm_sms) %}
+				<div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+					<div class="text-lg font-bold">{{ _t({"key": 'auth.register.need_confirm_sms.title', "default": 'Подтверждение номера телефона'}) }}</div>
+					<p class="mt-1 text-sm">{{ _t({"key": 'auth.register.need_confirm_sms.text', "default": 'Для завершения регистрации подтвердите ваш номер телефона.'}) }}</p>
+					<a href="{{ _link('confirm', false, 0) }}" class="mt-4 inline-flex rounded-full bg-amber-500 px-5 py-2 text-sm font-bold text-white">{{ _t({"key": 'auth.confirm_code', "default": 'Введите код подтверждения'}) }}</a>
+				</div>
+			{% elseif _cfg.Account_RegMode == 0 %}
+				<div class="rounded-2xl border border-red-200 bg-red-50 p-5 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+					<div class="text-lg font-bold">{{ _t({"key": 'auth.register.closed.title', "default": 'Регистрация приостановлена'}) }}</div>
+					<p class="mt-1 text-sm">{{ _t({"key": 'auth.register.closed.text', "default": 'В настоящее время регистрация новых пользователей временно закрыта.'}) }}</p>
+				</div>
+			{% else %}
+				{% if (_cfg.Account_RegMode == 2) and not valid_ref %}
+					<div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+						<div class="font-bold">{{ _t({"key": 'auth.register.invite_only.title', "default": 'Закрытый клуб'}) }}</div>
+						<div class="text-sm">{{ _t({"key": 'auth.register.invite_only.text', "default": 'Регистрация возможна только по приглашению действующего участника.'}) }}</div>
+					</div>
+				{% elseif _cfg.Account_RegMode == 3 %}
+					<div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+						<div class="font-bold">{{ _t({"key": 'auth.register.invite_code.title', "default": 'Инвайт-код'}) }}</div>
+						<div class="text-sm">{{ _t({"key": 'auth.register.invite_code.text', "default": 'Регистрация возможна только по секретному коду приглашения.'}) }}</div>
+					</div>
+				{% endif %}
+
+				{% if err_multi_reg %}
+					<p class="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-600 dark:border-red-500/30 dark:bg-red-500/10">{{ err_multi_reg }}</p>
+				{% endif %}
+
+				<form method="post" action="{{ _link('account/register', false, 0) }}" name="{{ register_form_name }}" class="space-y-4">
+					{{ _getFormSecurity({"form": register_form_name}) }}
+					{% if _cfg.Account_UseName == 1 %}
+						<div>
+							<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ register_form_name }}_aName">{{ field_name }}</label>
+							<input name="aName" id="{{ register_form_name }}_aName" value="{% if isset_IN('aName') %}{{ _IN('aName') }}{% endif %}" type="text" placeholder="{{ _t({"key": 'auth.placeholder.name', "default": 'Иван'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20">
+							{% if err_name %}<p class="mt-2 text-sm font-semibold text-red-500">{{ err_name }}</p>{% endif %}
+						</div>
+					{% endif %}
+
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						{% if not _cfg.Const_NoLogins %}
+							<div>
+								<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ register_form_name }}_uLogin">{{ field_username }}</label>
+								<input name="uLogin" id="{{ register_form_name }}_uLogin" value="{% if isset_IN('uLogin') %}{{ _IN('uLogin') }}{% endif %}" type="text" placeholder="{{ _t({"key": 'auth.placeholder.username', "default": 'ivanov'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20" autocomplete="username">
+								{% if err_login %}<p class="mt-2 text-sm font-semibold text-red-500">{{ err_login }}</p>{% endif %}
+							</div>
+						{% endif %}
+						{% if (_cfg.Account_RegMode != 3) and _cfg.Ref_Word %}
+							<div>
+								<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ register_form_name }}_uRef">{{ field_referrer }}</label>
+								<input name="uRef" id="{{ register_form_name }}_uRef" value="{% if isset_IN('uRef') %}{{ _IN('uRef') }}{% else %}{{ _SESSION._ref }}{% endif %}" type="text" placeholder="{{ _t({"key": 'auth.placeholder.referrer', "default": 'admin'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-70 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20" {% if valid_ref %}readonly{% endif %}>
+								{% if err_ref %}<p class="mt-2 text-sm font-semibold text-red-500">{{ err_ref }}</p>{% endif %}
+							</div>
+						{% endif %}
+					</div>
+
+					<div>
+						<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ register_form_name }}_uMail">{{ field_email }}</label>
+						<input name="uMail" id="{{ register_form_name }}_uMail" value="{% if isset_IN('uMail') %}{{ _IN('uMail') }}{% endif %}" type="email" placeholder="{{ _t({"key": 'auth.placeholder.email', "default": 'name@example.com'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20" autocomplete="email">
+						{% if err_mail %}<p class="mt-2 text-sm font-semibold text-red-500">{{ err_mail }}</p>{% endif %}
+					</div>
+
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<div>
+							<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ register_form_name }}_uPass">{{ field_password }}</label>
+							{% include "external/auth.password.twig" with {"password_name": 'uPass', "password_id": register_form_name ~ '_uPass', "password_autocomplete": 'new-password'} %}
+							{% if err_pass %}<p class="mt-2 text-sm font-semibold text-red-500">{{ err_pass }}</p>{% endif %}
+						</div>
+						<div>
+							<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ register_form_name }}_Pass2">{{ field_password_repeat }}</label>
+							{% include "external/auth.password.twig" with {"password_name": 'Pass2', "password_id": register_form_name ~ '_Pass2', "password_autocomplete": 'new-password'} %}
+							{% if err_pass2 %}<p class="mt-2 text-sm font-semibold text-red-500">{{ err_pass2 }}</p>{% endif %}
+						</div>
+					</div>
+
+					{% if _cfg.SMS_REG %}
+						<div>
+							<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ register_form_name }}_aTel">{{ field_phone }}</label>
+							<input name="aTel" id="{{ register_form_name }}_aTel" value="{% if isset_IN('aTel') %}{{ _IN('aTel') }}{% endif %}" type="tel" placeholder="+7 900 000-00-00" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20">
+							{% if err_tel %}<p class="mt-2 text-sm font-semibold text-red-500">{{ err_tel }}</p>{% endif %}
+						</div>
+					{% endif %}
+
+					{% if _cfg.Account_RegMode == 3 %}
+						<div>
+							<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ register_form_name }}_Invite">{{ field_invite }}</label>
+							<input name="Invite" id="{{ register_form_name }}_Invite" value="{% if isset_IN('Invite') %}{{ _IN('Invite') }}{% endif %}" type="text" placeholder="INVITE-2026" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20">
+							{% if err_invite %}<p class="mt-2 text-sm font-semibold text-red-500">{{ err_invite }}</p>{% endif %}
+						</div>
+					{% endif %}
+
+					{% if _cfg.Sec_MinSQA != 0 %}
+						<div>
+							<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ register_form_name }}_aSQuestion">{{ field_secret_question }}</label>
+							<input name="aSQuestion" id="{{ register_form_name }}_aSQuestion" value="{% if isset_IN('aSQuestion') %}{{ _IN('aSQuestion') }}{% endif %}" type="text" placeholder="{{ _t({"key": 'auth.placeholder.secret_question', "default": 'Любимый город?'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20">
+							{% if err_secq %}<p class="mt-2 text-sm font-semibold text-red-500">{{ err_secq }}</p>{% endif %}
+						</div>
+						<div>
+							<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ register_form_name }}_aSAnswer">{{ field_secret_answer }}</label>
+							<input name="aSAnswer" id="{{ register_form_name }}_aSAnswer" value="{% if isset_IN('aSAnswer') %}{{ _IN('aSAnswer') }}{% endif %}" type="text" placeholder="{{ _t({"key": 'auth.placeholder.secret_answer', "default": 'Ответ'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20">
+							{% if err_seca %}<p class="mt-2 text-sm font-semibold text-red-500">{{ err_seca }}</p>{% endif %}
+						</div>
+					{% endif %}
+
+					{% include "external/auth.captcha.twig" with {"auth_form_name": register_form_name, "auth_captcha": _cfg.Account_RegCaptcha} %}
+
+					<label class="flex items-start gap-3 rounded-xl pt-4 text-sm font-medium text-brand dark:text-gray-300">
+						<input name="Agree" value="1" type="checkbox" class="mt-0.5 h-5 w-5 rounded border-gray-300 text-blue-600 focus:outline-none focus:ring-0 focus:ring-offset-0">
+						<span>{{ field_agree_prefix }} <a href="{{ _link('udp/rules', false, 0) }}" target="_blank" rel="noopener noreferrer" class="font-bold underline">{{ field_agree_rules }}</a> {{ field_agree_suffix }}</span>
+					</label>
+					{% if err_agree %}<p class="text-sm font-semibold text-red-500">{{ err_agree }}</p>{% endif %}
+
+					<button name="{{ register_form_name }}_btn" value="{{ btn_register }}" type="submit" class="mt-6 w-full rounded-2xl bg-emerald-600 p-4 font-bold text-white shadow-lg shadow-emerald-500/30 transition hover:-translate-y-0.5 hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-emerald-500 dark:hover:bg-emerald-600">{{ btn_register }}</button>
+				</form>
+
+				<p class="mt-8 text-center text-textDim dark:text-gray-400">
+					{{ _t({"key": 'auth.have_account', "default": 'Уже есть аккаунт?'}) }} <a href="{{ _link('account/login', false, 0) }}" class="font-bold text-brand hover:underline dark:text-white">{{ _t({"key": 'auth.login.submit', "default": 'Войти в систему'}) }}</a>
+				</p>
+			{% endif %}
+		</div>
+
+		<div class="mt-6 text-center text-sm text-gray-400">{% include "external/product-copyright.twig" %}</div>
+	</section>
+</main>
+
+{% include "external/auth.footer.twig" %}

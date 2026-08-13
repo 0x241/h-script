@@ -1,0 +1,151 @@
+{% include "header.twig" with {"title": _t({"key": 'nav.cabinet', "default": 'Кабинет'})} %}
+{% include "balance/_statuses.twig" %}
+
+{% set oper_icons = {
+	'CASHIN': ['fa-arrow-down', 'bg-emerald-100 text-emerald-500 dark:bg-emerald-900/30'],
+	'CASHOUT': ['fa-arrow-up', 'bg-rose-100 text-rose-500 dark:bg-rose-900/30'],
+	'EX': ['fa-right-left', 'bg-blue-100 text-blue-500 dark:bg-blue-900/30'],
+	'EXIN': ['fa-right-left', 'bg-blue-100 text-blue-500 dark:bg-blue-900/30'],
+	'TR': ['fa-paper-plane', 'bg-indigo-100 text-indigo-500 dark:bg-indigo-900/30'],
+	'TRIN': ['fa-inbox', 'bg-indigo-100 text-indigo-500 dark:bg-indigo-900/30'],
+	'GIVE': ['fa-piggy-bank', 'bg-emerald-100 text-emerald-500 dark:bg-emerald-900/30'],
+	'TAKE': ['fa-hand-holding-dollar', 'bg-amber-100 text-amber-500 dark:bg-amber-900/30'],
+	'REF': ['fa-users', 'bg-purple-100 text-purple-500 dark:bg-purple-900/30'],
+	'BONUS': ['fa-gift', 'bg-fuchsia-100 text-fuchsia-500 dark:bg-fuchsia-900/30'],
+	'CALCIN': ['fa-chart-line', 'bg-sky-100 text-sky-500 dark:bg-sky-900/30'],
+	'CALCOUT': ['fa-chart-line', 'bg-slate-100 text-slate-500 dark:bg-slate-800'],
+	'BUY': ['fa-cart-shopping', 'bg-orange-100 text-orange-500 dark:bg-orange-900/30'],
+	'SELL': ['fa-store', 'bg-teal-100 text-teal-500 dark:bg-teal-900/30'],
+	'PENALTY': ['fa-triangle-exclamation', 'bg-red-100 text-red-500 dark:bg-red-900/30']
+} %}
+
+<div class="mb-10">
+	<h2 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'cabinet.welcome', "default": 'Добро пожаловать'}) }}, {{ user.aName|default(user.uLogin) }}!</h2>
+	<p class="font-medium text-textDim dark:text-gray-400">{{ _t({"key": 'cabinet.welcome.text', "default": 'Управляйте вашим балансом, инвестициями и аналитикой.'}) }}</p>
+</div>
+
+<div class="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+	<div class="flex min-h-44 flex-col justify-between rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm transition-transform hover:-translate-y-0.5 dark:border-gray-800 dark:bg-[#151515]">
+		<div class="mb-4 flex items-start justify-between">
+			<span class="text-sm font-bold text-gray-500">{{ _t({"key": 'cabinet.metric.balance', "default": 'Общий баланс'}) }}</span>
+			<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-lg text-blue-500 dark:bg-blue-900/20"><i class="fa-solid fa-wallet" aria-hidden="true"></i></div>
+		</div>
+		<div>
+			<div class="font-mono text-3xl font-bold text-brand dark:text-white">{% if user.uBal > 0 %}{{ _z(user.uBal, 1, 2) }}{% else %}0.00{% endif %}</div>
+			<div class="mt-1 text-sm text-gray-400">{{ _t({"key": 'cabinet.metric.balance.hint', "default": 'Доступно к выводу'}) }}</div>
+		</div>
+	</div>
+
+	<div class="flex min-h-44 flex-col justify-between rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm transition-transform hover:-translate-y-0.5 dark:border-gray-800 dark:bg-[#151515]">
+		<div class="mb-4 flex items-start justify-between">
+			<span class="text-sm font-bold text-gray-500">{{ _t({"key": 'cabinet.metric.invested', "default": 'Инвестировано'}) }}</span>
+			<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-lg text-emerald-500 dark:bg-emerald-900/20"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></div>
+		</div>
+		<div>
+			<div class="font-mono text-3xl font-bold text-brand dark:text-white">{% if user.uBalIn > 0 %}{{ _z(user.uBalIn, 1, 2) }}{% else %}{{ dashboard_metrics.active_deposit_count|default(0) }}{% endif %}</div>
+			<div class="mt-1 text-sm text-gray-400">{{ _t({"key": 'cabinet.metric.invested.hint', "default": 'В активных планах'}) }}</div>
+		</div>
+	</div>
+
+	<div class="flex min-h-44 flex-col justify-between rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm transition-transform hover:-translate-y-0.5 dark:border-gray-800 dark:bg-[#151515]">
+		<div class="mb-4 flex items-start justify-between">
+			<span class="text-sm font-bold text-gray-500">{{ _t({"key": 'cabinet.metric.refs', "default": 'Партнерские'}) }}</span>
+			<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-lg text-purple-500 dark:bg-purple-900/20"><i class="fa-solid fa-users" aria-hidden="true"></i></div>
+		</div>
+		<div>
+			<div class="font-mono text-3xl font-bold text-brand dark:text-white">{% if user.uBalRef > 0 %}{{ _z(user.uBalRef, 1, 2) }}{% else %}0.00{% endif %}</div>
+			<div class="mt-1 text-sm text-gray-400">{{ _t({"key": 'cabinet.metric.refs.hint', "default": 'Партнерский доход'}) }}</div>
+		</div>
+	</div>
+
+	<div class="flex min-h-44 flex-col justify-between rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm transition-transform hover:-translate-y-0.5 dark:border-gray-800 dark:bg-[#151515]">
+		<div class="mb-4 flex items-start justify-between">
+			<span class="text-sm font-bold text-gray-500">{{ _t({"key": 'cabinet.metric.withdrawn', "default": 'Выведено'}) }}</span>
+			<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-lg text-orange-500 dark:bg-orange-900/20"><i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i></div>
+		</div>
+		<div>
+			<div class="font-mono text-3xl font-bold text-brand dark:text-white">{% if user.uBalOut > 0 %}{{ _z(user.uBalOut, 1, 2) }}{% else %}0.00{% endif %}</div>
+			<div class="mt-1 text-sm text-gray-400">{{ _t({"key": 'cabinet.metric.withdrawn.hint', "default": 'За все время'}) }}</div>
+		</div>
+	</div>
+</div>
+
+<h3 class="mb-6 text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'cabinet.quick_actions', "default": 'Быстрые действия'}) }}</h3>
+<div class="mb-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+	<a href="{{ _link('balance/oper', false, 0) }}?add=CASHIN" class="group flex min-h-28 items-center gap-4 rounded-[1.5rem] bg-brand p-6 text-white shadow-lg transition-transform hover:scale-[1.02] dark:bg-white dark:text-brand">
+		<div class="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-xl transition-transform group-hover:scale-110 dark:bg-black/10"><i class="fa-solid fa-arrow-down" aria-hidden="true"></i></div>
+		<div>
+			<div class="text-lg font-bold">{{ _t({"key": 'cabinet.action.cashin_full', "default": 'Пополнить баланс'}) }}</div>
+			<div class="text-sm opacity-70">{{ _t({"key": 'cabinet.action.cashin_hint', "default": 'Через Crypto или карты'}) }}</div>
+		</div>
+	</a>
+	<a href="{{ _link('balance/oper', false, 0) }}?add=CASHOUT" class="group flex min-h-28 items-center gap-4 rounded-[1.5rem] border border-gray-200 bg-white p-6 text-brand shadow-sm transition-transform hover:scale-[1.02] dark:border-gray-800 dark:bg-[#151515] dark:text-white">
+		<div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl transition-transform group-hover:scale-110 dark:bg-[#202020]"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></div>
+		<div>
+			<div class="text-lg font-bold">{{ _t({"key": 'cabinet.action.cashout', "default": 'Вывести средства'}) }}</div>
+			<div class="text-sm text-gray-400">{{ _t({"key": 'cabinet.action.cashout_hint', "default": 'На ваши кошельки'}) }}</div>
+		</div>
+	</a>
+	<a href="{{ _link('depo/depo', false, 0) }}?add=DEPO" class="group flex min-h-28 items-center gap-4 rounded-[1.5rem] border border-emerald-100 bg-emerald-50 p-6 text-emerald-700 shadow-sm transition-transform hover:scale-[1.02] dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400">
+		<div class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-xl transition-transform group-hover:scale-110 dark:bg-emerald-900/40"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></div>
+		<div>
+			<div class="text-lg font-bold">{{ _t({"key": 'cabinet.action.invest', "default": 'Инвестировать'}) }}</div>
+			<div class="text-sm opacity-80">{{ _t({"key": 'cabinet.action.deposit_hint_short', "default": 'Открыть новый депозит'}) }}</div>
+		</div>
+	</a>
+</div>
+
+<div class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+	<div class="flex items-center justify-between border-b border-gray-100 p-6 dark:border-gray-800">
+		<h3 class="text-lg font-bold text-brand dark:text-white">{{ _t({"key": 'cabinet.recent_ops', "default": 'Последние операции'}) }}</h3>
+		<a href="{{ _link('balance', false, 0) }}" class="text-sm font-bold text-blue-500 transition-colors hover:text-blue-600">{{ _t({"key": 'cabinet.all_ops', "default": 'Все операции'}) }} &rarr;</a>
+	</div>
+	<div class="overflow-x-auto">
+		<table class="w-full border-collapse text-left">
+			<thead>
+				<tr class="bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-500 dark:bg-[#1A1A1A]">
+					<th class="p-4">{{ _t({"key": 'opers.col.oper', "default": 'Тип'}) }}</th>
+					<th class="p-4">{{ _t({"key": 'cabinet.recent_ops.sum', "default": 'Сумма'}) }}</th>
+					<th class="p-4">{{ _t({"key": 'cabinet.recent_ops.psys', "default": 'Платежная система'}) }}</th>
+					<th class="p-4">{{ _t({"key": 'common.date', "default": 'Дата'}) }}</th>
+					<th class="p-4 text-right">{{ _t({"key": 'opers.col.state', "default": 'Статус'}) }}</th>
+				</tr>
+			</thead>
+			<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+				{% if recent_opers %}
+					{% for id, l in recent_opers %}
+						{% set is_oper_in = in_array(l.oOper, ['CASHIN', 'EXIN', 'TRIN', 'BONUS', 'REF', 'CALCIN', 'SELL', 'TAKE']) %}
+						{% set is_oper_out = in_array(l.oOper, ['CASHOUT', 'EX', 'TR', 'CALCOUT', 'PENALTY', 'BUY', 'GIVE']) %}
+						{% set oper_icon = oper_icons[l.oOper]|default(['fa-right-left', 'bg-gray-100 text-gray-500 dark:bg-gray-800']) %}
+						<tr class="transition-colors hover:bg-gray-50/50 dark:hover:bg-[#1A1A1A]/50">
+							<td class="p-4">
+								<a href="{{ _link('balance/oper', false, 0) }}?id={{ l.oID }}" class="flex items-center gap-3">
+									<div class="flex h-8 w-8 items-center justify-center rounded-full {{ oper_icon[1] }}">
+										<i class="fa-solid {{ oper_icon[0] }} text-xs" aria-hidden="true"></i>
+									</div>
+									<span class="font-bold text-brand dark:text-white">{{ op_names[l.oOper]|default(l.oOper) }}</span>
+								</a>
+							</td>
+							<td class="p-4 font-mono font-bold {% if is_oper_in %}text-emerald-500{% elseif is_oper_out %}text-brand dark:text-white{% else %}text-blue-500{% endif %}">{{ _z(l.oSum, l.ocID, -1) }}</td>
+							<td class="p-4 font-medium text-gray-600 dark:text-gray-300">{{ l.cName|default(l.cCurr|default('-')) }}</td>
+							<td class="p-4 text-sm text-gray-400">{{ l.oCTS|default(l.oTS) }}</td>
+							<td class="p-4 text-right">
+								<span class="inline-block rounded-full px-3 py-1 text-xs font-bold {% if l.oState == 3 %}bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400{% elseif l.oState == 2 %}bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400{% elseif l.oState == 4 %}bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400{% else %}bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300{% endif %}">{{ op_statuses[l.oState]|default(l.oState) }}</span>
+							</td>
+						</tr>
+					{% endfor %}
+				{% else %}
+					<tr>
+						<td colspan="5" class="p-10 text-center">
+							<div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-[#202020]"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></div>
+							<div class="text-lg font-bold text-brand dark:text-white">{{ _t({"key": 'list.empty', "default": 'Нет записей'}) }}</div>
+							<div class="mt-1 text-sm text-gray-400">{{ _t({"key": 'cabinet.no_ops', "default": 'Операций пока нет.'}) }}</div>
+						</td>
+					</tr>
+				{% endif %}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+{% include "footer.twig" %}

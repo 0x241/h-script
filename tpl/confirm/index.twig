@@ -1,0 +1,93 @@
+{% include "external/auth.header.twig" with {"title": _t({"key": 'confirm.title', "default": 'Подтверждение'})} %}
+
+{% set confirm_form_name = getFormName('') %}
+{% set code_value = _GET.code %}
+{% if not code_value and isset_IN('Code') %}
+	{% set code_value = _IN('Code') %}
+{% endif %}
+{% set code_mode = 'long' %}
+{% set submitted_code_mode = _IN('CodeMode') %}
+{% if submitted_code_mode == 'short' or submitted_code_mode == 'long' %}
+	{% set code_mode = submitted_code_mode %}
+{% elseif code_value %}
+	{% set code_mode = code_value|length > 6 ? 'long' : 'short' %}
+{% elseif isset_IN('CodePart') %}
+	{% set code_mode = 'short' %}
+{% elseif _SESSION._confirm_code_mode == 'short' or _SESSION._confirm_code_mode == 'long' %}
+	{% set code_mode = _SESSION._confirm_code_mode %}
+{% endif %}
+{% set code_error = formErrorText(confirm_form_name, {
+	'code_empty': _t({"key": 'confirm.error.code_empty', "default": 'Укажите код'}),
+	'code_not_found': _t({"key": 'confirm.error.code_not_found', "default": 'Неверный код'}),
+	'code_used': _t({"key": 'confirm.error.code_used', "default": 'Код уже неактуален'}),
+	'code_expired': _t({"key": 'confirm.error.code_expired', "default": 'Срок действия кода истёк'}),
+	'dif_ip': _t({"key": 'confirm.error.different_ip', "default": 'Подтверждение с вашего IP-адреса невозможно'}),
+	'oper_wrong': _t({"key": 'confirm.error.operation_wrong', "default": 'Неверная операция'}),
+	'oper_unkn': _t({"key": 'confirm.error.operation_unknown', "default": 'Операция не реализована'})
+}, true) %}
+{% set show_code_chars = '' %}
+{% if code_value and code_value|length <= 6 %}
+	{% set show_code_chars = code_value %}
+{% endif %}
+
+<main class="relative flex min-h-screen items-center justify-center overflow-hidden p-6">
+	<div class="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent"></div>
+
+	<div class="relative z-10 w-full max-w-md rounded-[2rem] border border-gray-100 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-[#151515] sm:p-12">
+		<div class="mb-8 flex items-center justify-between">
+			{% include "external/auth.logo.twig" %}
+			{% include "external/auth.controls.twig" %}
+		</div>
+
+		<div class="mb-8 text-center">
+			<div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-500 dark:bg-amber-900/30">
+				<i class="fa-solid fa-shield-halved text-2xl" aria-hidden="true"></i>
+			</div>
+			<h1 class="mb-2 text-2xl font-bold text-brand dark:text-white">{{ _t({"key": 'confirm.heading', "default": 'Подтверждение'}) }}</h1>
+			<p class="text-sm text-textDim dark:text-gray-400">{{ _t({"key": 'confirm.text', "default": 'Мы отправили код безопасности на ваш адрес электронной почты или телефон.'}) }}</p>
+		</div>
+
+		{% if isset(_GET.done) %}
+			<div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
+				<div class="text-lg font-bold">{{ _t({"key": 'confirm.done', "default": 'Операция завершена!'}) }}</div>
+			</div>
+		{% else %}
+			{% if isset(_GET.need_confirm_sms) %}
+				<div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+					<div class="font-bold">{{ _t({"key": 'confirm.not_done', "default": 'Операция НЕ завершена!'}) }}</div>
+					<div class="text-sm">{{ _t({"key": 'confirm.sms_text', "default": 'Для завершения операции введите код подтверждения, отправленный на ваш телефон.'}) }}</div>
+				</div>
+			{% endif %}
+			<form method="post" action="{{ _link('confirm', false, 0) }}" name="{{ confirm_form_name }}" class="space-y-8">
+					{{ _getFormSecurity({"form": confirm_form_name}) }}
+					<input name="CodeMode" value="{{ code_mode }}" type="hidden">
+					<div>
+						{% if code_mode == 'long' %}
+							<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ confirm_form_name }}_Code">{{ _t({"key": 'confirm.code', "default": 'Код подтверждения'}) }}</label>
+							<input name="Code" id="{{ confirm_form_name }}_Code" value="{{ code_value }}" type="text" maxlength="60" autocomplete="one-time-code" autocapitalize="off" spellcheck="false" autofocus class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-mono text-sm font-bold text-brand outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/20 sm:text-base">
+						{% else %}
+							<label class="sr-only" for="{{ confirm_form_name }}_Code_1">{{ _t({"key": 'confirm.code', "default": 'Код подтверждения'}) }}</label>
+							<div class="flex justify-center gap-2 sm:gap-3">
+								{% for i in 0..5 %}
+									<input name="CodePart[]" id="{{ confirm_form_name }}_Code_{{ i + 1 }}" value="{{ show_code_chars|slice(i, 1) }}" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" {% if i == 0 %}autocomplete="one-time-code" autofocus{% else %}autocomplete="off"{% endif %} class="h-14 w-10 rounded-2xl border-2 border-black/10 bg-white text-center font-mono text-2xl font-bold text-brand outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/20 sm:h-[4.5rem] sm:w-14 sm:text-3xl">
+									{% if i == 2 %}
+										<div class="w-1 sm:w-2"></div>
+									{% endif %}
+								{% endfor %}
+							</div>
+						{% endif %}
+						{% if code_error %}
+							<p class="mt-3 text-center text-sm font-semibold text-red-500">{{ code_error }}</p>
+						{% endif %}
+					</div>
+					{% include "external/auth.captcha.twig" with {"auth_form_name": confirm_form_name, "auth_captcha": _cfg.Confirm_Captcha} %}
+					<button name="{{ confirm_form_name }}_btn" value="{{ _t({"key": 'confirm.submit', "default": 'Выполнить'}) }}" type="submit" class="w-full rounded-2xl bg-amber-500 p-4 text-lg font-bold text-white shadow-lg shadow-amber-500/30 transition hover:-translate-y-0.5 hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-amber-500 dark:text-white dark:hover:bg-amber-600">{{ _t({"key": 'confirm.submit', "default": 'Подтвердить'}) }}</button>
+			</form>
+			<p class="mt-8 text-center text-sm text-textDim dark:text-gray-400">
+				{{ _t({"key": 'confirm.no_code', "default": 'Не пришел код?'}) }} <a href="{{ _link('confirm', false, 0) }}?resend" class="font-bold text-brand transition-colors hover:text-amber-600 dark:text-white dark:hover:text-amber-400">{{ _t({"key": 'confirm.resend', "default": 'Отправить заново'}) }}</a>
+			</p>
+		{% endif %}
+	</div>
+</main>
+
+{% include "external/auth.footer.twig" %}

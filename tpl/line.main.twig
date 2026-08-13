@@ -1,0 +1,23 @@
+
+{% set nav_calculator = _t({"key": 'nav.calculator'}) %}
+{% set nav_faq = _t({"key": 'nav.faq'}) %}
+{% set nav_top = _t({"key": 'nav.top'}) %}
+{% set nav_reviews = _t({"key": 'nav.reviews'}) %}
+{% set nav_cabinet = _t({"key": 'nav.cabinet'}) %}
+{% set nav_operations = _t({"key": 'nav.operations'}) %}
+{% set nav_deposits = _t({"key": 'nav.deposits'}) %}
+{% set nav_messages = _t({"key": 'nav.messages'}) %}
+{% set nav_payment_details = _t({"key": 'nav.payment_details'}) %}
+{% set nav_tickets = _t({"key": 'nav.tickets'}) %}
+{% set nav_referral = _t({"key": 'nav.referral'}) %}
+<nav class="nav-group__items" aria-label="{{ _t({"key": 'nav.sections.label'}) }}">
+{% set smenu = {100: ['depo/calc', nav_calculator], 0: ['depo/top', nav_top], 1: ['depo/topin', 'Топ инвесторов'], 2: ['depo/lastin', 'Последние инвестиции'], 3: ['depo/lastout', 'Последние выплаты'], 4: ['faq', nav_faq], 5: ['review', nav_reviews]} %}
+{% if user.uID %}
+	{% set main_elements = [['cabinet', nav_cabinet], {0: 'balance', 1: nav_operations, 'count': count_opers}, ['depo', nav_deposits], {0: 'message', 1: nav_messages, 'count': count_msg, 'skip': not _cfg.Msg_Mode}, ['balance/wallets', nav_payment_details], {0: 'tickets', 1: nav_tickets, 'count': count_tickets}, {0: 'refsys', 1: nav_referral, 'skip': not _cfg.Ref_Word}] %}
+	{% set main_elements = merge_arrays(main_elements, smenu) %}
+	{% include "menu.twig" with {"class": 'mainMenu', "elements": main_elements} %}
+{% else %}
+	{% include "menu.twig" with {"class": 'mainMenu', "elements": smenu} %}
+{% endif %}
+</nav>
+

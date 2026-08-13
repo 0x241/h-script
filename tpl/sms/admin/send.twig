@@ -1,0 +1,16 @@
+
+{% set sms_send_title = _t({"key": 'sms.send.title', "default": 'Отправка СМС'}) %}
+{% set sms_field_from = _t({"key": 'sms.field.from', "default": 'Отправитель <<пусто - значение "по умолчанию">>'}) %}
+{% set sms_field_to = _t({"key": 'sms.field.to', "default": 'Номер получателя'}) %}
+{% set sms_field_text = _t({"key": 'sms.field.text', "default": 'Текст'}) %}
+{% set sms_err_from = _t({"key": 'sms.error.from_wrong', "default": 'неверный отправитель'}) %}
+{% set sms_err_to = _t({"key": 'sms.error.to_wrong', "default": 'неверный номер получателя'}) %}
+{% set sms_err_msg_empty = _t({"key": 'sms.error.msg_empty', "default": 'введите сообщение'}) %}
+{% set sms_err_msg_long = _t({"key": 'sms.error.msg_too_long', "default": 'сообщение слишком длинное'}) %}
+{% set sms_btn_send = _t({"key": 'sms.button.send', "default": 'Отправить'}) %}
+
+{% include "admin/header.twig" with {"title": sms_send_title} %}
+
+{% include "edit.twig" with {"fields": {'From': ['T', sms_field_from, {'from_wrong': sms_err_from}], 'To': ['T', sms_field_to, {'to_wrong': sms_err_to}], 'Text': {0: 'W', 1: sms_field_text, 2: {'msg_empty': sms_err_msg_empty, 'msg_too_long': sms_err_msg_long}, 'size': 5}}, "btn_text": ' ', "btns": {'send': sms_btn_send}} %}
+
+{% include "admin/footer.twig" %}

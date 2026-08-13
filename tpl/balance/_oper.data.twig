@@ -1,0 +1,17 @@
+
+{% if from_admin or (_cfg.Bal_AFMMode == 0) %}
+
+<div class="card hs-oper-data-header" style="margin: 32px 0 24px; padding: 20px 24px; background: var(--color-surface-raised); border-radius: var(--radius-md); border: 1px solid var(--color-border); display: flex; align-items: center; gap: 14px;">
+	<i class="fa-solid fa-file-invoice" style="color: var(--color-accent); font-size: 1.4rem;"></i>
+	<div>
+		<h3 style="margin: 0; font-size: 1.15rem; color: var(--color-primary-ink);">Данные платежа через {{ el.cName }} (произведенного вручную)</h3>
+		{% if not from_admin and (el.oOper == 'CASHIN') %}<p style="margin: 4px 0 0; font-size: 0.85rem; color: var(--color-text-muted);">и реквизиты плательщика</p>{% endif %}
+	</div>
+</div>
+
+{% set ro = not from_admin and (el.oState > 1) %}
+<div class="hs-oper-data-form">
+{% include "edit.twig" with {"form": 'data', "fields": merge_arrays({'oID': el.oID, 'date': {0: 'D', 1: 'Дата!!', 2: {'data_date_wrong': 'неверная дата'}, 'default': today, 'readonly': ro}, 'sum': ['X', 'Сумма', 0, _z(el.oSum - oComis, el.ocID, 1)], 'batch': {0: 'T', 1: s1, 2: {'data_batch_wrong': s2, 'batch_exists': s3}, 'default': defaultbatch, 'readonly': ro}, 'memo': {0: 'A', 1: 'Примечание', 'readonly': ro}}, dfields), "values": el.oParams2, "btn_text": valueIf(ro, ' ', valueIf(el.oParams2.batch, 'Изменить', 'Создать')), "hide_cancel": true} %}
+</div>
+	
+{% endif %}	

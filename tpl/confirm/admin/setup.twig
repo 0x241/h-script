@@ -1,0 +1,6 @@
+
+{% include "admin/header.twig" with {"title": 'Подтверждение'} %}
+
+{% include "edit.twig" with {"values": cfg, "fields": {'Captcha': ['S', 'Защита "captcha"', 0, {0: 'нет', 1: 'авто', 2: 'всегда'}]}} %}
+	
+{% include "admin/footer.twig" %}

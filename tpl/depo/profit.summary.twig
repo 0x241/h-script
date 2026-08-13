@@ -1,0 +1,18 @@
+<div id="deposit-profit-summary">
+	<h4 class="mb-4 text-sm font-bold uppercase tracking-wider text-gray-400">{{ _t({"key": 'deposit.calc.title', "default": 'Калькулятор прибыли'}) }}</h4>
+	<div class="space-y-4">
+		<div class="flex items-center justify-between gap-4">
+			<span class="font-medium text-brand dark:text-gray-300">{{ _t({"key": 'deposit.calc.period_income', "default": 'Доход за период'}) }}:</span>
+			<span class="font-mono font-bold text-emerald-500">+{{ period_profit|number_format(2, '.', ' ') }}</span>
+		</div>
+		<div class="flex items-center justify-between gap-4">
+			<span class="font-medium text-brand dark:text-gray-300">{{ _t({"key": 'deposit.calc.total_profit', "default": 'Оценочная прибыль'}) }}:</span>
+			<span class="font-mono font-bold text-emerald-500">+{{ total_profit|number_format(2, '.', ' ') }}</span>
+		</div>
+		<div class="h-px bg-gray-200 dark:bg-gray-700"></div>
+		<div class="flex items-center justify-between gap-4">
+			<span class="text-lg font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.calc.total_return', "default": 'Итоговый возврат'}) }}:</span>
+			<span class="font-mono text-xl font-bold text-brand dark:text-white">{{ (summary_sum + total_profit)|number_format(2, '.', ' ') }}</span>
+		</div>
+	</div>
+</div>

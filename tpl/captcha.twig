@@ -1,0 +1,14 @@
+
+{% if not isset(class) %}{% set class = '' %}{% endif %}
+{% set captcha_error_text = formErrorText(form, {'captcha_wrong': 'неверный код'}, true) %}
+{% set error_text = '' %}
+{% set error_class = '' %}
+{% if captcha_error_text %}
+	{% set error_text = '<span class="err"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> ' ~ captcha_error_text ~ '</span>' %}
+	{% set error_class = ' error' %}
+{% endif %}
+{% if class %}
+	{% set class = (" " ~ (class)) %}
+{% endif %}
+{% set class = ("captcha" ~ (class) ~ (error_class)) %}
+{% include "captcha/box.twig" %}

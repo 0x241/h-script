@@ -1,0 +1,34 @@
+
+{% include "admin/header.twig" with {"title": 'Почта'} %}
+
+{% include "edit.twig" with {"values": cfg, "fields": {
+	'Host': ['T', 'SMTP-сервер <<для Docker обязателен; пусто — системный PHP mail()>>'],
+	'Port': ['I', 'Порт'],
+	'Secure': ['C', 'Шифрование <<STARTTLS, для порта 465 — SMTPS>>'],
+	'Username': ['T', 'Логин <<вместе с паролем либо оба поля пустые>>'],
+	'Password': ['*', 'Пароль <<пустое поле сохраняет ранее заданный пароль>>']
+}} %}
+
+<section id="email-preview" class="mt-8 overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+	<header class="flex flex-col gap-4 border-b border-gray-100 bg-gray-50/70 px-6 py-5 dark:border-gray-800 dark:bg-[#1A1A1A] sm:flex-row sm:items-center sm:justify-between">
+		<div class="flex items-start gap-3">
+			<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-envelope-open-text" aria-hidden="true"></i></span>
+			<div>
+				<h2 class="text-lg font-extrabold text-brand dark:text-white">{{ _t({"key": 'mail.preview.title', "default": 'Предпросмотр письма'}) }}</h2>
+				<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ _t({"key": 'mail.preview.description', "default": 'Итоговый HTML-шаблон с переводом для выбранного языка.'}) }}</p>
+			</div>
+		</div>
+		<a href="{{ mail_translations_url }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-extrabold text-brand transition hover:border-blue-300 hover:text-blue-600 dark:border-gray-700 dark:bg-[#151515] dark:text-white"><i class="fa-solid fa-language" aria-hidden="true"></i>{{ _t({"key": 'mail.preview.edit', "default": 'Редактировать переводы'}) }}</a>
+	</header>
+	<div class="flex flex-wrap gap-2 border-b border-gray-100 px-6 py-4 dark:border-gray-800">
+		{% for lang in email_preview_langs %}
+			<a href="{{ email_preview_url }}&amp;lang={{ lang }}" target="email-preview-frame" class="inline-flex min-w-14 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 text-xs font-extrabold uppercase text-gray-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 dark:border-gray-800 dark:bg-[#202020] dark:text-gray-300">{{ lang }}</a>
+		{% endfor %}
+		<a href="{{ email_preview_url }}&amp;lang={{ current_lang }}" target="_blank" rel="noopener" class="ml-auto inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold text-blue-600 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-500/10"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>{{ _t({"key": 'mail.preview.open', "default": 'Открыть отдельно'}) }}</a>
+	</div>
+	<div class="bg-gray-100 p-3 dark:bg-[#101010] sm:p-6">
+		<iframe name="email-preview-frame" title="{{ _t({"key": 'mail.preview.frame_title', "default": 'Предпросмотр шаблона письма'}) }}" src="{{ email_preview_url }}&amp;lang={{ current_lang }}" class="h-[760px] w-full rounded-2xl border-0 bg-white" loading="lazy"></iframe>
+	</div>
+</section>
+
+{% include "admin/footer.twig" %}

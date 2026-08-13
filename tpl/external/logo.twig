@@ -1,0 +1,12 @@
+{% set hs_logo_href = logo_href|default(_link('index', false, 0)) %}
+{% set hs_logo_label = logo_label|default(_cfg.Sys_SiteName|default('H-Script')) %}
+{% set hs_logo_link_class = logo_link_class|default('group flex items-center gap-3 text-2xl font-bold tracking-tight text-brand dark:text-white') %}
+{% set hs_logo_mark_class = logo_mark_class|default('flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border-[2.5px] border-brand bg-transparent text-brand transition-transform group-hover:scale-105 dark:border-white dark:text-white') %}
+{% set hs_logo_icon_class = logo_icon_class|default('h-5 w-5') %}
+
+<a href="{{ hs_logo_href }}" class="{{ hs_logo_link_class }}" aria-label="{{ hs_logo_label }}">
+	<span class="{{ hs_logo_mark_class }}">
+		<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="{{ hs_logo_icon_class }}" aria-hidden="true"><path d="M6 3v18"/><path d="M18 3v18"/><path d="M6 12h12"/></svg>
+	</span>
+	<span class="-ml-1">Script</span>
+</a>

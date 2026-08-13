@@ -1,0 +1,8 @@
+
+{% include "admin/header.twig" with {"title": 'Публикация'} %}
+
+<div class="card hs-news-card">
+{% include "edit.twig" with {"title": 'Публикация', "title_new": 'Новая публикация', "fields": {'nID': [], 'nTS': {0: 'DT', 1: 'Дата публикации!!', 2: {'date_empty': 'укажите дату'}, 'default': today}, 'nTopic': {0: 'L', 1: 'Тема!!', 2: {'topic_empty': 'укажите тему'}, "size": 50}, 'nAttn': ['CC', 'Важная'], 'nAnnounce': {0: 'W', 1: 'Краткий анонс!!', 2: {'ann_empty': 'укажите анонс'}, 'size': 5}, 'nText': {0: 'Y', 1: 'Полный текст!!', 2: {'text_empty': 'укажите текст новости'}, 'size': 15}, 'nDBegin': ['D', 'Отображать с'], 'nDEnd': ['D', 'По']}, "values": el} %}
+</div>
+
+{% include "admin/footer.twig" %}

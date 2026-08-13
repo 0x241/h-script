@@ -1,0 +1,16 @@
+
+{% include "admin/header.twig" with {"title": 'Настройки'} %}
+
+{% include "edit.twig" with {"values": cfg, "fields": {
+	'ShowCount': {0: 'I', 1: 'Количество новостей на странице', 'comment': 'Определяет размер одной страницы в разделе «Новости».'},
+	'InBlock': {0: 'I', 1: 'Количество новостей на главной', 'comment': 'Сколько последних опубликованных новостей показывать в блоке главной страницы. 0 — скрыть блок.'},
+	0: 'Социальные сети',
+	'SocialTelegram': {0: 'L', 1: 'Telegram', 'hint': 'https://t.me/hs_script', 'comment': 'Оставьте пустым, чтобы скрыть иконку у новостей.'},
+	'SocialX': {0: 'L', 1: 'X (Twitter)', 'hint': 'https://x.com/hs_script'},
+	'SocialVK': {0: 'L', 1: 'VK', 'hint': 'https://vk.com/hs_script'},
+	'SocialFacebook': {0: 'L', 1: 'Facebook', 'hint': 'https://facebook.com/hs_script'},
+	'SocialInstagram': {0: 'L', 1: 'Instagram', 'hint': 'https://instagram.com/hs_script'},
+	'SocialYouTube': {0: 'L', 1: 'YouTube', 'hint': 'https://youtube.com/@hs_script'}
+}} %}
+
+{% include "admin/footer.twig" %}

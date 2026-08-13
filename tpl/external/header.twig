@@ -1,0 +1,114 @@
+{% set current_theme = 'light' %}
+{% if isset(_COOKIE.theme) and _COOKIE.theme == 'dark' %}
+	{% set current_theme = 'dark' %}
+{% elseif user.uTheme == 'dark' %}
+	{% set current_theme = 'dark' %}
+{% endif %}
+{% set theme_next = 'dark' %}
+{% if current_theme == 'dark' %}
+	{% set theme_next = 'light' %}
+{% endif %}
+{% set theme_lang = 'ru' %}
+{% if current_lang %}
+	{% set theme_lang = current_lang %}
+{% endif %}
+{% set theme_toggle_url = _link('system', false, 0) ~ '?lang=' ~ theme_lang ~ '&theme=' ~ theme_next ~ '&url=' ~ (fullURL()|url_encode) %}
+<!doctype html>
+<html lang="{% if current_lang %}{{ current_lang }}{% else %}ru{% endif %}" class="{{ current_theme }}" data-theme="{{ current_theme }}">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>{% if title %}{{ title }} | {% endif %}{{ _cfg.Sys_SiteName }}</title>
+		<base href="{{ root_url }}">
+		<link rel="icon" type="image/svg+xml" href="favicon.svg">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+			<link rel="stylesheet" type="text/css" href="static/css/app.css?v=tailwind-20260813-ui-15">
+		{% if include_ckeditor_content|default(false) %}<link rel="stylesheet" type="text/css" href="static/lib/ckeditor5/48.2.0/ckeditor5/ckeditor5-content.css">{% endif %}
+		<script src="static/js/htmx.min.js"></script>
+		<script src="static/js/app.js?v=20260812-2" defer></script>
+	</head>
+	<body class="relative min-h-screen flex flex-col overflow-x-hidden bg-bgLight text-brand antialiased transition-colors duration-300 dark:bg-[#0A0A0A] dark:text-gray-100 {% if body_class %}{{ body_class }}{% endif %}">
+	<a class="skip-link" href="#content">{{ _t({"key": 'site.skip_content', "default": 'Перейти к содержимому'}) }}</a>
+	{% if not public_active %}
+		{% set public_active = tpl_module %}
+	{% endif %}
+	{% set public_demo_link = _link('account/login', false, 0) %}
+	{% if user.uID %}
+		{% set public_demo_link = _link('cabinet', false, 0) %}
+	{% endif %}
+	{% set lang_str = "" %}
+	{% if is_array(_cfg.UI__Langs) %}
+		{% set lang_str = "\n"|implode(_cfg.UI__Langs) %}
+	{% else %}
+		{% set lang_str = _cfg.UI__Langs %}
+	{% endif %}
+	{% set hs_clean_langs = "\n"|explode(lang_str) %}
+
+	<nav class="fixed w-full top-0 z-50 border-b border-gray-200/50 bg-bgLight/70 backdrop-blur-[20px] transition-colors dark:border-white/[0.05] dark:bg-[#0A0A0A]/70">
+		<div class="max-w-7xl mx-auto px-6 h-[88px] flex items-center justify-between">
+			<div class="flex items-center gap-10">
+				{% include "external/logo.twig" %}
+				<div class="hidden lg:flex gap-8 text-[15px] font-semibold text-brand dark:text-gray-300">
+					<a href="{{ _link('index', false, 0) }}" class="transition-colors hover:text-blue-500">{{ _t({"key": 'nav.main', "default": 'Главная'}) }}</a>
+					<a href="{{ _link('news', false, 0) }}" class="transition-colors hover:text-blue-500">{{ _t({"key": 'nav.news', "default": 'Новости'}) }}</a>
+					<a href="{{ _link('faq', false, 0) }}" class="transition-colors hover:text-blue-500">{{ _t({"key": 'nav.faq', "default": 'FAQ'}) }}</a>
+					<a href="{{ _link('review', false, 0) }}" class="transition-colors hover:text-blue-500">{{ _t({"key": 'nav.reviews', "default": 'Отзывы'}) }}</a>
+					<a href="{{ _link('udp/rules', false, 0) }}" class="transition-colors hover:text-blue-500">{{ _t({"key": 'nav.rules', "default": 'Правила'}) }}</a>
+				</div>
+			</div>
+			<div class="flex items-center gap-2 sm:gap-4">
+				<details class="relative" hx-boost="false">
+					<summary class="flex h-10 cursor-pointer list-none items-center justify-center gap-1.5 rounded-full border border-black/5 bg-black/[0.03] px-3 text-sm font-bold tracking-wide text-brand transition-all duration-200 hover:bg-black/[0.06] dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:hover:bg-white/10">
+						<i class="fa-solid fa-globe text-gray-400 dark:text-gray-300" aria-hidden="true"></i>
+						{% if current_lang %}{{ current_lang|upper }}{% else %}RU{% endif %}
+					</summary>
+					<div class="absolute right-0 top-full z-50 mt-2 w-32 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl dark:border-gray-800 dark:bg-[#1A1A1A]">
+						{% for lng in hs_clean_langs %}
+							{% set lng_clean = lng|trim %}
+							{% if lng_clean %}
+								<a href="{% if tpl_module == 'system' %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}{% else %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}&url={{ _link(tpl_module, false, 0) }}{% endif %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-brand transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-black{% if current_lang == lng_clean %} bg-gray-50/50 dark:bg-black/30{% endif %}">
+									<span class="{% if current_lang == lng_clean %}text-blue-500{% else %}text-gray-400{% endif %}">{{ lng_clean|upper }}</span>
+									{{ lng_clean|upper }}
+								</a>
+							{% endif %}
+						{% endfor %}
+					</div>
+				</details>
+				<a href="{{ theme_toggle_url }}" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
+					<i class="fa-solid fa-moon block dark:!hidden text-lg" aria-hidden="true"></i>
+					<i class="fa-solid fa-sun !hidden dark:!block text-lg text-yellow-400" aria-hidden="true"></i>
+				</a>
+				<input id="public-menu-toggle" class="peer sr-only" type="checkbox">
+				<label for="public-menu-toggle" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-transparent text-xl text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5 lg:hidden" title="{{ _t({"key": 'nav.menu', "default": 'Меню'}) }}" aria-label="{{ _t({"key": 'nav.menu', "default": 'Меню'}) }}">
+					<i class="fa-solid fa-bars" aria-hidden="true"></i>
+				</label>
+				<div class="w-[1px] h-6 bg-gray-200 dark:bg-gray-800 mx-1 hidden sm:block"></div>
+				<a href="{{ public_demo_link }}" class="hidden rounded-full bg-brand px-7 py-3 text-[15px] font-bold text-white shadow-sm transition-all duration-[250ms] hover:-translate-y-0.5 hover:bg-[#2D2D2D] hover:shadow-[0_10px_20px_-5px_rgba(26,26,26,0.3)] dark:bg-white dark:text-brand dark:hover:bg-gray-100 dark:hover:shadow-[0_10px_20px_-5px_rgba(255,255,255,0.1)] sm:block">{{ _t({"key": 'home.action.demo', "default": 'Демо'}) }}</a>
+				<div class="fixed inset-0 z-[60] flex h-dvh min-h-dvh w-screen translate-x-full flex-col overflow-y-auto overscroll-contain bg-white transition-transform duration-300 peer-checked:translate-x-0 dark:bg-[#0A0A0A] lg:hidden">
+					<div class="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-[#0A0A0A]">
+						{% include "external/logo.twig" %}
+						<label for="public-menu-toggle" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-gray-50 text-2xl text-brand dark:bg-[#1A1A1A] dark:text-white" aria-label="{{ _t({"key": 'nav.close', "default": 'Закрыть меню'}) }}">
+							<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+						</label>
+					</div>
+					<div class="flex flex-1 flex-col gap-6 p-6 text-xl font-bold text-brand dark:text-white">
+						<a href="{{ _link('index', false, 0) }}" class="hover:text-blue-500">{{ _t({"key": 'nav.main', "default": 'Главная'}) }}</a>
+						<a href="{{ _link('news', false, 0) }}" class="hover:text-blue-500">{{ _t({"key": 'nav.news', "default": 'Новости'}) }}</a>
+						<a href="{{ _link('faq', false, 0) }}" class="hover:text-blue-500">{{ _t({"key": 'nav.faq', "default": 'FAQ'}) }}</a>
+						<a href="{{ _link('review', false, 0) }}" class="hover:text-blue-500">{{ _t({"key": 'nav.reviews', "default": 'Отзывы'}) }}</a>
+						<a href="{{ _link('udp/rules', false, 0) }}" class="hover:text-blue-500">{{ _t({"key": 'nav.rules', "default": 'Правила'}) }}</a>
+					</div>
+					<div class="border-t border-gray-100 p-6 dark:border-gray-800">
+						<a href="{{ public_demo_link }}" class="block w-full rounded-full bg-brand py-4 text-center text-lg font-bold text-white transition-all duration-[250ms] hover:-translate-y-0.5 hover:bg-[#2D2D2D] dark:bg-white dark:text-brand dark:hover:bg-gray-100">{{ _t({"key": 'nav.login_demo', "default": 'Войти / Демо'}) }}</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</nav>
+
+	{% if tpl_info %}
+		{% include "external/info.twig" with {"_info": tpl_info} %}
+	{% endif %}

@@ -1,0 +1,13 @@
+
+<td class="nowrap">
+	<small>{{ l.tLTS }}</small>
+</td>
+<td>
+	<a href="{{ _link('tickets/ticket', false, 0) }}?id={{ l.tID }}">{{ l.tTopic }}</a>
+</td>
+<td>
+	{{ _tstates[l.tState] }}
+</td>
+<td>
+	{{ l.cnt }}
+</td>

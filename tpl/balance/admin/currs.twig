@@ -1,0 +1,15 @@
+
+{% set currs_title_text = _t({"key": 'currs.title', "default": 'Платежные системы'}) %}
+{% include "admin/header.twig" with {"title": currs_title_text} %}
+
+<div class="min-w-0 max-w-full overflow-hidden">
+{% include "list.twig" with {"title": currs_title_text, "url": '*', "fields": {'cID': [_t({"key": 'common.id', "default": 'ID'})], 'cCID': [_t({"key": 'currs.code', "default": 'Код'})], 'cName': [_t({"key": 'currs.name', "default": 'Наименование'})], 'cCurr': [_t({"key": 'currs.curr', "default": 'Валюта'})], 'cBal': [_t({"key": 'currs.bal', "default": 'Баланс'})], 'cAPI': ['API'], 'cDisable': ['<small>'|cat(_t({"key": 'currs.disabled', "default": 'Откл.'}))|cat('</small>')], 'cCASHIN': ['<small>'|cat(_t({"key": 'currs.cashin', "default": 'Пополн.'}))|cat('</small>')], 'cCASHOUT': ['<small>'|cat(_t({"key": 'currs.cashout', "default": 'Вывод'}))|cat('</small>')], 'cEX': ['<small>'|cat(_t({"key": 'currs.ex', "default": 'Обмен'}))|cat('</small>')], 'cTR': ['<small>'|cat(_t({"key": 'currs.tr', "default": 'Перевод'}))|cat('</small>')], 'cBUY': ['<small>'|cat(_t({"key": 'currs.buy', "default": 'Покупка'}))|cat('</small>')], 'cSELL': ['<small>'|cat(_t({"key": 'currs.sell', "default": 'Продажа'}))|cat('</small>')], 'cBUY2': ['<small>'|cat(_t({"key": 'currs.buy2', "default": 'Услуга'}))|cat('</small>')], 'cSELL2': ['<small>'|cat(_t({"key": 'currs.sell2', "default": 'Оказ.услуги'}))|cat('</small>')], 'cGIVE': ['<small>'|cat(_t({"key": 'currs.give', "default": 'Вклад'}))|cat('</small>')], 'cTAKE': ['<small>'|cat(_t({"key": 'currs.take', "default": 'Снятие'}))|cat('</small>')], 'cHidden': ['<small>'|cat(_t({"key": 'currs.hidden', "default": 'Скрыта'}))|cat('</small>')]}, "values": list, "row": '*', "btns": {'del': _t({"key": 'common.delete', "default": 'Удалить'})}} %}
+</div>
+
+<div class="mt-6 flex justify-center">
+	<a href="{{ _link('balance/admin/curr', false, 0) }}?add" class="inline-flex min-w-48 items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+		<i class="fa-solid fa-circle-plus" aria-hidden="true"></i><span>{{ _t({"key": 'common.add', "default": 'Добавить'}) }}</span>
+	</a>
+</div>
+
+{% include "admin/footer.twig" %}

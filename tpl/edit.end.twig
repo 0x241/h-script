@@ -1,0 +1,86 @@
+
+{#
+	captcha: show captcha mode = 0..2
+	errors: errors_array
+	btn_text: ' ' to hide
+	btns: [name => 'button caption']
+	hide_cancel:
+#}
+
+	{% if not isset(form) %}{% set form = '' %}{% endif %}
+	{% if not isset(edit_form_name) %}{% set edit_form_name = getFormName(form) %}{% endif %}
+		{% if not isset(edit_descr_star) %}{% set edit_descr_star = '<span class="ml-1 text-red-500" aria-hidden="true">*</span>' %}{% endif %}
+	{% if not isset(captcha) %}{% set captcha = 0 %}{% endif %}
+	{% if not isset(errors) %}{% set errors = [] %}{% endif %}
+	{% if not isset(btn_text) %}{% set btn_text = '' %}{% endif %}
+	{% if not isset(btns) %}{% set btns = null %}{% endif %}
+	{% if not isset(form_layout) %}{% set form_layout = '' %}{% endif %}
+	{% if not isset(edit_is_new) %}{% set edit_is_new = true %}{% endif %}
+	{% if not isset(tpl_module) %}{% set tpl_module = '' %}{% endif %}
+	{% if not isset(edit_is_admin_context) %}{% set edit_is_admin_context = (tpl_module == 'admin') or (strpos(tpl_module, '/admin') != false) or (tpl_module == 'captcha/setup') %}{% endif %}
+	{% if not isset(edit_is_settings) %}{% set edit_is_settings = edit_is_admin_context and (strpos(tpl_module, 'setup') != false) %}{% endif %}
+
+								{#** CERT & CAPTCHA **#}
+	{{ _getFormSecurity({"form": edit_form_name}) }}
+	{% set form_captcha_html = _getFormCaptcha({"form": edit_form_name, "captcha": captcha}) %}
+	{% if form_captcha_html %}
+		{% include "captcha.twig" with {"form": edit_form_name, "star": edit_descr_star, "layout": form_layout, "__Capt": form_captcha_html} %}
+	{% endif %}
+								{#** LOST ERRORS **#}
+	{% if errors %}
+		{% set form_error_text = formErrorText(edit_form_name, errors, true) %}
+		{% if form_error_text %}
+			<div class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100{% if edit_is_admin_context %} mx-5 mb-5{% endif %}">
+				<i class="fa-solid fa-triangle-exclamation mt-0.5" aria-hidden="true"></i>
+				<span>{{ form_error_text }}</span>
+			</div>
+		{% endif %}
+	{% endif %}
+	{% if isset(tpl_errors) and isset(tpl_errors[edit_form_name]) %}
+		{% set lost_err = formErrorText(edit_form_name) %}
+		{% if lost_err %}
+			<div class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100{% if edit_is_admin_context %} mx-5 mb-5{% endif %}">
+				<i class="fa-solid fa-triangle-exclamation mt-0.5" aria-hidden="true"></i>
+				<span>{{ lost_err }}</span>
+			</div>
+		{% endif %}
+	{% endif %}
+								{#** BUTTONS **#}
+	{% if btn_text != ' ' or is_array(btns) %}
+		{% if edit_is_new %}
+			<div class="flex flex-wrap items-center justify-center gap-3 p-5{% if edit_is_settings %} rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]{% elseif edit_is_admin_context %} border-t border-gray-100 bg-gray-50/60 dark:border-gray-800 dark:bg-[#1A1A1A]{% else %} rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]{% endif %}{% if edit_is_filter %} md:col-span-2 xl:col-span-3{% endif %}">
+				{% if btn_text != ' ' %}
+				<button name="{{ edit_form_name }}_btn" value="{% if btn_text %}{{ btn_text }}{% else %}{{ _t({"key": 'form.create'}) }}{% endif %}" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+					{% include "icon.twig" with {"module": tpl_module} %}
+					<span>{% if btn_text %}{{ btn_text }}{% else %}{{ _t({"key": 'form.create'}) }}{% endif %}</span>
+				</button>
+				{% endif %}
+				{% if is_array(btns) %}
+					{% for f, v in btns %}
+						<button name="{{ edit_form_name }}_btn{{ f }}" value="{{ v }}" class="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-extrabold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 {% if f == 'del' or f == 'close' %}border border-red-200 bg-white text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:bg-[#151515] dark:hover:bg-red-500/10{% else %}bg-brand text-white shadow-lg hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100{% endif %}" type="submit">
+							<span>{{ v }}</span>
+						</button>
+					{% endfor %}
+				{% endif %}
+			</div>
+		{% else %}
+			<div class="flex flex-wrap items-center justify-center gap-3 p-5{% if edit_is_settings %} rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]{% elseif edit_is_admin_context %} border-t border-gray-100 bg-gray-50/60 dark:border-gray-800 dark:bg-[#1A1A1A]{% else %} rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]{% endif %}{% if edit_is_filter %} md:col-span-2 xl:col-span-3{% endif %}">
+					{% if btn_text != ' ' %}
+					<button name="{{ edit_form_name }}_btn" value="{% if btn_text %}{{ btn_text }}{% else %}{{ _t({"key": 'form.save'}) }}{% endif %}" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+						{% include "icon.twig" with {"module": tpl_module} %}
+						<span>{% if btn_text %}{{ btn_text }}{% else %}{{ _t({"key": 'form.save'}) }}{% endif %}</span>
+					</button>
+					{% endif %}
+					{% if is_array(btns) %}
+						{% for f, v in btns %}
+							<button name="{{ edit_form_name }}_btn{{ f }}" value="{{ v }}" class="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-extrabold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 {% if f == 'del' or f == 'close' %}border border-red-200 bg-white text-red-600 hover:bg-red-50 dark:border-red-500/30 dark:bg-[#151515] dark:hover:bg-red-500/10{% else %}bg-brand text-white shadow-lg hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100{% endif %}" type="submit">
+								<span>{{ v }}</span>
+							</button>
+						{% endfor %}
+					{% endif %}
+			</div>
+		{% endif %}
+	{% endif %}
+	{% if edit_is_admin_context %}</div>{% endif %}
+</div>
+</form>

@@ -1,0 +1,1 @@
+&copy; {% if isset(tpl_time) %}{{ tpl_time|date_format("%Y") }}{% else %}2026{% endif %} {{ _t({"key": 'site.product_copyright', "version": app_version, "license": app_license, "default": 'H-Script версии {{version}}. Открытая лицензия {{license}}.'}) }}

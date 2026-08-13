@@ -1,0 +1,14 @@
+
+{% set error_text = '' %}
+{% set error_class = '' %}
+{% if errs and isset(tpl_errors) and isset(tpl_errors[form]) and is_array(tpl_errors[form]) and (count(tpl_errors[form]) > 0) %}
+	{% for i, e in errs %}
+		{% if in_array(i, tpl_errors[form]) %}
+			{% set error_text = ((error_text) ~ (e) ~ "<br>") %}
+			{% set error_class = 'error' %}
+			{% set tpl_errors = array_set_path(tpl_errors|default([]), [form, array_search(i,tpl_errors[form])], null) %}
+		{% endif %}
+	{% endfor %}
+	{% set error_text = ("<span class=\"err\"><i class=\"fa-solid fa-triangle-exclamation\" aria-hidden=\"true\"></i> " ~ (error_text) ~ "</span>") %}
+{% endif %}
+

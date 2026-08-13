@@ -1,0 +1,111 @@
+
+{% include "header.twig" with {"title": 'Последние выплаты'} %}
+
+<div class="hs-page-title hs-page-title--flex">
+	<div>
+		<span class="hs-page-title__eyebrow"><i class="fa-solid fa-arrow-right-from-bracket" style="margin-right: 6px;"></i> Финансовый поток</span>
+		<h1>Последние выплаты</h1>
+	</div>
+</div>
+
+<style type="text/css">
+	.hs-stat-card {
+		padding: 32px;
+		background: var(--color-surface);
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--color-border);
+		box-shadow: var(--shadow-card);
+		max-width: 950px;
+		margin: 24px auto 0;
+	}
+	.hs-stat-card .card-head {
+		margin-bottom: 24px;
+		border-bottom: 1px solid var(--color-border);
+		padding-bottom: 16px;
+	}
+	.hs-stat-table {
+		width: 100%;
+		border-collapse: collapse;
+	}
+	.hs-stat-table th {
+		padding: 16px 20px;
+		background: var(--color-surface-muted);
+		border-radius: var(--radius-md);
+		border: 1px solid var(--color-border);
+		font-size: 1.05-rem;
+		font-weight: 800;
+		color: var(--color-primary-ink);
+		text-align: left;
+	}
+	.hs-stat-table td {
+		padding: 18px 20px;
+		border-bottom: 1px solid var(--color-border);
+		font-size: 1rem;
+		color: var(--color-text-soft);
+	}
+	.hs-stat-table tr:last-child td {
+		border-bottom: none;
+	}
+	.hs-user-cell {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		font-weight: 700;
+		color: var(--color-primary-ink);
+	}
+	.hs-stat-val {
+		font-family: var(--font-mono);
+		font-size: 1.15-rem;
+		font-weight: 800;
+		color: var(--color-cyan);
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.hs-batch-badge {
+		font-family: var(--font-mono);
+		font-size: 0.88-rem;
+		background: var(--color-surface-muted);
+		border: 1px solid var(--color-border);
+		padding: 6px 12px;
+		border-radius: var(--radius-sm);
+		color: var(--color-text-muted);
+		display: inline-block;
+	}
+</style>
+
+<div class="hs-stat-card">
+	<div class="card-head">
+		<h3 style="margin:0; font-size: 1.3rem; color: var(--color-primary-ink);"><i class="fa-solid fa-money-bill-transfer" style="color: var(--color-cyan); margin-right: 8px;"></i> Лента выплат</h3>
+		<p style="margin: 4px 0 0; font-size: 0.88-rem; color: var(--color-text-muted);">Сводка последних обработанных заявок на вывод средств из системы</p>
+	</div>
+	{% if list %}
+		<table class="hs-stat-table">
+			<tr>
+				<th>Пользователь</th>
+				<th style="text-align: right;">Сумма</th>
+				<th>Транзакция / Batch</th>
+			</tr>
+			{% for i, r in list %}
+				{% if r.oSum > 0 %}
+					<tr>
+						<td>
+							<div class="hs-user-cell">
+								{% include "_usericon.twig" with {"user": r} %}
+								<span>{{ r.uLogin }}</span>
+							</div>
+						</td>
+						<td align="right">
+							<span class="hs-stat-val"><i class="fa-solid fa-coins" style="color: var(--color-accent); font-size: 1rem;"></i> {{ _z(r.oSum, r.ocID) }}</span>
+						</td>
+						<td><span class="hs-batch-badge">{{ r.oBatch|default('&mdash;') }}</span></td>
+					</tr>
+				{% endif %}
+			{% endfor %}
+		</table>
+	{% else %}
+		<p style="color: var(--color-text-muted); text-align: center; margin: 24px 0;">Данные статистики временно отсутствуют.</p>
+	{% endif %}
+</div>
+
+{% include "footer.twig" %}
