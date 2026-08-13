@@ -737,17 +737,21 @@ GitHub `main` mirrors it one way and must resolve to the same commit SHA.
    history into the public branch.
 4. Audit the complete `release/public` tree and reachable history for secrets,
    local configuration, internal agent files, and unreleased documentation.
-5. Create the protected immutable release tag from `release/public` and verify
-   that both references point to the same commit.
-6. Run the manual public-image promotion job. It verifies the staging signature,
-   copies the same digest to Docker Hub and GHCR, signs the public references,
-   and retains the compiled shared-hosting archive.
-7. Run the manual `publish:github-source` job from the same staging pipeline. It
+5. Run the manual `publish:github-source` job from the same staging pipeline. It
    fetches GitLab `release/public`, requires its tree to match the tested staging
    tree, pushes only that clean-history commit to GitHub `main`, and verifies the
-   remote SHA. Push release tags to GitHub after creating them.
-8. Run the manual GitHub release job to publish the shared-hosting archive,
-   checksum file, and Sigstore bundle next to the mirrored source tag.
+   remote SHA.
+6. Create the protected immutable release tag from `release/public` and verify
+   that both references point to the same commit. The tag starts a dedicated
+   release pipeline.
+7. Run the manual public-image promotion job in the tag pipeline. It verifies
+   the staging signature, copies the same digest to Docker Hub and GHCR, signs
+   the public references, and retains the compiled shared-hosting archive.
+8. Run the manual GitHub release job. It requires GitHub `main` to match the
+   tagged commit, creates the same immutable lightweight tag when it is absent,
+   and publishes the shared-hosting archive, checksum file, and Sigstore bundle.
+   An existing GitHub tag is accepted only when it already points to the exact
+   same commit; the pipeline never overwrites tags.
 
 `release/public` is permanent and is updated for every release; do not create a
 new temporary transfer branch each time. Only release maintainers should be able
@@ -762,7 +766,7 @@ git remote add github git@github.com:0x241/h-script.git
 git fetch origin --tags
 git fetch github --tags
 git push github origin/release/public:main
-git push github --tags
+git push github origin/release/public:refs/tags/v1.0.0
 ```
 
 Do not merge GitHub changes back into GitLab. GitHub is the public release

@@ -89,6 +89,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added a compare-and-swap guard for the one-time replacement of the unrelated
   legacy GitHub `main` history; all later source publications remain
   fast-forward-only.
+- Added immutable release-tag synchronization from GitLab to GitHub before the
+  shared-hosting GitHub Release is created.
 
 ### Changed
 
