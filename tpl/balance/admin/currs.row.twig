@@ -1,0 +1,60 @@
+
+<td>
+	{{ l.cID }}
+</td>
+<td class="nowrap">
+	{{ l.cCID }} {{ l.cCurrID }}
+</td>
+<td>
+	<a href="{{ _link('balance/admin/curr', false, 0) }}?id={{ l.cID }}">{{ l.cName }}</a>
+</td>
+<td>
+	{{ l.cCurr }}
+</td>
+<td>
+{% if _cfg.Bal_Update %}
+	{{ _z(l.cBal, l.cID) }}<br>
+	<small>{{ timeToStr(stampToTime(l.cBalTS)) }}</small>
+{% endif %}
+</td>
+<td>
+	{% if l.PAPI.apipass %}
+		<a href="{{ _link('balance/admin/curr', false, 0) }}?id={{ l.cID }}&testapi">{{ _t({"key": 'currs.test', "default": 'тест'}) }}</a>
+	{% endif %}
+</td>
+<td>
+	{% if l.cDisabled %}<b style="color: red">X</b>{% endif %}
+</td>
+<td>
+	{% if l.cCASHINMode > 0 %}*{% endif %}
+</td>
+<td>
+	{% if l.cCASHOUTMode > 0 %}*{% endif %}
+</td>
+<td align="right">
+	{% if l.cEXMode > 0 %}<small>{{ l.cEXOut }}/{{ l.cEXIn }}</small>{% endif %}
+</td>
+<td>
+	{% if l.cTRMode > 0 %}*{% endif %}
+</td>
+<td>
+	{% if l.cBUYMode > 0 %}*{% endif %}
+</td>
+<td>
+	{% if l.cSELLMode > 0 %}*{% endif %}
+</td>
+<td>
+	{% if l.cBUY2Mode > 0 %}*{% endif %}
+</td>
+<td>
+	{% if l.cSELL2Mode > 0 %}*{% endif %}
+</td>
+<td>
+	{% if l.cGIVEMode > 0 %}*{% endif %}
+</td>
+<td>
+	{% if l.cTAKEMode > 0 %}*{% endif %}
+</td>
+<td>
+	{% if l.cHidden %}{{ _t({"key": 'common.yes', "default": 'Да'}) }}{% endif %}
+</td>

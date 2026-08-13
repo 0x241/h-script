@@ -1,0 +1,43 @@
+
+
+{% set s1 = valueIf(el.cCID == 'BTCE', 'BTC-E код', 'Batch-номер!!<<хеш операции/транзакции>>') %}
+{% set s2 = valueIf(el.cCID == 'BTCE', 'Введите код', 'укажите номер операции') %}
+{% set s3 = valueIf(el.cCID == 'BTCE', 'Код уже используется', 'номер используется') %}
+
+{% include "edit.twig" with {"fields": merge_arrays({'oID': [], 'oState': ['X', 'Статус', 0, ("<b>" ~ (op_statuses[el.oState]) ~ "</b>")], 'oCTS': ['X', 'Дата'], 'uLogin': {0: 'X', 1: 'Пользователь', 2: 0, 3: ("<a href=\"" ~ (_link('account/admin/user', false, 0)) ~ "?id=" ~ (el.uID) ~ "\">" ~ (el.uLogin) ~ "</a>"), 'skip': not from_admin}, 'Login2': {0: 'X', 1: valueIf(el.oOper == 'TR', 'Получатель', 'Отправитель'), 2: 0, 3: valueIf(from_admin, ("<a href=\"" ~ (_link('account/admin/user', false, 0)) ~ "?id=" ~ (el.oParams.uid2) ~ "\">" ~ (el.oParams.user) ~ "</a>"), el.oParams.user), 'skip': not el.oParams.uid2}, 'PSys': ['X', 'Платежная система', 0, valueIf(from_admin, ("<a href=\"" ~ (_link('balance/admin/curr', false, 0)) ~ "?id=" ~ (el.ocID) ~ "\">" ~ (el.cName) ~ "</a>"), el.cName)], 'PayTo': {0: 'X', 1: 'Реквизиты для оплаты', 2: 0, 3: _GET.payto, 'skip': not _GET.payto}, 'oSum': ['X', 'Сумма', 0, _z(valueIf(_GET.amount > 0, _GET.amount, el.oSum), el.ocID, 1)], 'oComis': {0: 'X', 1: 'Комиссия', 2: 0, 3: _z(el.oComis, el.ocID, 1), 'skip': (el.oComis == 0)}, 'Sum': {0: 'X', 1: op_sums[el.oOper], 2: 0, 3: _z(el.oSum - el.oComis, el.ocID, 1), 'skip': (el.oComis == 0)}, 'PSys2': {0: 'X', 1: valueIf(el.oOper == 'EX', 'На плат. систему', 'С плат. системы'), 2: 0, 3: el.oParams.psys, 'skip': not el.oParams.cid2}, 'Sum2': {0: 'X', 1: 'Сумма к получению', 2: 0, 3: _z(el.oParams.sum2, exValue(el.ocID, el.oParams.cid2), 1), 'skip': not el.oParams.sum2}, 'Acc': {0: 'X', 1: valueIf(el.oOper == 'CASHOUT', 'Счет получателя', 'Счет отправителя'), 2: 0, 3: el.oParams2.acc, 'skip': not in_array(el.oOper, ['CASHIN', 'CASHOUT']) or not el.oParams2.acc}, 'oBatch': {0: 'X', 1: 'Batch-номер', 'skip': not el.oBatch}, 'oMemo': {0: 'X', 1: 'Примечание', 'skip': not el.oMemo, 2: 0, 3: valueIf(not from_admin and isset(el.oMemo) and el.oMemo != '' and el.oMemo[0] == '~', 'Ошибка', el.oMemo)}, 'oTS': {0: 'X', 1: 'Изменено', 'skip': not el.oTS}, 'oNTS': {0: 'X', 1: 'Отработано', 'skip': not el.oNTS}, 'AFMM': {0: 'U', 1: 'balance/_oper.afm.twig', "skip": (el.oOper != 'CASHIN') or (el.oState > 1) or (_cfg.Bal_AFMMode == 0)}, 'AFMAccount': {0: 'T', 1: 'Ваш кошелек!!', 2: {'afmacc_wrong': 'неверное значение'}, "skip": (el.oOper != 'CASHIN') or (el.oState > 1) or not (bitwise_and(_cfg.Bal_AFMMode, 1))}, 'AFMBatch': {0: 'T', 1: s1, 2: {'afmbatch_wrong': 'неверное значение', 'data_batch_wrong': s2, 'batch_exists': s3}, "skip": (el.oOper != 'CASHIN') or (el.oState > 1) or not (bitwise_and(_cfg.Bal_AFMMode, 2))}}, afields), "values": el, "btn_text": bt, "btns": b} %}
+
+{% if afields %}
+
+	<br>
+	<p class="info">
+		Для данной платежной системы не прописаны <a href="{{ _link('balance/admin/curr', false, 0) }}?id={{ el.ocID }}">параметры API</a><br>
+		Вы можете выполнить эту операцию, указав параметры выше.<br>
+		Это безопасно, т.к. введенные данные нигде не сохраняются
+	</p>
+	
+{% endif %}
+
+{% if el.oOper == 'CASHIN' %}
+
+	{% if not isset(_GET.payto) %}
+		{% include "balance/_pform.twig" with {"btn_text": 'Оплатить через мерчант'} %}
+	{% endif %}
+
+	{% if _cfg.Bal_AFMMode == 0 %}
+
+		{% include "balance/_oper.afm.twig" %}
+
+	{% endif %}
+	
+	{% if isset(pvalues.acc) or (from_admin and (el.oState <= 2)) %}
+	
+		{% include "balance/_oper.data.twig" with {"oComis": 0} %}
+		
+	{% endif %}
+	
+{% elseif (el.oOper == 'CASHOUT') and (from_admin and (el.oState <= 2)) %}
+
+	{% include "balance/_oper.data.twig" with {"oComis": el.oComis} %}
+
+{% endif %}
+	

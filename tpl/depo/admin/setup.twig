@@ -1,0 +1,18 @@
+
+{% include "admin/header.twig" with {"title": 'Настройки'} %}
+
+{% if (_cfg.Depo_ChargeMode == 1) and not _cfg.Cron_Enabled %}
+
+	<div class="mb-6 flex items-start gap-4 rounded-[1.5rem] border border-blue-100 bg-blue-50 p-5 text-blue-900 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
+		<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500 text-white"><i class="fa-solid fa-circle-info" aria-hidden="true"></i></span>
+		<div>
+			<strong class="font-extrabold">Внимание</strong>
+			<p class="mt-1 text-sm">Для автоматических начислений <a href="{{ _link('cron/admin/setup', false, 0) }}" class="font-bold underline decoration-blue-300 underline-offset-2 hover:text-blue-600 dark:hover:text-white">Планировщик</a> должен быть <b>включен</b>.</p>
+		</div>
+	</div>
+	
+{% endif %}
+
+{% include "edit.twig" with {"values": cfg, "fields": {'OneFromGroup': ['C', 'Доступен только один <<любой>> план из группы'], 'AutoDepo': ['C', 'Автоматически делать вклад после пополнения'], 'Interval': ['I', 'Активировать вклады не чаще чем 1 раз в N минут<br><<0 - нет ограничения>>'], 'LastTime': {0: 'X', 1: 'Дата активации последнего вклада', 2: 0, 3: depolasttime, 'comment': valueIf(depolast < 0, ((("через {-")) ~ (depolast) ~ "} мин."), ((depolast) ~ " мин. назад")), 'skip': (abs(depolast) >= 60)}, 'ChargeMode': ['S', 'Начисление', 0, {0: 'отключено', 1: 'каждому в свое время (автомат)', 2: 'всем в одно время (вручную)'}], 10: 'Ручное начисление', 'ManualPeriod': ['S', 'Начислять один раз в', 0, {0: 'день', 1: 'неделю', 2: 'месяц'}], 'ManualDay': {0: 'I', 1: 'Номер дня недели <<1..7>> или месяца <<1..31>>', 'comment': '0 = последний день'}, 20: 'Калькулятор', '_Compnd': {0: 'A', 1: 'Реинвестирование<br><<одна строка - одно значение>>', 'size': 5}, 30: 'Статистика', 'ShowStat': ['C', 'Показывать статистику'], 'S0': {0: 'DT', 1: 'Метка даты и времени старта <<ГГГГММДДччммсс>>', 'comment': 20130924130000}, 'S1': ['I', 'Всего участников'], 'S2': ['$', 'Принято средств'], 'S3': ['$', 'Выплачено средств'], 'S4': ['$', 'в т.ч. рефских'], 'S5': ['$', 'Реинвестировано средств'], 'S6': ['I', 'Ожидает вкладов'], 'S7': ['I', 'Окончено вкладов'], 'S8': ['$', 'Новый вклад <<сумма>>'], 'S9': ['T', 'Новый вклад <<пользователь>>'], 'S11': ['$', 'Последняя выплата <<сумма>>'], 'S12': ['T', 'Последняя выплата <<пользователь>>']}} %}
+	
+{% include "admin/footer.twig" %}

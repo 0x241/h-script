@@ -1,0 +1,96 @@
+{#
+	Admin premium form body. It keeps the legacy field contract from edit.twig:
+	fields, values, form, form_layout, table_class, edit_form_name.
+#}
+
+{% if not isset(fields) %}{% set fields = [] %}{% endif %}
+{% if not isset(values) %}{% set values = [] %}{% endif %}
+{% if not isset(form) %}{% set form = '' %}{% endif %}
+{% if not isset(edit_form_name) %}{% set edit_form_name = getFormName(form) %}{% endif %}
+{% if not isset(edit_descr_rem) %}{% set edit_descr_rem = '<span class="descr_rem">(' %}{% endif %}
+{% if not isset(edit_descr_star) %}{% set edit_descr_star = '<span class="ml-1 text-red-500" aria-hidden="true">*</span>' %}{% endif %}
+{% if not isset(edit_is_filter) %}{% set edit_is_filter = false %}{% endif %}
+{% if not isset(edit_is_settings) %}{% set edit_is_settings = false %}{% endif %}
+{% set edit_is_settings_grid = form_layout == 'settings_grid' %}
+{% set edit_is_settings_sections = edit_is_settings and not edit_is_filter %}
+
+{% if edit_is_settings_sections %}
+	<div class="space-y-6">
+		{% for f, v in fields %}
+			{% if is_int(f) %}
+				{% if not loop.first %}
+						</div>
+					</section>
+				{% endif %}
+				{% set section_title = is_array(v) ? v[0] : v %}
+				{% set section_icon = is_array(v) and v.icon ? v.icon : 'fa-sliders' %}
+				{% set section_description = is_array(v) and v.description ? v.description : '' %}
+				<section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+					<header class="flex items-start gap-3 border-b border-gray-100 bg-gray-50/50 px-6 py-5 dark:border-gray-800 dark:bg-[#1A1A1A]">
+						<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
+							<i class="fa-solid {{ section_icon }}" aria-hidden="true"></i>
+						</span>
+						<div class="min-w-0">
+							<h3 class="text-lg font-extrabold text-brand dark:text-white">{{ section_title|raw }}</h3>
+							{% if section_description %}
+								<p class="mt-1 text-sm leading-relaxed text-gray-500 dark:text-gray-400">{{ section_description|raw }}</p>
+							{% endif %}
+						</div>
+					</header>
+					<div class="divide-y divide-gray-100 dark:divide-gray-800">
+			{% else %}
+				{% if loop.first %}
+					<section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+						<header class="flex items-start gap-3 border-b border-gray-100 bg-gray-50/50 px-6 py-5 dark:border-gray-800 dark:bg-[#1A1A1A]">
+							<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
+								<i class="fa-solid fa-sliders" aria-hidden="true"></i>
+							</span>
+							<div class="min-w-0">
+								<h3 class="text-lg font-extrabold text-brand dark:text-white">{{ _t({"key": "admin.settings.general", "default": "Основные параметры"}) }}</h3>
+							</div>
+						</header>
+						<div class="divide-y divide-gray-100 dark:divide-gray-800">
+				{% endif %}
+				{% if not (is_array(v) and isset(v.skip) and v.skip) %}
+					{% set vv = _arr_val(values, f) %}
+					{% if is_array(v) and isset(v[0]) and v[0] %}
+						{% if v[0] == 'U' %}
+							<div class="px-6 py-5{% if isset(v.row_class) and v.row_class %} {{ v.row_class }}{% endif %}">
+								{% include tpl_name(v[1]) %}
+							</div>
+						{% else %}
+							{% include "edit.field.twig" with {"form_layout": "settings_grid"} %}
+						{% endif %}
+					{% else %}
+						<input name="{{ f }}" id="{{ edit_form_name }}_{{ f }}" value="{% if is_array(v) %}{{ vv }}{% else %}{{ v }}{% endif %}" type="hidden">
+					{% endif %}
+				{% endif %}
+			{% endif %}
+			{% if loop.last %}
+					</div>
+				</section>
+			{% endif %}
+		{% endfor %}
+{% else %}
+	<div class="{% if edit_is_settings_grid %}divide-y divide-gray-100 dark:divide-gray-800{% else %}overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]{% if edit_is_filter %} grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-3{% endif %}{% endif %}">
+		{% for f, v in fields %}
+			{% if is_int(f) %}
+				<div class="{% if edit_is_settings_grid %}bg-gray-50/80 px-6 py-4 dark:bg-[#1A1A1A]{% else %}border-b border-gray-100 bg-gray-50/80 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]{% if edit_is_filter %} md:col-span-2 xl:col-span-3{% endif %}{% endif %}{% if is_array(v) and isset(v.row_class) %} {{ v.row_class }}{% endif %}">
+					<h3 class="{% if edit_is_settings_grid %}text-lg{% else %}text-base{% endif %} font-extrabold text-brand dark:text-white">{% if is_array(v) %}{{ v[0]|raw }}{% else %}{{ v|raw }}{% endif %}</h3>
+				</div>
+			{% elseif not (is_array(v) and isset(v.skip) and v.skip) %}
+				{% set vv = _arr_val(values, f) %}
+				{% if is_array(v) and isset(v[0]) and v[0] %}
+					{% if v[0] == 'U' %}
+						<div class="px-6 py-5{% if not edit_is_settings_grid %} border-b border-gray-100 last:border-b-0 dark:border-gray-800{% endif %}{% if edit_is_filter %} md:col-span-2 xl:col-span-3{% endif %}{% if isset(v.row_class) and v.row_class %} {{ v.row_class }}{% endif %}">
+							{% include tpl_name(v[1]) %}
+						</div>
+					{% else %}
+						{% include "edit.field.twig" %}
+					{% endif %}
+				{% else %}
+					<input name="{{ f }}" id="{{ edit_form_name }}_{{ f }}" value="{% if is_array(v) %}{{ vv }}{% else %}{{ v }}{% endif %}" type="hidden">
+				{% endif %}
+				{% endif %}
+			{% endfor %}
+{% endif %}

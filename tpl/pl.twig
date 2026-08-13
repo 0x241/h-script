@@ -1,0 +1,23 @@
+
+{% if isset(pl_params.Pages) and is_array(pl_params.Pages) and (count(pl_params.Pages) > 0) %}
+	<nav class="flex flex-col gap-3 border-t border-gray-100 py-5 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between" aria-label="{{ _t({"key": 'pagination.label', "default": 'Навигация по страницам'}) }}">
+		<small class="font-semibold text-gray-500">{{ _t({"key": 'pagination.page_of', "page": pl_params.Page, "count": pl_params.PagesCount}) }}</small>
+		<div class="flex flex-wrap gap-2">
+		{% for i, pn in pl_params.Pages %}
+			<a href="{{ _selfLink }}?page={{ pn[1] }}{{ linkparams }}" class="inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg px-3 py-2 text-sm font-bold transition-colors {% if pn[1] == pl_params.Page %}bg-brand text-white dark:bg-white dark:text-brand{% else %}border border-gray-200 bg-white text-gray-500 hover:border-gray-300 hover:text-brand dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400 dark:hover:text-white{% endif %}">
+				{% if pn[0] == '&lt;&lt;' %}
+					{{ _t({"key": 'pagination.first'}) }}
+				{% elseif pn[0] == '&lt;' %}
+					{{ _t({"key": 'pagination.back'}) }}
+				{% elseif pn[0] == '&gt;' %}
+					{{ _t({"key": 'pagination.forward'}) }}
+				{% elseif pn[0] == '&gt;&gt;' %}
+					{{ _t({"key": 'pagination.last'}) }}
+				{% else %}
+					{{ pn[0] }}
+				{% endif %}
+			</a>
+		{% endfor %}
+		</div>
+	</nav>
+{% endif %}

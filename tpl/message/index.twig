@@ -1,0 +1,86 @@
+{% include "header.twig" with {"title": _t({"key": 'messages.title', "default": 'Сообщения'})} %}
+
+<div class="mx-auto w-full max-w-6xl">
+	<div class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+		<div>
+			<div class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-gray-500">
+				<i class="fa-solid fa-inbox text-blue-500" aria-hidden="true"></i>
+				{{ _t({"key": 'messages.inbox.eyebrow', "default": 'Диалоги'}) }}
+			</div>
+			<h2 class="text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'messages.title', "default": 'Сообщения'}) }}</h2>
+			<p class="mt-2 max-w-2xl text-sm text-gray-500 dark:text-gray-400">{{ _t({"key": 'messages.inbox.description', "default": 'Входящие и отправленные сообщения с одной темой собраны в один диалог. Метка «Новое» показывается, пока в нём есть непрочитанные входящие сообщения.'}) }}</p>
+		</div>
+		<div class="flex flex-wrap gap-3">
+			{% if _cfg.Msg_Mode > 1 %}
+				<a href="{{ _link('message/show', false, 0) }}?new" class="hs-action hs-action--primary">
+					<i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+					{{ _t({"key": 'messages.compose', "default": 'Написать'}) }}
+				</a>
+			{% endif %}
+		</div>
+	</div>
+
+	{% if _cfg.Msg_Mode == 1 %}
+		<div class="mb-6 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+			<i class="fa-solid fa-circle-info shrink-0" aria-hidden="true"></i>
+			<p>Администратор включил режим только для чтения: отвечать и создавать сообщения нельзя. Для обращения используйте <a href="{{ _link('tickets/ticket', false, 0) }}?add" class="font-extrabold underline">новый тикет</a>.</p>
+		</div>
+	{% endif %}
+
+	{% if list %}
+		<div class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="overflow-x-auto">
+				<table class="w-full border-collapse whitespace-nowrap text-left">
+					<thead>
+						<tr class="bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-500 dark:bg-[#1A1A1A]">
+							<th class="p-5">ID</th>
+							<th class="p-5">{{ _t({"key": 'messages.col.date', "default": 'Дата'}) }}</th>
+							<th class="p-5">{{ _t({"key": 'messages.col.peer', "default": 'Собеседник'}) }}</th>
+							<th class="p-5">{{ _t({"key": 'messages.col.topic', "default": 'Тема'}) }}</th>
+							<th class="p-5 text-center">{{ _t({"key": 'messages.col.count', "default": 'Сообщений'}) }}</th>
+							<th class="p-5 text-right">{{ _t({"key": 'messages.col.status', "default": 'Статус'}) }}</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-100 text-sm dark:divide-gray-800">
+						{% for id, l in list %}
+							<tr class="transition-colors hover:bg-gray-50/60 dark:hover:bg-[#1A1A1A]/60 {% if l._Marked %}bg-blue-50/50 dark:bg-blue-900/10{% endif %}">
+								<td class="p-5 font-mono text-gray-400">#{{ l._RootMessageID }}</td>
+								<td class="p-5 font-mono text-xs text-gray-500">{{ l.mTS }}</td>
+								<td class="p-5 font-bold text-brand dark:text-white">{{ l._Peer|default('-') }}</td>
+								<td class="p-5">
+									<a href="{{ _link('message/show', false, 0) }}?id={{ l.bID }}" class="font-bold text-brand transition hover:text-blue-500 dark:text-white dark:hover:text-blue-400">{{ l.mTopic }}</a>
+								</td>
+								<td class="p-5 text-center"><span class="inline-flex min-w-8 justify-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ l._MessageCount }}</span></td>
+								<td class="p-5 text-right">
+									{% if l._Marked %}
+										<span class="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"><span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>{{ _t({"key": 'messages.status.new', "default": 'Новое'}) }}{% if l._UnreadCount > 1 %}: {{ l._UnreadCount }}{% endif %}</span>
+									{% else %}
+										<span class="inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-500 dark:bg-gray-800 dark:text-gray-300">{{ _t({"key": 'messages.status.read', "default": 'Прочитано'}) }}</span>
+									{% endif %}
+								</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% if pl_params.Pages %}
+				<div class="flex justify-end border-t border-gray-100 p-4 dark:border-gray-800">
+					<div class="flex flex-wrap gap-2">
+						{% for page_item in pl_params.Pages %}
+							<a href="{{ _selfLink }}?page={{ page_item[1] }}" class="flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-bold transition-colors {% if page_item[1] == pl_params.Page %}bg-brand text-white dark:bg-white dark:text-brand{% else %}bg-gray-50 text-gray-500 hover:bg-gray-100 dark:bg-[#1A1A1A] dark:text-gray-300 dark:hover:bg-[#202020]{% endif %}">{{ page_item[0] }}</a>
+						{% endfor %}
+					</div>
+				</div>
+			{% endif %}
+		</div>
+	{% else %}
+		<div class="rounded-[1.5rem] border border-gray-100 bg-white p-10 text-center shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 text-2xl text-gray-400 dark:bg-[#202020]">
+				<i class="fa-solid fa-inbox" aria-hidden="true"></i>
+			</div>
+			<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'messages.empty', "default": 'Сообщений нет'}) }}</h3>
+		</div>
+	{% endif %}
+</div>
+
+{% include "footer.twig" %}

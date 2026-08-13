@@ -1,0 +1,215 @@
+{% set nav_logout = _t({"key": 'nav.logout', "default": 'Выход'}) %}
+{% set nav_register = _t({"key": 'nav.register', "default": 'Регистрация'}) %}
+{% set nav_login = _t({"key": 'nav.login', "default": 'Вход'}) %}
+{% set nav_deposits = _t({"key": 'nav.deposits', "default": 'Мои депозиты'}) %}
+{% set nav_tickets = _t({"key": 'nav.tickets', "default": 'Поддержка'}) %}
+{% set is_admin_shell = is_admin_shell|default(false) %}
+{% set nav_link_base = 'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-colors' %}
+{% set nav_link_idle = ' text-textDim hover:bg-black/5 hover:text-brand dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white' %}
+{% set nav_link_active = ' bg-brand text-white shadow-sm dark:bg-white dark:text-brand' %}
+{% set nav_group_title = 'px-3 pb-2 pt-4 text-xs font-bold uppercase tracking-wider text-gray-400' %}
+{% set is_tickets_active = textLeft(tpl_module, 7) == 'tickets' %}
+{% set is_messages_active = textLeft(tpl_module, 7) == 'message' %}
+{% if not isset(admin_modules) %}{% set admin_modules = [] %}{% endif %}
+{% if not isset(admin_unpinned_modules) %}{% set admin_unpinned_modules = admin_modules %}{% endif %}
+
+<aside id="sidebar" class="fixed left-0 top-0 z-50 flex h-screen w-72 -translate-x-full flex-col border-r border-black/5 bg-white transition-transform duration-300 peer-checked:translate-x-0 dark:border-white/5 dark:bg-[#111111] lg:sticky lg:translate-x-0">
+	<div class="flex items-center justify-between p-6">
+		{% include "external/logo.twig" with {"logo_href": _link(is_admin_shell ? 'admin' : 'cabinet', false, 0)} %}
+		<label for="cms-sidebar-toggle" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-xl text-gray-500 transition-colors hover:bg-gray-100 dark:hover:bg-[#202020] lg:hidden" aria-label="{{ _t({"key": 'nav.close', "default": 'Закрыть меню'}) }}">
+			<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+		</label>
+	</div>
+
+	{% if user.uID %}
+		{% set sidebar_profile_url = _link('account', false, 0) %}
+		{% if is_admin_shell %}
+			{% set sidebar_profile_url = _link('account/admin/user', false, 0) ~ '?id=' ~ user.uID %}
+		{% endif %}
+		<div class="px-6 pb-6">
+			<a href="{{ sidebar_profile_url }}" class="flex items-center gap-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 dark:border-gray-800 dark:bg-[#151515]">
+				{% include "_useravatar.twig" with {
+					"avatar_user": user,
+					"avatar_size": 80,
+					"avatar_class": "h-10 w-10 shrink-0 rounded-full object-cover",
+					"avatar_initial_class": "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-bold text-blue-600 dark:bg-blue-900/30"
+				} %}
+				<div class="min-w-0">
+					<div class="truncate text-sm font-bold text-brand dark:text-white">{{ user.aName|default(user.uLogin) }}</div>
+					<div class="text-xs font-medium text-green-500">{% if is_admin_shell %}{{ _t({"key": 'admin.role', "default": 'Администратор'}) }}{% else %}{{ _t({"key": 'account.verified', "default": 'Верифицирован'}) }}{% endif %}</div>
+				</div>
+			</a>
+		</div>
+	{% endif %}
+
+	<nav class="flex-1 space-y-1 overflow-y-auto px-4" aria-label="{{ _t({"key": 'nav.main.label', "default": 'Основная навигация'}) }}">
+		{% if is_admin_shell %}
+			<div class="{{ nav_group_title }}">{{ _t({"key": 'admin.category.default', "default": 'Панель'}) }}</div>
+			<a class="{{ nav_link_base }}{% if tpl_module == 'admin' %}{{ nav_link_active }}{% else %}{{ nav_link_idle }}{% endif %}" href="{{ _link('admin', false, 0) }}"{% if tpl_module == 'admin' %} aria-current="page"{% endif %}><i class="fa-solid fa-chart-pie w-5" aria-hidden="true"></i><span>{{ _t({"key": 'admin.dashboard', "default": 'Дашборд'}) }}</span></a>
+
+			<div id="admin-menu-groups">
+				{% if admin_pinned_modules %}
+					<div class="{{ nav_group_title }}">{{ _t({"key": 'admin.pinned', "default": 'Закрепленные'}) }}</div>
+					{% for pinned in admin_pinned_modules %}
+						{% set is_pinned_active = (tpl_module == pinned.module) %}
+						{% if pinned.module == 'account/admin/users' and (tpl_module == 'account/admin/user' or tpl_module == 'account/admin/user2') %}
+							{% set is_pinned_active = true %}
+						{% elseif pinned.module == 'account/admin/ip_stat' and tpl_module == 'account/admin/ip' %}
+							{% set is_pinned_active = true %}
+						{% elseif pinned.module == 'balance/admin/opers' and tpl_module == 'balance/admin/oper' %}
+							{% set is_pinned_active = true %}
+						{% elseif pinned.module == 'balance/admin/currs' and tpl_module == 'balance/admin/curr' %}
+							{% set is_pinned_active = true %}
+						{% elseif pinned.module == 'depo/admin/depos' and tpl_module == 'depo/admin/depo' %}
+							{% set is_pinned_active = true %}
+						{% elseif pinned.module == 'depo/admin/plans' and tpl_module == 'depo/admin/plan' %}
+							{% set is_pinned_active = true %}
+						{% elseif pinned.module == 'news/admin/newses' and tpl_module == 'news/admin/news' %}
+							{% set is_pinned_active = true %}
+						{% elseif pinned.module == 'faq/admin/faqs' and tpl_module == 'faq/admin/faq' %}
+							{% set is_pinned_active = true %}
+						{% elseif pinned.module == 'tickets/admin' and tpl_module == 'tickets/admin/ticket' %}
+							{% set is_pinned_active = true %}
+						{% elseif pinned.module == 'message/admin/messages' and tpl_module == 'message/admin/message' %}
+							{% set is_pinned_active = true %}
+						{% endif %}
+						<div class="group flex items-center gap-1">
+							<a class="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-colors{% if is_pinned_active %}{{ nav_link_active }}{% else %}{{ nav_link_idle }}{% endif %}" href="{{ _link(pinned.module, false, 0) }}"{% if is_pinned_active %} aria-current="page"{% endif %}>
+								<span class="w-5 shrink-0 text-center">{% include "admin/icon.twig" with {"module": pinned.module} %}</span>
+								<span class="min-w-0 flex-1">
+									<span class="block truncate">{{ pinned.title }}</span>
+									<span class="block truncate text-[10px] font-medium opacity-60">{{ pinned.category }}</span>
+								</span>
+								{% if pinned.module == 'balance/admin/opers' and count_aopers > 0 %}
+									<span class="rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">{{ count_aopers }}</span>
+								{% endif %}
+							</a>
+							<a href="{{ _link('admin', false, 0) }}?admin_unpin={{ pinned.module }}" hx-get="{{ _link('admin', false, 0) }}?admin_unpin={{ pinned.module }}" hx-target="#admin-menu-groups" hx-select="#admin-menu-groups" hx-swap="outerHTML" hx-push-url="false" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-blue-500 transition hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10" aria-label="{{ _t({"key": 'admin.unpin', "default": 'Открепить раздел'}) }}" title="{{ _t({"key": 'admin.unpin', "default": 'Открепить раздел'}) }}">
+								<i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
+							</a>
+						</div>
+					{% endfor %}
+				{% endif %}
+
+			{% for admin_cat, admin_group in admin_unpinned_modules %}
+				<div class="{{ nav_group_title }}">{% if admin_cat %}{{ admin_cat }}{% else %}{{ _t({"key": 'admin.category.default', "default": 'Панель'}) }}{% endif %}</div>
+				{% for admin_title, admin_module in admin_group %}
+					{% set is_admin_nav_active = (tpl_module == admin_module) %}
+					{% if admin_module == 'account/admin/users' and (tpl_module == 'account/admin/user' or tpl_module == 'account/admin/user2') %}
+						{% set is_admin_nav_active = true %}
+					{% elseif admin_module == 'account/admin/ip_stat' and tpl_module == 'account/admin/ip' %}
+						{% set is_admin_nav_active = true %}
+					{% elseif admin_module == 'balance/admin/opers' and tpl_module == 'balance/admin/oper' %}
+						{% set is_admin_nav_active = true %}
+					{% elseif admin_module == 'balance/admin/currs' and tpl_module == 'balance/admin/curr' %}
+						{% set is_admin_nav_active = true %}
+					{% elseif admin_module == 'depo/admin/depos' and tpl_module == 'depo/admin/depo' %}
+						{% set is_admin_nav_active = true %}
+					{% elseif admin_module == 'depo/admin/plans' and tpl_module == 'depo/admin/plan' %}
+						{% set is_admin_nav_active = true %}
+					{% elseif admin_module == 'news/admin/newses' and tpl_module == 'news/admin/news' %}
+						{% set is_admin_nav_active = true %}
+					{% elseif admin_module == 'faq/admin/faqs' and tpl_module == 'faq/admin/faq' %}
+						{% set is_admin_nav_active = true %}
+					{% elseif admin_module == 'tickets/admin' and tpl_module == 'tickets/admin/ticket' %}
+						{% set is_admin_nav_active = true %}
+					{% elseif admin_module == 'message/admin/messages' and tpl_module == 'message/admin/message' %}
+						{% set is_admin_nav_active = true %}
+					{% endif %}
+					<div class="group flex items-center gap-1">
+						<a class="{{ nav_link_base }} min-w-0 flex-1{% if is_admin_nav_active %}{{ nav_link_active }}{% else %}{{ nav_link_idle }}{% endif %}" href="{{ _link(admin_module, false, 0) }}"{% if is_admin_nav_active %} aria-current="page"{% endif %}>
+							<span class="w-5 shrink-0 text-center">{% include "admin/icon.twig" with {"module": admin_module} %}</span>
+							<span class="min-w-0 flex-1 truncate">{{ admin_title }}</span>
+							{% if admin_module == 'balance/admin/opers' and count_aopers > 0 %}
+								<span class="rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">{{ count_aopers }}</span>
+							{% endif %}
+						</a>
+						<a href="{{ _link('admin', false, 0) }}?admin_pin={{ admin_module }}" hx-get="{{ _link('admin', false, 0) }}?admin_pin={{ admin_module }}" hx-target="#admin-menu-groups" hx-select="#admin-menu-groups" hx-swap="outerHTML" hx-push-url="false" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-300 opacity-100 transition hover:bg-gray-100 hover:text-gray-600 focus:opacity-100 dark:text-gray-700 dark:hover:bg-white/5 dark:hover:text-gray-300 lg:opacity-0 lg:group-hover:opacity-100" aria-label="{{ _t({"key": 'admin.pin', "default": 'Закрепить раздел'}) }}" title="{{ _t({"key": 'admin.pin', "default": 'Закрепить раздел'}) }}">
+							<i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
+						</a>
+					</div>
+				{% endfor %}
+			{% endfor %}
+				</div>
+			{% elseif user.uID %}
+				{% set cabinet_pinned_ids = cabinet_pinned_ids|default([]) %}
+				{% set cabinet_menu_items = {
+					'overview': {'title': _t({"key": 'cabinet.overview', "default": 'Обзор'}), 'category': _t({"key": 'admin.category.default', "default": 'Панель'}), 'url': _link('cabinet', false, 0), 'icon': 'fa-house', 'active': tpl_module == 'cabinet', 'count': 0, 'visible': true},
+					'admin': {'title': _t({"key": 'nav.admin', "default": 'Админка'}), 'category': _t({"key": 'admin.category.default', "default": 'Панель'}), 'url': _link('admin', false, 0), 'icon': 'fa-screwdriver-wrench', 'active': false, 'count': count_aopers|default(0), 'visible': user.uLevel >= 90},
+					'cashin': {'title': _t({"key": 'cabinet.balance_add', "default": 'Пополнить баланс'}), 'category': _t({"key": 'nav.finance', "default": 'Финансы'}), 'url': _link('balance/oper', false, 0) ~ '?add=CASHIN', 'icon': 'fa-circle-plus', 'active': tpl_module == 'balance/oper', 'count': 0, 'visible': true},
+					'operations': {'title': _t({"key": 'cabinet.history', "default": 'История транзакций'}), 'category': _t({"key": 'nav.finance', "default": 'Финансы'}), 'url': _link('balance', false, 0), 'icon': 'fa-clock-rotate-left', 'active': tpl_module == 'balance', 'count': count_opers|default(0), 'visible': true},
+					'wallets': {'title': _t({"key": 'cabinet.wallets', "default": 'Реквизиты'}), 'category': _t({"key": 'nav.finance', "default": 'Финансы'}), 'url': _link('balance/wallets', false, 0), 'icon': 'fa-wallet', 'active': tpl_module == 'balance/wallets', 'count': 0, 'visible': true},
+					'invest': {'title': _t({"key": 'cabinet.deposit.new', "default": 'Сделать вклад'}), 'category': _t({"key": 'nav.deposits', "default": 'Инвестиции'}), 'url': _link('depo/depo', false, 0) ~ '?add=DEPO', 'icon': 'fa-chart-line', 'active': tpl_module == 'depo/depo', 'count': 0, 'visible': true},
+					'deposits': {'title': nav_deposits, 'category': _t({"key": 'nav.deposits', "default": 'Инвестиции'}), 'url': _link('depo', false, 0), 'icon': 'fa-piggy-bank', 'active': tpl_module == 'depo', 'count': 0, 'visible': true},
+					'calc': {'title': _t({"key": 'cabinet.calc', "default": 'Калькулятор'}), 'category': _t({"key": 'nav.deposits', "default": 'Инвестиции'}), 'url': _link('depo/calc', false, 0), 'icon': 'fa-calculator', 'active': tpl_module == 'depo/calc', 'count': 0, 'visible': true},
+					'refsys': {'title': _t({"key": 'cabinet.refsys', "default": 'Партнеры'}), 'category': _t({"key": 'nav.account', "default": 'Аккаунт'}), 'url': _link('refsys', false, 0), 'icon': 'fa-users', 'active': tpl_module == 'refsys', 'count': 0, 'visible': true},
+					'account': {'title': _t({"key": 'cabinet.settings', "default": 'Настройки'}), 'category': _t({"key": 'nav.account', "default": 'Аккаунт'}), 'url': _link('account', false, 0), 'icon': 'fa-gear', 'active': tpl_module == 'account', 'count': 0, 'visible': true},
+					'messages': {'title': _t({"key": 'nav.messages', "default": 'Сообщения'}), 'category': _t({"key": 'nav.account', "default": 'Аккаунт'}), 'url': _link('message', false, 0), 'icon': 'fa-envelope', 'active': is_messages_active, 'count': count_msg|default(0), 'visible': _cfg.Msg_Mode > 0},
+					'tickets': {'title': nav_tickets, 'category': _t({"key": 'nav.account', "default": 'Аккаунт'}), 'url': _link('tickets', false, 0), 'icon': 'fa-headset', 'active': is_tickets_active, 'count': count_tickets|default(0), 'visible': true}
+				} %}
+				{% set cabinet_menu_groups = {
+					'main': {'title': '', 'items': ['overview', 'admin']},
+					'finance': {'title': _t({"key": 'nav.finance', "default": 'Финансы'}), 'items': ['cashin', 'operations', 'wallets']},
+					'deposits': {'title': _t({"key": 'nav.deposits', "default": 'Инвестиции'}), 'items': ['invest', 'deposits', 'calc']},
+					'account': {'title': _t({"key": 'nav.account', "default": 'Аккаунт'}), 'items': ['refsys', 'account', 'messages', 'tickets']}
+				} %}
+
+				<div id="cabinet-menu-groups">
+					{% if cabinet_pinned_ids %}
+						<div class="{{ nav_group_title }}">{{ _t({"key": 'admin.pinned', "default": 'Закрепленные'}) }}</div>
+						{% for item_id in cabinet_pinned_ids %}
+							{% if isset(cabinet_menu_items[item_id]) and cabinet_menu_items[item_id].visible %}
+								{% set item = cabinet_menu_items[item_id] %}
+								<div class="group flex items-center gap-1">
+									<a class="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold transition-colors{% if item.active %}{{ nav_link_active }}{% else %}{{ nav_link_idle }}{% endif %}" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>
+										<i class="fa-solid {{ item.icon }} w-5 shrink-0 text-center" aria-hidden="true"></i>
+										<span class="min-w-0 flex-1"><span class="block truncate">{{ item.title }}</span><span class="block truncate text-[10px] font-medium opacity-60">{{ item.category }}</span></span>
+										{% if item.count > 0 %}<span class="rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">{{ item.count }}</span>{% endif %}
+									</a>
+									<a href="{{ _link('cabinet', false, 0) }}?cabinet_unpin={{ item_id }}" hx-get="{{ _link('cabinet', false, 0) }}?cabinet_unpin={{ item_id }}" hx-target="#cabinet-menu-groups" hx-select="#cabinet-menu-groups" hx-swap="outerHTML" hx-push-url="false" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-blue-500 transition hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10" aria-label="{{ _t({"key": 'admin.unpin', "default": 'Открепить раздел'}) }}" title="{{ _t({"key": 'admin.unpin', "default": 'Открепить раздел'}) }}"><i class="fa-solid fa-thumbtack" aria-hidden="true"></i></a>
+								</div>
+							{% endif %}
+						{% endfor %}
+					{% endif %}
+
+					{% for group_id, menu_group in cabinet_menu_groups %}
+						{% set group_started = false %}
+						{% for item_id in menu_group.items %}
+							{% set item = cabinet_menu_items[item_id] %}
+							{% if item.visible and not in_array(item_id, cabinet_pinned_ids) %}
+								{% if not group_started %}
+									{% if menu_group.title %}<div class="{{ nav_group_title }}">{{ menu_group.title }}</div>{% endif %}
+									{% set group_started = true %}
+								{% endif %}
+								<div class="group flex items-center gap-1">
+									<a class="{{ nav_link_base }} min-w-0 flex-1{% if item.active %}{{ nav_link_active }}{% else %}{{ nav_link_idle }}{% endif %}" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>
+										<i class="fa-solid {{ item.icon }} w-5 shrink-0 text-center" aria-hidden="true"></i><span class="min-w-0 flex-1 truncate">{{ item.title }}</span>
+										{% if item.count > 0 %}<span class="rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">{{ item.count }}</span>{% endif %}
+									</a>
+									<a href="{{ _link('cabinet', false, 0) }}?cabinet_pin={{ item_id }}" hx-get="{{ _link('cabinet', false, 0) }}?cabinet_pin={{ item_id }}" hx-target="#cabinet-menu-groups" hx-select="#cabinet-menu-groups" hx-swap="outerHTML" hx-push-url="false" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-300 opacity-100 transition hover:bg-gray-100 hover:text-gray-600 focus:opacity-100 dark:text-gray-700 dark:hover:bg-white/5 dark:hover:text-gray-300 lg:opacity-0 lg:group-hover:opacity-100" aria-label="{{ _t({"key": 'admin.pin', "default": 'Закрепить раздел'}) }}" title="{{ _t({"key": 'admin.pin', "default": 'Закрепить раздел'}) }}"><i class="fa-solid fa-thumbtack" aria-hidden="true"></i></a>
+								</div>
+							{% endif %}
+						{% endfor %}
+						{% if group_id == 'finance' and _cfg.Const_IntCurr and curr1 %}<div class="mx-3 my-3 rounded-xl border border-gray-100 bg-white px-4 py-3 text-sm font-bold text-brand shadow-sm dark:border-gray-800 dark:bg-[#151515] dark:text-white">{{ z({"value": curr1.wBal, "cid": curr1.cID, "dec": 2}) }}</div>{% endif %}
+					{% endfor %}
+				</div>
+			{% else %}
+			<div class="{{ nav_group_title }}">{{ _t({"key": 'nav.sections.label', "default": 'Разделы'}) }}</div>
+			<a class="{{ nav_link_base }}{{ nav_link_idle }}" href="{{ _link('index', false, 0) }}"><i class="fa-solid fa-house w-5" aria-hidden="true"></i><span>{{ _t({"key": 'nav.main', "default": 'Главная'}) }}</span></a>
+			<a class="{{ nav_link_base }}{{ nav_link_idle }}" href="{{ _link('news', false, 0) }}"><i class="fa-solid fa-newspaper w-5" aria-hidden="true"></i><span>{{ _t({"key": 'nav.news', "default": 'Новости'}) }}</span></a>
+			<a class="{{ nav_link_base }}{{ nav_link_idle }}" href="{{ _link('faq', false, 0) }}"><i class="fa-solid fa-circle-question w-5" aria-hidden="true"></i><span>{{ _t({"key": 'nav.faq', "default": 'FAQ'}) }}</span></a>
+			{% if _cfg.Account_RegMode >= 0 %}
+				<a class="{{ nav_link_base }}{{ nav_link_idle }}" href="{{ _link('account/register', false, 0) }}"><i class="fa-solid fa-user-plus w-5" aria-hidden="true"></i><span>{{ nav_register }}</span></a>
+			{% endif %}
+			<a class="{{ nav_link_base }}{{ nav_link_idle }}" href="{{ _link('account/login', false, 0) }}"><i class="fa-solid fa-right-to-bracket w-5" aria-hidden="true"></i><span>{{ nav_login }}</span></a>
+		{% endif %}
+	</nav>
+
+	<div class="p-4">
+		{% if is_admin_shell %}
+			<a class="{{ nav_link_base }}{{ nav_link_idle }}" href="{{ _link('cabinet', false, 0) }}"><i class="fa-solid fa-arrow-left w-5" aria-hidden="true"></i><span>{{ _t({"key": 'admin.back_to_site', "default": 'Выйти в кабинет'}) }}</span></a>
+		{% elseif user.uID %}
+			<a class="{{ nav_link_base }} text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10" href="{{ _link('account/login', false, 0) }}?out"><i class="fa-solid fa-right-from-bracket w-5" aria-hidden="true"></i><span>{{ nav_logout }}</span></a>
+		{% endif %}
+	</div>
+</aside>

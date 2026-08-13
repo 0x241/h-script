@@ -1,0 +1,43 @@
+{% set auth_lang_str = "" %}
+{% if is_array(_cfg.UI__Langs) %}
+	{% set auth_lang_str = "\n"|implode(_cfg.UI__Langs) %}
+{% else %}
+	{% set auth_lang_str = _cfg.UI__Langs %}
+{% endif %}
+{% set auth_clean_langs = "\n"|explode(auth_lang_str) %}
+{% set auth_current_theme = 'light' %}
+{% if isset(_COOKIE.theme) and _COOKIE.theme == 'dark' %}
+	{% set auth_current_theme = 'dark' %}
+{% elseif user.uTheme == 'dark' %}
+	{% set auth_current_theme = 'dark' %}
+{% endif %}
+{% set auth_theme_next = 'dark' %}
+{% if auth_current_theme == 'dark' %}
+	{% set auth_theme_next = 'light' %}
+{% endif %}
+{% set auth_theme_lang = current_lang ?: 'ru' %}
+{% set auth_theme_toggle_url = _link('system', false, 0) ~ '?lang=' ~ auth_theme_lang ~ '&theme=' ~ auth_theme_next ~ '&url=' ~ (fullURL()|url_encode) %}
+
+<div class="flex items-center gap-2 sm:gap-3">
+	<details class="relative" hx-boost="false">
+		<summary class="flex h-10 cursor-pointer list-none items-center justify-center gap-1.5 rounded-full border border-black/5 bg-black/[0.03] px-3 text-sm font-bold tracking-wide text-brand transition-all duration-200 hover:bg-black/[0.06] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:hover:bg-white/10">
+			<i class="fa-solid fa-globe text-gray-400 dark:text-gray-300" aria-hidden="true"></i>
+			{% if current_lang %}{{ current_lang|upper }}{% else %}RU{% endif %}
+		</summary>
+		<div class="absolute right-0 top-full z-50 mt-2 w-32 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl dark:border-gray-800 dark:bg-[#1A1A1A]">
+			{% for lng in auth_clean_langs %}
+				{% set lng_clean = lng|trim %}
+				{% if lng_clean %}
+					<a href="{% if tpl_module == 'system' %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}{% else %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}&url={{ _link(tpl_module, false, 0) }}{% endif %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-brand transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-black{% if current_lang == lng_clean %} bg-gray-50/50 dark:bg-black/30{% endif %}">
+						<span class="{% if current_lang == lng_clean %}text-blue-500{% else %}text-gray-400{% endif %}">{{ lng_clean|upper }}</span>
+						{{ lng_clean|upper }}
+					</a>
+				{% endif %}
+			{% endfor %}
+		</div>
+	</details>
+	<a href="{{ auth_theme_toggle_url }}" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
+		<i class="fa-solid fa-moon block text-lg dark:!hidden" aria-hidden="true"></i>
+		<i class="fa-solid fa-sun !hidden text-lg text-yellow-400 dark:!block" aria-hidden="true"></i>
+	</a>
+</div>

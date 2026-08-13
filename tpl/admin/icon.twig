@@ -1,0 +1,80 @@
+{% set admin_icon_module = module|default('')|lower %}
+{% set admin_icon = 'fa-puzzle-piece' %}
+
+{% if admin_icon_module == 'admin' %}
+	{% set admin_icon = 'fa-chart-pie' %}
+{% elseif 'setup_sec' in admin_icon_module %}
+	{% set admin_icon = 'fa-shield-halved' %}
+{% elseif 'setup_ui' in admin_icon_module %}
+	{% set admin_icon = 'fa-palette' %}
+{% elseif 'setup_mail' in admin_icon_module %}
+	{% set admin_icon = 'fa-envelope' %}
+{% elseif 'setup_api' in admin_icon_module %}
+	{% set admin_icon = 'fa-code' %}
+{% elseif 'setup_main' in admin_icon_module %}
+	{% set admin_icon = 'fa-sliders' %}
+{% elseif 'translations' in admin_icon_module %}
+	{% set admin_icon = 'fa-language' %}
+{% elseif 'cron' in admin_icon_module %}
+	{% set admin_icon = 'fa-clock-rotate-left' %}
+{% elseif 'refsys' in admin_icon_module %}
+	{% set admin_icon = 'fa-share-nodes' %}
+{% elseif 'confirm' in admin_icon_module %}
+	{% set admin_icon = 'fa-check-double' %}
+{% elseif 'captcha' in admin_icon_module %}
+	{% set admin_icon = 'fa-robot' %}
+{% elseif 'ip_stat' in admin_icon_module %}
+	{% set admin_icon = 'fa-globe' %}
+{% elseif 'account/admin/users' in admin_icon_module %}
+	{% set admin_icon = 'fa-users' %}
+{% elseif 'balance/admin/currs' in admin_icon_module %}
+	{% set admin_icon = 'fa-credit-card' %}
+{% elseif 'balance/admin/opers' in admin_icon_module %}
+	{% set admin_icon = 'fa-money-bill-transfer' %}
+{% elseif 'calendar' in admin_icon_module %}
+	{% set admin_icon = 'fa-calendar-days' %}
+{% elseif 'depo/admin/plans' in admin_icon_module %}
+	{% set admin_icon = 'fa-layer-group' %}
+{% elseif 'depo/admin/depos' in admin_icon_module %}
+	{% set admin_icon = 'fa-piggy-bank' %}
+{% elseif 'depo/admin/charge' in admin_icon_module %}
+	{% set admin_icon = 'fa-coins' %}
+{% elseif 'depo/admin/stat' in admin_icon_module %}
+	{% set admin_icon = 'fa-chart-line' %}
+{% elseif 'news/admin/newses' in admin_icon_module %}
+	{% set admin_icon = 'fa-newspaper' %}
+{% elseif 'faq/admin/faqs' in admin_icon_module %}
+	{% set admin_icon = 'fa-circle-question' %}
+{% elseif 'message/admin/messages' in admin_icon_module %}
+	{% set admin_icon = 'fa-envelopes-bulk' %}
+{% elseif admin_icon_module == 'tickets/admin' %}
+	{% set admin_icon = 'fa-headset' %}
+{% elseif admin_icon_module == 'sms/admin' %}
+	{% set admin_icon = 'fa-comment-sms' %}
+{% elseif 'sms/admin/send' in admin_icon_module %}
+	{% set admin_icon = 'fa-paper-plane' %}
+{% elseif admin_icon_module == 'review/admin' %}
+	{% set admin_icon = 'fa-star' %}
+{% elseif 'setup' in admin_icon_module %}
+	{% set admin_icon = 'fa-gear' %}
+{% elseif 'news' in admin_icon_module %}
+	{% set admin_icon = 'fa-newspaper' %}
+{% elseif 'account' in admin_icon_module %}
+	{% set admin_icon = 'fa-user-gear' %}
+{% elseif 'balance' in admin_icon_module %}
+	{% set admin_icon = 'fa-wallet' %}
+{% elseif 'depo' in admin_icon_module %}
+	{% set admin_icon = 'fa-piggy-bank' %}
+{% elseif 'faq' in admin_icon_module %}
+	{% set admin_icon = 'fa-circle-question' %}
+{% elseif 'message' in admin_icon_module %}
+	{% set admin_icon = 'fa-envelope' %}
+{% elseif 'tickets' in admin_icon_module %}
+	{% set admin_icon = 'fa-headset' %}
+{% elseif 'sms' in admin_icon_module %}
+	{% set admin_icon = 'fa-mobile-screen-button' %}
+{% elseif 'review' in admin_icon_module %}
+	{% set admin_icon = 'fa-star' %}
+{% endif %}
+
+<i class="fa-solid {{ admin_icon }}" aria-hidden="true"></i>

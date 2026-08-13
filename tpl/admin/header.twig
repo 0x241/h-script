@@ -1,0 +1,97 @@
+{% set current_theme = 'light' %}
+{% if isset(_COOKIE.theme) and _COOKIE.theme == 'dark' %}
+	{% set current_theme = 'dark' %}
+{% elseif isset(user.uTheme) and user.uTheme == 'dark' %}
+	{% set current_theme = 'dark' %}
+{% endif %}
+{% set theme_next = 'dark' %}
+{% if current_theme == 'dark' %}
+	{% set theme_next = 'light' %}
+{% endif %}
+{% set theme_lang = 'ru' %}
+{% if current_lang %}
+	{% set theme_lang = current_lang %}
+{% endif %}
+{% set theme_toggle_url = _link('system', false, 0) ~ '?lang=' ~ theme_lang ~ '&theme=' ~ theme_next ~ '&url=' ~ (fullURL()|url_encode) %}
+
+<!doctype html>
+<html lang="{% if current_lang %}{{ current_lang }}{% else %}ru{% endif %}" class="{{ current_theme }}" data-theme="{{ current_theme }}">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>{% if title %}{{ title }}{% if up_category %} - {{ up_category }}{% endif %} | {% endif %}{{ _t({"key": 'admin.panel.title'}) }} | {{ _cfg.Sys_SiteName }}</title>
+		<base href="{{ root_url }}">
+		<link rel="icon" type="image/svg+xml" href="favicon.svg">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+			<link rel="stylesheet" type="text/css" href="static/css/app.css?v=tailwind-20260813-ui-15">
+			{% if tpl_module == 'news/admin/news' %}<link rel="stylesheet" type="text/css" href="static/lib/ckeditor5/48.2.0/ckeditor5/ckeditor5.css">{% endif %}
+			<script src="static/js/htmx.min.js"></script>
+			<script src="static/js/app.js?v=20260812-2" defer></script>
+	</head>
+		<body class="min-h-screen bg-[#F7F7F5] text-brand antialiased dark:bg-[#0A0A0A] dark:text-gray-100 dark:[--ck-color-base-background:#151515] dark:[--ck-color-base-border:#374151] dark:[--ck-color-base-foreground:#1A1A1A] dark:[--ck-color-text:#F3F4F6] dark:[--ck-color-toolbar-background:#1A1A1A] dark:[--ck-color-button-default-hover-background:#262626] dark:[--ck-color-button-on-background:#303030]">
+	{% if not short %}
+		<input id="cms-sidebar-toggle" type="checkbox" class="peer sr-only">
+		<label for="cms-sidebar-toggle" class="fixed inset-0 z-40 hidden bg-black/45 peer-checked:block lg:hidden" aria-label="{{ _t({"key": 'nav.close', "default": 'Закрыть меню'}) }}"></label>
+			<div class="flex min-h-screen peer-checked:[&_#sidebar]:translate-x-0">
+			{% include "line.top.twig" with {"is_admin_shell": true} %}
+				<main id="content" class="flex min-h-screen min-w-0 flex-1 flex-col">
+			<header class="sticky top-0 z-30 flex min-h-20 items-center justify-between gap-4 border-b border-black/5 bg-white/70 px-6 backdrop-blur-xl dark:border-white/5 dark:bg-[#151515]/70">
+				<div class="flex min-w-0 items-center gap-4">
+					<label for="cms-sidebar-toggle" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-xl text-brand transition-colors hover:bg-black/5 dark:text-white dark:hover:bg-white/5 lg:hidden" aria-label="{{ _t({"key": 'nav.main.label'}) }}" title="{{ _t({"key": 'nav.main.label'}) }}">
+						<i class="fa-solid fa-bars" aria-hidden="true"></i>
+					</label>
+					<div class="flex min-w-0 items-center gap-3">
+						<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand text-white dark:bg-white dark:text-brand"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span>
+						<span class="min-w-0">
+							<strong class="block truncate text-sm font-extrabold text-brand dark:text-white">{% if title %}{{ title }}{% else %}{{ _t({"key": 'admin.panel.title', "default": 'Панель управления'}) }}{% endif %}</strong>
+						</span>
+					</div>
+				</div>
+					<div class="flex shrink-0 items-center gap-3" aria-label="{{ _t({"key": 'theme.toggle'}) }}">
+						<span id="admin-clock" class="hidden min-w-28 items-center justify-center rounded-full border border-gray-200 bg-white px-4 py-2 font-mono text-sm font-bold text-gray-500 shadow-sm dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400 md:inline-flex"><span data-hs-clock data-offset-seconds="{{ clock_offset_seconds|default(0) }}">{{ clock_H }}:{{ clock_M }}:{{ clock_S }}</span> <small class="ml-1 font-sans">GMT</small></span>
+						{% set lang_str = "" %}
+					{% if is_array(_cfg.UI__Langs) %}
+						{% set lang_str = "\n"|implode(_cfg.UI__Langs) %}
+					{% else %}
+						{% set lang_str = _cfg.UI__Langs %}
+					{% endif %}
+					{% set hs_clean_langs = "\n"|explode(lang_str) %}
+					<details class="relative" hx-boost="false">
+						<summary class="flex h-10 cursor-pointer list-none items-center justify-center gap-1.5 rounded-full px-3 text-sm font-bold tracking-wide text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-[#202020]" aria-label="{{ _t({"key": 'language.switch'}) }}">
+							<i class="fa-solid fa-globe" aria-hidden="true"></i>
+							{% if current_lang %}{{ current_lang|upper }}{% else %}RU{% endif %}
+						</summary>
+						<div class="absolute right-0 top-full z-50 mt-2 w-32 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl dark:border-gray-800 dark:bg-[#1A1A1A]">
+						{% for lng in hs_clean_langs %}
+							{% set lng_clean = lng|trim %}
+							{% if lng_clean %}
+								<a href="{% if tpl_module == 'system' %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}{% else %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}&url={{ _link(tpl_module, false, 0) }}{% endif %}" hx-boost="false" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-brand transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-black{% if current_lang == lng_clean %} bg-gray-50/70 dark:bg-black/30{% endif %}">
+									<span class="{% if current_lang == lng_clean %}text-blue-500{% else %}text-gray-400{% endif %}">{{ lng_clean|upper }}</span>
+									{{ lng_clean|upper }}
+								</a>
+							{% endif %}
+						{% endfor %}
+						</div>
+					</details>
+					<a href="{{ theme_toggle_url }}" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:bg-gray-50 hover:text-brand dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400 dark:hover:bg-[#202020] dark:hover:text-white" aria-label="{{ _t({"key": 'theme.toggle'}) }}" title="{{ _t({"key": 'theme.toggle'}) }}">
+						<i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
+					</a>
+					</div>
+				</header>
+				<div class="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-6 py-8 lg:px-10">
+				{% if needupdatedb %}
+					<aside class="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+						<i class="fa-solid fa-database mt-0.5" aria-hidden="true"></i>
+						<div>
+							<strong>{{ _t({"key": 'admin.db_update.warning'}) }}</strong>
+							<p>{{ _t({"key": 'admin.db_update.text'}) }} <a href="{{ _cfg.cfg_link }}" class="font-bold text-blue-500 underline">{{ _t({"key": 'admin.configurator'}) }}</a></p>
+						</div>
+					</aside>
+				{% endif %}
+				{% include "admin/line.module.twig" %}
+				{% include "info.twig" with {"_info": tpl_info} %}
+					<section class="min-w-0 flex-1">
+	{% endif %}

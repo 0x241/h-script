@@ -1,0 +1,26 @@
+
+<td>
+	{{ l.uLogin }}
+</td>
+<td>
+	{{ l.uMail }}
+</td>
+<td class="nowrap">
+	<small>{{ l.aCTS }}</small>
+</td>
+{% for curr, cids in vcurrs %}
+	{% if (not in_array(curr,ccurs)) %}
+		{# continue removed during Twig migration #}
+	{% endif %}
+<td align="right">
+	{{ _z(list2[curr][l.uID]['ZDepo'], cid[curr]) }}
+</td>
+{% endfor %}
+{% for curr, cids in vcurrs %}
+	{% if (not in_array(curr,ccurs)) %}
+		{# continue removed during Twig migration #}
+	{% endif %}
+<td align="right">
+	{{ _z(list2[curr][l.uID]['ZRef'], cid[curr]) }}
+</td>
+{% endfor %}

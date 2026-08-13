@@ -1,0 +1,26 @@
+{% set current_theme = 'light' %}
+{% if isset(_COOKIE.theme) and _COOKIE.theme == 'dark' %}
+	{% set current_theme = 'dark' %}
+{% elseif user.uTheme == 'dark' %}
+	{% set current_theme = 'dark' %}
+{% endif %}
+<!doctype html>
+<html lang="{% if current_lang %}{{ current_lang }}{% else %}ru{% endif %}" class="{{ current_theme }}" data-theme="{{ current_theme }}">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>{% if title %}{{ title }} | {% endif %}{{ _cfg.Sys_SiteName }}</title>
+		<base href="{{ root_url }}">
+		<link rel="icon" type="image/svg+xml" href="favicon.svg">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+			<link rel="stylesheet" type="text/css" href="static/css/app.css?v=tailwind-20260813-ui-15">
+		<script src="static/js/htmx.min.js"></script>
+		<script src="static/js/app.js?v=20260812-2" defer></script>
+	</head>
+	<body class="min-h-screen bg-bgLight text-brand antialiased dark:bg-[#0A0A0A] dark:text-gray-100" hx-boost="false">
+	{% if tpl_info %}
+		{% include "external/info.twig" with {"_info": tpl_info} %}
+	{% endif %}

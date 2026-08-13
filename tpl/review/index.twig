@@ -1,0 +1,96 @@
+{% include "external/header.twig" with {"title": _t({"key": 'nav.reviews', "default": 'Отзывы'}), "public_active": 'review'} %}
+
+<main id="content" class="flex-1 pt-40 pb-20 px-6 max-w-7xl mx-auto w-full">
+	<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+		<div>
+			<div class="text-sm font-bold text-textDim dark:text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+				<i class="fa-solid fa-star text-yellow-500"></i> {{ _t({"key": 'reviews.text', "count": total, "default": 'Всего отзывов: '|cat(total)}) }}
+			</div>
+			<h1 class="text-4xl md:text-5xl font-bold text-brand dark:text-white tracking-tight">{{ _t({"key": 'reviews.heading', "default": 'Отзывы участников'}) }}</h1>
+		</div>
+	</div>
+
+	{% if isset(_GET.awating) %}
+		<div class="bg-cardGreen dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30 rounded-3xl p-8 mb-12 flex gap-5 items-start">
+			<div class="w-12 h-12 rounded-full bg-white dark:bg-[#151515] flex items-center justify-center text-emerald-500">
+				<i class="fa-solid fa-check"></i>
+			</div>
+			<div>
+				<strong class="text-xl text-brand dark:text-white">{{ _t({"key": 'reviews.added.title', "default": 'Ваш отзыв успешно добавлен!'}) }}</strong>
+				<p class="text-textDim dark:text-gray-400 mt-1">{{ _t({"key": 'reviews.added.text', "default": 'Администратор проверит его в ближайшее время'}) }}</p>
+			</div>
+		</div>
+	{% else %}
+		{% if list %}
+			<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+				{% for id, l in list %}
+						<div class="bg-white dark:bg-[#151515] border border-gray-200 dark:border-gray-800 rounded-3xl p-8 shadow-sm flex flex-col hover:shadow-xl transition-shadow">
+							<div class="flex items-center gap-4 mb-6">
+								{% include "_useravatar.twig" with {
+									"avatar_user": l,
+									"avatar_size": 112,
+									"avatar_class": "h-14 w-14 shrink-0 rounded-full object-cover",
+									"avatar_initial_class": "flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xl font-bold text-blue-600 dark:bg-blue-900/30"
+								} %}
+							<div>
+								<h4 class="font-bold text-brand dark:text-white text-lg">{{ l.uLogin }}</h4>
+								<div class="text-sm font-mono text-gray-500">{{ l.oTS }}</div>
+							</div>
+						</div>
+						<div class="mb-4 flex gap-1 text-sm" title="{{ l.oRating|default(5) }} / 5">
+							{% for star in 1..5 %}
+								<i class="{% if star <= l.oRating|default(5) %}fa-solid text-yellow-400{% else %}fa-regular text-gray-300 dark:text-gray-700{% endif %} fa-star" aria-hidden="true"></i>
+							{% endfor %}
+						</div>
+						<p class="text-textDim dark:text-gray-400 text-lg leading-relaxed flex-1">{{ l.oText|nl2br }}</p>
+					</div>
+				{% endfor %}
+			</div>
+			{% include "external/pl.twig" %}
+		{% else %}
+			<div class="bg-white dark:bg-[#151515] border border-gray-200 dark:border-gray-800 rounded-2xl p-10 text-center mb-16">
+				<div class="w-14 h-14 mx-auto mb-5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] flex items-center justify-center text-yellow-500">
+					<i class="fa-solid fa-star text-2xl"></i>
+				</div>
+				<h3 class="text-2xl font-bold text-brand dark:text-white mb-2">{{ _t({"key": 'reviews.empty', "default": 'Нет отзывов'}) }}</h3>
+				<p class="text-textDim dark:text-gray-400">{{ _t({"key": 'reviews.empty_desc', "default": 'Будьте первым, кто оставит отзыв о нашей работе!'}) }}</p>
+			</div>
+		{% endif %}
+
+		{% if user.uID %}
+			{% set review_form_name = getFormName('') %}
+			{% set review_error = formErrorText(review_form_name, {'text_empty': _t({"key": 'reviews.form.error_empty', "default": 'укажите текст'}), 'rating_wrong': _t({"key": 'reviews.form.error_rating', "default": 'выберите оценку от 1 до 5'})}, true) %}
+			{% set selected_rating = 5 %}
+			{% if isset_IN('Rating') %}{% set selected_rating = _IN('Rating') %}{% endif %}
+			<div class="bg-cardBlue dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-3xl p-8 md:p-12 max-w-4xl mx-auto">
+				<h3 class="text-2xl font-bold text-brand dark:text-white mb-2">{{ _t({"key": 'reviews.form.title', "default": 'Оставьте свой отзыв'}) }}</h3>
+				<p class="text-textDim dark:text-gray-400 mb-8">{{ _t({"key": 'reviews.form.text', "default": 'Ваше мнение очень важно для нас и других участников платформы.'}) }}</p>
+				<form method="post" action="{{ _selfLink }}" name="{{ review_form_name }}" class="space-y-6">
+					{{ _getFormSecurity({"form": review_form_name}) }}
+					{% if review_error %}
+						<div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">{{ review_error }}</div>
+					{% endif %}
+					<fieldset>
+						<legend class="mb-3 text-sm font-bold text-gray-700 dark:text-gray-300">{{ _t({"key": 'reviews.form.rating', "default": 'Ваша оценка'}) }}</legend>
+						<div class="flex flex-wrap gap-2">
+							{% for rating in 1..5 %}
+								<label class="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-gray-500 transition hover:border-amber-300 hover:text-amber-500 focus-within:ring-4 focus-within:ring-blue-500/20 has-[:checked]:border-amber-400 has-[:checked]:bg-amber-50 has-[:checked]:text-amber-600 dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400 dark:hover:border-amber-500/50 dark:has-[:checked]:border-amber-500/50 dark:has-[:checked]:bg-amber-500/10 dark:has-[:checked]:text-amber-400">
+									<input name="Rating" value="{{ rating }}" type="radio" class="sr-only" {% if selected_rating == rating %}checked{% endif %}>
+									<i class="fa-solid fa-star" aria-hidden="true"></i>
+									<span>{{ rating }}</span>
+								</label>
+							{% endfor %}
+						</div>
+					</fieldset>
+					<div>
+						<label class="sr-only" for="{{ review_form_name }}_Text">{{ valueIf(_cfg.Review_Mode, _t({"key": 'reviews.form.field_moderated', "default": 'Текст проверяется'}), _t({"key": 'reviews.form.field', "default": 'Текст'})) }}</label>
+						<textarea id="{{ review_form_name }}_Text" name="Text" rows="4" placeholder="{{ _t({"key": 'reviews.form.placeholder', "default": 'Поделитесь вашим опытом работы с платформой...'}) }}" class="w-full resize-none rounded-xl border border-gray-200 bg-white p-4 text-brand outline-none transition-shadow placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20">{% if isset_IN('Text') %}{{ _IN('Text') }}{% endif %}</textarea>
+					</div>
+					<button name="{{ review_form_name }}_btn" value="{{ _t({"key": 'reviews.form.submit', "default": 'Добавить'}) }}" type="submit" class="w-full rounded-full bg-brand px-8 py-4 font-bold text-white transition hover:-translate-y-0.5 hover:bg-black hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-white dark:text-brand dark:hover:bg-gray-100 md:w-auto">{{ _t({"key": 'reviews.form.submit', "default": 'Отправить отзыв'}) }}</button>
+				</form>
+			</div>
+		{% endif %}
+	{% endif %}
+</main>
+
+{% include "external/footer.twig" %}

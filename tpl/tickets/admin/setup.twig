@@ -1,0 +1,6 @@
+
+{% include "admin/header.twig" with {"title": 'Настройки'} %}
+
+{% include "edit.twig" with {"values": cfg, "fields": {'NoMail': ['C', 'Не высылать оповещения на e-mail'], 'Captcha': ['S', 'Защита "captcha"', 0, {0: 'нет', 1: 'авто', 2: 'всегда'}], '_Cats': {0: 'A', 1: 'Категории сообщений<br><<одна строка - одна категория>>', 'size': 20}}} %}
+
+{% include "admin/footer.twig" %}

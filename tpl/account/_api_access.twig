@@ -1,0 +1,165 @@
+<div class="min-w-0 flex-1 space-y-6">
+	{% if account_api_flash.message %}
+		<aside class="flex items-start gap-3 rounded-[1.5rem] border p-5 text-sm font-semibold {% if account_api_flash.type == 'error' %}border-red-200 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100{% else %}border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100{% endif %}">
+			<i class="fa-solid {% if account_api_flash.type == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %} mt-0.5" aria-hidden="true"></i>
+			<div class="min-w-0 flex-1">
+				<p>{{ account_api_flash.message }}</p>
+				{% if account_api_flash.secret %}
+					<label for="account-api-new-secret" class="mt-4 block text-xs font-extrabold uppercase tracking-wider">{{ _t({"key": 'account.api.new_secret', "default": 'Новый Bearer-токен'}) }}</label>
+					<input id="account-api-new-secret" type="text" readonly value="{{ account_api_flash.secret }}" class="mt-2 w-full rounded-xl border border-emerald-300 bg-white px-4 py-3 font-mono text-xs text-brand outline-none dark:border-emerald-500/40 dark:bg-black dark:text-white">
+				{% endif %}
+			</div>
+		</aside>
+	{% endif %}
+
+	<section class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="border-b border-gray-100 p-6 dark:border-gray-800">
+			<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+				<div>
+					<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'account.api.title', "default": 'API-доступ'}) }}</h3>
+					<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.api.text', "default": 'Персональные ключи для подключения внешних приложений.'}) }}</p>
+				</div>
+				<span class="inline-flex self-start rounded-full px-3 py-1 text-xs font-extrabold {% if account_api_settings.enabled %}bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300{% else %}bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-300{% endif %}">
+					{% if account_api_settings.enabled %}{{ _t({"key": 'account.api.enabled', "default": 'API включён'}) }}{% else %}{{ _t({"key": 'account.api.disabled', "default": 'API отключён'}) }}{% endif %}
+				</span>
+			</div>
+		</div>
+		<div class="grid gap-3 p-6 sm:grid-cols-3">
+			<div class="rounded-2xl bg-gray-50 p-4 dark:bg-[#1A1A1A]">
+				<p class="text-xs font-bold uppercase tracking-wider text-gray-400">{{ _t({"key": 'account.api.active', "default": 'Активные'}) }}</p>
+				<p class="mt-2 text-2xl font-extrabold text-brand dark:text-white">{{ account_api_token_counts.active }}</p>
+			</div>
+			<div class="rounded-2xl bg-gray-50 p-4 dark:bg-[#1A1A1A]">
+				<p class="text-xs font-bold uppercase tracking-wider text-gray-400">{{ _t({"key": 'account.api.token_limit', "default": 'Лимит токена'}) }}</p>
+				<p class="mt-2 text-2xl font-extrabold text-brand dark:text-white">{{ account_api_settings.rate_limit_token }}<small class="ml-1 text-xs font-semibold text-gray-400">{{ _t({"key": 'account.api.per_minute', "default": '/ мин'}) }}</small></p>
+			</div>
+			<div class="rounded-2xl bg-gray-50 p-4 dark:bg-[#1A1A1A]">
+				<p class="text-xs font-bold uppercase tracking-wider text-gray-400">{{ _t({"key": 'account.api.ip_limit', "default": 'Лимит IP'}) }}</p>
+				<p class="mt-2 text-2xl font-extrabold text-brand dark:text-white">{{ account_api_settings.rate_limit_ip }}<small class="ml-1 text-xs font-semibold text-gray-400">{{ _t({"key": 'account.api.per_minute', "default": '/ мин'}) }}</small></p>
+			</div>
+		</div>
+	</section>
+
+	<section class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="border-b border-gray-100 p-6 dark:border-gray-800">
+			<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'account.api.issue.title', "default": 'Выпустить токен'}) }}</h3>
+			<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.api.issue.text', "default": 'Секрет будет показан только один раз после создания.'}) }}</p>
+		</div>
+		<form method="post" action="{{ account_tab_url }}?tab=api" name="account_api_create" class="space-y-5 p-6">
+			{{ _getFormSecurity({"form": "account_api_create"}) }}
+			<div class="grid gap-5 sm:grid-cols-2">
+				<label class="block text-sm font-bold text-gray-700 dark:text-gray-300">
+					{{ _t({"key": 'account.api.field.name', "default": 'Название'}) }}
+					<input type="text" name="name" maxlength="100" required placeholder="{{ _t({"key": 'account.api.field.name_placeholder', "default": 'Например, мобильное приложение'}) }}" class="mt-2 w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white">
+				</label>
+				<label class="block text-sm font-bold text-gray-700 dark:text-gray-300">
+					{{ _t({"key": 'account.api.field.expires', "default": 'Срок действия, UTC'}) }}
+					<input type="datetime-local" name="expires_at" class="mt-2 w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white">
+					<small class="mt-1 block font-normal text-gray-500">{{ _t({"key": 'account.api.field.expires_hint', "default": 'Оставьте пустым для токена без срока.'}) }}</small>
+				</label>
+			</div>
+			<fieldset>
+				<legend class="mb-3 text-sm font-bold text-gray-700 dark:text-gray-300">{{ _t({"key": 'account.api.permissions', "default": 'Разрешения'}) }}</legend>
+				<div class="grid gap-3 sm:grid-cols-2">
+					{% for scope, description in account_api_scope_options %}
+						<label class="flex items-start gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4 text-sm dark:border-gray-800 dark:bg-[#1A1A1A]">
+							<input type="checkbox" name="scopes[]" value="{{ scope }}" class="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600" {% if scope == '*' %}checked{% endif %}>
+							<span><code class="font-bold text-blue-600 dark:text-blue-300">{{ scope }}</code><small class="mt-1 block text-gray-500">{{ description }}</small></span>
+						</label>
+					{% endfor %}
+				</div>
+			</fieldset>
+			<button type="submit" name="account_api_create_btncreate" value="1" {% if not account_api_settings.enabled %}disabled{% endif %} class="inline-flex items-center gap-2 rounded-2xl bg-brand px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+				<i class="fa-solid fa-key" aria-hidden="true"></i>
+				{{ _t({"key": 'account.api.issue.button', "default": 'Выпустить токен'}) }}
+			</button>
+		</form>
+	</section>
+
+	<section class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="border-b border-gray-100 p-6 dark:border-gray-800">
+			<div class="flex items-center justify-between gap-4">
+				<div>
+					<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'account.api.tokens.title', "default": 'Мои токены'}) }}</h3>
+					<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.api.tokens.text', "default": 'Приостановленный токен можно включить снова. Отозванный восстановить нельзя.'}) }}</p>
+				</div>
+				<span class="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ account_api_tokens|length }}</span>
+			</div>
+		</div>
+		{% if account_api_tokens %}
+			<form method="post" action="{{ account_tab_url }}?tab=api" name="account_api_manage" class="space-y-4 p-6">
+				{{ _getFormSecurity({"form": "account_api_manage"}) }}
+				{% for token in account_api_tokens %}
+					<article class="rounded-2xl border border-gray-100 bg-gray-50 p-5 dark:border-gray-800 dark:bg-[#1A1A1A] {% if token.atState == 0 %}opacity-70{% endif %}">
+						<div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+							<div class="flex flex-wrap items-center gap-2">
+								<strong class="text-brand dark:text-white">#{{ token.atID }} · {{ token.atName }}</strong>
+								{% if token.atState == 1 and not token.Expired %}
+									<span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">{{ _t({"key": 'account.api.status.active', "default": 'Активен'}) }}</span>
+								{% elseif token.atState == 2 %}
+									<span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">{{ _t({"key": 'account.api.status.paused', "default": 'Приостановлен'}) }}</span>
+								{% elseif token.Expired and token.atState != 0 %}
+									<span class="rounded-full bg-gray-200 px-2.5 py-1 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ _t({"key": 'account.api.status.expired', "default": 'Истёк'}) }}</span>
+								{% else %}
+									<span class="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700 dark:bg-red-500/10 dark:text-red-300">{{ _t({"key": 'account.api.status.revoked', "default": 'Отозван'}) }}</span>
+								{% endif %}
+							</div>
+							<div class="text-xs text-gray-500 sm:text-right">
+								<p>{{ _t({"key": 'account.api.created', "default": 'Создан:'}) }} {{ token.CreatedText }}</p>
+								<p>{{ token.LastUsedText }}{% if token.atLastIP %} · {{ token.atLastIP }}{% endif %}</p>
+							</div>
+						</div>
+						<div class="grid gap-4 sm:grid-cols-2">
+							<label class="block text-sm font-bold text-gray-700 dark:text-gray-300">
+								{{ _t({"key": 'account.api.field.name', "default": 'Название'}) }}
+								<input type="text" name="tokens[{{ token.atID }}][name]" maxlength="100" required value="{{ token.atName }}" {% if token.atState == 0 %}disabled{% endif %} class="mt-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 font-medium text-brand outline-none focus:border-blue-500 dark:border-white/10 dark:bg-[#151515] dark:text-white">
+							</label>
+							<label class="block text-sm font-bold text-gray-700 dark:text-gray-300">
+								{{ _t({"key": 'account.api.field.expires', "default": 'Срок действия, UTC'}) }}
+								<input type="datetime-local" name="tokens[{{ token.atID }}][expires_at]" value="{{ token.ExpiresInput }}" {% if token.atState == 0 %}disabled{% endif %} class="mt-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 font-medium text-brand outline-none focus:border-blue-500 dark:border-white/10 dark:bg-[#151515] dark:text-white">
+								<small class="mt-1 block font-normal text-gray-500">{{ token.ExpiresText }}</small>
+							</label>
+						</div>
+						<label class="mt-4 block text-sm font-bold text-gray-700 dark:text-gray-300">
+							{{ _t({"key": 'account.api.state', "default": 'Состояние'}) }}
+							<span class="relative mt-2 block">
+								<select name="tokens[{{ token.atID }}][state]" {% if token.atState == 0 %}disabled{% endif %} class="w-full appearance-none rounded-xl border border-black/10 bg-white px-4 py-3 pr-12 font-medium text-brand outline-none focus:border-blue-500 dark:border-white/10 dark:bg-[#151515] dark:text-white">
+									<option value="active" {% if token.atState == 1 %}selected{% endif %}>{{ _t({"key": 'account.api.status.active', "default": 'Активен'}) }}</option>
+									<option value="paused" {% if token.atState == 2 %}selected{% endif %}>{{ _t({"key": 'account.api.status.paused', "default": 'Приостановлен'}) }}</option>
+								</select>
+								<i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400" aria-hidden="true"></i>
+							</span>
+						</label>
+						<fieldset class="mt-4" {% if token.atState == 0 %}disabled{% endif %}>
+							<legend class="mb-2 text-sm font-bold text-gray-700 dark:text-gray-300">{{ _t({"key": 'account.api.permissions', "default": 'Разрешения'}) }}</legend>
+							<div class="grid gap-2 sm:grid-cols-2">
+								{% for scope, description in account_api_scope_options %}
+									<label class="flex items-start gap-2 rounded-xl border border-gray-200 bg-white p-3 text-xs dark:border-gray-700 dark:bg-[#151515]">
+										<input type="checkbox" name="tokens[{{ token.atID }}][scopes][]" value="{{ scope }}" class="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600" {% if scope in token.ScopeList %}checked{% endif %}>
+										<span><code class="font-bold text-blue-600 dark:text-blue-300">{{ scope }}</code><small class="mt-0.5 block text-gray-500">{{ description }}</small></span>
+									</label>
+								{% endfor %}
+							</div>
+						</fieldset>
+						{% if token.atState != 0 %}
+							<div class="mt-4 flex flex-wrap gap-3">
+								<button type="submit" name="account_api_manage_btnsave" value="{{ token.atID }}" class="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white dark:bg-white dark:text-brand"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>{{ _t({"key": 'common.save', "default": 'Сохранить'}) }}</button>
+								<button type="submit" name="account_api_manage_btnrevoke" value="{{ token.atID }}" class="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"><i class="fa-solid fa-ban" aria-hidden="true"></i>{{ _t({"key": 'account.api.revoke', "default": 'Отозвать навсегда'}) }}</button>
+							</div>
+						{% endif %}
+					</article>
+				{% endfor %}
+			</form>
+		{% else %}
+			<div class="p-8 text-center text-sm text-gray-500">{{ _t({"key": 'account.api.tokens.empty', "default": 'У вас пока нет API-токенов.'}) }}</div>
+		{% endif %}
+	</section>
+
+	<section class="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'account.api.connection', "default": 'Подключение'}) }}</h3>
+		<p class="mt-2 text-sm text-gray-500">{{ _t({"key": 'account.api.base_url', "default": 'Базовый URL:'}) }} <code class="break-all font-bold text-blue-600 dark:text-blue-300">{{ account_api_base_url }}</code></p>
+		<div class="mt-4 rounded-2xl bg-gray-50 p-4 dark:bg-[#1A1A1A]">
+			<code class="break-all text-sm font-semibold text-brand dark:text-white">Authorization: Bearer &lt;{{ _t({"key": 'account.api.your_token', "default": 'ваш_токен'}) }}&gt;</code>
+		</div>
+	</section>
+</div>

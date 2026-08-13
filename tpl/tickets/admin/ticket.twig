@@ -1,0 +1,85 @@
+{% include "admin/header.twig" with {"title": 'Тикет'} %}
+
+{% include "tickets/_states.twig" %}
+
+{% if el.tID %}
+	{% set ticket_form_name = getFormName('') %}
+	{% set ticket_state = _tstates[el.tState]|default(el.tState) %}
+	{% set ticket_state_class = 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' %}
+	{% if el.tState == 1 %}
+		{% set ticket_state_class = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' %}
+	{% elseif el.tState == 2 %}
+		{% set ticket_state_class = 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' %}
+	{% elseif el.tState == 5 %}
+		{% set ticket_state_class = 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300' %}
+	{% elseif el.tState >= 9 %}
+		{% set ticket_state_class = 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300' %}
+	{% endif %}
+
+	<div id="admin-ticket-panel" class="mx-auto flex min-h-[calc(100vh-10rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="flex shrink-0 flex-col items-start justify-between gap-4 border-b border-gray-100 bg-white/80 p-5 backdrop-blur-xl dark:border-gray-800 dark:bg-[#151515]/80 sm:flex-row sm:items-center">
+			<div>
+				<div class="mb-2 flex flex-wrap items-center gap-3">
+					<span class="font-mono text-sm text-gray-400">#{{ el.tID }}</span>
+					<span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold {{ ticket_state_class }}"><i class="fa-solid fa-circle-dot text-[10px]" aria-hidden="true"></i>{{ ticket_state }}</span>
+					<span class="text-xs font-bold text-gray-500 dark:text-gray-400">Пользователь: {{ el.uLogin|default(el.tName|default('-')) }}{% if el.uMail %} · {{ el.uMail }}{% endif %}</span>
+				</div>
+				<h2 class="text-xl font-bold text-brand dark:text-white">{{ el.tTopic }}</h2>
+			</div>
+			{% if el.tState < 8 %}
+				<form method="post" class="inline-flex" hx-post="{{ _selfLink }}?id={{ el.tID }}" hx-target="#admin-ticket-panel" hx-select="#admin-ticket-panel" hx-swap="outerHTML" hx-push-url="false" hx-disabled-elt="button" hx-sync="this:replace">
+					{{ _getFormSecurity({"form": 'ticket'}) }}
+					<input name="tID" value="{{ el.tID }}" type="hidden">
+					<button name="ticket_btnclose" value="Закрыть тикет" type="submit" class="inline-flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 text-sm font-bold text-red-600 transition-colors hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"><i class="fa-solid fa-lock" aria-hidden="true"></i>Закрыть тикет</button>
+				</form>
+			{% endif %}
+		</div>
+
+		<div class="flex-1 overflow-y-auto bg-gray-50/50 p-4 dark:bg-transparent sm:p-8">
+			<div class="mx-auto flex max-w-4xl flex-col gap-6">
+				<div class="flex max-w-[85%] items-end gap-3 self-start sm:max-w-[75%]">
+					{% include "_useravatar.twig" with {"avatar_user": el, "avatar_size": 64, "avatar_class": "h-8 w-8 shrink-0 rounded-full object-cover shadow-sm", "avatar_initial_class": "flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-600 shadow-sm dark:bg-emerald-900/30 dark:text-emerald-400"} %}
+					<div class="flex w-full flex-col gap-1">
+						<div class="mb-1 flex items-center gap-2 px-1"><span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">Пользователь{% if el.uLogin %} ({{ el.uLogin }}){% endif %}</span><span class="text-xs text-gray-400">{{ el.tTS }}</span></div>
+						<div class="whitespace-pre-line rounded-2xl rounded-bl-sm border border-gray-100 bg-white p-4 leading-relaxed text-brand shadow-sm dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white">{{ el.tText }}</div>
+					</div>
+				</div>
+
+				{% for l in list %}
+					{% set is_customer = l.muID == el.tuID %}
+					<div class="flex max-w-[85%] items-end gap-3 {% if is_customer %}self-start sm:max-w-[75%]{% else %}self-end sm:max-w-[75%]{% endif %}">
+						{% if is_customer %}{% include "_useravatar.twig" with {"avatar_user": l, "avatar_size": 64, "avatar_class": "h-8 w-8 shrink-0 rounded-full object-cover shadow-sm", "avatar_initial_class": "flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-600 shadow-sm dark:bg-emerald-900/30 dark:text-emerald-400"} %}{% endif %}
+						<div class="flex w-full flex-col gap-1">
+							<div class="mb-1 flex items-center gap-2 px-1 {% if not is_customer %}justify-end{% endif %}">
+								<span class="text-xs font-bold {% if is_customer %}text-emerald-600 dark:text-emerald-400{% else %}text-gray-600 dark:text-gray-300{% endif %}">{% if is_customer %}Пользователь{% if l.uLogin %} ({{ l.uLogin }}){% endif %}{% elseif l.muID == user.uID %}Вы{% elseif l.uLevel >= 90 %}Администратор{% if l.uLogin %} ({{ l.uLogin }}){% endif %}{% else %}Поддержка{% if l.uLogin %} ({{ l.uLogin }}){% endif %}{% endif %}</span>
+								<span class="text-xs text-gray-400">{{ l.mTS }}</span>
+							</div>
+							<div class="whitespace-pre-line rounded-2xl p-4 leading-relaxed shadow-sm {% if is_customer %}rounded-bl-sm border border-gray-100 bg-white text-brand dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white{% else %}rounded-br-sm bg-blue-600 text-white{% endif %}">{{ l.mText }}</div>
+						</div>
+						{% if not is_customer %}{% include "_useravatar.twig" with {"avatar_user": l, "avatar_size": 64, "avatar_class": "h-8 w-8 shrink-0 rounded-full object-cover shadow-sm", "avatar_initial_class": "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-100 text-sm font-bold text-blue-600 shadow-sm dark:border-blue-900/50"} %}{% endif %}
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+
+		{% if el.tState < 8 %}
+			{% set answer_error = formErrorText(ticket_form_name, {'text_empty': 'укажите текст'}, true) %}
+			<form method="post" class="shrink-0 border-t border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-[#151515] sm:p-6" hx-post="{{ _selfLink }}?id={{ el.tID }}" hx-target="#admin-ticket-panel" hx-select="#admin-ticket-panel" hx-swap="outerHTML" hx-push-url="false" hx-disabled-elt="button" hx-sync="this:replace">
+				{{ _getFormSecurity() }}
+				<input name="tID" value="{{ el.tID }}" type="hidden">
+				{% if answer_error %}<div class="mx-auto mb-4 max-w-4xl rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">{{ answer_error }}</div>{% endif %}
+				<div class="mx-auto flex max-w-4xl items-center gap-4">
+					<label class="sr-only" for="{{ ticket_form_name }}_mText">Ответ</label>
+					<textarea id="{{ ticket_form_name }}_mText" name="mText" rows="2" placeholder="Написать ответ..." class="min-h-12 flex-1 resize-y rounded-2xl border border-transparent bg-gray-100 px-5 py-3 text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:bg-[#1A1A1A] dark:text-white dark:focus:bg-[#151515]">{% if isset_IN('mText') %}{{ _IN('mText') }}{% endif %}</textarea>
+					<button name="{{ ticket_form_name }}_btnanswer" value="Ответить" type="submit" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700" aria-label="Отправить ответ"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></button>
+				</div>
+			</form>
+		{% endif %}
+	</div>
+{% else %}
+	<div class="card hs-ticket-card">
+		{% include "edit.twig" with {"title": 'Новый тикет', "fields": {'uLogin': {0: 'T', 1: 'Отправитель', 2: {'user_not_found': 'пользователь не найден'}, 'default': valueIf(not el.mMail, exValue(user.uLogin, _GET.from))}, 'tMail': {0: 'T', 1: 'e-mail отправителя', 2: {'mail_wrong': 'неверный e-mail'}, 'skip': true}, 'tTopic': {0: 'L', 1: 'Тема!!', 2: {'topic_empty': 'укажите тему'}, 'size': 50}, 'tText': {0: 'W', 1: 'Текст!!', 2: {'text_empty': 'укажите текст'}, 'size': 15}}, "values": el, "btn_text": ' ', "btns": {'create': 'Создать'}} %}
+	</div>
+{% endif %}
+
+{% include "admin/footer.twig" %}

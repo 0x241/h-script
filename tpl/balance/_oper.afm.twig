@@ -1,0 +1,43 @@
+
+{% if pvalues.acc %}
+
+	{% if el.oState <= 1 %}
+		<div class="notice notice--info" style="margin: 24px 0;">
+			<span class="notice__icon"><i class="fa-solid fa-hand-holding-dollar"></i></span>
+			<div>
+				<strong>Ручное проведение платежа</strong>
+				<p>{% if pform %}В случае невозможности оплатить напрямую через сайт, {% endif %}совершите оплату по указанным ниже реквизитам вручную в интерфейсе платежной системы, а затем укажите данные этого платежа в форме ниже.</p>
+			</div>
+		</div>
+	{% endif %}
+	
+	<div class="card hs-pform-card" style="margin-bottom: 32px; background: var(--color-surface-muted); border-radius: var(--radius-lg); border: 1px solid var(--color-border); overflow: hidden;">
+		<div style="padding: 20px 24px; background: var(--color-surface-raised); border-bottom: 1px solid var(--color-border); display: flex; align-items: center; gap: 12px;">
+			<i class="fa-solid fa-receipt" style="color: var(--color-accent); font-size: 1.2rem;"></i>
+			<h3 style="margin: 0; font-size: 1.1rem; color: var(--color-primary-ink);">Платежные реквизиты (для оплаты через {{ el.cName }})</h3>
+		</div>
+		
+		<div style="padding: 24px; display: grid; gap: 16px;">
+			{% for f, v in pfields %}
+			{% if pvalues[f] %}
+				<div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);">
+					<span style="color: var(--color-text-soft); font-size: 0.9rem;">
+						{% set v = array_set_path(v|default([]), [0], str_replace('*', ' <span class="descr_rem" style="opacity: 0.6; font-size: 0.8rem;">(не обязательно)</span>', v[0])) %}
+						{% if f == 'acc' %}
+							Наш кошелек <span class="descr_rem" style="opacity: 0.6; font-size: 0.8rem;">({{ v[0] }})</span>
+						{% else %}
+							{{ v[0] }}
+						{% endif %}
+					</span>
+					<strong class="copy-field" style="font-family: var(--font-mono); font-size: 1.05rem; color: var(--color-primary-ink); background: var(--color-surface); padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">{{ pvalues[f] }}</strong>
+				</div>
+			{% endif %}
+			{% endfor %}
+			<div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px;">
+				<span style="color: var(--color-text-soft); font-size: 0.95rem; font-weight: 700;">Сумма к оплате</span>
+				<strong style="font-family: var(--font-mono); font-size: 1.3rem; color: var(--color-success); background: var(--color-success-soft); padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);">{{ _z(el.oSum, el.ocID, 1) }}</strong>
+			</div>
+		</div>
+	</div>
+	
+{% endif %}

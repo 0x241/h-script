@@ -1,0 +1,16 @@
+
+{% include "admin/header.twig" with {"title": 'Сообщения'} %}
+
+<div class="mb-6 rounded-2xl border border-blue-100 bg-blue-50 p-5 text-sm font-medium leading-relaxed text-blue-900 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
+	Здесь показаны диалоги, а не отдельные письма. Рассылки остаются отдельными записями; ответы пользователя и администратора объединяются по исходному сообщению.
+</div>
+
+{% include "list.twig" with {"title": 'Диалоги', "url": '*', "fields": {'mID': ['ID'], 'mTS': ['Обновлён'], '_Peer': ['Собеседники'], 'mTopic': ['Тема'], 'mText': ['Последнее сообщение'], '_MessageCount': ['Сообщений'], '_Status': ['Статус']}, "values": list, "row": '*', "btns": {'del': 'Удалить'}} %}
+
+<div class="mt-6 flex justify-center">
+	<a href="{{ _link('message/admin/message', false, 0) }}?add" class="inline-flex min-w-48 items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+		<i class="fa-solid fa-circle-plus" aria-hidden="true"></i><span>Создать</span>
+	</a>
+</div>
+
+{% include "admin/footer.twig" %}

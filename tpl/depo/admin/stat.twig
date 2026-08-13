@@ -1,0 +1,268 @@
+
+{% include "admin/header.twig" with {"title": 'Статистика'} %}
+
+{% if stat_error %}
+	<div class="mb-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm font-bold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">Не удалось рассчитать статистику. Подробности записаны в журнал ошибок.</div>
+{% endif %}
+
+<div class="mb-8 flex items-start gap-4 rounded-2xl border border-blue-100 bg-blue-50 p-5 text-blue-950 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
+	<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>
+	<div>
+		<h2 class="font-extrabold">Сводка по вкладам и денежным операциям</h2>
+		<p class="mt-1 text-sm leading-relaxed opacity-80">Карточки показывают текущее состояние. Выборка ниже рассчитывает операции и регистрации за выбранный период, а полная детализация за всё время доступна в раскрывающемся блоке.</p>
+	</div>
+</div>
+
+<div class="mb-8 grid gap-5 md:grid-cols-2">
+	<div class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="flex items-center justify-between gap-4">
+			<div class="flex items-baseline gap-3 whitespace-nowrap"><span class="text-sm font-extrabold text-gray-500 dark:text-gray-400">Всего пользователей</span><strong class="text-3xl font-black text-brand dark:text-white">{{ users.all }}</strong></div>
+			<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
+		</div>
+		<small class="mt-3 block text-xs font-semibold text-gray-500 dark:text-gray-400">Активных: {{ users.active }} · С вкладами: {{ users.wdepo }}</small>
+	</div>
+	<div class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="flex items-center justify-between gap-4">
+			<div class="flex items-baseline gap-3 whitespace-nowrap"><span class="text-sm font-extrabold text-gray-500 dark:text-gray-400">Всего депозитов</span><strong class="text-3xl font-black text-brand dark:text-white">{{ deps.all }}</strong></div>
+			<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="fa-solid fa-piggy-bank" aria-hidden="true"></i></span>
+		</div>
+		<small class="mt-3 block text-xs font-semibold text-gray-500 dark:text-gray-400">Активных сейчас: {{ deps.active }}</small>
+	</div>
+</div>
+
+<details class="mb-8 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+	<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-5 font-extrabold text-brand transition hover:bg-gray-50 dark:text-white dark:hover:bg-[#1A1A1A]">
+		<span class="flex items-center gap-3"><i class="fa-solid fa-table-list text-blue-500" aria-hidden="true"></i>Детализация за всё время</span>
+		<span class="text-xs font-bold text-gray-400">Нажмите, чтобы раскрыть</span>
+	</summary>
+	<div class="table-wrap">
+		<table class="FormatTable">
+			<thead>
+				<tr>
+					<th></th>
+					<th colspan="11">Операции</th>
+					<th rowspan="2"><small>Активные депозиты</small></th>
+					<th colspan="3">Балансы</th>
+				</tr>
+				<tr>
+					<th>Плат.&nbsp;система</th>
+					<th><small>Бонус</small></th>
+					<th><small>Штраф</small></th>
+					<th><small>Пополнение</small></th>
+					<th><small>Рефские</small></th>
+					<th><small>Вклад</small></th>
+					<th><small>в т.ч. с баланса</small></th>
+					<th><small>Снятие</small></th>
+					<th><small>Начисление</small></th>
+					<th><small>Списание</small></th>
+					<th><small>Ожидает вывода</small></th>
+					<th><small>Вывод</small></th>
+					<th><small>Доступно</small></th>
+					<th><small>Занято</small></th>
+					<th><small>Ожидает</small></th>
+				</tr>
+			</thead>
+			<tbody>
+			{% for cid, c in currs %}
+				<tr>
+					<td align="right">{{ c.cName }}&nbsp;<i><small>{{ c.cCurr }}</small></i></td>
+					<td align="right">{{ _z(stat[cid].BONUS, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].PENALTY, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].CASHIN, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].REF, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].GIVE, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].GIVE2, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].TAKE, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].CALCIN, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].CALCOUT, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].CASHOUT2, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].CASHOUT, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].DEPO, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].BAL, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].LOCK, cid, -1) }}</td>
+					<td align="right">{{ _z(stat[cid].OUT, cid, -1) }}</td>
+				</tr>
+			{% endfor %}
+			<tr class="marked">
+				<td align="right"><b>ИТОГО:</b></td>
+				<td colspan="15"></td>
+			</tr>
+			{% for curr, cids in vcurrs %}
+			<tr>
+				<td align="right">{{ curr }}</td>
+				<td align="right">{{ _z(stat[0][curr].BONUS, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].PENALTY, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].CASHIN, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].REF, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].GIVE, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].GIVE2, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].TAKE, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].CALCIN, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].CALCOUT, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].CASHOUT2, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].CASHOUT, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].DEPO, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].BAL, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].LOCK, reset(cids), -1) }}</td>
+				<td align="right">{{ _z(stat[0][curr].OUT, reset(cids), -1) }}</td>
+			</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</details>
+
+<section class="mb-8">
+	<div class="mb-4">
+		<h2 class="text-xl font-extrabold text-brand dark:text-white">Выборка за период</h2>
+		<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Даты выбираются через календарь. Обе границы включаются в расчёт.</p>
+	</div>
+	{% include "edit.twig" with {"title": 'Параметры отбора', "fields": {
+		'PSys': ['S', 'Платежная система', 0, merge_arrays({0: '- все -'}, clist)],
+		'D1': {0: 'DT', 1: 'Дата с', 'default': today_input, 'input_type': 'date', 'comment': 'Начало периода включительно.'},
+		'D2': {0: 'DT', 1: 'Дата по', 'input_type': 'date', 'comment': 'Конец периода включительно; можно оставить пустым.'}
+	}, "btn_text": 'Показать'} %}
+</section>
+
+{% if res %}
+{% set cid = {'USD': exValue(1, reset(vcurrs.USD)), 'EUR': exValue(1, reset(vcurrs.EUR)), 'RUB': exValue(1, reset(vcurrs.RUB)), 'BTC': exValue(1, reset(vcurrs.BTC)), 'ETH': exValue(1, reset(vcurrs.ETH)), 'XRP': exValue(1, reset(vcurrs.XRP))} %}
+
+	<div class="mb-4">
+		<h2 class="text-xl font-extrabold text-brand dark:text-white">Результат выборки</h2>
+		<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Суммы сгруппированы по валюте платёжной системы.</p>
+	</div>
+	<div class="table-card" style="margin-bottom: 32px;">
+		<div class="table-wrap">
+			<table class="FormatTable">
+				<thead>
+					<tr>
+						<th>Показатель</th>
+						<th>USD</th>
+						<th>EUR</th>
+						<th>RUB</th>
+						<th>BTC</th>
+						<th>ETH</th>
+						<th>XRP</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td><b>Регистрации</b></td>
+						<td align="right" colspan="6"><b>{{ res.REG }}</b></td>
+					</tr>
+					<tr>
+						<td>Бонус</td>
+						<td align="right">{{ _z(res.BONUS.USD, cid.USD) }}</td>
+						<td align="right">{{ _z(res.BONUS.EUR, cid.EUR) }}</td>
+						<td align="right">{{ _z(res.BONUS.RUB, cid.RUB) }}</td>
+						<td align="right">{{ _z(res.BONUS.BTC, cid.BTC) }}</td>
+						<td align="right">{{ _z(res.BONUS.ETH, cid.ETH) }}</td>
+						<td align="right">{{ _z(res.BONUS.XRP, cid.XRP) }}</td>
+					</tr>
+					<tr>
+						<td>Штраф</td>
+						<td align="right">{{ _z(res.PENALTY.USD, cid.USD) }}</td>
+						<td align="right">{{ _z(res.PENALTY.EUR, cid.EUR) }}</td>
+						<td align="right">{{ _z(res.PENALTY.RUB, cid.RUB) }}</td>
+						<td align="right">{{ _z(res.PENALTY.BTC, cid.BTC) }}</td>
+						<td align="right">{{ _z(res.PENALTY.ETH, cid.ETH) }}</td>
+						<td align="right">{{ _z(res.PENALTY.XRP, cid.XRP) }}</td>
+					</tr>
+					<tr>
+						<td>Пополнение</td>
+						<td align="right">{{ _z(res.CASHIN.USD, cid.USD) }}</td>
+						<td align="right">{{ _z(res.CASHIN.EUR, cid.EUR) }}</td>
+						<td align="right">{{ _z(res.CASHIN.RUB, cid.RUB) }}</td>
+						<td align="right">{{ _z(res.CASHIN.BTC, cid.BTC) }}</td>
+						<td align="right">{{ _z(res.CASHIN.ETH, cid.ETH) }}</td>
+						<td align="right">{{ _z(res.CASHIN.XRP, cid.XRP) }}</td>
+					</tr>
+					<tr>
+						<td>Рефские</td>
+						<td align="right">{{ _z(res.REF.USD, cid.USD) }}</td>
+						<td align="right">{{ _z(res.REF.EUR, cid.EUR) }}</td>
+						<td align="right">{{ _z(res.REF.RUB, cid.RUB) }}</td>
+						<td align="right">{{ _z(res.REF.BTC, cid.BTC) }}</td>
+						<td align="right">{{ _z(res.REF.ETH, cid.ETH) }}</td>
+						<td align="right">{{ _z(res.REF.XRP, cid.XRP) }}</td>
+					</tr>
+					<tr>
+						<td>Вклад</td>
+						<td align="right">{{ _z(res.GIVE.USD, cid.USD) }}</td>
+						<td align="right">{{ _z(res.GIVE.EUR, cid.EUR) }}</td>
+						<td align="right">{{ _z(res.GIVE.RUB, cid.RUB) }}</td>
+						<td align="right">{{ _z(res.GIVE.BTC, cid.BTC) }}</td>
+						<td align="right">{{ _z(res.GIVE.ETH, cid.ETH) }}</td>
+						<td align="right">{{ _z(res.GIVE.XRP, cid.XRP) }}</td>
+					</tr>
+					<tr>
+						<td>Снятие</td>
+						<td align="right">{{ _z(res.TAKE.USD, cid.USD) }}</td>
+						<td align="right">{{ _z(res.TAKE.EUR, cid.EUR) }}</td>
+						<td align="right">{{ _z(res.TAKE.RUB, cid.RUB) }}</td>
+						<td align="right">{{ _z(res.TAKE.BTC, cid.BTC) }}</td>
+						<td align="right">{{ _z(res.TAKE.ETH, cid.ETH) }}</td>
+						<td align="right">{{ _z(res.TAKE.XRP, cid.XRP) }}</td>
+					</tr>
+					<tr>
+						<td>Начисление</td>
+						<td align="right">{{ _z(res.CALCIN.USD, cid.USD) }}</td>
+						<td align="right">{{ _z(res.CALCIN.EUR, cid.EUR) }}</td>
+						<td align="right">{{ _z(res.CALCIN.RUB, cid.RUB) }}</td>
+						<td align="right">{{ _z(res.CALCIN.BTC, cid.BTC) }}</td>
+						<td align="right">{{ _z(res.CALCIN.ETH, cid.ETH) }}</td>
+						<td align="right">{{ _z(res.CALCIN.XRP, cid.XRP) }}</td>
+					</tr>
+					<tr>
+						<td>Списание</td>
+						<td align="right">{{ _z(res.CALCOUT.USD, cid.USD) }}</td>
+						<td align="right">{{ _z(res.CALCOUT.EUR, cid.EUR) }}</td>
+						<td align="right">{{ _z(res.CALCOUT.RUB, cid.RUB) }}</td>
+						<td align="right">{{ _z(res.CALCOUT.BTC, cid.BTC) }}</td>
+						<td align="right">{{ _z(res.CALCOUT.ETH, cid.ETH) }}</td>
+						<td align="right">{{ _z(res.CALCOUT.XRP, cid.XRP) }}</td>
+					</tr>
+					<tr>
+						<td>Вывод</td>
+						<td align="right">{{ _z(res.CASHOUT.USD, cid.USD) }}</td>
+						<td align="right">{{ _z(res.CASHOUT.EUR, cid.EUR) }}</td>
+						<td align="right">{{ _z(res.CASHOUT.RUB, cid.RUB) }}</td>
+						<td align="right">{{ _z(res.CASHOUT.BTC, cid.BTC) }}</td>
+						<td align="right">{{ _z(res.CASHOUT.ETH, cid.ETH) }}</td>
+						<td align="right">{{ _z(res.CASHOUT.XRP, cid.XRP) }}</td>
+					</tr>
+					<tr>
+						<td>Объём созданных депозитов</td>
+						<td align="right">{{ _z(res.DEPO.USD, cid.USD) }}</td>
+						<td align="right">{{ _z(res.DEPO.EUR, cid.EUR) }}</td>
+						<td align="right">{{ _z(res.DEPO.RUB, cid.RUB) }}</td>
+						<td align="right">{{ _z(res.DEPO.BTC, cid.BTC) }}</td>
+						<td align="right">{{ _z(res.DEPO.ETH, cid.ETH) }}</td>
+						<td align="right">{{ _z(res.DEPO.XRP, cid.XRP) }}</td>
+					</tr>
+					<tr>
+						<td>из них активных сейчас</td>
+						<td align="right">{{ _z(res.DEPO2.USD, cid.USD) }}</td>
+						<td align="right">{{ _z(res.DEPO2.EUR, cid.EUR) }}</td>
+						<td align="right">{{ _z(res.DEPO2.RUB, cid.RUB) }}</td>
+						<td align="right">{{ _z(res.DEPO2.BTC, cid.BTC) }}</td>
+						<td align="right">{{ _z(res.DEPO2.ETH, cid.ETH) }}</td>
+						<td align="right">{{ _z(res.DEPO2.XRP, cid.XRP) }}</td>
+					</tr>
+					<tr class="marked">
+						<td><b>Чистый поток (пополнения − выплаты)</b></td>
+						<td align="right"><b>{{ _z(res.CASHIN.USD - res.CASHOUT.USD, cid.USD) }}</b></td>
+						<td align="right"><b>{{ _z(res.CASHIN.EUR - res.CASHOUT.EUR, cid.EUR) }}</b></td>
+						<td align="right"><b>{{ _z(res.CASHIN.RUB - res.CASHOUT.RUB, cid.RUB) }}</b></td>
+						<td align="right"><b>{{ _z(res.CASHIN.BTC - res.CASHOUT.BTC, cid.BTC) }}</b></td>
+						<td align="right"><b>{{ _z(res.CASHIN.ETH - res.CASHOUT.ETH, cid.ETH) }}</b></td>
+						<td align="right"><b>{{ _z(res.CASHIN.XRP - res.CASHOUT.XRP, cid.XRP) }}</b></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+{% endif %}
+
+{% include "admin/footer.twig" %}

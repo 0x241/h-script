@@ -1,0 +1,30 @@
+
+{% if up_category %}
+	{% set admin_subtitle = up_title|default('') %}
+	{% if (not admin_subtitle or admin_subtitle == '-') and title and title != up_category %}
+		{% set admin_subtitle = title %}
+	{% endif %}
+	{% set admin_list_total = null %}
+	{% if isset(pl_params.RowsCount) %}
+		{% set admin_list_total = pl_params.RowsCount %}
+	{% endif %}
+	<div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+		<div class="flex min-w-0 flex-wrap items-center gap-3">
+			<h1 class="text-3xl font-extrabold text-brand dark:text-white">{{ up_category }}</h1>
+			{% if admin_subtitle and admin_subtitle != up_category %}
+					<i class="fa-solid fa-chevron-right relative top-1 text-xs text-gray-300 dark:text-gray-700" aria-hidden="true"></i>
+					<span class="relative top-1 text-xl font-bold text-gray-500 dark:text-gray-400">{{ admin_subtitle }}</span>
+			{% endif %}
+		</div>
+		{% if admin_list_total is not null %}
+			<div class="inline-flex shrink-0 items-center gap-2 self-start rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-gray-500 shadow-sm dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400 sm:self-auto">
+				<i class="fa-solid fa-database" aria-hidden="true"></i>
+				{% if tpl_module == 'review/admin' %}
+					{{ _t({"key": 'reviews.text', "count": admin_list_total, "default": "Всего отзывов: "|cat(admin_list_total)}) }}
+				{% else %}
+					{{ _t({"key": 'admin.list.total', "count": admin_list_total, "default": "Всего записей: "|cat(admin_list_total)}) }}
+				{% endif %}
+			</div>
+		{% endif %}
+	</div>
+{% endif %}

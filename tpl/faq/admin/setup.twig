@@ -1,0 +1,6 @@
+
+{% include "admin/header.twig" with {"title": 'Настройки'} %}
+
+{% include "edit.twig" with {"values": cfg, "fields": {'ShowCount': ['I', 'Кол-во записей на странице'], 'InBlock': ['I', 'Кол-во случайных записей в блоке'], '_Cats': {0: 'A', 1: 'Категории<br><<одна строка - одна категория>>', 'size': 20}}} %}
+
+{% include "admin/footer.twig" %}

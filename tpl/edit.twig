@@ -1,0 +1,30 @@
+
+
+{% if not isset(values) %}{% set values = [] %}{% endif %}
+{% if not isset(fields) %}{% set fields = [] %}{% endif %}
+{% if not isset(errors) %}{% set errors = [] %}{% endif %}
+{% if not isset(captcha) %}{% set captcha = 0 %}{% endif %}
+{% if not isset(title) %}{% set title = '' %}{% endif %}
+{% if not isset(title_new) %}{% set title_new = '' %}{% endif %}
+{% if not isset(form) %}{% set form = '' %}{% endif %}
+{% if not isset(data) %}{% set data = false %}{% endif %}
+{% if not isset(form_class) %}{% set form_class = '' %}{% endif %}
+{% if not isset(on_submit) %}{% set on_submit = '' %}{% endif %}
+{% if not isset(table_class) %}{% set table_class = '' %}{% endif %}
+{% if not isset(btn_text) %}{% set btn_text = '' %}{% endif %}
+{% if not isset(btns) %}{% set btns = null %}{% endif %}
+{% if not isset(tpl_module) %}{% set tpl_module = '' %}{% endif %}
+{% if not isset(url) %}{% set url = '' %}{% endif %}
+{% if not isset(form_layout) %}{% set form_layout = '' %}{% endif %}
+
+{% set edit_descr_rem = '<span class="descr_rem">(' %}
+{% set edit_descr_star = '<span class="ml-1 text-red-500" aria-hidden="true">*</span>' %}
+{% set edit_form_name = getFormName(form) %}
+{% set edit_is_admin_context = (tpl_module == 'admin') or (strpos(tpl_module, '/admin') != false) or (tpl_module == 'captcha/setup') %}
+{% set edit_is_settings = edit_is_admin_context and (strpos(tpl_module, 'setup') != false) %}
+{% set edit_is_new = (not values) and (not edit_is_settings) %}
+{% set edit_is_filter = edit_is_admin_context and (strpos(form, 'filter') != false) %}
+
+{% include "edit.begin.twig" %}
+{% include "admin/edit.block.twig" %}
+{% include "edit.end.twig" %}

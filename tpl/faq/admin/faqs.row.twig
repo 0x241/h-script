@@ -1,0 +1,22 @@
+
+<td>
+	{{ l.fID }}
+</td>
+<td class="nowrap">
+	<small>{{ l.fCTS }}</small>
+</td>
+<td>
+	{% if l.fHidden %}*{% endif %}
+</td>
+<td>
+	<small>{{ l.fCat }}</small>
+</td>
+<td class="max-w-64">
+	<span class="block max-w-64 truncate" title="{{ l.fQuestion }}">{{ l.fQuestion }}</span>
+</td>
+<td class="max-w-80">
+	<a href="{{ _link('faq/admin/faq', false, 0) }}?id={{ l.fID }}" class="block max-w-80 truncate" title="{{ l.fAnswer }}">{{ l.fAnswer }}</a>
+</td>
+<td>
+	{{ l.fOrder }}
+</td>

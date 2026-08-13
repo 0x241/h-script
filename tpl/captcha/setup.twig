@@ -1,0 +1,8 @@
+
+{% include "admin/header.twig" with {"title": 'Настройки Captcha'} %}
+
+{% if not isset(cfg.Captcha_Service) %}{% set cfg = array_set_path(cfg|default([]), ["Captcha_Service"], 'turnstile') %}{% endif %}
+
+{% include "edit.twig" with {"values": cfg, "fields": {'Captcha_Service': ['S', 'Сервис защиты (Капча)', 0, {'turnstile': 'Cloudflare Turnstile (Рекомендуется)', 'default': 'Стандартная капча CMS'}], 0: 'Cloudflare Turnstile', 'Turnstile_SiteKey': {0: 'P', 1: 'SiteKey (Ключ сайта)', 'hint': 'Оставьте пустым, чтобы сохранить текущий ключ', 'comment': 'Сохранённое значение не отображается.'}, 'Turnstile_SecretKey': {0: 'P', 1: 'SecretKey (Секретный ключ)', 'hint': 'Оставьте пустым, чтобы сохранить текущий ключ', 'comment': 'Сохранённое значение никогда не выводится в HTML.'}, 1: 'Стандартная капча CMS', 'View': ['S', 'Вид искажения картинки', 0, {1: 'Искажение', 2: 'Мозаика', 3: 'Тени'}]}} %}
+	
+{% include "admin/footer.twig" %}

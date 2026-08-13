@@ -1,0 +1,11 @@
+{% set avatar_user = avatar_user|default(user) %}
+{% set avatar_class = avatar_class|default('h-12 w-12 rounded-full object-cover') %}
+{% set avatar_initial_class = avatar_initial_class|default(avatar_class ~ ' flex items-center justify-center bg-blue-100 font-bold text-blue-600 dark:bg-blue-900/30') %}
+{% set avatar_initial = avatar_user.aName|default(avatar_user.uLogin|default('A'))|slice(0, 1)|upper %}
+
+{% if avatar_user.aAvatar %}
+	<img src="upload/avatar/{{ avatar_user.uID }}.jpg?v={{ avatar_user.aAvatar }}" alt="{{ avatar_user.aName|default(avatar_user.uLogin) }}" class="{{ avatar_class }}" loading="lazy">
+{% else %}
+	<span class="{{ avatar_initial_class }}" aria-hidden="true">{{ avatar_initial }}</span>
+{% endif %}
+

@@ -1,0 +1,9 @@
+<td>
+	<a href="{{ _link('account/admin/ip', false, 0) }}?ip={{ l.ip }}" class="inline-flex items-center gap-2 font-mono font-extrabold text-brand dark:text-white">
+		<i class="fa-solid fa-location-dot text-blue-500" aria-hidden="true"></i>
+		{{ l.ip }}
+	</a>
+</td>
+<td><span class="inline-flex min-w-12 justify-center rounded-lg bg-emerald-50 px-3 py-1.5 font-mono font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">{{ l.auth }}</span></td>
+<td><span class="inline-flex min-w-12 justify-center rounded-lg bg-amber-50 px-3 py-1.5 font-mono font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">{{ l.reg }}</span></td>
+<td><strong class="font-mono text-base text-brand dark:text-white">{{ l.sum }}</strong></td>

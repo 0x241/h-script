@@ -1,0 +1,24 @@
+{
+  "name": "h-script",
+  "version": "1.0.0",
+  "private": true,
+  "description": "H-Script application packaged for Docker Compose.",
+  "type": "module",
+  "scripts": {
+    "css:build": "npx @tailwindcss/cli -i static/css/input.css -o static/css/app.css --minify",
+    "css:watch": "npx @tailwindcss/cli -i static/css/input.css -o static/css/app.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0x241/h-script.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/0x241/h-script/issues"
+  },
+  "homepage": "https://github.com/0x241/h-script#readme",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.2",
+    "tailwindcss": "^4.3.2"
+  }
+}

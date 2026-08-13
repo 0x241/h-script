@@ -1,0 +1,55 @@
+
+{#
+	title:
+	title_new:
+	url: (* = selfurl)
+	form: form name
+	data: (true = multipart/form-data)
+	form_class: class for form
+	on_submit:
+#}
+
+{% set edit_descr_rem = '<span class="descr_rem">(' %}
+{% set edit_descr_star = '<span class="ml-1 text-red-500" aria-hidden="true">*</span>' %}
+
+{% if not isset(values) %}{% set values = [] %}{% endif %}
+{% if not isset(form) %}{% set form = '' %}{% endif %}
+{% if not isset(title) %}{% set title = '' %}{% endif %}
+{% if not isset(title_new) %}{% set title_new = '' %}{% endif %}
+{% if not isset(tpl_module) %}{% set tpl_module = '' %}{% endif %}
+{% if not isset(url) %}{% set url = '' %}{% endif %}
+{% if not isset(data) %}{% set data = false %}{% endif %}
+{% if not isset(form_layout) %}{% set form_layout = '' %}{% endif %}
+{% if not isset(form_class) %}{% set form_class = '' %}{% endif %}
+{% if not isset(on_submit) %}{% set on_submit = '' %}{% endif %}
+
+{% if not isset(edit_is_admin_context) %}{% set edit_is_admin_context = (tpl_module == 'admin') or (strpos(tpl_module, '/admin') != false) or (tpl_module == 'captcha/setup') %}{% endif %}
+{% if not isset(edit_is_settings) %}{% set edit_is_settings = edit_is_admin_context and (strpos(tpl_module, 'setup') != false) %}{% endif %}
+{% set edit_is_new = (not values) and (not edit_is_settings) %}
+{% if (title or title_new) and (tpl_module != 'tickets/newticket') %}
+	{% if edit_is_admin_context %}
+		<div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+			<div>
+				<span class="mb-3 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-gray-500 shadow-sm dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400">
+					<i class="fa-solid fa-sliders" aria-hidden="true"></i>
+					{{ _t({"key": 'admin.settings.eyebrow', "default": 'Управление параметрами'}) }}
+				</span>
+				<h2 class="text-3xl font-extrabold text-brand dark:text-white">{% if not title_new or not edit_is_new %}{{ title }}{% else %}{{ title_new }}{% endif %}</h2>
+			</div>
+		</div>
+	{% else %}
+		<div class="mb-7">
+			<span class="inline-flex items-center gap-2 text-sm font-bold text-gray-500"><i class="fa-solid fa-sliders" aria-hidden="true"></i> {{ _t({"key": 'admin.settings.eyebrow', "default": 'Управление параметрами'}) }}</span>
+			<h2 class="mt-2 text-3xl font-extrabold text-brand dark:text-white">{% if not title_new or not edit_is_new %}{{ title }}{% else %}{{ title_new }}{% endif %}</h2>
+		</div>
+	{% endif %}
+{% endif %}
+
+{% set edit_form_name = getFormName(form) %}
+{% include "edit.info.twig" with {"_info": getInfoData(edit_form_name)} %}
+
+<form method="post" {% if url %} action="{% if url == '*' %}{{ _selfLink }}{% else %}{{ url }}{% endif %}"{% endif %} name="{{ edit_form_name }}"
+	{% if data %} enctype="multipart/form-data"{% endif %}
+	class="{% if edit_is_admin_context %}space-y-6{% else %}space-y-6{% if form_layout == 'showcase' %} max-w-5xl{% endif %}{% endif %}{% if edit_is_filter %} mb-8{% endif %}{% if form_class %} {{ form_class }}{% endif %}"
+>
+<div class="{% if edit_is_admin_context and form_layout == 'settings_grid' %}overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]{% elseif edit_is_admin_context %}space-y-6{% else %}space-y-6{% if form_layout == 'showcase' %} max-w-5xl{% endif %}{% endif %}">

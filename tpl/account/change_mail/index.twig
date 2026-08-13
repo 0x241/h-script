@@ -1,0 +1,83 @@
+{% include "external/auth.header.twig" with {"title": _t({"key": 'auth.change_mail.title', "default": 'Смена e-mail'})} %}
+
+{% set mail_form_name = getFormName('') %}
+{% set txt_login = valueIf(_cfg.Const_NoLogins, 'e-mail', 'Логин') %}
+{% set mail_login_value = '' %}
+{% if isset_IN('Login') %}{% set mail_login_value = _IN('Login') %}{% endif %}
+{% set new_mail_value = '' %}
+{% if isset_IN('NewMail') %}{% set new_mail_value = _IN('NewMail') %}{% endif %}
+{% set login_error = formErrorText(mail_form_name, {'login_empty': 'укажите '|cat(txt_login)|cat('/Пароль'), 'login_not_found': 'неверная пара '|cat(txt_login)|cat('/Пароль'), 'banned': 'доступ в аккаунт приостановлен до '|cat(ban_date), 'blocked': 'аккаунт заблокирован'}, true) %}
+{% set pass_error = formErrorText(mail_form_name, {'pass_not_found': 'неверный Пароль'}, true) %}
+{% set mail_error = formErrorText(mail_form_name, {'mail_empty': 'укажите e-mail', 'mail_wrong': 'неверный e-mail', 'mail_used': 'e-mail уже используется'}, true) %}
+
+<main class="flex min-h-screen">
+	<aside class="relative hidden w-1/2 flex-col items-center justify-center overflow-hidden bg-[#4C1D95] p-12 lg:flex">
+		<div class="absolute inset-0 bg-gradient-to-br from-purple-500/30 via-indigo-900/40 to-transparent"></div>
+		<div class="relative z-10 max-w-lg text-center">
+			<div class="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl border border-white/20 bg-white/10 text-white shadow-2xl backdrop-blur-md">
+				<i class="fa-solid fa-envelope-open-text text-4xl"></i>
+			</div>
+			<h2 class="mb-6 text-4xl font-bold text-white">{{ _t({"key": 'auth.change_mail.aside_title', "default": 'Безопасность профиля'}) }}</h2>
+			<p class="text-xl font-medium leading-relaxed text-purple-100/70">{{ _t({"key": 'auth.change_mail.aside_text', "default": 'Поддерживайте контактные данные в актуальном состоянии для получения важных финансовых уведомлений.'}) }}</p>
+		</div>
+	</aside>
+
+	<section class="relative z-10 flex w-full flex-col justify-between bg-white p-6 dark:bg-[#0A0A0A] sm:p-12 lg:w-1/2">
+		<div class="mb-10 flex items-center justify-between">
+			{% include "external/auth.logo.twig" %}
+			{% include "external/auth.controls.twig" %}
+		</div>
+
+		<div class="mx-auto my-auto w-full max-w-md">
+			<h1 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'auth.change_mail.heading', "default": 'Изменение E-mail'}) }}</h1>
+			<p class="mb-8 text-textDim dark:text-gray-400">{{ _t({"key": 'auth.change_mail.text', "default": 'Укажите новый адрес электронной почты.'}) }}</p>
+
+			{% if isset(_GET.done) %}
+				<div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
+					<div class="text-lg font-bold">{{ _t({"key": 'common.success', "default": 'Успешно'}) }}</div>
+					<p class="mt-1 text-sm">{{ _t({"key": 'auth.change_mail.done', "default": 'E-mail заменен на новый!'}) }}</p>
+				</div>
+			{% elseif isset(_GET.need_confirm) %}
+				<div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+					<div class="text-lg font-bold">{{ _t({"key": 'auth.change_mail.need_confirm.title', "default": 'Операция НЕ завершена!'}) }}</div>
+					<p class="mt-1 text-sm">{{ _t({"key": 'auth.change_mail.need_confirm.text', "default": 'Для завершения операции подтвердите новый e-mail.'}) }}</p>
+					<a href="{{ _link('confirm', false, 0) }}" class="mt-4 inline-flex rounded-full bg-amber-500 px-5 py-2 text-sm font-bold text-white">{{ _t({"key": 'auth.confirm_code', "default": 'Введите код подтверждения'}) }}</a>
+				</div>
+			{% elseif isset(_GET.already_used) %}
+				<div class="rounded-2xl border border-red-200 bg-red-50 p-5 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+					<div class="text-lg font-bold">{{ _t({"key": 'auth.change_mail.already_used.title', "default": 'Операция не может быть завершена!'}) }}</div>
+					<p class="mt-1 text-sm">{{ _t({"key": 'auth.change_mail.already_used.text', "default": 'Этот e-mail уже используется другим пользователем.'}) }}</p>
+				</div>
+			{% elseif isset(squest) %}
+				{% include "external/auth.sqa.twig" %}
+			{% else %}
+				<form method="post" action="{{ _selfLink }}" name="{{ mail_form_name }}" class="space-y-5">
+					{{ _getFormSecurity({"form": mail_form_name}) }}
+					{% if not user.uID %}
+						<div>
+							<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ mail_form_name }}_Login">{{ txt_login }}</label>
+							<input name="Login" id="{{ mail_form_name }}_Login" value="{{ mail_login_value }}" type="text" placeholder="{{ _t({"key": 'auth.placeholder.login', "default": 'login'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20">
+							{% if login_error %}<p class="mt-2 text-sm font-semibold text-red-500">{{ login_error }}</p>{% endif %}
+						</div>
+					{% endif %}
+					<div>
+						<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ mail_form_name }}_NewMail">{{ _t({"key": 'auth.change_mail.new_mail', "default": 'Новый E-mail'}) }}</label>
+						<input name="NewMail" id="{{ mail_form_name }}_NewMail" value="{{ new_mail_value }}" type="email" placeholder="{{ _t({"key": 'auth.placeholder.new_email', "default": 'new@example.com'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20" autocomplete="email">
+						{% if mail_error %}<p class="mt-2 text-sm font-semibold text-red-500">{{ mail_error }}</p>{% endif %}
+					</div>
+					<div>
+						<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ mail_form_name }}_Pass">{{ _t({"key": 'auth.current_password', "default": 'Ваш текущий пароль'}) }}</label>
+						{% include "external/auth.password.twig" with {"password_name": 'Pass', "password_id": mail_form_name ~ '_Pass', "password_placeholder": _t({"key": 'auth.placeholder.password_confirm', "default": 'Для подтверждения'}), "password_autocomplete": 'current-password'} %}
+						{% if pass_error %}<p class="mt-2 text-sm font-semibold text-red-500">{{ pass_error }}</p>{% endif %}
+					</div>
+					{% include "external/auth.captcha.twig" with {"auth_form_name": mail_form_name, "auth_captcha": _cfg.Account_ChangeMailCaptcha} %}
+					<button name="{{ mail_form_name }}_btn" value="{{ _t({"key": 'form.next', "default": 'Далее'}) }}" type="submit" class="mt-4 w-full rounded-2xl bg-purple-600 p-4 font-bold text-white shadow-lg shadow-purple-500/30 transition hover:-translate-y-0.5 hover:bg-purple-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-purple-500 dark:hover:bg-purple-600">{{ _t({"key": 'auth.change_mail.submit', "default": 'Сохранить изменения'}) }}</button>
+				</form>
+			{% endif %}
+		</div>
+
+		<div class="mt-10 text-center text-sm text-gray-400">{% include "external/product-copyright.twig" %}</div>
+	</section>
+</main>
+
+{% include "external/auth.footer.twig" %}

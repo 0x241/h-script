@@ -1,0 +1,121 @@
+<div class="min-w-0 flex-1 space-y-6">
+	{% if account_service_token_flash.message %}
+		<aside class="flex items-start gap-3 rounded-[1.5rem] border p-5 text-sm font-semibold {% if account_service_token_flash.type == 'error' %}border-red-200 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100{% else %}border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100{% endif %}">
+			<i class="fa-solid {% if account_service_token_flash.type == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %} mt-0.5" aria-hidden="true"></i>
+			<div class="min-w-0 flex-1">
+				<p>{{ account_service_token_flash.message }}</p>
+				{% if account_service_token_flash.secret %}
+					<label for="account-service-token-new-secret" class="mt-4 block text-xs font-extrabold uppercase tracking-wider">{{ _t({"key": 'account.service_token.new_secret', "default": 'Новый Bearer-токен сервиса'}) }}</label>
+					<input id="account-service-token-new-secret" type="text" readonly value="{{ account_service_token_flash.secret }}" class="mt-2 w-full rounded-xl border border-emerald-300 bg-white px-4 py-3 font-mono text-xs text-brand outline-none dark:border-emerald-500/40 dark:bg-black dark:text-white">
+				{% endif %}
+			</div>
+		</aside>
+	{% endif %}
+
+	<section class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="border-b border-gray-100 p-6 dark:border-gray-800">
+			<div class="flex items-start gap-4">
+				<span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-100 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300">
+					<i class="fa-solid fa-satellite-dish" aria-hidden="true"></i>
+				</span>
+				<div>
+					<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'account.service_token.title', "default": 'Доступ сборщика'}) }}</h3>
+					<p class="mt-1 text-sm leading-6 text-gray-500">{{ _t({"key": 'account.service_token.text', "default": 'Аккаунт уровня 10 может самостоятельно выпускать и перевыпускать только собственные токены чтения сводной статистики.'}) }}</p>
+				</div>
+			</div>
+		</div>
+		<div class="grid gap-4 p-6 sm:grid-cols-2">
+			<div class="rounded-2xl bg-gray-50 p-4 dark:bg-[#1A1A1A]">
+				<p class="text-xs font-bold uppercase tracking-wider text-gray-400">{{ _t({"key": 'account.service_token.permission', "default": 'Разрешение'}) }}</p>
+				<code class="mt-2 block font-bold text-violet-600 dark:text-violet-300">telemetry:read</code>
+			</div>
+			<div class="min-w-0 rounded-2xl bg-gray-50 p-4 dark:bg-[#1A1A1A]">
+				<p class="text-xs font-bold uppercase tracking-wider text-gray-400">Endpoint</p>
+				<code class="mt-2 block break-all text-sm font-bold text-violet-600 dark:text-violet-300">{{ account_service_stats_url }}</code>
+			</div>
+		</div>
+	</section>
+
+	<section class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="border-b border-gray-100 p-6 dark:border-gray-800">
+			<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'account.service_token.issue.title', "default": 'Выпустить сервисный токен'}) }}</h3>
+			<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.service_token.issue.text', "default": 'Секрет показывается один раз и не хранится в открытом виде.'}) }}</p>
+		</div>
+		<form method="post" action="{{ account_tab_url }}?tab=service" name="account_service_token_create" class="space-y-5 p-6">
+			{{ _getFormSecurity({"form": "account_service_token_create"}) }}
+			<div class="grid gap-5 sm:grid-cols-2">
+				<label class="block text-sm font-bold text-gray-700 dark:text-gray-300">
+					{{ _t({"key": 'account.api.field.name', "default": 'Название'}) }}
+					<input type="text" name="name" maxlength="100" required placeholder="{{ _t({"key": 'account.service_token.field.name_placeholder', "default": 'Например, Grafana production'}) }}" class="mt-2 w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white">
+				</label>
+				<label class="block text-sm font-bold text-gray-700 dark:text-gray-300">
+					{{ _t({"key": 'account.api.field.expires', "default": 'Срок действия, UTC'}) }}
+					<input type="datetime-local" name="expires_at" class="mt-2 w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white">
+					<small class="mt-1 block font-normal text-gray-500">{{ _t({"key": 'account.service_token.field.expires_hint', "default": 'Пустое значение создаёт бессрочный токен.'}) }}</small>
+				</label>
+			</div>
+			<button type="submit" name="account_service_token_create_btncreate" value="1" class="inline-flex items-center gap-2 rounded-2xl bg-brand px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+				<i class="fa-solid fa-key" aria-hidden="true"></i>
+				{{ _t({"key": 'account.api.issue.button', "default": 'Выпустить токен'}) }}
+			</button>
+		</form>
+	</section>
+
+	<section class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="border-b border-gray-100 p-6 dark:border-gray-800">
+			<div class="flex items-center justify-between gap-4">
+				<div>
+					<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'account.service_token.tokens.title', "default": 'Мои сервисные токены'}) }}</h3>
+					<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.service_token.tokens.text', "default": 'При перевыпуске старый секрет сразу отзывается.'}) }}</p>
+				</div>
+				<span class="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-600 dark:bg-gray-800 dark:text-gray-300">{{ account_service_tokens|length }}</span>
+			</div>
+		</div>
+		{% if account_service_tokens %}
+			<form method="post" action="{{ account_tab_url }}?tab=service" name="account_service_token_manage" class="space-y-4 p-6">
+				{{ _getFormSecurity({"form": "account_service_token_manage"}) }}
+				{% for token in account_service_tokens %}
+					<article class="rounded-2xl border border-gray-100 bg-gray-50 p-5 dark:border-gray-800 dark:bg-[#1A1A1A] {% if token.tstState == 0 %}opacity-70{% endif %}">
+						<div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+							<div class="flex flex-wrap items-center gap-2">
+								<strong class="text-brand dark:text-white">#{{ token.tstID }} · {{ token.tstTokenPrefix }}…</strong>
+								{% if token.tstState == 1 and not token.Expired %}
+									<span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">{{ _t({"key": 'account.api.status.active', "default": 'Активен'}) }}</span>
+								{% elseif token.tstState == 2 %}
+									<span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">{{ _t({"key": 'account.api.status.paused', "default": 'Приостановлен'}) }}</span>
+								{% elseif token.Expired and token.tstState != 0 %}
+									<span class="rounded-full bg-gray-200 px-2.5 py-1 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">{{ _t({"key": 'account.api.status.expired', "default": 'Истёк'}) }}</span>
+								{% else %}
+									<span class="rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700 dark:bg-red-500/10 dark:text-red-300">{{ _t({"key": 'account.api.status.revoked', "default": 'Отозван'}) }}</span>
+								{% endif %}
+							</div>
+							<div class="text-xs text-gray-500 sm:text-right">
+								<p>{{ _t({"key": 'account.api.created', "default": 'Создан:'}) }} {{ token.CreatedText }}</p>
+								<p>{{ token.LastUsedText }}{% if token.tstLastIP %} · {{ token.tstLastIP }}{% endif %}</p>
+							</div>
+						</div>
+						<div class="grid gap-4 sm:grid-cols-2">
+							<label class="block text-sm font-bold text-gray-700 dark:text-gray-300">
+								{{ _t({"key": 'account.service_token.field.new_name', "default": 'Название нового токена'}) }}
+								<input type="text" name="tokens[{{ token.tstID }}][name]" maxlength="100" required value="{{ token.tstName }}" {% if token.tstState == 0 %}disabled{% endif %} class="mt-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 font-medium text-brand outline-none focus:border-violet-500 dark:border-white/10 dark:bg-[#151515] dark:text-white">
+							</label>
+							<label class="block text-sm font-bold text-gray-700 dark:text-gray-300">
+								{{ _t({"key": 'account.service_token.field.new_expires', "default": 'Новый срок действия, UTC'}) }}
+								<input type="datetime-local" name="tokens[{{ token.tstID }}][expires_at]" value="{{ token.ExpiresInput }}" {% if token.tstState == 0 %}disabled{% endif %} class="mt-2 w-full rounded-xl border border-black/10 bg-white px-4 py-3 font-medium text-brand outline-none focus:border-violet-500 dark:border-white/10 dark:bg-[#151515] dark:text-white">
+								<small class="mt-1 block font-normal text-gray-500">{{ _t({"key": 'account.service_token.current', "default": 'Текущий:'}) }} {{ token.ExpiresText }}</small>
+							</label>
+						</div>
+						{% if token.tstState != 0 %}
+							<div class="mt-4 flex flex-wrap gap-3">
+								<button type="submit" name="account_service_token_manage_btnreissue" value="{{ token.tstID }}" class="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white dark:bg-white dark:text-brand"><i class="fa-solid fa-rotate" aria-hidden="true"></i>{{ _t({"key": 'account.service_token.reissue', "default": 'Перевыпустить'}) }}</button>
+								<button type="submit" name="account_service_token_manage_btnrevoke" value="{{ token.tstID }}" class="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"><i class="fa-solid fa-ban" aria-hidden="true"></i>{{ _t({"key": 'account.service_token.revoke', "default": 'Отозвать'}) }}</button>
+							</div>
+						{% endif %}
+					</article>
+				{% endfor %}
+			</form>
+		{% else %}
+			<div class="p-8 text-center text-sm text-gray-500">{{ _t({"key": 'account.service_token.tokens.empty', "default": 'Сервисные токены ещё не выпускались.'}) }}</div>
+		{% endif %}
+	</section>
+</div>

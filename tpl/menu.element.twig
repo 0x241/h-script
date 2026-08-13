@@ -1,0 +1,23 @@
+
+<div class="nav-item{% if (module == tpl_module) or (module == tpl_vmodule) or current %} current{% endif %}">
+	<a class="nav-link{% if (module == tpl_module) or (module == tpl_vmodule) or current %} is-active current{% endif %}" href="{{ _link(module, false, 0) }}{% if params %}?{{ params }}{% endif %}" data-module="{{ module }}"{% if (module == tpl_module) or (module == tpl_vmodule) or current %} aria-current="page"{% endif %}>
+		{% include "icon.twig" with {"module": module} %}
+		<span>{{ text }}</span>
+		{% if text2 %}
+			<span>{{ text2 }}</span>
+		{% endif %}
+		{% if count > 0 %}
+			<b class="badge badge--warning">{{ count }}</b>
+		{% endif %}
+	</a>
+	{% if submenu %}
+		<div class="sub-nav">
+			{% for sm in submenu %}
+				<a class="nav-link nav-link--sub" href="{{ _link(sm[0], false, 0) }}">
+					{{ sm[1] }}
+				</a>
+			{% endfor %}
+		</div>
+	{% endif %}
+</div>
+

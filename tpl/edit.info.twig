@@ -1,0 +1,24 @@
+
+{% if _info %}
+	{% set info_keys = {'Completed': 'info.completed', 'Saved': 'info.saved', 'Canceled': 'info.canceled', 'Added': 'info.added', 'Deleted': 'info.deleted', 'LogIn': 'info.logged_in', 'LogOut': 'info.logged_out', '*NoSelected': 'info.no_selected', '*CantComplete': 'info.cant_complete', '*AlreadyUsed': 'info.already_used', '*Error': 'info.error', '*NoPage': 'info.no_page', '*Denied': 'info.denied'} %}
+	{% set info_key = info_keys[_info[0]]|default('') %}
+	{% set info_text = info_key ? _t({"key": info_key, "default": _info[0]}) : _info[0] %}
+	{% if info_text %}
+		<input id="edit_info_box_close" type="checkbox" class="peer sr-only">
+		<aside id="edit_info_box" role="{% if substr(_info[0], 0, 1) == '*' %}alert{% else %}status{% endif %}" class="fixed right-4 top-24 z-[100] flex w-[calc(100%-2rem)] max-w-sm items-start gap-3 rounded-xl border p-4 shadow-2xl peer-checked:hidden sm:right-6 {% if substr(_info[0], 0, 1) == '*' %}border-red-200 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-[#221315] dark:text-red-100{% else %}border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-[#102019] dark:text-emerald-100{% endif %}">
+			<span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full {% if substr(_info[0], 0, 1) == '*' %}bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-300{% else %}bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300{% endif %}" aria-hidden="true">
+				{% if substr(_info[0], 0, 1) == '*' %}
+					<i class="fa-solid fa-circle-exclamation"></i>
+				{% else %}
+					<i class="fa-solid fa-circle-check"></i>
+				{% endif %}
+			</span>
+			<div class="min-w-0 flex-1 pt-1">
+				<strong class="block text-sm font-extrabold">{{ info_text }}</strong>
+			</div>
+			<label for="edit_info_box_close" class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg opacity-60 transition hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/5" aria-label="{{ _t({"key": 'common.close', "default": 'Закрыть'}) }}">
+				<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+			</label>
+		</aside>
+	{% endif %}
+{% endif %}

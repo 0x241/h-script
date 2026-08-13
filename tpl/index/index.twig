@@ -1,0 +1,429 @@
+{% set page_title = _t({"key": 'home.meta.title', "default": 'H-Script — High-Tech. High-Yield.'}) %}
+{% include "external/header.twig" with {"title": page_title, "public_active": 'index'} %}
+
+<main id="content" class="flex-1">
+	<section class="pt-48 pb-10 px-6">
+		<div class="max-w-5xl mx-auto text-center relative z-10">
+			<!-- COMBINED HERO -->
+			<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold mb-6 mx-auto border border-blue-100 dark:border-blue-800/50">
+				<span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> {{ _t({"key": 'home.badge', "default": 'H-Script 1.0.0'}) }}
+			</div>
+
+			<h1 class="text-[2.8rem] sm:text-[4rem] md:text-[5.5rem] font-black tracking-tighter mb-8 leading-[1.05] text-brand dark:text-white">
+				Deploy<br class="sm:hidden"><span class="relative inline-block h-[1.05em] w-[4.8em] align-bottom font-sans font-black tracking-tighter sm:ml-[0.15em] motion-safe:animate-hero-slot motion-safe:[animation-delay:-1.1s]">
+					<span class="absolute -top-2 left-0 h-[calc(1.05em+1rem)] w-[4.8em]">
+						<span class="relative block h-full w-full [--hero-width:100%] motion-safe:animate-hero-type-9 motion-safe:[animation-delay:-1.1s]">
+							<span class="block h-full overflow-hidden"><span class="inline-block whitespace-nowrap bg-gradient-to-r from-blue-500 to-green-400 bg-clip-text py-2 leading-[1.05] text-transparent">High-Tech</span></span>
+							<span class="absolute left-full top-2 ml-1 h-[1em] w-[0.05em] motion-safe:animate-pulse bg-blue-500" aria-hidden="true"></span>
+						</span>
+					</span>
+					<span class="absolute -top-2 left-0 h-[calc(1.05em+1rem)] w-[5em]">
+						<span class="relative block h-full w-0 opacity-0 [--hero-width:100%] motion-safe:animate-hero-type-10 motion-safe:[animation-delay:-9.766s]">
+							<span class="block h-full overflow-hidden"><span class="inline-block whitespace-nowrap bg-gradient-to-r from-blue-500 to-green-400 bg-clip-text py-2 leading-[1.05] text-transparent">High-Yield</span></span>
+							<span class="absolute left-full top-2 ml-1 h-[1em] w-[0.05em] motion-safe:animate-pulse bg-blue-500" aria-hidden="true"></span>
+						</span>
+					</span>
+					<span class="absolute -top-2 left-0 h-[calc(1.05em+1rem)] w-[6.6em]">
+						<span class="relative block h-full w-0 opacity-0 [--hero-width:100%] motion-safe:animate-hero-type-13 motion-safe:[animation-delay:-5.433s]">
+							<span class="block h-full overflow-hidden"><span class="inline-block whitespace-nowrap bg-gradient-to-r from-blue-500 to-green-400 bg-clip-text py-2 leading-[1.05] text-transparent">High-Scalable</span></span>
+							<span class="absolute left-full top-2 ml-1 h-[1em] w-[0.05em] motion-safe:animate-pulse bg-blue-500" aria-hidden="true"></span>
+						</span>
+					</span>
+				</span><br>
+				Fintech In Seconds.
+			</h1>
+
+			<!-- Multiple Counters -->
+			<div class="flex flex-wrap justify-center items-center gap-4 mb-10">
+				<!-- Processed -->
+				<div class="px-4 md:px-5 py-2 md:py-2.5 rounded-2xl bg-green-50 dark:bg-green-900/10 border border-green-200/60 dark:border-green-800/50 flex items-center gap-3 shadow-sm">
+					<div class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-green-500 animate-[pulse_2s_ease-in-out_infinite]"></div>
+					<div class="text-sm md:text-base font-bold text-green-700 dark:text-green-400 font-mono flex items-center gap-2 tracking-wide">
+						<span>$</span> <span id="live-counter">{{ public_metrics.processed }}</span> <span class="text-green-600/70 dark:text-green-500/70 text-xs md:text-sm font-medium">{{ _t({"key": 'home.metric.processed', "default": 'обработано'}) }}</span>
+					</div>
+				</div>
+
+				<!-- Projects -->
+				<div class="px-4 md:px-5 py-2 md:py-2.5 rounded-2xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200/60 dark:border-blue-800/50 flex items-center gap-3 shadow-sm">
+					<i class="fa-solid fa-server text-blue-500 text-sm md:text-base"></i>
+					<div class="text-sm md:text-base font-bold text-blue-700 dark:text-blue-400 font-mono flex items-center gap-2 tracking-wide">
+						<span id="projects-counter">{{ public_metrics.platforms }}</span> <span class="text-blue-600/70 dark:text-blue-500/70 text-xs md:text-sm font-medium">{{ _t({"key": 'home.metric.platforms', "default": 'платформ'}) }}</span>
+					</div>
+				</div>
+
+				<!-- Gateways -->
+				<div class="flex items-center gap-3 rounded-2xl border border-purple-200/60 bg-purple-50 px-4 py-2 shadow-sm dark:border-purple-800/50 dark:bg-purple-900/10 md:px-5 md:py-2.5">
+					<i class="fa-solid fa-bolt text-purple-500 text-sm md:text-base"></i>
+					<div class="text-sm md:text-base font-bold text-purple-700 dark:text-purple-400 font-mono flex items-center gap-2 tracking-wide">
+						<span>25+</span> <span class="text-purple-600/70 dark:text-purple-500/70 text-xs md:text-sm font-medium">{{ _t({"key": 'home.metric.gateways', "default": 'шлюзов'}) }}</span>
+					</div>
+				</div>
+			</div>
+
+			<p class="text-lg md:text-xl text-textDim dark:text-gray-400 mb-10 max-w-4xl mx-auto leading-relaxed font-medium">
+				{{ _t({"key": 'home.hero.text.new', "default": 'Кабинет, депозиты, платежные шлюзы, партнерская сеть, новости, FAQ, тикеты и админ-панель работают как единый backend для финансового проекта.'}) }}
+			</p>
+
+			<div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+				<a href="{{ _link('account/login', false, 0) }}" class="w-full sm:w-auto rounded-full bg-brand px-10 py-4 text-center text-lg font-bold text-white shadow-lg transition-all duration-[250ms] hover:-translate-y-0.5 hover:bg-[#2D2D2D] hover:shadow-xl dark:bg-white dark:text-brand dark:hover:bg-gray-100">{{ _t({"key": 'home.action.demo', "default": 'Перейти к Демо'}) }}</a>
+				<a href="https://github.com/0x241/h-script/wiki" target="_blank" rel="noopener noreferrer" class="flex w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-black/5 bg-white px-10 py-4 text-lg font-bold text-brand transition-all duration-[250ms] hover:-translate-y-0.5 hover:shadow-[0_10px_20px_-5px_rgba(0,0,0,0.08)] dark:border-white/10 dark:bg-brand dark:text-white">{{ _t({"key": 'home.action.docs', "default": 'Документация'}) }}</a>
+			</div>
+
+			<!-- Cascading UI Screens Hero -->
+			<div class="relative max-w-6xl mx-auto h-[400px] md:h-[550px] mt-10 md:mt-20 group perspective-1000 flex justify-center items-start">
+
+				<!-- Floating Tags -->
+				<div class="absolute top-[-10px] md:top-10 -right-2 md:-right-8 w-52 md:w-64 p-3 md:p-4 z-40 flex items-center gap-3 md:gap-4 animate-[bounce_5s_ease-in-out_infinite] shadow-2xl bg-white dark:bg-[#1A1A1A] rounded-2xl border border-gray-100 dark:border-gray-800">
+					<div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-brand dark:bg-white flex items-center justify-center text-white dark:text-black font-bold text-lg md:text-xl"><i class="fa-brands fa-bitcoin"></i></div>
+					<div>
+						<div class="text-xs md:text-sm text-textDim dark:text-gray-400 font-medium mb-1">{{ _t({"key": 'home.mockup.deposit_label', "default": 'Депозит зачислен'}) }}</div>
+						<div class="text-base md:text-lg font-bold text-brand dark:text-white">+ 1.25 BTC</div>
+					</div>
+				</div>
+
+				<div class="absolute bottom-16 md:bottom-28 -left-2 md:-left-8 w-60 md:w-72 p-3 md:p-4 z-40 flex items-center gap-3 md:gap-4 animate-[bounce_6s_ease-in-out_infinite_reverse] shadow-2xl bg-white dark:bg-[#1A1A1A] rounded-2xl border border-gray-100 dark:border-gray-800">
+					<div class="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-[#00A344] dark:text-green-400">
+						<svg class="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+					</div>
+					<div class="whitespace-nowrap text-sm md:text-base font-bold text-brand dark:text-white">{{ _t({"key": 'home.mockup.operations_processed', "default": 'Операций обработано'}) }}</div>
+				</div>
+
+				<!-- Background Glow -->
+				<div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[80%] h-1/2 bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 opacity-20 dark:opacity-30 blur-3xl rounded-full group-hover:opacity-40 transition-opacity duration-1000"></div>
+
+				<!-- SCREEN 1: Left (Admin / Tables) -->
+				<div class="absolute flex w-[70%] md:w-[50%] h-[280px] md:h-[400px] flex-col bg-white dark:bg-[#1A1A1A] rounded-2xl shadow-lg border border-gray-200/80 dark:border-gray-800 overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]
+					top-0 -translate-x-[15%] md:-translate-x-[25%] scale-[0.85] opacity-60
+					group-hover:-translate-x-[45%] md:group-hover:-translate-x-[55%] group-hover:rotate-[-8deg] group-hover:scale-[0.9] group-hover:opacity-100 z-10">
+					<div class="flex shrink-0 items-center justify-between gap-3 border-b border-gray-100 bg-gray-50 px-3 py-2.5 dark:border-gray-800 dark:bg-[#111]">
+						<div class="flex gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-[#FF5F56]"></span><span class="h-2.5 w-2.5 rounded-full bg-[#FFBD2E]"></span><span class="h-2.5 w-2.5 rounded-full bg-[#27C93F]"></span></div>
+						<div class="max-w-[65%] truncate rounded-md border border-gray-200 bg-white px-3 py-1 text-[10px] font-semibold text-gray-400 dark:border-gray-800 dark:bg-[#1A1A1A]">h-script.com</div>
+						<div class="w-8"></div>
+					</div>
+					<img src="static/images/cabinet-operations.jpg" alt="H-Script finance and operations screen" class="min-h-0 w-full flex-1 object-cover object-left-top" loading="eager" decoding="async">
+				</div>
+
+				<!-- SCREEN 2: Right (Investments / Graph) -->
+				<div class="absolute flex w-[70%] md:w-[50%] h-[280px] md:h-[400px] flex-col bg-white dark:bg-[#1A1A1A] rounded-2xl shadow-lg border border-gray-200/80 dark:border-gray-800 overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]
+					top-4 md:top-8 translate-x-[15%] md:translate-x-[25%] scale-[0.85] opacity-60
+					group-hover:translate-x-[45%] md:group-hover:translate-x-[55%] group-hover:rotate-[8deg] group-hover:scale-[0.9] group-hover:opacity-100 z-20">
+					<div class="flex shrink-0 items-center justify-between gap-3 border-b border-gray-100 bg-gray-50 px-3 py-2.5 dark:border-gray-800 dark:bg-[#111]">
+						<div class="flex gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-[#FF5F56]"></span><span class="h-2.5 w-2.5 rounded-full bg-[#FFBD2E]"></span><span class="h-2.5 w-2.5 rounded-full bg-[#27C93F]"></span></div>
+						<div class="max-w-[65%] truncate rounded-md border border-gray-200 bg-white px-3 py-1 text-[10px] font-semibold text-gray-400 dark:border-gray-800 dark:bg-[#1A1A1A]">h-script.com</div>
+						<div class="w-8"></div>
+					</div>
+					<img src="static/images/cabinet-deposits.jpg" alt="H-Script deposits screen" class="min-h-0 w-full flex-1 object-cover object-right-top" loading="eager" decoding="async">
+				</div>
+
+				<!-- SCREEN 3: Center (Main Dashboard) -->
+				<div class="absolute flex w-[90%] md:w-[65%] h-[320px] md:h-[480px] flex-col bg-white dark:bg-[#151515] rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]
+					top-10 md:top-16 z-30 group-hover:-translate-y-6 group-hover:scale-[1.02]">
+					<!-- MacOS style top bar -->
+					<div class="flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-gray-100 px-4 py-3 dark:border-gray-800 dark:bg-[#0A0A0A]">
+						<div class="flex gap-2">
+							<div class="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+							<div class="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+							<div class="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+						</div>
+						<div class="max-w-[65%] flex-1 truncate rounded-md border border-gray-200 bg-white px-4 py-1 text-xs font-medium text-gray-400 shadow-sm dark:border-gray-800 dark:bg-[#1A1A1A]">h-script.com</div>
+						<div class="w-10"></div>
+					</div>
+					<img src="static/images/cabinet-dashboard.jpg" alt="H-Script cabinet dashboard" class="min-h-0 w-full flex-1 object-cover object-top" loading="eager" decoding="async">
+				</div>
+			</div>
+	</section>
+
+	<section id="technologies" class="py-10 border-y border-gray-200/50 dark:border-gray-800/50 bg-white/50 dark:bg-[#0D0D0D]">
+			<div class="max-w-7xl mx-auto px-6">
+				<p class="text-center text-sm font-bold text-textDim dark:text-gray-500 mb-8 tracking-widest uppercase">{{ _t({"key": 'home.integrations.title', "default": 'Интеграции и Технологии'}) }}</p>
+				<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
+					<div class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><i class="fa-brands fa-php text-2xl text-[#777BB4]" aria-hidden="true"></i><span class="font-bold text-brand dark:text-white">PHP 8.4</span></div>
+					<div class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><i class="fa-solid fa-database text-2xl text-[#4479A1]" aria-hidden="true"></i><span class="font-bold text-brand dark:text-white">MySQL 8.4</span></div>
+					<div class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><i class="fa-solid fa-layer-group text-2xl text-[#DC382D]" aria-hidden="true"></i><span class="font-bold text-brand dark:text-white">Redis</span></div>
+					<div class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><i class="fa-solid fa-box-open text-2xl text-[#885630]" aria-hidden="true"></i><span class="font-bold text-brand dark:text-white">Composer 2</span></div>
+					<div class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><i class="fa-solid fa-wind text-2xl text-[#06B6D4]" aria-hidden="true"></i><span class="font-bold text-brand dark:text-white">Tailwind CSS 4</span></div>
+					<div class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><i class="fa-solid fa-leaf text-2xl text-[#7BAA45]" aria-hidden="true"></i><span class="font-bold text-brand dark:text-white">Twig 3</span></div>
+					<div class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><i class="fa-brands fa-docker text-2xl text-[#2496ED]" aria-hidden="true"></i><span class="font-bold text-brand dark:text-white">Docker</span></div>
+					<div class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><i class="fa-brands fa-github text-2xl text-[#181717] dark:text-white" aria-hidden="true"></i><span class="font-bold text-brand dark:text-white">GitHub</span></div>
+					<div class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><i class="fa-brands fa-cloudflare text-2xl text-[#F38020]" aria-hidden="true"></i><span class="font-bold text-brand dark:text-white">Cloudflare</span></div>
+					<div class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><i class="fa-solid fa-code text-2xl text-[#7D22FF]" aria-hidden="true"></i><span class="font-bold text-brand dark:text-white">REST API</span></div>
+				</div>
+			</div>
+	</section>
+
+	<section class="py-24 px-6 max-w-7xl mx-auto">
+		<div class="text-center mb-16 max-w-3xl mx-auto">
+			<h2 class="text-4xl md:text-5xl font-bold text-brand dark:text-white mb-6 tracking-tight">{{ _t({"key": 'home.core.title', "default": 'Ядро финансовых операций'}) }}</h2>
+			<p class="text-xl text-textDim dark:text-gray-400 font-medium">{{ _t({"key": 'home.core.text', "default": 'Создавайте продукты локально, расширяйтесь глобально. Платформа берет на себя всю сложность финансовых потоков.'}) }}</p>
+		</div>
+
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+			<div class="lg:col-span-2 rounded-[2rem] bg-cardBlue p-10 flex flex-col md:flex-row items-center gap-8 overflow-hidden relative">
+				<div class="flex-1 z-10">
+					<h3 class="text-2xl font-bold text-brand dark:text-white mb-4">{{ _t({"key": 'home.feature.gateways.title', "default": 'Единая интеграция шлюзов'}) }}</h3>
+					<p class="text-lg text-brand/70 dark:text-gray-300 mb-8 font-medium">{{ _t({"key": 'home.feature.gateways.text', "default": 'Более 25 встроенных методов оплаты. Автоматическая проверка транзакций в блокчейне (USDT, BTC) и интеграция фиатных эквайрингов.'}) }}</p>
+				</div>
+				<div class="w-full md:w-1/2 flex justify-end relative z-10">
+					<div class="space-y-3 w-64">
+						<div class="bg-white/80 dark:bg-[#1A1A1A]/80 border dark:border-gray-800 backdrop-blur-md p-4 rounded-xl shadow-sm flex justify-between items-center transform rotate-2">
+							<span class="font-bold text-brand dark:text-gray-200">Stripe (Cards)</span><i class="fa-brands fa-stripe text-xl text-blue-500"></i>
+						</div>
+						<div class="bg-white/80 dark:bg-[#1A1A1A]/80 border dark:border-gray-800 backdrop-blur-md p-4 rounded-xl shadow-sm flex justify-between items-center transform -rotate-1">
+							<span class="font-bold text-brand dark:text-gray-200">USDT (TRC20)</span><div class="w-5 h-5 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-500 rounded-full flex items-center justify-center text-xs">₮</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="rounded-[2rem] bg-cardPeach p-10 flex flex-col h-full">
+				<div class="w-14 h-14 bg-white dark:bg-[#1A1A1A] border dark:border-gray-800 rounded-2xl shadow-sm flex items-center justify-center mb-6 text-[#FF6B35]">
+					<i class="fa-solid fa-users text-2xl"></i>
+				</div>
+				<h3 class="text-2xl font-bold text-brand dark:text-white mb-4">{{ _t({"key": 'home.feature.partners.title', "default": 'Партнерская сеть'}) }}</h3>
+				<p class="text-lg text-brand/70 dark:text-gray-300 font-medium mb-8">{{ _t({"key": 'home.feature.partners.text', "default": 'Многоуровневая реферальная система. Начисления от вкладов или от прибыли.'}) }}</p>
+			</div>
+
+			<div class="rounded-[2rem] bg-cardGreen p-10">
+				<div class="w-14 h-14 bg-white dark:bg-[#1A1A1A] border dark:border-gray-800 rounded-2xl shadow-sm flex items-center justify-center mb-6 text-[#00A344]">
+					<i class="fa-solid fa-chart-pie text-2xl"></i>
+				</div>
+				<h3 class="text-2xl font-bold text-brand dark:text-white mb-4">{{ _t({"key": 'home.feature.portfolios.title', "default": 'Инвест-портфели'}) }}</h3>
+				<p class="text-lg text-brand/70 dark:text-gray-300 font-medium">{{ _t({"key": 'home.feature.portfolios.text', "default": 'Гибкие планы начислений: плавающий процент, капитализация, заморозка.'}) }}</p>
+			</div>
+
+			<div class="lg:col-span-2 rounded-[2rem] bg-cardPurple p-10 flex flex-col justify-center relative overflow-hidden">
+				<div class="relative z-10 w-full md:w-2/3">
+					<h3 class="text-2xl font-bold text-brand dark:text-white mb-4">{{ _t({"key": 'home.feature.analytics.title', "default": 'Детальная аналитика'}) }}</h3>
+					<p class="text-lg text-brand/70 dark:text-gray-300 font-medium">{{ _t({"key": 'home.feature.analytics.text', "default": 'Мониторинг финансовых потоков, графики доходности инвесторов и активности партнеров в реальном времени.'}) }}</p>
+				</div>
+				<div class="absolute -right-4 md:-right-10 -bottom-10 w-48 md:w-64 h-48 md:h-64 bg-white dark:bg-[#1A1A1A] rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 p-4 transform -rotate-12 flex flex-col gap-3">
+					<div class="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+					<div class="flex-1 flex items-end gap-3 px-2">
+						<div class="flex-1 bg-blue-400/50 dark:bg-blue-900/50 rounded-t-sm h-1/3"></div>
+						<div class="flex-1 bg-purple-400/60 dark:bg-purple-900/60 rounded-t-sm h-2/3"></div>
+						<div class="flex-1 bg-green-500 rounded-t-sm h-full"></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="lg:col-span-2 rounded-[2rem] bg-[#1A1A1A] dark:bg-[#0A0A0A] p-10 flex flex-col justify-center relative overflow-hidden text-white border border-gray-800 dark:border-gray-900 shadow-2xl">
+				<div class="relative z-10">
+					<div class="flex items-center gap-3 mb-4">
+						<i class="fa-brands fa-github text-3xl"></i>
+						<span class="text-gray-400 font-mono text-sm bg-white/10 px-3 py-1 rounded-full">0x241 / h-script</span>
+					</div>
+					<h3 class="text-2xl font-bold mb-4">{{ _t({"key": 'home.github.title', "default": 'Открытый исходный код'}) }}</h3>
+					<p class="text-lg text-gray-400 mb-8 font-medium max-w-lg">{{ _t({"key": 'home.github.text', "default": 'Получите полный доступ к репозиторию. Клонируйте, форкайте и расширяйте ядро системы под нужды вашего фонда.'}) }}</p>
+					<div class="flex flex-col items-start gap-4">
+						<div class="max-w-full overflow-x-auto rounded-xl border border-gray-800 bg-[rgba(0,0,0,0.5)] p-4 font-mono text-sm text-green-400 shadow-inner">
+							<span class="text-gray-500 select-none">$</span> git clone https://github.com/0x241/h-script.git
+						</div>
+						<a href="https://github.com/0x241/h-script" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-white hover:text-brand">
+							<i class="fa-brands fa-github" aria-hidden="true"></i>
+							{{ _t({"key": 'home.github.btn', "default": 'Открыть на GitHub'}) }}
+						</a>
+					</div>
+				</div>
+				<i class="fa-brands fa-git-alt absolute -right-10 -bottom-10 text-[200px] text-white/5 z-0"></i>
+			</div>
+
+			<div class="rounded-[2rem] bg-[#008CDD] p-10 flex flex-col h-full relative overflow-hidden text-white shadow-xl shadow-blue-900/20">
+				<div class="relative z-10 flex flex-col h-full">
+					<i class="fa-brands fa-docker text-4xl mb-4"></i>
+					<h3 class="text-2xl font-bold mb-4">{{ _t({"key": 'home.docker.title', "default": 'Docker-образы'}) }}</h3>
+					<p class="text-blue-100 mb-8 font-medium flex-1">{{ _t({"key": 'home.docker.text', "default": 'Официальные образы для локальной разработки и мгновенного деплоя.'}) }}</p>
+					<div class="flex flex-col items-start gap-4">
+						<div class="max-w-full overflow-x-auto rounded-xl border border-[rgba(96,165,250,0.3)] bg-[rgba(30,58,138,0.5)] p-3 font-mono text-xs text-blue-100 shadow-inner">
+							<span class="text-[rgba(147,197,253,0.5)] select-none">$</span> docker pull 0x241/h-script:1.0.0
+						</div>
+						<a href="https://hub.docker.com/r/0x241/h-script" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-white hover:text-brand">
+							<i class="fa-brands fa-docker" aria-hidden="true"></i>
+							{{ _t({"key": 'home.docker.btn', "default": 'Открыть на Docker Hub'}) }}
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="py-24 px-6 max-w-7xl mx-auto border-t border-gray-200/50 dark:border-gray-800/50">
+		<div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+			<div class="flex flex-col justify-center">
+				<h2 class="text-4xl font-bold text-brand dark:text-white mb-6 tracking-tight">{{ _t({"key": 'home.modules.title', "default": 'Экосистема модулей'}) }}</h2>
+				<p class="text-xl text-textDim dark:text-gray-400 font-medium mb-8">{{ _t({"key": 'home.modules.text', "default": 'Платформа из коробки содержит всё необходимое для клиентского сервиса и омниканальных уведомлений.'}) }}</p>
+				<div class="space-y-6">
+					<div class="flex gap-5">
+						<div class="w-12 h-12 rounded-full bg-[#E8F0FE] dark:bg-blue-900/20 border dark:border-blue-500/20 text-[#1a73e8] dark:text-blue-400 flex items-center justify-center shrink-0">
+							<i class="fa-solid fa-headset text-xl"></i>
+						</div>
+						<div>
+							<h4 class="text-xl font-bold text-brand dark:text-white mb-1">{{ _t({"key": 'home.modules.tickets.title', "default": 'Встроенная тикет-система'}) }}</h4>
+							<p class="text-textDim dark:text-gray-400 font-medium">{{ _t({"key": 'home.modules.tickets.text', "default": 'Маршрутизация обращений по отделам (финансы, техника), приоритеты, статусы и шаблоны быстрых ответов для саппорта.'}) }}</p>
+						</div>
+					</div>
+					<div class="flex gap-5">
+						<div class="w-12 h-12 rounded-full bg-[#E8FCEF] dark:bg-green-900/20 border dark:border-green-500/20 text-[#00A344] dark:text-green-400 flex items-center justify-center shrink-0">
+							<i class="fa-brands fa-telegram text-xl"></i>
+						</div>
+						<div>
+							<h4 class="text-xl font-bold text-brand dark:text-white mb-1">{{ _t({"key": 'home.modules.telegram.title', "default": 'Telegram-бот'}) }}</h4>
+							<p class="text-textDim dark:text-gray-400 font-medium">{{ _t({"key": 'home.modules.telegram.text', "default": 'Ваши клиенты могут привязать аккаунт к Telegram для проверки баланса, просмотра инвестиций и мгновенных уведомлений.'}) }}</p>
+						</div>
+					</div>
+					<div class="flex gap-5">
+						<div class="w-12 h-12 rounded-full bg-[#FFF0E5] dark:bg-orange-900/20 border dark:border-orange-500/20 text-[#FF6B35] dark:text-orange-400 flex items-center justify-center shrink-0">
+							<i class="fa-solid fa-comment-sms text-xl"></i>
+						</div>
+						<div>
+							<h4 class="text-xl font-bold text-brand dark:text-white mb-1">{{ _t({"key": 'home.modules.sms.title', "default": 'SMS и 2FA уведомления'}) }}</h4>
+							<p class="text-textDim dark:text-gray-400 font-medium">{{ _t({"key": 'home.modules.sms.text', "default": 'Двухфакторная аутентификация через SMS-шлюзы для подтверждения входа и финансовых операций (защита выплат).'}) }}</p>
+						</div>
+					</div>
+					<div class="flex gap-5">
+						<div class="w-12 h-12 rounded-full bg-[#F0E5FF] dark:bg-purple-900/20 border dark:border-purple-500/20 text-[#7D22FF] dark:text-purple-400 flex items-center justify-center shrink-0">
+							<i class="fa-solid fa-code text-xl"></i>
+						</div>
+						<div>
+							<h4 class="text-xl font-bold text-brand dark:text-white mb-1">{{ _t({"key": 'home.modules.api.title', "default": 'REST API'}) }}</h4>
+							<p class="text-textDim dark:text-gray-400 font-medium">{{ _t({"key": 'home.modules.api.text', "default": 'Полностью документированный API с Bearer токенами. Интегрируйте балансы и логику в любые внешние приложения.'}) }}</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="relative">
+				<div class="absolute -inset-4 bg-cardPurple rounded-3xl opacity-50 transform -rotate-2"></div>
+				<div class="relative z-10 flex h-full flex-col overflow-hidden rounded-[20px] bg-brand shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)]">
+					<div class="flex items-center px-4 py-3 bg-[#2D2D2D] border-b border-[#404040] justify-between">
+						<div class="flex gap-2">
+							<div class="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+							<div class="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+							<div class="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+						</div>
+						<div class="text-xs font-mono text-gray-400">GET /api/v1/balance</div>
+					</div>
+					<div class="p-6 overflow-x-auto text-sm font-mono leading-relaxed text-[#D4D4D4] bg-[#1A1A1A] flex-1">
+<pre><span class="text-gray-500">// Response 200 OK</span>
+{
+  <span class="text-[#CE9178]">"success"</span>: <span class="text-[#569CD6]">true</span>,
+  <span class="text-[#CE9178]">"data"</span>: {
+    <span class="text-[#CE9178]">"wallets"</span>: [{
+      <span class="text-[#CE9178]">"currency"</span>: {
+        <span class="text-[#CE9178]">"id"</span>: <span class="text-[#B5CEA8]">1</span>,
+        <span class="text-[#CE9178]">"gateway_id"</span>: <span class="text-[#CE9178]">"BW"</span>,
+        <span class="text-[#CE9178]">"code"</span>: <span class="text-[#CE9178]">"USD"</span>,
+        <span class="text-[#CE9178]">"decimals"</span>: <span class="text-[#B5CEA8]">2</span>
+      },
+      <span class="text-[#CE9178]">"available"</span>: <span class="text-[#B5CEA8]">4500</span>,
+      <span class="text-[#CE9178]">"locked"</span>: <span class="text-[#B5CEA8]">0</span>,
+      <span class="text-[#CE9178]">"outgoing"</span>: <span class="text-[#B5CEA8]">0</span>,
+      <span class="text-[#CE9178]">"total"</span>: <span class="text-[#B5CEA8]">4500</span>
+    }]
+  },
+  <span class="text-[#CE9178]">"error"</span>: <span class="text-[#569CD6]">null</span>,
+  <span class="text-[#CE9178]">"meta"</span>: { <span class="text-[#CE9178]">"version"</span>: <span class="text-[#CE9178]">"1.0"</span> }
+}</pre>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	{% if leftnews or leftreview %}
+		<section class="border-t border-gray-200/50 px-6 py-24 dark:border-gray-800/50">
+			<div class="mx-auto max-w-7xl space-y-24">
+				{% if leftnews %}
+					<div>
+						<div class="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+							<div><span class="mb-3 block text-sm font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400">{{ _t({"key": 'nav.news', "default": 'Новости'}) }}</span><h2 class="text-4xl font-bold tracking-tight text-brand dark:text-white">{{ _t({"key": 'news.heading', "default": 'Новости и обновления'}) }}</h2></div>
+							<a href="{{ _link('news', false, 0) }}" class="inline-flex items-center gap-2 font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400"><span>{{ _t({"key": 'nav.news', "default": 'Новости'}) }}</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+						</div>
+						{% include "news/block.twig" with {"list": leftnews} %}
+					</div>
+				{% endif %}
+
+				{% if leftreview %}
+					<div>
+						<div class="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+							<div><span class="mb-3 block text-sm font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">{{ _t({"key": 'nav.reviews', "default": 'Отзывы'}) }}</span><h2 class="text-4xl font-bold tracking-tight text-brand dark:text-white">{{ _t({"key": 'reviews.heading', "default": 'Отзывы участников'}) }}</h2></div>
+							<a href="{{ _link('review', false, 0) }}" class="inline-flex items-center gap-2 font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400"><span>{{ _t({"key": 'nav.reviews', "default": 'Отзывы'}) }}</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+						</div>
+						{% include "review/block.twig" with {"list": leftreview} %}
+					</div>
+				{% endif %}
+			</div>
+		</section>
+	{% endif %}
+
+	<section id="architecture" class="py-24 px-6 max-w-7xl mx-auto border-t border-gray-200/50 dark:border-gray-800/50">
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+			<div class="relative order-2 lg:order-1">
+				<div class="absolute -inset-4 bg-cardBlue rounded-3xl opacity-50 transform rotate-2"></div>
+				<div class="relative z-10 overflow-hidden rounded-[20px] bg-brand shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)]">
+					<div class="flex items-center px-4 py-3 bg-[#2D2D2D] border-b border-[#404040]">
+						<div class="flex gap-2">
+							<div class="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+							<div class="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+							<div class="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+						</div>
+						<div class="ml-4 text-xs font-mono text-gray-400">src/Cache/CatalogCache.php</div>
+					</div>
+					<div class="p-6 overflow-x-auto text-sm font-mono leading-relaxed text-[#D4D4D4]">
+<pre><span class="text-[#569CD6]">class</span> <span class="text-[#4EC9B0]">CatalogCache</span>
+{
+    <span class="text-[#569CD6]">public</span> <span class="text-[#569CD6]">function</span> <span class="text-[#DCDCAA]">remember</span>(
+        <span class="text-[#569CD6]">string</span> $catalog,
+        <span class="text-[#569CD6]">string</span> $variant,
+        <span class="text-[#569CD6]">callable</span> $callback
+    ): <span class="text-[#569CD6]">mixed</span>
+    {
+        $this-><span class="text-[#DCDCAA]">assertCatalog</span>($catalog);
+        $version = $this-><span class="text-[#DCDCAA]">version</span>($catalog);
+        $key = <span class="text-[#DCDCAA]">sprintf</span>(
+            <span class="text-[#CE9178]">'catalog:%s:v%d:%s'</span>,
+            $catalog,
+            $version,
+            <span class="text-[#DCDCAA]">hash</span>(<span class="text-[#CE9178]">'sha256'</span>, $variant)
+        );
+        <span class="text-[#569CD6]">return</span> $this->cache-><span class="text-[#DCDCAA]">get</span>(
+            $key,
+            $callback,
+            <span class="text-[#569CD6]">self</span>::TTL[$catalog]
+        );
+    }
+}</pre>
+					</div>
+				</div>
+			</div>
+
+			<div class="order-1 lg:order-2 pl-0 lg:pl-10">
+				<h2 class="text-4xl md:text-5xl font-bold text-brand dark:text-white mb-6 tracking-tight">{{ _t({"key": 'home.architecture.title', "default": 'Чистая архитектура. Полный контроль.'}) }}</h2>
+				<p class="text-xl text-textDim dark:text-gray-400 font-medium mb-8">
+					{{ _t({"key": 'home.architecture.text', "default": 'H-Script — открытая CMS, спроектированная по стандартам PSR-4. Вы полностью контролируете логику приложения и можете модифицировать любой модуль.'}) }}
+				</p>
+				<div class="space-y-6">
+					<div class="flex gap-4">
+						<div class="w-12 h-12 rounded-full bg-cardPurple border dark:border-purple-500/20 flex items-center justify-center shrink-0 text-[#7D22FF] dark:text-purple-400">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+						</div>
+						<div>
+							<h4 class="text-xl font-bold text-brand dark:text-white mb-2">{{ _t({"key": 'home.architecture.oop.title', "default": 'Объектно-ориентированное ядро'}) }}</h4>
+							<p class="text-textDim dark:text-gray-400 font-medium">{{ _t({"key": 'home.architecture.oop.text', "default": 'Кодовая база на PHP 8.4. Использование строгой типизации, пространств имен и DI-контейнеров.'}) }}</p>
+						</div>
+					</div>
+					<div class="flex gap-4">
+						<div class="w-12 h-12 rounded-full bg-cardPeach border dark:border-orange-500/20 flex items-center justify-center shrink-0 text-[#FF6B35] dark:text-orange-400">
+							<i class="fa-brands fa-html5 text-xl"></i>
+						</div>
+						<div>
+							<h4 class="text-xl font-bold text-brand dark:text-white mb-2">{{ _t({"key": 'home.architecture.twig.title', "default": 'Шаблонизатор Twig'}) }}</h4>
+							<p class="text-textDim dark:text-gray-400 font-medium">{{ _t({"key": 'home.architecture.twig.text', "default": 'Фронтенд полностью отделен от бэкенда. Верстайте любые макеты, не прикасаясь к PHP.'}) }}</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</main>
+
+{% include "external/footer.twig" %}

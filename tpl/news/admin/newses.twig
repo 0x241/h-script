@@ -1,0 +1,12 @@
+
+{% include "admin/header.twig" with {"title": 'Публикации'} %}
+
+{% include "list.twig" with {"title": 'Новости', "url": '*', "fields": {'nID': ['ID'], 'nTS': ['Дата публикации'], 'nAnnounce': ['Анонс'], 'nDBegin': ['Публиковать с'], 'nDEnd': ['По'], 'nAttn': ['<small>Важная</small>']}, "values": list, "row": '*', "btns": {'del': 'Удалить'}} %}
+
+<div class="mt-6 flex justify-center">
+	<a href="{{ _link('news/admin/news', false, 0) }}?add" class="inline-flex min-w-48 items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+		<i class="fa-solid fa-circle-plus" aria-hidden="true"></i><span>Добавить</span>
+	</a>
+</div>
+
+{% include "admin/footer.twig" %}

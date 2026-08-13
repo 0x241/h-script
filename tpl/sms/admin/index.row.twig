@@ -1,0 +1,48 @@
+
+<td>
+	{{ l.jID }}
+	<br>
+	<sup>{{ l.result.provider_id|default('') }}</sup>
+</td>
+<td class="nowrap">
+	{% if l.user_id %}
+		<a href="{{ _link('adm_user', false, 0) }}?id={{ l.user_id }}" target="_blank">{{ l.user_login }}</a>
+	{% else %}
+		- Система -
+	{% endif %}
+	<br>
+	<small>{{ l.jCTS }}</small>
+</td>
+<td>
+	{{ l.payload.to|default('') }}
+</td>
+<td class="max-w-80">
+	<small class="block max-w-80 truncate" title="{{ l.payload.text|default('') }}">{{ l.payload.text|default('') }}</small>
+</td>
+<td class="nowrap">
+	{% if l.result.delivery_status|default('') == 'delivered' %}
+		доставлено
+	{% elseif l.result.delivery_status|default('') == 'sent' %}
+		отправлено
+	{% else %}
+		{{ sms_statuses[l.jState] }}
+	{% endif %}
+	<br>
+	<small>{{ l.jDTS|default(l.jPTS) }}</small>
+</td>
+<td align="right">
+	{{ l.result.parts|default(0) }}
+</td>
+<td>
+	<small>
+		{{ exValue(l.jError, sms_errors[l.jError]) }}
+		{% if not l.jError and l.result.provider_status|default('') %}
+			{{ l.result.provider_status }}
+		{% endif %}
+	</small>
+</td>
+<td>
+	<small>
+		{{ l.jAttempts }}/{{ l.jMaxAttempts }}
+	</small>
+</td>

@@ -1,0 +1,84 @@
+
+{% include "admin/header.twig" with {"title": 'Операция'} %}
+
+{% include "balance/_statuses.twig" %}
+
+{% if el %}
+
+	<h2>{{ op_names[el['oOper']] }}</h2>
+	{% set b = [] %}
+	{% if el.oState <= 2 %}
+		{% set b = array_set_path(b|default([]), ['cancel'], 'Отклонить') %}
+	{% endif %}
+	{% if el.oState >= 4 %}
+		{% set b = array_set_path(b|default([]), ['del'], 'Удалить') %}
+	{% endif %}
+	{% include "balance/_oper.twig" with {"bt": valueIf(el.oState <= 2, 'Выполнить', ' '), "b": b, "errors": {'oper_not_found': 'неверный статус операции', 'oper_disabled': 'операция отключена', 'low_bal1': 'недостаточно средств', 'data_date_wrong': 'неверная дата операции', 'data_sum_wrong': 'неверная сумма', 'data_batch_wrong': 'не задан batch-номер операции', 'batch_exists': 'операция с таким batch-номером уже существует', 'send_error': 'ошибка при отправке средств'}, "from_admin": true, "op_statuses": op_statuses, "op_sums": op_sums} %}
+	
+{% else %}
+
+	{% if _GET.add %}
+	
+		{% set oper = _GET.add %}
+		{% set use_sum2 = in_array(oper, ['CASHIN', 'CASHOUT', 'EX', 'TR', 'SELL']) %}
+		{% set preview_url = _link('ajax', false, 0) ~ '?module=balance&do=getsum&format=html' %}
+		{% set admin_oper_fields = {
+			'Oper': oper,
+			'Login': _GET.user,
+			'User': ['X', 'Пользователь', 0, _GET.user],
+			'Bal': ['U', 'balance/bal.twig'],
+			'PSys': {
+				0: 'S',
+				1: valueIf(oper == 'CALCIN', 'Плат. система!!или Депозит!!', 'Плат. система!!'),
+				2: {'depo_wrong': 'неверный депозит', 'psys_empty': 'плат. система не указана'},
+				3: merge_arrays(valueIf(count(clist) > 1, {0: '- выберите -'}, []), clist),
+				'hx_post': preview_url,
+				'hx_trigger': 'change',
+				'hx_target': '#admin-operation-preview-content',
+				'hx_swap': 'outerHTML',
+				'hx_include': 'closest form',
+				'hx_sync': 'closest form:replace'
+			},
+			'Sum': {
+				0: '$',
+				1: valueIf(_cfg.Const_IntCurr and in_array(oper, ['CASHOUT']), 'Сумма!!<<в ед. внутр. валюты>>', 'Сумма!!'),
+				2: {'sum_wrong': 'неверная сумма'},
+				'hx_post': preview_url,
+				'hx_trigger': 'input changed delay:250ms',
+				'hx_target': '#admin-operation-preview-content',
+				'hx_swap': 'outerHTML',
+				'hx_include': 'closest form',
+				'hx_sync': 'closest form:replace'
+			},
+			'PSys2': {
+				0: 'S',
+				1: valueIf(oper == 'EX', 'На плат. систему!!', 'С плат. системы!!'),
+				2: {'psys2_empty': 'плат.система не указана', 'psys2_equal_psys': 'плат.системы должны различаться'},
+				3: merge_arrays(valueIf(count(clist) > 1, {0: '- выберите -'}, []), clist),
+				'skip': oper != 'EX',
+				'hx_post': preview_url,
+				'hx_trigger': 'change',
+				'hx_target': '#admin-operation-preview-content',
+				'hx_swap': 'outerHTML',
+				'hx_include': 'closest form',
+				'hx_sync': 'closest form:replace'
+			},
+			'Preview': {0: 'U', 1: 'balance/admin/sum.preview.shell.twig', 'skip': not use_sum2},
+			'Login2': {0: 'T', 1: valueIf(oper == 'TR', 'Получатель!!', 'Отправитель!!'), 2: {'user2_empty': 'пользователь не найден', 'user2_equal_user': 'пользователи должны различаться'}, 'skip': not in_array(oper, ['TR', 'TRIN'])},
+			'Memo': {0: 'W', 1: 'Описание', 'size': 4}
+		} %}
+		<div class="card hs-oper-card">
+		{% include "edit.twig" with {"form": 'add', "title": op_names[oper], "fields": admin_oper_fields, "errors": {'oper_disabled': 'операция отключена'}} %}
+		</div>
+	
+	{% else %}
+	
+		<div class="card hs-oper-card">
+		{% include "edit.twig" with {"form": 'add', "title": 'Новая операция', "fields": {'Oper': ['S', 'Операция!!', {'oper_empty': 'операция не указана', 'oper_wrong': 'неизвестная операция'}, merge_arrays({0: '- выберите -'}, op_names)], 'Login': {0: 'T', 1: 'Пользователь!!', 2: {'user_empty': 'пользователь не найден'}, 'default': _GET.user}}, "btn_text": 'Далее'} %}
+		</div>
+		
+	{% endif %}
+	
+{% endif %}
+
+{% include "admin/footer.twig" %}

@@ -1,0 +1,34 @@
+
+<td>
+	{{ l.dID }}
+</td>
+<td class="nowrap">
+	<small>{{ l.dCTS }}</small>
+</td>
+<td>
+	<a href="{{ _link('account/admin/user', false, 0) }}?id={{ l.duID }}" target="_blank">{{ l.uLogin }}</a>
+</td>
+<td>
+	{{ l.cName }}
+</td>
+<td align="right">
+	{{ _z(l.dZD, l.dcID, -1) }}
+</td>
+<td>
+	<a href="{{ _link('depo/admin/depo', false, 0) }}?id={{ l.dID }}">{{ l.pName }}</a>
+</td>
+<td class="nowrap">
+	<small>{{ l.dLTS }}</small>
+</td>
+<td>
+	{{ l.dNPer }} {{ _t({"key": 'common.of', "default": 'из'}) }} {{ l.pNPer }}
+</td>
+<td align="right">
+	{{ _z(l.dZP, l.dcID, -1) }}
+</td>
+<td class="nowrap">
+	<small>{{ l.dNTS }}</small>
+</td>
+<td>
+	<a href="{{ _link('depo/admin/depo', false, 0) }}?id={{ l.dID }}">{{ ststrs[l.dState] }}</a>
+</td>

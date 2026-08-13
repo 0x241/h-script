@@ -1,0 +1,54 @@
+{% set is_in = in_array(l.oOper, ['BONUS', 'CASHIN', 'EXIN', 'TRIN', 'SELL', 'REF', 'TAKE', 'CALCIN']) %}
+{% set is_out = in_array(l.oOper, ['PENALTY', 'CASHOUT', 'EX', 'TR', 'BUY', 'GIVE', 'CALCOUT']) %}
+
+<td class="px-5 py-4 align-middle">
+	<a href="{{ _link('balance/oper', false, 0) }}?id={{ l.oID }}" class="flex items-center gap-4">
+		<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl {% if is_in %}bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400{% elseif is_out %}bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400{% else %}bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-300{% endif %}">
+			<i class="fa-solid {% if is_in %}fa-arrow-down-long{% elseif is_out %}fa-arrow-up-long{% else %}fa-right-left{% endif %}" aria-hidden="true"></i>
+		</span>
+		<span>
+			<span class="block font-bold text-brand transition-colors hover:text-blue-500 dark:text-white dark:hover:text-blue-400">{{ op_names[l.oOper]|default(l.oOper) }}</span>
+			<span class="font-mono text-xs text-gray-500">{{ l.oTS }}</span>
+		</span>
+	</a>
+</td>
+<td class="px-5 py-4 align-middle font-bold text-gray-700 dark:text-gray-300">{{ l.cName }}</td>
+<td class="px-5 py-4 text-right align-middle font-mono font-bold {% if is_in %}text-emerald-500{% else %}text-gray-400{% endif %}">
+	{% if is_in %}
+		{{ _z(l.oSum, l.ocID, -1) }}
+		{% if l.oComis != 0 %}<div class="mt-1 text-xs text-gray-400">{{ _t({"key": 'opers.comis', "default": 'комиссия'}) }}: {{ _z(l.oComis, l.ocID, -1) }}</div>{% endif %}
+	{% else %}
+		&mdash;
+	{% endif %}
+</td>
+<td class="px-5 py-4 text-right align-middle font-mono font-bold {% if is_out %}text-brand dark:text-white{% else %}text-gray-400{% endif %}">
+	{% if is_out %}
+		{{ _z(l.oSum, l.ocID, -1) }}
+		{% if l.oComis != 0 %}<div class="mt-1 text-xs text-gray-400">{{ _t({"key": 'opers.comis', "default": 'комиссия'}) }}: {{ _z(l.oComis, l.ocID, -1) }}</div>{% endif %}
+	{% else %}
+		&mdash;
+	{% endif %}
+</td>
+<td class="px-5 py-4 align-middle font-mono text-xs text-gray-500">
+	{% if l.oBatch %}
+		<span class="rounded-lg bg-gray-100 px-2 py-1 dark:bg-gray-800">{{ l.oBatch }}</span>
+	{% else %}
+		&mdash;
+	{% endif %}
+</td>
+<td class="px-5 py-4 align-middle">
+	<a href="{{ _link('balance/oper', false, 0) }}?id={{ l.oID }}" class="inline-flex rounded-full px-3 py-1 text-xs font-bold {% if l.oState == 3 %}bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400{% elseif l.oState == 2 %}bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400{% elseif l.oState == 4 %}bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400{% else %}bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300{% endif %}">
+		{{ op_statuses[l.oState]|default(l.oState) }}
+	</a>
+	{% if l.oNTS %}<div class="mt-2 font-mono text-xs text-gray-400">{{ l.oNTS }}</div>{% endif %}
+</td>
+<td class="max-w-56 px-5 py-4 align-middle text-sm text-gray-500">
+	{% if l.oParams.user %}<strong class="mb-1 block text-brand dark:text-white">{{ l.oParams.user }}</strong>{% endif %}
+	{% if isset(l.oMemo) and l.oMemo != '' and l.oMemo[0] == '~' %}
+		<span class="font-semibold text-red-500">{{ _t({"key": 'balance.memo.error', "default": 'Ошибка проведения'}) }}</span>
+	{% elseif isset(l.oMemo) and l.oMemo != '' %}
+		<span class="block truncate">{{ l.oMemo }}</span>
+	{% else %}
+		&mdash;
+	{% endif %}
+</td>

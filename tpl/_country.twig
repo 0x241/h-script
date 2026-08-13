@@ -1,0 +1,8 @@
+
+{% include "geoip2/countries.twig" %}
+{% set c = giGetCountry(ip) %}
+{% if c == 'AA' %}
+	<span class="inline-flex items-center gap-2 whitespace-nowrap text-gray-500 dark:text-gray-400"><i class="fa-solid fa-network-wired" aria-hidden="true"></i>Localhost</span>
+{% else %}
+	<span class="inline-flex items-center gap-2 whitespace-nowrap text-gray-500 dark:text-gray-400"><img src="/static/images/flags/{{ c }}.png" width="15" height="10" class="h-[10px] w-[15px] shrink-0" alt="">{% if isset(countries) and isset(countries[c]) %}{{ countries[c] }}{% else %}{{ c }}{% endif %}</span>
+{% endif %}

@@ -1,0 +1,24 @@
+{% set ip_detail_title = _t({"key": 'admin.ip_stats.detail_title', "default": 'Пользователи IP-адреса'}) %}
+{% include "admin/header.twig" with {"title": ip_detail_title} %}
+
+<div class="mb-8">
+	<span class="inline-flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400"><i class="fa-solid fa-network-wired" aria-hidden="true"></i>{{ _t({"key": 'admin.ip_stats.detail_eyebrow', "default": 'Связанные аккаунты'}) }}</span>
+	<h2 class="mt-2 font-mono text-3xl font-extrabold text-brand dark:text-white">{{ _GET.ip }}</h2>
+	<p class="mt-2 text-sm font-medium text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.ip_stats.detail_description', "default": 'Аккаунты, использовавшие этот адрес при регистрации или последней авторизации.'}) }}</p>
+</div>
+
+{% include "list.twig" with {
+	"title": _t({"key": 'admin.ip_stats.accounts', "default": 'Связанные аккаунты'}),
+	"url": '*',
+	"fields": {
+		'uID': ['ID'],
+		'uLogin': [_t({"key": 'admin.users.login', "default": 'Логин'})],
+		'aCIP': [_t({"key": 'admin.ip_stats.registration_ip', "default": 'IP регистрации'})],
+		'uLIP': [_t({"key": 'admin.ip_stats.login_ip', "default": 'IP авторизации'})]
+	},
+	"values": list,
+	"linkparams": ('&ip=' ~ _GET.ip),
+	"row": '*'
+} %}
+
+{% include "admin/footer.twig" %}

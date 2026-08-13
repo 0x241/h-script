@@ -1,0 +1,8 @@
+
+<div class="{{ class }} nav-group__items">
+	{% for e in elements %}
+		{% if not e.skip %}
+			{% include "menu.element.twig" with {"module": e[0], "text": e[1], "text2": e[2], "text3": e[3], "count": e.count, "submenu": e.submenu, "params": e.params} %}
+		{% endif %}
+	{% endfor %}
+</div>

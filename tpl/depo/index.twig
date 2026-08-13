@@ -1,0 +1,138 @@
+{% include "header.twig" with {"title": _t({"key": 'deposits.title', "default": 'Мои депозиты'})} %}
+{% include "depo/_statuses.twig" %}
+
+{% set active_count = 0 %}
+{% set closed_count = 0 %}
+{% for depo in list %}
+	{% if depo.dState == 1 %}
+		{% set active_count = active_count + 1 %}
+	{% else %}
+		{% set closed_count = closed_count + 1 %}
+	{% endif %}
+{% endfor %}
+
+<div class="mx-auto w-full max-w-6xl">
+	<div class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+		<div>
+			<h2 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'deposits.heading', "default": 'Ваши депозиты'}) }}</h2>
+			<p class="text-textDim dark:text-gray-400">{{ _t({"key": 'deposits.text', "default": 'Список активных и завершенных инвестиционных планов.'}) }}</p>
+		</div>
+		<a href="{{ _link('depo/depo', false, 0) }}?add=DEPO" class="hs-action hs-action--primary">
+			<i class="fa-solid fa-plus" aria-hidden="true"></i>
+			{{ _t({"key": 'deposits.new', "default": 'Новый депозит'}) }}
+		</a>
+	</div>
+
+	<div class="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
+		<div class="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="mb-2 text-sm font-bold text-gray-500">{{ _t({"key": 'deposits.summary.total', "default": 'Всего вкладов'}) }}</div>
+			<div class="text-2xl font-bold text-brand dark:text-white">{{ list|count }}</div>
+		</div>
+		<div class="rounded-[1.5rem] border border-gray-100 border-l-4 border-l-emerald-500 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="mb-2 text-sm font-bold text-gray-500">{{ _t({"key": 'deposits.summary.active', "default": 'Активных планов'}) }}</div>
+			<div class="text-2xl font-bold text-emerald-500">{{ active_count }}</div>
+		</div>
+		<div class="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="mb-2 text-sm font-bold text-gray-500">{{ _t({"key": 'deposits.summary.closed', "default": 'Завершенных'}) }}</div>
+			<div class="text-2xl font-bold text-brand dark:text-white">{{ closed_count }}</div>
+		</div>
+	</div>
+
+	{% if list %}
+		<div id="deposits-live" class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]" hx-get="{{ _link('depo', false, 0) }}" hx-trigger="every 15s" hx-select="#deposits-live" hx-target="#deposits-live" hx-swap="outerHTML" hx-sync="this:replace">
+			<div class="overflow-x-auto">
+				<table class="w-full border-collapse whitespace-nowrap text-left text-sm">
+					<thead>
+						<tr class="border-b border-gray-100 bg-gray-50/50 dark:border-gray-800 dark:bg-[#1A1A1A]">
+							<th class="px-4 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">ID</th>
+							<th class="px-4 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">{{ _t({"key": 'deposits.col.opened', "default": 'Открыт'}) }}</th>
+							<th class="px-4 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">{{ _t({"key": 'deposits.col.psys', "default": 'Система'}) }}</th>
+							<th class="px-4 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">{{ _t({"key": 'deposits.col.sum', "default": 'Сумма'}) }}</th>
+							<th class="px-4 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">{{ _t({"key": 'deposits.col.plan', "default": 'Тарифный план'}) }}</th>
+							<th class="px-4 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">{{ _t({"key": 'deposits.col.last', "default": 'Начислено'}) }}</th>
+							<th class="px-4 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">{{ _t({"key": 'deposits.col.periods', "default": 'Периоды'}) }}</th>
+							<th class="px-4 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">{{ _t({"key": 'deposits.col.profit', "default": 'Прибыль'}) }}</th>
+							<th class="px-4 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">{{ _t({"key": 'deposits.col.timer', "default": 'Таймер'}) }}</th>
+							<th class="px-4 py-4 text-right text-xs font-bold uppercase tracking-wider text-gray-500">{{ _t({"key": 'deposits.col.status', "default": 'Статус'}) }}</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+						{% for l in list %}
+							{% set progress_value = l.CurrentProgress|default(valueIf(l.dState == 1, 0, 100)) %}
+							{% set period_progress = l.PeriodProgress|default(progress_value) %}
+							{% if progress_value > 100 %}
+								{% set progress_value = 100 %}
+							{% elseif progress_value < 0 %}
+								{% set progress_value = 0 %}
+							{% endif %}
+							{% if period_progress > 100 %}
+								{% set period_progress = 100 %}
+							{% elseif period_progress < 0 %}
+								{% set period_progress = 0 %}
+							{% endif %}
+							<tr class="transition-colors hover:bg-gray-50 dark:hover:bg-[#1A1A1A]">
+								<td class="px-4 py-4 font-mono text-gray-400">
+									<a href="{{ _link('depo/depo', false, 0) }}?id={{ l.dID }}" class="transition hover:text-brand dark:hover:text-white">#{{ l.dID }}</a>
+								</td>
+								<td class="px-4 py-4 text-gray-500">{{ l.dCTS }}</td>
+								<td class="px-4 py-4 font-bold text-brand dark:text-white">{{ l.cName }}</td>
+								<td class="px-4 py-4 font-mono font-bold text-brand dark:text-white">{{ _z(l.dZD, l.dcID, -1) }}</td>
+								<td class="px-4 py-4">
+									<a href="{{ _link('depo/depo', false, 0) }}?id={{ l.dID }}" class="block">
+										<div class="font-bold text-brand transition hover:text-blue-500 dark:text-white dark:hover:text-blue-400">{{ l.pName }}</div>
+									</a>
+								</td>
+								<td class="px-4 py-4 text-gray-500">{{ l.dLTS }}</td>
+								<td class="px-4 py-4">
+									<div class="flex items-center gap-2">
+										<progress value="{{ period_progress }}" max="100" class="h-1.5 w-16 overflow-hidden rounded-full bg-gray-200 align-middle [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-bar]:bg-gray-200 [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:bg-blue-500 [&::-moz-progress-bar]:bg-blue-500 dark:bg-gray-800 dark:[&::-webkit-progress-bar]:bg-gray-800"></progress>
+										<span class="text-xs font-bold text-gray-500">{{ l.PeriodNumber }} / {% if l.PeriodTotal > 0 %}{{ l.PeriodTotal }}{% else %}&infin;{% endif %}</span>
+									</div>
+								</td>
+								<td class="px-4 py-4 font-mono font-bold {% if l.dState == 1 %}text-emerald-500{% else %}text-gray-400{% endif %}">{{ _z(l.dZP, l.dcID, -1) }}</td>
+								<td class="px-4 py-4 font-mono font-bold {% if l.dState == 1 %}text-blue-500{% else %}text-gray-400{% endif %}">
+									{% if l.dState == 1 and l.Timer %}
+										{% if l.Timer.D == 0 and l.Timer.H == 0 and l.Timer.M == 0 and l.Timer.S == 0 %}
+											<span class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
+												<span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+												{{ _t({"key": 'deposits.timer.pending', "default": 'Ожидает начисления'}) }}
+											</span>
+										{% else %}
+											{{ l.Timer.D }}д {% if l.Timer.H < 10 %}0{% endif %}{{ l.Timer.H }}:{% if l.Timer.M < 10 %}0{% endif %}{{ l.Timer.M }}:{% if l.Timer.S < 10 %}0{% endif %}{{ l.Timer.S }}
+										{% endif %}
+									{% elseif l.dState == 1 %}
+										{{ l.dNTS }}
+									{% else %}
+										&mdash;
+									{% endif %}
+								</td>
+								<td class="px-4 py-4 text-right">
+									<a href="{{ _link('depo/depo', false, 0) }}?id={{ l.dID }}" class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold {% if l.dState == 1 %}bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400{% elseif l.dState == 3 %}bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400{% else %}bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300{% endif %}">
+										{% if l.dState == 1 %}
+											<span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+										{% endif %}
+										{{ ststrs[l.dState]|default(l.dState) }}
+									</a>
+								</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	{% else %}
+		<div class="rounded-[1.5rem] border border-gray-100 bg-white p-10 text-center shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 text-2xl text-gray-400 dark:bg-[#202020]">
+				<i class="fa-solid fa-piggy-bank" aria-hidden="true"></i>
+			</div>
+			<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'deposits.empty.title', "default": 'У Вас нет действующих вкладов'}) }}</h3>
+			<p class="mx-auto mt-2 max-w-md text-sm text-gray-500">{{ _t({"key": 'deposits.empty.text', "default": 'Инвестируйте средства в один из доступных тарифных планов, чтобы начать получать пассивный доход.'}) }}</p>
+			<a href="{{ _link('depo/depo', false, 0) }}?add=DEPO" class="hs-action hs-action--primary mt-6">
+				<i class="fa-solid fa-circle-plus" aria-hidden="true"></i>
+				{{ _t({"key": 'deposits.empty.button', "default": 'Сделать первый вклад'}) }}
+			</a>
+		</div>
+	{% endif %}
+</div>
+
+{% include "footer.twig" %}

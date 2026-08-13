@@ -1,0 +1,18 @@
+{% set review_edit_title = _t({"key": 'reviews.edit', "default": 'Редактирование отзыва'}) %}
+{% include "admin/header.twig" with {"title": review_edit_title} %}
+
+{% include "edit.twig" with {
+	"values": el,
+	"fields": {
+		'oID': [],
+		'uLogin': {0: 'X', 1: _t({"key": 'reviews.author', "default": 'Автор'})},
+		'oTS': {0: 'X', 1: _t({"key": 'common.date', "default": 'Дата'})},
+		'oText': {0: 'W', 1: _t({"key": 'reviews.field.text_required', "default": 'Текст!!'}), 2: {'text_empty': _t({"key": 'reviews.form.error_empty', "default": 'укажите текст'})}, 'rows': 12},
+		'oRating': {0: 'S', 1: _t({"key": 'reviews.rating', "default": 'Оценка'}), 2: {'rating_wrong': _t({"key": 'reviews.form.error_rating', "default": 'выберите оценку от 1 до 5'})}, 3: {1: '1 ★', 2: '2 ★★', 3: '3 ★★★', 4: '4 ★★★★', 5: '5 ★★★★★'}},
+		'oState': {0: 'C', 1: _t({"key": 'reviews.approved', "default": 'Опубликован'})},
+		'oOrder': {0: 'I', 1: _t({"key": 'common.weight', "default": 'Вес'})}
+	},
+	"btns": {'del': _t({"key": 'common.delete', "default": 'Удалить'})}
+} %}
+
+{% include "admin/footer.twig" %}

@@ -1,0 +1,106 @@
+{% set new_form_name = getFormName('new') %}
+{% set new_errors = {'oper_disabled': 'операция запрещена', 'low_bal1': 'недостаточно средств', 'psys_empty': 'укажите плат.систему', 'psys_wrong': 'неверная плат.система', 'sum_empty': 'укажите сумму', 'sum_wrong': 'неверная сумма', 'plan_wrong': 'неверный план', 'compnd_wrong': ('неверное значение [' ~ cmin|default(0) ~ '..' ~ cmax|default(pcmax|default(0)) ~ ']'), 'compnd_wrong1': ('неверное значение для плана \'' ~ cplan|default('') ~ '\'')} %}
+{% set input_class = 'w-full rounded-xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20' %}
+{% set selected_psys = isset_IN('PSys') ? _IN('PSys') : 0 %}
+{% set selected_plan = isset_IN('Plan') ? _IN('Plan') : 0 %}
+{% set sum_value = isset_IN('Sum') ? _IN('Sum') : '' %}
+{% set selected_plan_id = selected_plan ? selected_plan : default_plan_id %}
+{% set summary_plan = plan_rows[selected_plan_id]|default(null) %}
+{% set summary_sum = sum_value ? sum_value : 0 %}
+{% set period_profit = summary_plan ? (summary_sum * summary_plan.pPerc / 100) : 0 %}
+{% set total_profit = summary_plan ? (period_profit * valueIf(summary_plan.pNPer, summary_plan.pNPer, 1)) : 0 %}
+
+<form method="post" action="{{ _link('depo/depo', false, 0) }}?add=DEPO" name="{{ new_form_name }}" class="space-y-10">
+	{{ _getFormSecurity({"form": new_form_name}) }}
+	{% set new_error_text = formErrorText(new_form_name, new_errors, true) %}
+	{% if new_error_text %}
+		<div class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+			<i class="fa-solid fa-triangle-exclamation mt-0.5" aria-hidden="true"></i>
+			<span>{{ new_error_text }}</span>
+		</div>
+	{% endif %}
+
+	{% if _cfg.Depo_Interval > 0 %}
+		<div class="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm font-semibold text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+			{% if nextdepoleft > 0 %}
+				{{ _t({"key": 'deposit.activation.time', "default": 'Расчетное время активации вклада'}) }} - <b>{{ nextdepotime }}</b>
+				<span class="block text-xs opacity-80">{{ _t({"key": 'deposit.activation.left', "default": 'примерно через'}) }} {{ nextdepoleft }} {{ _t({"key": 'common.minutes_short', "default": 'мин.'}) }}</span>
+			{% else %}
+				{{ _t({"key": 'deposit.activation.instant', "default": 'Ваш вклад будет сразу же активирован'}) }}
+			{% endif %}
+		</div>
+	{% endif %}
+
+	<div>
+		<h3 class="mb-5 text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.plans.title', "default": 'Инвестиционные планы'}) }}</h3>
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3{% if count(plan_rows) > 6 %} max-h-[34rem] overflow-y-auto pr-2{% endif %}">
+			{% for pid, plan in plan_rows %}
+				<label class="relative block cursor-pointer">
+					<input type="radio" name="Plan" value="{{ pid }}" class="peer sr-only" {% if selected_plan_id == pid %}checked{% endif %} hx-get="{{ _link('ajax', false, 0) }}?module=depo&amp;do=calc" hx-trigger="change" hx-target="#deposit-profit-summary" hx-swap="outerHTML" hx-include="[name='Sum'], [name='Plan']">
+					{% if popular_plan_id == pid %}<span class="pointer-events-none absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-b-lg bg-emerald-500 px-3 py-1 text-[9px] font-bold uppercase text-white" title="{{ _t({"key": 'deposit.plan.popular_hint', "default": 'План с наибольшим количеством активных вкладов'}) }}">{{ _t({"key": 'deposit.plan.popular', "default": 'Популярный'}) }}</span>{% endif %}
+					<span class="block min-h-full overflow-hidden rounded-lg border-2 border-gray-100 bg-white px-5 pb-5 pt-11 shadow-sm transition-all hover:border-emerald-500 hover:bg-emerald-50 peer-checked:border-emerald-500 peer-checked:bg-emerald-50 peer-focus-visible:ring-4 peer-focus-visible:ring-blue-500/20 dark:border-gray-800 dark:bg-[#151515] dark:hover:border-emerald-500 dark:hover:bg-emerald-900/10 dark:peer-checked:border-emerald-500 dark:peer-checked:bg-emerald-900/10">
+						<span class="mb-4 flex min-h-14 items-start justify-between gap-4">
+							<span class="line-clamp-2 min-w-0 flex-1 break-words text-lg font-bold leading-7 text-brand dark:text-white" title="{{ plan.pName }}">{{ plan.pName }}</span>
+							<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full {% if loop.index is odd %}bg-emerald-100 text-emerald-500 dark:bg-emerald-900/30{% else %}bg-purple-100 text-purple-500 dark:bg-purple-900/30{% endif %}">
+								<i class="fa-solid {% if loop.index is odd %}fa-bolt{% else %}fa-gem{% endif %}" aria-hidden="true"></i>
+							</span>
+						</span>
+						<span class="mb-1 block font-mono text-3xl font-bold {% if loop.index is odd %}text-emerald-500{% else %}text-purple-500{% endif %}">{{ plan.pPerc|number_format(2, '.', ' ') }}%<span class="font-sans text-xs text-gray-400"> / {{ _t({"key": 'deposit.plan.period', "default": 'период'}) }}</span></span>
+						<span class="mb-4 block text-xs font-medium text-gray-400">{{ _t({"key": 'deposit.plan.term', "default": 'Срок'}) }}: {{ plan.pDays|default(0) }} {{ _t({"key": 'common.days_short', "default": 'дн.'}) }}</span>
+						<span class="space-y-2 text-xs font-medium text-gray-600 dark:text-gray-300">
+							<span class="flex justify-between gap-4"><span>{{ _t({"key": 'deposit.plan.min', "default": 'Мин. сумма'}) }}:</span><span class="font-mono font-bold">$ {{ plan.pMin|number_format(2, '.', ' ') }}</span></span>
+							<span class="flex justify-between gap-4"><span>{{ _t({"key": 'deposit.plan.max', "default": 'Макс. сумма'}) }}:</span><span class="font-mono font-bold">$ {{ plan.pMax|number_format(2, '.', ' ') }}</span></span>
+							<span class="flex justify-between gap-4"><span>{{ _t({"key": 'deposit.plan.return', "default": 'Возврат тела'}) }}:</span><span class="text-right text-emerald-500"><i class="fa-solid fa-check" aria-hidden="true"></i> {{ valueIf(plan.pReturn > 0, _t({"key": 'deposit.plan.return_yes', "default": 'предусмотрен'}), _t({"key": 'deposit.plan.return_no', "default": 'не предусмотрен'})) }}</span></span>
+						</span>
+					</span>
+				</label>
+			{% endfor %}
+		</div>
+	</div>
+
+	<div class="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<h3 class="mb-6 text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.checkout.title', "default": 'Оформление вклада'}) }}</h3>
+		<div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+			<div>
+				{% if not _cfg.Const_IntCurr %}
+					<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ new_form_name }}_PSys">{{ _t({"key": 'deposit.field.psys', "default": 'Платежная система'}) }}</label>
+					<div class="relative mb-6">
+						<select name="PSys" id="{{ new_form_name }}_PSys" class="{{ input_class }} appearance-none py-4 pr-12 font-sans">
+							{% if count(clist) > 1 %}
+								<option value="0">- {{ _t({"key": 'form.select', "default": 'Выберите из списка'}) }} -</option>
+							{% endif %}
+							{% for cid, cname in clist %}
+								<option value="{{ cid }}" {% if selected_psys == cid %}selected{% endif %}>{{ cname }}{% if currs[cid] %} ({{ _z(currs[cid].wBal|default(0), cid, -1) }}){% endif %}</option>
+							{% endfor %}
+						</select>
+						<i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400" aria-hidden="true"></i>
+					</div>
+				{% endif %}
+
+				<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ new_form_name }}_Sum">{{ _t({"key": 'deposit.field.sum', "default": 'Сумма инвестиции'}) }}</label>
+				<div class="relative">
+					<span class="absolute left-4 top-1/2 -translate-y-1/2 font-mono font-bold text-gray-400">$</span>
+					<input name="Sum" id="{{ new_form_name }}_Sum" value="{{ sum_value }}" type="number" step="0.01" min="0.01" inputmode="decimal" class="{{ input_class }} pl-10 font-mono text-xl" hx-get="{{ _link('ajax', false, 0) }}?module=depo&amp;do=calc" hx-trigger="input changed delay:200ms" hx-target="#deposit-profit-summary" hx-swap="outerHTML" hx-include="[name='Sum'], [name='Plan']">
+				</div>
+
+				{% if pcmax %}
+					<div class="mt-6">
+						<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ new_form_name }}_Compnd">{{ _t({"key": 'deposit.field.compound', "default": 'Процент реинвеста'}) }}</label>
+						<div class="relative max-w-[220px]">
+							<input name="Compnd" id="{{ new_form_name }}_Compnd" value="{% if isset_IN('Compnd') %}{{ _IN('Compnd') }}{% else %}0{% endif %}" type="number" step="0.01" min="0" max="{{ pcmax }}" class="{{ input_class }} pr-10 font-mono">
+							<span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">%</span>
+						</div>
+					</div>
+				{% endif %}
+			</div>
+
+			<div class="rounded-xl border border-gray-100 bg-gray-50 p-6 dark:border-gray-800 dark:bg-[#1A1A1A]">
+				{% include "depo/profit.summary.twig" %}
+				<button name="{{ new_form_name }}_btn" value="{{ _t({"key": 'deposit.create', "default": 'Создать депозит'}) }}" type="submit" class="mt-6 flex w-full items-center justify-center gap-3 rounded-xl bg-emerald-500 px-8 py-4 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-600">
+					{{ _t({"key": 'deposit.create', "default": 'Создать депозит'}) }}
+					<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+</form>

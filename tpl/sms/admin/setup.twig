@@ -1,0 +1,24 @@
+{% set sms_setup_title = _t({"key": 'sms.setup.title', "default": 'Настройка'}) %}
+{% include "admin/header.twig" with {"title": sms_setup_title} %}
+
+{% include "edit.twig" with {
+	"values": cfg,
+	"fields": {
+		0: {
+			0: "ePochta SMS API v3",
+			"icon": "fa-comment-sms",
+			"description": "Интеграция использует HTTPS, публичный и приватный ключи API v3. Старый XML-интерфейс с логином и паролем больше не используется."
+		},
+		'Prov': ['S', _t({"key": 'sms.setup.provider', "default": 'Провайдер'}), 0, [_t({"key": 'sms.setup.prov_disabled', "default": '- отключено -'}), 'epochta.ru']],
+		'From': ['T', _t({"key": 'sms.setup.from_hint', "default": 'Отправитель <<до 14 цифр или до 11 латинских букв и цифр; имя должно быть разрешено провайдером>>'})],
+		'UpdateCount': ['I', _t({"key": 'sms.setup.update_count', "default": 'Проверять статусы не более чем у N сообщений в минуту'})],
+		'EP_PublicKey': ['T', _t({"key": 'sms.setup.ep_public_key', "default": 'Публичный ключ API v3'})],
+		'EP_PrivateKey': ['*', _t({"key": 'sms.setup.ep_private_key', "default": 'Приватный ключ API v3 <<оставьте пустым, чтобы сохранить текущий>>'})],
+		10: _t({"key": 'sms.setup.confirmations', "default": 'Подтверждения на операции'}),
+		'REG': ['C', _t({"key": 'sms.setup.reg', "default": 'Регистрация'})],
+		'CASHOUT': ['C', _t({"key": 'sms.setup.cashout', "default": 'Вывод'})]
+	},
+	"btn_text": _t({"key": 'common.save', "default": 'Сохранить'})
+} %}
+
+{% include "admin/footer.twig" %}

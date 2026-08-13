@@ -1,0 +1,20 @@
+AddDefaultCharset utf-8
+
+Options +FollowSymLinks -Indexes
+RewriteEngine On
+
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+RewriteRule ^(?:\.git|\.agents|\.codex|\.cfg|backup|compile|docker|lib|logs|module|tpl|tpl_c|vendor)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:_config(?:\.local)?\.php|composer\.(?:json|lock)|memory\.md|tasks\.md|future_work\.md|AGENTS\.md)$ - [F,L,NC]
+RewriteRule ^upload/.*\.(?:php|phtml|php[0-9]?|phps|cgi|pl|asp|aspx|shtml|shtm|fcgi|fpl|jsp|wml)$ - [F,L,NC]
+
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteCond %{HTTPS} =on
+RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteRule ^ http://%1%{REQUEST_URI} [R=301,L]
+
+RewriteCond %{REQUEST_URI} !\.(gif|jpg|jpeg|png|ico|svg|swf|txt|js|css|zip|htc|ttf|otf|eot|woff|woff2|pdf)$ [NC]
+RewriteRule ^ rw.php [L]

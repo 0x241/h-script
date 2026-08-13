@@ -1,0 +1,26 @@
+
+<td>
+	{{ l.tID }}
+</td>
+<td class="nowrap">
+	<small>{{ l.tLTS }}</small>
+</td>
+<td>
+	{{ l.uLogin }}
+	<br>
+	<small>{{ l.tMail }}</small>
+</td>
+<td class="max-w-56">
+	<a href="{{ _link('tickets/admin/ticket', false, 0) }}?id={{ l.tID }}" class="block max-w-56 truncate" title="{{ l.tTopic }}">{{ l.tTopic }}</a>
+</td>
+<td class="max-w-72">
+	<small class="block max-w-72 truncate text-gray-500 dark:text-gray-400" title="{{ l.tText }}">{{ l.tText }}</small>
+</td>
+<td>
+	<a href="{{ _link('tickets/admin/ticket', false, 0) }}?id={{ l.tID }}" class="inline-flex rounded-full px-3 py-1 text-xs font-bold {% if l.tState == 1 %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400{% elseif l.tState == 2 %}bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400{% elseif l.tState == 3 or l.tState == 5 %}bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400{% elseif l.tState == 4 %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400{% elseif l.tState == 8 %}bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400{% elseif l.tState == 9 %}bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400{% else %}bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300{% endif %}">
+		{{ _tstates[l.tState]|default(l.tState) }}
+	</a>
+</td>
+<td>
+	{{ l.cnt }}
+</td>

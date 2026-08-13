@@ -1,0 +1,40 @@
+
+{% include "admin/header.twig" with {"title": 'Пользователь'} %}
+
+<div class="hs-page-title hs-page-title--flex">
+	<div>
+		<span class="hs-page-title__eyebrow"><i class="fa-solid fa-sliders" style="margin-right: 6px;"></i> Дополнительные параметры</span>
+		<h1>Пользователь '{{ el.aName }}'</h1>
+	</div>
+	<a href="{{ _link('account/admin/user', false, 0) }}?id={{ el.uID }}" hx-boost="false" hx-disable class="btn btn--secondary"><i class="fa-solid fa-user" style="margin-right: 8px;"></i> Основные параметры</a>
+</div>
+
+{% set txt_login = valueIf(_cfg.Const_NoLogins, 'e-mail', 'Логин') %}
+<div class="card hs-user-card">
+{% include "edit.twig" with {"fields": {'auID': [], 'uLogin': ['X', txt_login], 'C': {0: 'X', 1: 'Регистрация', 2: 0, 3: ((el.aCTS) ~ " <small>(IP " ~ (el.aCIP) ~ " " ~ ")</small>"), 'skip': not el.aCTS}, 'aName': ['T', 'Имя!!', {'name_empty': 'укажите имя'}], 'aTZ': {0: 'T', 1: 'Часовой пояс!!<<от GMT>>', 2: {'tz_wrong': 'неверное смещение [ч:м]'}, 'comment': '+4:00 = Москва', 'size': 6}, 'aBD': ['D', 'Дата рождения'], 'aCountry': ['T', 'Страна'], 'aCity': ['T', 'Город'], 'aTel': ['T', 'Номер телефона'], 'aNoMail': {0: 'C', 1: 'Не получать оповещения на e-mail', 'skip': _cfg.Msg_NoMail}, 50: 'Специальная реф.система', 'aPerc': ['A', 'От пополнения<br><<значения по уровням>>'], 'aDPerc': ['A', 'От вклада<br><<значения по уровням>>'], 'aPPerc': ['A', 'От начисления<br><<значения по уровням>>'], 99: 'Безопасность', 'aGA': ['T', 'Google Authenticator'], 'aIPSec': ['S', 'Контроль смены IP-адреса', 0, {0: '- по умолчанию -', 1: 'x.0.0.0', 2: 'x.x.0.0', 3: 'x.x.x.0', 4: 'x.x.x.x'}], 'aSessIP': ['C', 'Привязывать сессию к IP-адресу'], 'aSessUniq': ['C', 'Запретить параллельные сессии'], 'aTimeOut': ['I', 'Автовыход через N минут <<0 - по умолчанию>>'], 'aSQuestion': {0: 'T', 1: 'Контрольный вопрос!!', 2: {'secq_empty': 'укажите вопрос', 'secq_short': ("вопрос слишком короткий [не менее " ~ (_cfg.Sec_MinSQA) ~ "]")}, 'skip': (_cfg.Sec_MinSQA == 0), 'size': 40}, 'aSAnswer': {0: '*', 1: 'Контрольный ответ <<заполните чтобы сменить>>', 2: {'seca_empty': 'укажите ответ', 'seca_short': ("ответ слишком короткий [не менее " ~ (_cfg.Sec_MinSQA) ~ "]"), 'seqa_equal_secq': 'ответ не может совпадать с вопросом'}, 'skip': (_cfg.Sec_MinSQA == 0), 'size': 40}}, "values": el} %}
+</div>
+
+{% if wfields %}
+
+	<div class="card hs-wallets-card" style="margin-bottom: 24px;">
+	{% set wallets_opts = {0: '- выберите -'} %}
+	{% for ck, cv in defcurr %}
+		{% set wallets_opts = array_set_path(wallets_opts|default([]), [ck], cv) %}
+	{% endfor %}
+	{% set new_wfields = {'auID': [], 'DefCurr': {0: 'S', 1: 'Платежная система по умолчанию!!', 2: {'psys_wrong': 'укажите плат.систему'}, 3: wallets_opts, 'default': el.aDefCurr}} %}
+	{% set idx = 1000 %}
+	{% for wf, wv in wfields %}
+		{% if is_int(wf) %}
+			{% set new_wfields = array_set_path(new_wfields|default([]), [idx], wv) %}
+			{% set idx = idx + 1 %}
+		{% else %}
+			{% set new_wfields = array_set_path(new_wfields|default([]), [wf], wv) %}
+		{% endif %}
+	{% endfor %}
+
+	{% include "edit.twig" with {"form": 'wallets', "title": 'Платежные реквизиты', "fields": new_wfields, "values": wdata} %}
+	</div>
+	
+{% endif %}
+	
+{% include "admin/footer.twig" %}

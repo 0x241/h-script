@@ -1,0 +1,13 @@
+
+<div class="hs-captcha-field w-full">
+	{% if _cfg.Sec_Captcha == 1 %}
+		<label class="descr_req mb-2 block" for="{{ form }}_capt">Код с картинки{{ star }}</label>
+	{% endif %}
+	{{ error_text }}
+	<div class="hs-captcha-line">
+		<div class="hs-captcha-image">{{ __Capt }}</div>
+		{% if _cfg.Sec_Captcha == 1 %}
+			<input name="__Capt" id="{{ form }}_capt" type="text" class="{{ class }}">
+		{% endif %}
+	</div>
+</div>

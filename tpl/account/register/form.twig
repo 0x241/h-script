@@ -1,0 +1,43 @@
+
+{% set field_name = _t({"key": 'auth.field.name'}) %}
+{% set field_username = _t({"key": 'auth.field.username_create'}) %}
+{% set field_email = _t({"key": 'auth.field.email'}) %}
+{% set field_password = _t({"key": 'auth.field.password_create'}) %}
+{% set field_password_repeat = _t({"key": 'auth.field.password_repeat'}) %}
+{% set field_phone = _t({"key": 'auth.field.phone'}) %}
+{% set field_referrer = _t({"key": 'auth.field.referrer'}) %}
+{% set field_invite = _t({"key": 'auth.field.invite_code'}) %}
+{% set field_secret_question = _t({"key": 'auth.field.secret_question'}) %}
+{% set field_secret_answer = _t({"key": 'auth.field.secret_answer'}) %}
+{% set field_agree = _t({"key": 'auth.field.agree'}) %}
+{% set btn_register = _t({"key": 'auth.register.submit'}) %}
+{% set err_name_empty = _t({"key": 'auth.error.name_empty'}) %}
+{% set err_login_empty = _t({"key": 'auth.error.username_empty'}) %}
+{% set err_login_short = _t({"key": 'auth.error.login_short', "min": _cfg.Account_MinLogin}) %}
+{% set err_login_wrong = _t({"key": 'auth.error.login_wrong'}) %}
+{% set err_login_used = _t({"key": 'auth.error.login_used'}) %}
+{% set err_mail_empty = _t({"key": 'auth.error.mail_empty'}) %}
+{% set err_mail_wrong = _t({"key": 'auth.error.mail_wrong'}) %}
+{% set err_mail_used = _t({"key": 'auth.error.mail_used'}) %}
+{% set err_pass_empty = _t({"key": 'auth.error.pass_empty'}) %}
+{% set err_pass_short = _t({"key": 'auth.error.pass_short', "min": _cfg.Account_MinPass}) %}
+{% set err_pass_wrong = _t({"key": 'auth.error.pass_wrong'}) %}
+{% set err_pass_not_equal = _t({"key": 'auth.error.pass_not_equal'}) %}
+{% set err_tel_wrong = _t({"key": 'auth.error.tel_wrong'}) %}
+{% set err_ref_empty = _t({"key": 'auth.error.ref_empty', "login": txt_login}) %}
+{% set err_ref_not_found = _t({"key": 'auth.error.ref_not_found', "login": txt_login}) %}
+{% set err_inv_empty = _t({"key": 'auth.error.inv_empty'}) %}
+{% set err_inv_not_found = _t({"key": 'auth.error.inv_not_found'}) %}
+{% set err_inv_used = _t({"key": 'auth.error.inv_used'}) %}
+{% set err_secq_empty = _t({"key": 'auth.error.secq_empty'}) %}
+{% set err_secq_short = _t({"key": 'auth.error.secq_short', "min": _cfg.Sec_MinSQA}) %}
+{% set err_seca_empty = _t({"key": 'auth.error.seca_empty'}) %}
+{% set err_seca_short = _t({"key": 'auth.error.seca_short', "min": _cfg.Sec_MinSQA}) %}
+{% set err_seqa_equal_secq = _t({"key": 'auth.error.seqa_equal_secq'}) %}
+{% set err_must_agree = _t({"key": 'auth.error.must_agree'}) %}
+{% set err_multi_reg = _t({"key": 'auth.error.multi_reg'}) %}
+{% set hint_email_confirm = _t({"key": 'auth.hint.email_confirm'}) %}
+{% set hint_phone_country = _t({"key": 'auth.hint.phone_country'}) %}
+{% set hint_ref_email = _t({"key": 'auth.hint.ref_email'}) %}
+{% include "edit.twig" with {"url": ((_link('account/register', false, 0))), "form": 'register_frm', "form_layout": 'showcase', "fields": {'aName': {0: 'T', 1: field_name, 2: {'name_empty': err_name_empty}, 'skip': (_cfg.Account_UseName != 1)}, 'uLogin': {0: 'T', 1: ((field_username) ~ "!!"), 2: {'login_empty': err_login_empty, 'login_short': err_login_short, 'login_wrong': err_login_wrong, 'login_used': err_login_used}, 'skip': _cfg.Const_NoLogins, 'comment': ' <span id="login_check" class="err"></span>'}, 'uMail': {0: 'T', 1: valueIf(_cfg.Account_RegConfirm, ((field_email) ~ "!!<<" ~ (hint_email_confirm) ~ ">>"), ((field_email) ~ "!!")), 2: {'mail_empty': err_mail_empty, 'mail_wrong': err_mail_wrong, 'mail_used': err_mail_used}, 'comment': ' <span id="mail_check" class="err"></span>'}, 'uPass': ['*', ((field_password) ~ "!!"), {'pass_empty': err_pass_empty, 'pass_short': err_pass_short, 'pass_wrong': err_pass_wrong}], 'Pass2': ['*', ((field_password_repeat) ~ "!!"), {'pass_not_equal': err_pass_not_equal}], 'aTel': {0: 'T', 1: ((field_phone) ~ "!!<<" ~ (hint_phone_country) ~ ">>"), 2: {'tel_wrong': err_tel_wrong}, 'skip': not _cfg.SMS_REG}, 'uRef': {0: 'T', 1: ((field_referrer) ~ "!!" ~ " <<" ~ (hint_ref_email) ~ ">>"), 2: {'ref_empty': err_ref_empty, 'ref_not_found': err_ref_not_found}, 'default': _SESSION._ref, 'skip': ((_cfg.Account_RegMode == 3) or not _cfg.Ref_Word), 'readonly': valid_ref}, 'Invite': {0: 'T', 1: ((field_invite) ~ "!!"), 2: {'inv_empty': err_inv_empty, 'inv_not_found': err_inv_not_found, 'inv_used': err_inv_used}, 'skip': (_cfg.Account_RegMode != 3)}, 'aSQuestion': {0: 'T', 1: ((field_secret_question) ~ "!!"), 2: {'secq_empty': err_secq_empty, 'secq_short': err_secq_short}, 'skip': (_cfg.Sec_MinSQA == 0), 'size': 40}, 'aSAnswer': {0: 'T', 1: ((field_secret_answer) ~ "!!"), 2: {'seca_empty': err_seca_empty, 'seca_short': err_seca_short, 'seqa_equal_secq': err_seqa_equal_secq}, 'skip': (_cfg.Sec_MinSQA == 0), 'size': 40}, 'Agree': {0: 'CC', 1: field_agree, 2: {'must_agree': err_must_agree}, 'row_class': 'hs-auth-checkbox-row', 'checkbox_label': field_agree}}, "errors": {'multi_reg': err_multi_reg}, "captcha": _cfg.Account_RegCaptcha, "btn_text": btn_register} %}
+

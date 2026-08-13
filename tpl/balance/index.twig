@@ -1,0 +1,202 @@
+{% include "header.twig" with {"title": _t({"key": 'balance.title', "default": 'Финансы и операции'})} %}
+{% include "balance/_statuses.twig" %}
+
+{% set in_ops = ['BONUS', 'CASHIN', 'EXIN', 'TRIN', 'SELL', 'REF', 'TAKE', 'CALCIN'] %}
+{% set out_ops = ['PENALTY', 'CASHOUT', 'EX', 'TR', 'BUY', 'GIVE', 'CALCOUT'] %}
+
+<div class="mx-auto w-full max-w-6xl">
+	{% if isset(_GET.fail) %}
+		<div class="rounded-[1.5rem] border border-red-200 bg-red-50 p-6 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+			<div class="flex gap-4">
+				<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-300">
+					<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+				</div>
+				<div>
+					<h2 class="font-bold">{{ _t({"key": 'balance.fail.title', "default": 'Операция НЕ завершена!'}) }}</h2>
+					<p class="mt-1 text-sm opacity-80">{{ _t({"key": 'balance.fail.text', "default": 'Процедура пополнения была прервана или произошла ошибка.'}) }} <a href="{{ _selfLink }}" class="font-bold underline">{{ _t({"key": 'common.retry', "default": 'Повторить'}) }}</a></p>
+				</div>
+			</div>
+		</div>
+	{% else %}
+		<div class="mb-8 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+			<div>
+				<h2 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'balance.hero.title', "default": 'Финансы и операции'}) }}</h2>
+				<p class="font-medium text-textDim dark:text-gray-400">{{ _t({"key": 'balance.hero.text', "default": 'Управление счетами, пополнение, вывод средств и история транзакций.'}) }}</p>
+			</div>
+		</div>
+
+		<div class="mb-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
+			<div class="flex flex-col overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515] lg:col-span-2">
+				<div class="flex items-center justify-between border-b border-gray-100 p-6 dark:border-gray-800">
+					<h3 class="text-lg font-bold text-brand dark:text-white">{{ _t({"key": 'balance.current.title', "default": 'Текущие балансы'}) }}</h3>
+					<span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-400 dark:bg-gray-800">{{ currs|count }} {{ _t({"key": 'balance.current.accounts_count', "default": 'активных счетов'}) }}</span>
+				</div>
+				<div class="overflow-x-auto">
+					<table class="w-full border-collapse text-left">
+						<thead>
+							<tr class="bg-gray-50/50 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-[#1A1A1A]">
+								<th class="px-6 py-3">{{ _t({"key": 'balance.col.psys', "default": 'Плат. система'}) }}</th>
+								<th class="px-6 py-3 text-right">{{ _t({"key": 'balance.col.available', "default": 'Доступно'}) }}</th>
+								<th class="px-6 py-3 text-right">{{ _t({"key": 'balance.col.locked', "default": 'Занято'}) }}</th>
+								<th class="px-6 py-3 text-right">{{ _t({"key": 'balance.col.pending', "default": 'Ожидает'}) }}</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-gray-100 text-sm dark:divide-gray-800">
+							{% for cid, c in currs %}
+								<tr class="transition-colors hover:bg-gray-50 dark:hover:bg-[#1A1A1A]">
+									<td class="px-6 py-4">
+										<div class="flex items-center gap-3">
+											<div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-500 dark:bg-gray-800">
+												{% if c.cCurrID == 'BTC' %}
+													<i class="fa-brands fa-bitcoin text-orange-500" aria-hidden="true"></i>
+												{% else %}
+													{{ c.cCurrID|default(c.cCurr|default('$'))|slice(0, 1) }}
+												{% endif %}
+											</div>
+											<div>
+												<div class="font-bold text-brand dark:text-white">{{ c.cName|default(c.cCurr|default(c.cCurrID)) }}</div>
+												<div class="font-mono text-[10px] text-gray-500">{{ c.cCurrID|default(c.cCurr|default('')) }}</div>
+											</div>
+										</div>
+									</td>
+									<td class="px-6 py-4 text-right font-mono text-lg font-bold text-brand dark:text-white">{{ _z(c.wBal|default(0), c.cID, -1) }}</td>
+									<td class="px-6 py-4 text-right font-mono font-bold {% if c.wLock > 0 %}text-amber-500{% else %}text-gray-400{% endif %}">{{ _z(c.wLock|default(0), c.cID, -1) }}</td>
+									<td class="px-6 py-4 text-right font-mono font-bold {% if c.wOut > 0 %}text-blue-500{% else %}text-gray-400{% endif %}">{{ _z(c.wOut|default(0), c.cID, -1) }}</td>
+								</tr>
+							{% else %}
+								<tr>
+									<td colspan="4" class="px-6 py-10 text-center text-sm font-semibold text-gray-500">{{ _t({"key": 'balance.current.empty', "default": 'Счета пока не созданы.'}) }}</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div class="grid content-start grid-cols-2 gap-4 self-start">
+				<a href="{{ _link('balance/oper', false, 0) }}?add=CASHIN" class="group flex min-h-32 flex-col items-center justify-center gap-3 rounded-[1.5rem] bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 text-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-emerald-500/20">
+					<div class="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-xl transition-transform group-hover:scale-110"><i class="fa-solid fa-arrow-down" aria-hidden="true"></i></div>
+					<span class="font-bold">{{ _t({"key": 'balance.action.cashin', "default": 'Пополнить'}) }}</span>
+				</a>
+				<a href="{{ _link('balance/oper', false, 0) }}?add=CASHOUT" class="group flex min-h-32 flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-gray-100 bg-white p-6 transition-all hover:border-brand dark:border-gray-800 dark:bg-[#151515] dark:hover:border-white">
+					<div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-brand transition-colors group-hover:bg-brand group-hover:text-white dark:bg-[#202020] dark:text-white dark:group-hover:bg-white dark:group-hover:text-brand"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></div>
+					<span class="font-bold text-brand dark:text-white">{{ _t({"key": 'balance.action.cashout', "default": 'Вывести'}) }}</span>
+				</a>
+				{% if not _cfg.Const_IntCurr %}
+					<a href="{{ _link('balance/oper', false, 0) }}?add=EX" class="group flex min-h-32 flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-gray-100 bg-white p-6 transition-all hover:border-brand dark:border-gray-800 dark:bg-[#151515] dark:hover:border-white">
+						<div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-brand transition-colors group-hover:bg-brand group-hover:text-white dark:bg-[#202020] dark:text-white dark:group-hover:bg-white dark:group-hover:text-brand"><i class="fa-solid fa-right-left" aria-hidden="true"></i></div>
+						<span class="font-bold text-brand dark:text-white">{{ _t({"key": 'balance.action.exchange', "default": 'Обменять'}) }}</span>
+					</a>
+				{% endif %}
+				<a href="{{ _link('balance/oper', false, 0) }}?add=TR" class="group flex min-h-32 flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-gray-100 bg-white p-6 transition-all hover:border-brand dark:border-gray-800 dark:bg-[#151515] dark:hover:border-white">
+					<div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-brand transition-colors group-hover:bg-brand group-hover:text-white dark:bg-[#202020] dark:text-white dark:group-hover:bg-white dark:group-hover:text-brand"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></div>
+					<span class="font-bold text-brand dark:text-white">{{ _t({"key": 'balance.action.transfer', "default": 'Перевести'}) }}</span>
+				</a>
+			</div>
+		</div>
+
+		<div class="mb-6 flex flex-col items-center justify-between gap-4 md:flex-row">
+			<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'balance.history.title', "default": 'История транзакций'}) }}</h3>
+			<div class="flex flex-wrap gap-2">
+				<span class="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-brand">{{ _t({"key": 'common.all', "default": 'Все'}) }}</span>
+				<span class="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-gray-500 dark:border-white/10 dark:bg-[#151515]">{{ _t({"key": 'balance.filter.in', "default": 'Пополнения'}) }}</span>
+				<span class="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-gray-500 dark:border-white/10 dark:bg-[#151515]">{{ _t({"key": 'balance.filter.out', "default": 'Выплаты'}) }}</span>
+				<span class="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-gray-500 dark:border-white/10 dark:bg-[#151515]">{{ _t({"key": 'balance.filter.calc', "default": 'Начисления'}) }}</span>
+			</div>
+		</div>
+
+		<div class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="overflow-x-auto">
+				<table class="w-full border-collapse whitespace-nowrap text-left">
+					<thead>
+						<tr class="bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-500 dark:bg-[#1A1A1A]">
+							<th class="p-5">{{ _t({"key": 'balance.history.transaction', "default": 'Транзакция'}) }}</th>
+							<th class="p-5">{{ _t({"key": 'balance.history.psys', "default": 'Плат. система'}) }}</th>
+							<th class="p-5">{{ _t({"key": 'balance.col.income', "default": 'Приход'}) }}</th>
+							<th class="p-5">{{ _t({"key": 'balance.col.outcome', "default": 'Расход'}) }}</th>
+							<th class="p-5">{{ _t({"key": 'opers.col.batch', "default": 'Batch-номер'}) }}</th>
+							<th class="p-5">{{ _t({"key": 'opers.col.memo', "default": 'Примечание'}) }}</th>
+							<th class="p-5 text-right">{{ _t({"key": 'opers.col.state', "default": 'Статус'}) }}</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-100 text-sm dark:divide-gray-800">
+						{% for id, l in list %}
+							{% set is_in = in_array(l.oOper, in_ops) %}
+							{% set is_out = in_array(l.oOper, out_ops) %}
+							<tr class="group transition-colors hover:bg-gray-50/50 dark:hover:bg-[#1A1A1A]/50">
+								<td class="p-5">
+									<a href="{{ _link('balance/oper', false, 0) }}?id={{ l.oID }}" class="block">
+										<div class="mb-1 font-bold text-brand transition-colors group-hover:text-blue-500 dark:text-white">{{ op_names[l.oOper]|default(l.oOper) }}</div>
+										<div class="text-xs text-gray-500">{{ l.oTS|default(l.oCTS) }}</div>
+									</a>
+								</td>
+								<td class="p-5">
+									<div class="flex items-center gap-2 font-bold text-gray-700 dark:text-gray-300">
+										<div class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-xs text-gray-500 dark:bg-gray-800">{{ l.cCurrID|default(l.cCurr|default('$'))|slice(0, 1) }}</div>
+										{{ l.cName|default(l.cCurr|default(l.ocID)) }}
+									</div>
+								</td>
+								<td class="p-5 font-mono font-bold {% if is_in %}text-emerald-500{% else %}text-gray-400{% endif %}">
+									{% if is_in %}
+										{{ _z(l.oSum, l.ocID, -1) }}
+										{% if l.oComis != 0 %}<div class="mt-1 text-xs text-gray-400">{{ _t({"key": 'opers.comis', "default": 'комиссия'}) }}: {{ _z(l.oComis, l.ocID, -1) }}</div>{% endif %}
+									{% else %}
+										&mdash;
+									{% endif %}
+								</td>
+								<td class="p-5 font-mono font-bold {% if is_out %}text-brand dark:text-white{% else %}text-gray-400{% endif %}">
+									{% if is_out %}
+										{{ _z(l.oSum, l.ocID, -1) }}
+										{% if l.oComis != 0 %}<div class="mt-1 text-xs text-gray-400">{{ _t({"key": 'opers.comis', "default": 'комиссия'}) }}: {{ _z(l.oComis, l.ocID, -1) }}</div>{% endif %}
+									{% else %}
+										&mdash;
+									{% endif %}
+								</td>
+								<td class="p-5 font-mono text-xs text-gray-400">
+									{% if l.oBatch %}
+										<span class="rounded-lg bg-gray-100 px-2 py-1 dark:bg-gray-800">{{ l.oBatch }}</span>
+									{% else %}
+										&mdash;
+									{% endif %}
+								</td>
+								<td class="max-w-[220px] truncate p-5 text-gray-500">
+									{% if l.oParams.user %}<strong class="mb-1 block text-brand dark:text-white">{{ l.oParams.user }}</strong>{% endif %}
+									{% if isset(l.oMemo) and l.oMemo != '' and l.oMemo[0] == '~' %}
+										<span class="font-semibold text-red-500">{{ _t({"key": 'balance.memo.error', "default": 'Ошибка проведения'}) }}</span>
+									{% elseif isset(l.oMemo) and l.oMemo != '' %}
+										{{ l.oMemo }}
+									{% else %}
+										&mdash;
+									{% endif %}
+								</td>
+								<td class="p-5 text-right">
+									<a href="{{ _link('balance/oper', false, 0) }}?id={{ l.oID }}" class="inline-block rounded-full px-3 py-1 text-xs font-bold {% if l.oState == 3 %}bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400{% elseif l.oState == 2 %}bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400{% elseif l.oState == 4 %}bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400{% else %}bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300{% endif %}">{{ op_statuses[l.oState]|default(l.oState) }}</a>
+									{% if l.oNTS %}<div class="mt-2 font-mono text-xs text-gray-400">{{ l.oNTS }}</div>{% endif %}
+								</td>
+							</tr>
+						{% else %}
+							<tr>
+								<td colspan="7" class="px-6 py-12 text-center">
+									<div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-gray-400 dark:bg-[#1A1A1A]">
+										<i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+									</div>
+									<div class="font-bold text-brand dark:text-white">{{ _t({"key": 'balance.history.empty', "default": 'Операций пока нет'}) }}</div>
+									<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'balance.history.empty_text', "default": 'После финансовых действий история появится здесь.'}) }}</p>
+								</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% if pl_params.Pages %}
+				<div class="flex flex-wrap items-center justify-end gap-2 border-t border-gray-100 p-4 dark:border-gray-800">
+					{% for page_item in pl_params.Pages %}
+						<a href="{{ _selfLink }}?page={{ page_item[1] }}" class="flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-bold transition-colors {% if page_item[1] == pl_params.Page %}bg-brand text-white dark:bg-white dark:text-brand{% else %}bg-gray-50 text-gray-500 hover:bg-gray-100 dark:bg-[#1A1A1A] dark:text-gray-300 dark:hover:bg-[#202020]{% endif %}">{{ page_item[0] }}</a>
+					{% endfor %}
+				</div>
+			{% endif %}
+		</div>
+	{% endif %}
+</div>
+
+{% include "footer.twig" %}

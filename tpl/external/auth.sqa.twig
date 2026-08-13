@@ -1,0 +1,19 @@
+{% if not isset(auth_accent) %}{% set auth_accent = 'blue' %}{% endif %}
+{% set sqa_form_name = getFormName('sqa') %}
+{% set sqa_error = formErrorText(sqa_form_name, {'answer_wrong': _t({"key": 'auth.error.answer_wrong', "default": 'неверный ответ'})}, true) %}
+<form method="post" name="{{ sqa_form_name }}" class="space-y-5">
+	{{ _getFormSecurity({"form": sqa_form_name}) }}
+	<input name="uID" value="{{ uid }}" type="hidden">
+	<div class="rounded-2xl border border-gray-200 bg-gray-50 p-5 dark:border-gray-800 dark:bg-[#151515]">
+		<div class="mb-1 text-sm font-bold text-textDim dark:text-gray-400">{{ _t({"key": 'auth.field.secret_question', "default": 'Контрольный вопрос'}) }}</div>
+		<div class="text-lg font-bold text-brand dark:text-white">{{ squest }}</div>
+	</div>
+	<div>
+		<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ sqa_form_name }}_SAnswer">{{ _t({"key": 'auth.field.secret_answer', "default": 'Контрольный ответ'}) }}</label>
+		<input name="SAnswer" id="{{ sqa_form_name }}_SAnswer" type="text" placeholder="{{ _t({"key": 'auth.placeholder.secret_answer', "default": 'Ответ'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20">
+		{% if sqa_error %}
+			<p class="mt-2 text-sm font-semibold text-red-500">{{ sqa_error }}</p>
+		{% endif %}
+	</div>
+	<button name="{{ sqa_form_name }}_btn" value="{{ _t({"key": 'form.next', "default": 'Далее'}) }}" type="submit" class="w-full rounded-2xl bg-brand p-4 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-[#2D2D2D] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-white dark:text-brand dark:hover:bg-gray-100">{{ _t({"key": 'form.next', "default": 'Далее'}) }}</button>
+</form>

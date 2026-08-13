@@ -1,0 +1,8 @@
+
+{% include "admin/header.twig" with {"title": 'FAQ'} %}
+
+<div class="card hs-faq-card">
+{% include "edit.twig" with {"title": 'Вопрос', "title_new": 'Новый вопрос', "fields": {'fID': [], 'fCTS': {0: 'X', 1: 'Дата добавления', 'skip': not el.fID}, 'fHidden': ['C', 'Невидимый'], 'fCat': {0: 'S', 1: 'Категория!!', 2: [], 3: merge_arrays({'': '- нет -'}, cats), 'skip': not cats}, 'fQuestion': {0: 'L', 1: 'Вопрос!!', 2: {'question_empty': 'укажите вопрос'}, "size": 50}, 'fAnswer': {0: 'Y', 1: 'Ответ!!', 2: {'answer_empty': 'укажите ответ'}, 'size': 15}, 'fOrder': ['I', 'Порядок <<сортировки>>']}, "values": el} %}
+</div>
+
+{% include "admin/footer.twig" %}

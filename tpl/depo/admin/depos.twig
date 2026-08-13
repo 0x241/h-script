@@ -1,0 +1,33 @@
+
+{% include "admin/header.twig" with {"title": _t({"key": 'admin.deposits.title', "default": 'Депозиты'})} %}
+
+{% include "depo/_statuses.twig" %}
+{% set edit_form_name = getFormName('deps_filter') %}
+
+{% set deps_filter_values = valueIf(isset(_SESSION[edit_form_name]), _SESSION[edit_form_name], []) %}
+{% include "edit.twig" with {"form": 'deps_filter', "url": '*', "values": deps_filter_values, "fields": {
+	'uLogin': {0: 'T', 1: _t({"key": 'common.user', "default": 'Пользователь'}), 'size': 10},
+	'dcID': {0: 'S', 1: _t({"key": 'admin.deposits.payment_system', "default": 'Плат.система'}), 2: 0, 3: merge_arrays([_t({"key": 'admin.users.all', "default": '- все -'})], currs)},
+	'dpID': {0: 'S', 1: _t({"key": 'admin.deposits.plan', "default": 'План'}), 2: 0, 3: merge_arrays([_t({"key": 'admin.users.all', "default": '- все -'})], plans)},
+	'dState': {0: 'S', 1: _t({"key": 'admin.users.status', "default": 'Статус'}), 2: 0, 3: merge_arrays({9: _t({"key": 'admin.users.all', "default": '- все -'})}, ststrs), 'default': 9}
+}, "btn_text": _t({"key": 'admin.users.filter', "default": 'Отфильтровать'}), "btns": valueIf(isset(_SESSION[edit_form_name]), {'clear': _t({"key": 'admin.users.show_all', "default": 'Показать все'})})} %}
+
+{% include "list.twig" with {"title": (_t({"key": 'admin.deposits.title', "default": 'Депозиты'}) ~ (valueIf(isset(_SESSION[edit_form_name]), _t({"key": 'admin.users.filtered', "default": ' (отфильтровано)'})))), "url": '*', "fields": {
+	'dID': ['ID'],
+	'dCTS': [_t({"key": 'admin.deposits.started', "default": 'Дата начала'})],
+	'uLogin': [_t({"key": 'common.user', "default": 'Пользователь'})],
+	'cName': [_t({"key": 'admin.deposits.payment_system', "default": 'Плат.система'})],
+	'dZD': [_t({"key": 'operation.amount.default', "default": 'Сумма'})],
+	'pName': [_t({"key": 'admin.deposits.plan', "default": 'План'})],
+	'dLTS': [_t({"key": 'admin.deposits.last_accrual', "default": 'Посл.начисление'})],
+	'dN': [_t({"key": 'admin.deposits.accruals', "default": 'Начислений'})],
+	'dZP': ['<small>'|cat(_t({"key": 'admin.deposits.accrued', "default": 'Начислено'}))|cat('</small>')],
+	'dNTS': [_t({"key": 'admin.deposits.next_accrual', "default": 'След.начисление'})],
+	'dState': [_t({"key": 'admin.users.status', "default": 'Статус'})]
+}, "values": list, "row": '*'} %}
+
+<div class="mt-6 flex justify-center">
+	<a href="{{ _link('depo/admin/depo', false, 0) }}?add" class="inline-flex min-w-48 items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100"><i class="fa-solid fa-circle-plus" aria-hidden="true"></i><span>{{ _t({"key": 'common.create', "default": 'Создать'}) }}</span></a>
+</div>
+
+{% include "admin/footer.twig" %}

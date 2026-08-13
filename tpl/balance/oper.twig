@@ -1,0 +1,450 @@
+{% include "header.twig" with {"title": _t({"key": "balance.oper.title", "default": "Операция"})} %}
+{% include "balance/_statuses.twig" %}
+
+{% set oper = _GET.add|default(el.oOper|default('')) %}
+{% set oper_title = _t({"key": "balance.oper.default", "default": "Финансовая операция"}) %}
+{% set oper_text = _t({"key": "balance.oper.default_text", "default": "Создание заявки и выбор платежной системы."}) %}
+{% set oper_icon = 'fa-money-bill-transfer' %}
+{% set oper_button = _t({"key": "balance.oper.submit", "default": "Создать заявку"}) %}
+{% set oper_button_class = 'bg-brand text-white dark:bg-white dark:text-brand' %}
+{% if oper == 'CASHIN' %}
+	{% set oper_title = _t({"key": "balance.cashin.title", "default": "Пополнить баланс"}) %}
+	{% set oper_text = _t({"key": "balance.cashin.text", "default": "Внесение средств на ваш инвестиционный счет."}) %}
+	{% set oper_icon = 'fa-arrow-down' %}
+	{% set oper_button = _t({"key": "balance.cashin.submit", "default": "Продолжить"}) %}
+	{% set oper_button_class = 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-emerald-500/20' %}
+{% elseif oper == 'CASHOUT' %}
+	{% set oper_title = _t({"key": "balance.cashout.title", "default": "Заявка на вывод"}) %}
+	{% set oper_text = _t({"key": "balance.cashout.text", "default": "Вывод доступных средств на ваши реквизиты."}) %}
+	{% set oper_icon = 'fa-arrow-up' %}
+{% elseif oper == 'EX' %}
+	{% set oper_title = _t({"key": "balance.exchange.title", "default": "Обмен валют"}) %}
+	{% set oper_text = _t({"key": "balance.exchange.text", "default": "Создайте заявку на обмен между платежными системами."}) %}
+	{% set oper_icon = 'fa-right-left' %}
+{% elseif oper == 'TR' %}
+	{% set oper_title = _t({"key": "balance.transfer.title", "default": "Перевод средств"}) %}
+	{% set oper_text = _t({"key": "balance.transfer.text", "default": "Отправьте средства другому пользователю системы."}) %}
+	{% set oper_icon = 'fa-paper-plane' %}
+{% endif %}
+
+{% set input_class = 'w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500' %}
+{% set label_class = 'mb-2 block text-sm font-bold text-brand dark:text-gray-300' %}
+
+<div class="mx-auto w-full max-w-6xl">
+	{% if el %}
+		{% set view_form_name = getFormName('') %}
+		{% set data_form_name = getFormName('data') %}
+		{% set can_confirm = (el.oState <= 1) and ((el.oOper != 'CASHIN') or dfields or (_cfg.Bal_AFMMode > 0)) %}
+		{% set can_cancel = el.oState <= 2 %}
+		{% set can_delete = el.oState >= 5 %}
+		{% set view_errors = {'oper_not_found': _t({"key": "opers.error.state", "default": "Неверный статус операции"}), 'oper_disabled': _t({"key": "opers.error.disabled", "default": "Данная операция временно отключена"}), 'low_bal1': _t({"key": "opers.error.low_bal", "default": "Недостаточно средств на балансе"}), 'data_date_wrong': _t({"key": "opers.error.date", "default": "Неверная дата транзакции"}), 'data_sum_wrong': _t({"key": "opers.error.sum", "default": "Указана неверная сумма"}), 'data_batch_wrong': _t({"key": "opers.error.batch_empty", "default": "Не задан batch-номер операции"}), 'batch_exists': _t({"key": "opers.error.batch_exists", "default": "Транзакция с таким batch-номером уже зарегистрирована"}), 'afmacc_wrong': _t({"key": "opers.error.afmacc_wrong", "default": "Неверное значение кошелька"}), 'afmbatch_wrong': _t({"key": "opers.error.afmbatch_wrong", "default": "Неверный batch-номер"})} %}
+		<div class="mb-8 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+			<div>
+				<div class="mb-3 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-500 shadow-sm dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400">
+					<i class="fa-solid fa-hashtag text-blue-500" aria-hidden="true"></i>
+					{{ _t({"key": "balance.oper.number", "default": "Операция"}) }} #{{ el.oID }}
+				</div>
+				<h2 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ op_names[el.oOper]|default(el.oOper) }}</h2>
+				<p class="font-medium text-textDim dark:text-gray-400">{{ _t({"key": "balance.oper.view_text", "default": "Проверка статуса, деталей транзакции и подтверждение платежа."}) }}</p>
+			</div>
+		</div>
+
+		<div class="flex flex-col gap-8 lg:flex-row">
+			<div class="flex-1 space-y-6">
+				{% if isset(_GET.check) %}
+					<div class="rounded-[1.5rem] border border-blue-200 bg-blue-50 p-5 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+						<div class="flex gap-4">
+							<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">
+								<i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+							</div>
+							<div>
+								<div class="font-bold">{{ _t({"key": "balance.oper.checking", "default": "Ожидание подтверждения оплаты..."}) }}</div>
+								<p class="mt-1 text-sm opacity-80">{{ _t({"key": "balance.oper.checking_text", "default": "Система проверяет поступление средств на шлюз платежной системы."}) }}</p>
+							</div>
+						</div>
+					</div>
+				{% elseif el.oState <= 1 and can_confirm %}
+					<div class="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+						<div class="flex gap-4">
+							<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300">
+								<i class="fa-solid fa-bell" aria-hidden="true"></i>
+							</div>
+							<div>
+								<div class="font-bold">{{ _t({"key": "balance.oper.need_confirm", "default": "Операция требует подтверждения"}) }}</div>
+								<p class="mt-1 text-sm opacity-80">{{ _t({"key": "balance.oper.need_confirm_text", "default": "Проверьте реквизиты ниже и подтвердите выполнение операции."}) }}</p>
+							</div>
+						</div>
+					</div>
+				{% elseif el.oState == 2 %}
+					<div class="rounded-[1.5rem] border border-blue-200 bg-blue-50 p-5 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+						<div class="flex gap-4">
+							<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300">
+								<i class="fa-solid fa-clock" aria-hidden="true"></i>
+							</div>
+							<div>
+								<div class="font-bold">{{ _t({"key": "balance.oper.processing", "default": "В обработке"}) }}</div>
+								<p class="mt-1 text-sm opacity-80">{{ _t({"key": "balance.oper.processing_text", "default": "Операция принята в обработку и будет исполнена в ближайшее время."}) }}</p>
+							</div>
+						</div>
+					</div>
+				{% endif %}
+
+				<form method="post" action="{{ _selfLink }}?id={{ el.oID }}" name="{{ view_form_name }}" class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+					{{ _getFormSecurity({"form": view_form_name}) }}
+					<input name="oID" value="{{ el.oID }}" type="hidden">
+					{% set view_error_text = formErrorText(view_form_name, view_errors, true) %}
+					{% if view_error_text %}
+						<div class="border-b border-red-100 bg-red-50 p-5 text-sm font-semibold text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-100">{{ view_error_text }}</div>
+					{% endif %}
+					<div class="grid grid-cols-1 divide-y divide-gray-100 dark:divide-gray-800">
+						<div class="grid gap-2 p-5 sm:grid-cols-3">
+							<div class="text-sm font-bold text-gray-500">{{ _t({"key": "opers.col.state", "default": "Статус"}) }}</div>
+							<div class="sm:col-span-2">
+								<span class="inline-block rounded-full px-3 py-1 text-xs font-bold {% if el.oState == 3 %}bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400{% elseif el.oState == 2 %}bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400{% elseif el.oState == 4 %}bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400{% else %}bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300{% endif %}">{{ op_statuses[el.oState]|default(el.oState) }}</span>
+							</div>
+						</div>
+						<div class="grid gap-2 p-5 sm:grid-cols-3">
+							<div class="text-sm font-bold text-gray-500">{{ _t({"key": "common.date", "default": "Дата"}) }}</div>
+							<div class="font-mono text-sm text-brand dark:text-white sm:col-span-2">{{ el.oCTS|default(el.oTS) }}</div>
+						</div>
+						{% if el.oParams.uid2 %}
+							<div class="grid gap-2 p-5 sm:grid-cols-3">
+								<div class="text-sm font-bold text-gray-500">{% if el.oOper == 'TR' %}{{ _t({"key": "balance.transfer.receiver", "default": "Получатель"}) }}{% else %}{{ _t({"key": "balance.transfer.sender", "default": "Отправитель"}) }}{% endif %}</div>
+								<div class="font-bold text-brand dark:text-white sm:col-span-2">{{ el.oParams.user }}</div>
+							</div>
+						{% endif %}
+						<div class="grid gap-2 p-5 sm:grid-cols-3">
+							<div class="text-sm font-bold text-gray-500">{{ _t({"key": "balance.col.psys", "default": "Платежная система"}) }}</div>
+							<div class="font-bold text-brand dark:text-white sm:col-span-2">{{ el.cName }}</div>
+						</div>
+						<div class="grid gap-2 p-5 sm:grid-cols-3">
+							<div class="text-sm font-bold text-gray-500">{{ _t({"key": "balance.field.sum", "default": "Сумма"}) }}</div>
+							<div class="font-mono text-lg font-bold text-brand dark:text-white sm:col-span-2">{{ _z(valueIf(_GET.amount > 0, _GET.amount, el.oSum), el.ocID, 1) }}</div>
+						</div>
+						{% if el.oComis != 0 %}
+							<div class="grid gap-2 p-5 sm:grid-cols-3">
+								<div class="text-sm font-bold text-gray-500">{{ _t({"key": "opers.comis", "default": "Комиссия"}) }}</div>
+								<div class="font-mono font-bold text-amber-500 sm:col-span-2">{{ _z(el.oComis, el.ocID, 1) }}</div>
+							</div>
+						{% endif %}
+						{% if el.oParams.sum2 %}
+							<div class="grid gap-2 p-5 sm:grid-cols-3">
+								<div class="text-sm font-bold text-gray-500">{{ _t({"key": "balance.sum2", "default": "Сумма к получению"}) }}</div>
+								<div class="font-mono font-bold text-emerald-500 sm:col-span-2">{{ _z(el.oParams.sum2, exValue(el.ocID, el.oParams.cid2), 1) }}</div>
+							</div>
+						{% endif %}
+						{% if el.oParams2.acc %}
+							<div class="grid gap-2 p-5 sm:grid-cols-3">
+								<div class="text-sm font-bold text-gray-500">{{ _t({"key": "balance.account", "default": "Счет"}) }}</div>
+								<div class="break-all font-mono text-sm text-brand dark:text-white sm:col-span-2">{{ el.oParams2.acc }}</div>
+							</div>
+						{% endif %}
+						{% if el.oBatch %}
+							<div class="grid gap-2 p-5 sm:grid-cols-3">
+								<div class="text-sm font-bold text-gray-500">{{ _t({"key": "opers.col.batch", "default": "Batch-номер"}) }}</div>
+								<div class="break-all font-mono text-sm text-brand dark:text-white sm:col-span-2">{{ el.oBatch }}</div>
+							</div>
+						{% endif %}
+						{% if el.oMemo %}
+							<div class="grid gap-2 p-5 sm:grid-cols-3">
+								<div class="text-sm font-bold text-gray-500">{{ _t({"key": "opers.col.memo", "default": "Примечание"}) }}</div>
+								<div class="text-brand dark:text-white sm:col-span-2">{% if el.oMemo[0] == '~' %}{{ _t({"key": "balance.memo.error", "default": "Ошибка проведения"}) }}{% else %}{{ el.oMemo }}{% endif %}</div>
+							</div>
+						{% endif %}
+						{% if el.oOper == 'CASHIN' and el.oState <= 1 and _cfg.Bal_AFMMode > 0 %}
+							{% if bitwise_and(_cfg.Bal_AFMMode, 1) %}
+								<div class="grid gap-2 p-5 sm:grid-cols-3">
+									<label class="text-sm font-bold text-gray-500" for="{{ view_form_name }}_AFMAccount">{{ _t({"key": "balance.afm.account", "default": "Ваш кошелек"}) }}</label>
+									<input id="{{ view_form_name }}_AFMAccount" name="AFMAccount" value="{% if isset_IN('AFMAccount') %}{{ _IN('AFMAccount') }}{% endif %}" type="text" class="{{ input_class }} sm:col-span-2">
+								</div>
+							{% endif %}
+							{% if bitwise_and(_cfg.Bal_AFMMode, 2) %}
+								<div class="grid gap-2 p-5 sm:grid-cols-3">
+									<label class="text-sm font-bold text-gray-500" for="{{ view_form_name }}_AFMBatch">{{ _t({"key": "balance.afm.batch", "default": "Batch-номер"}) }}</label>
+									<input id="{{ view_form_name }}_AFMBatch" name="AFMBatch" value="{% if isset_IN('AFMBatch') %}{{ _IN('AFMBatch') }}{% endif %}" type="text" class="{{ input_class }} sm:col-span-2">
+								</div>
+							{% endif %}
+						{% endif %}
+					</div>
+					{% if can_confirm or can_cancel or can_delete %}
+						<div class="flex flex-col gap-3 border-t border-gray-100 bg-gray-50 p-5 dark:border-gray-800 dark:bg-[#1A1A1A] sm:flex-row sm:justify-end">
+							{% if can_cancel %}
+								<button name="{{ view_form_name }}_btncancel" value="{{ _t({"key": "opers.btn.cancel_request", "default": "Отменить заявку"}) }}" type="submit" class="rounded-2xl border border-red-200 bg-white px-6 py-3 font-bold text-red-600 transition hover:bg-red-50 dark:border-red-500/30 dark:bg-[#151515] dark:hover:bg-red-500/10">{{ _t({"key": "opers.btn.cancel_request", "default": "Отменить заявку"}) }}</button>
+							{% endif %}
+							{% if can_delete %}
+								<button name="{{ view_form_name }}_btndel" value="{{ _t({"key": "opers.btn.delete_record", "default": "Удалить запись"}) }}" type="submit" class="rounded-2xl border border-red-200 bg-white px-6 py-3 font-bold text-red-600 transition hover:bg-red-50 dark:border-red-500/30 dark:bg-[#151515] dark:hover:bg-red-500/10">{{ _t({"key": "opers.btn.delete_record", "default": "Удалить запись"}) }}</button>
+							{% endif %}
+							{% if can_confirm %}
+								<button name="{{ view_form_name }}_btn" value="{{ _t({"key": "opers.btn.confirm_exec", "default": "Подтвердить выполнение"}) }}" type="submit" class="rounded-2xl bg-brand px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">{{ _t({"key": "opers.btn.confirm_exec", "default": "Подтвердить выполнение"}) }}</button>
+							{% endif %}
+						</div>
+					{% endif %}
+				</form>
+
+				{% if el.oOper == 'CASHIN' and pform %}
+					{% if pform.html %}
+						<div class="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">{{ pform.html|raw }}</div>
+					{% elseif pform.url %}
+						<form method="{% if pform.get %}get{% else %}post{% endif %}" action="{{ pform.url }}" name="pay_form" hx-boost="false" class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+							{% for f, v in pform %}
+								{% if (f != 'url') and (f != 'get') %}
+									<input name="{{ f }}" value="{{ v }}" type="hidden">
+								{% endif %}
+							{% endfor %}
+							<button type="submit" class="rounded-2xl bg-emerald-600 px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-700">{{ _t({"key": "payment.goto", "default": "Перейти к оплате"}) }}</button>
+						</form>
+					{% endif %}
+				{% endif %}
+
+				{% if el.oOper == 'CASHIN' and (isset(pvalues.acc) or dfields) %}
+					<form method="post" action="{{ _selfLink }}?id={{ el.oID }}" name="{{ data_form_name }}" class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+						{{ _getFormSecurity({"form": data_form_name}) }}
+						<input name="oID" value="{{ el.oID }}" type="hidden">
+						{% set data_error_text = formErrorText(data_form_name, view_errors, true) %}
+						{% if data_error_text %}
+							<div class="border-b border-red-100 bg-red-50 p-5 text-sm font-semibold text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-100">{{ data_error_text }}</div>
+						{% endif %}
+						<div class="border-b border-gray-100 p-6 dark:border-gray-800">
+							<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": "balance.manual.title", "default": "Данные ручного платежа"}) }}</h3>
+							<p class="mt-1 text-sm text-gray-500">{{ _t({"key": "balance.manual.text", "default": "Укажите дату, batch-номер и дополнительные реквизиты платежа."}) }}</p>
+						</div>
+						<div class="grid gap-5 p-6 sm:grid-cols-2">
+							<div>
+								<label class="{{ label_class }}" for="{{ data_form_name }}_date">{{ _t({"key": "common.date", "default": "Дата"}) }}</label>
+								<input id="{{ data_form_name }}_date" name="date" value="{{ el.oParams2.date|default(today|default('')) }}" type="text" class="{{ input_class }}" {% if el.oState > 1 %}readonly{% endif %}>
+							</div>
+							<div>
+								<label class="{{ label_class }}" for="{{ data_form_name }}_batch">{{ _t({"key": "opers.col.batch", "default": "Batch-номер"}) }}</label>
+								<input id="{{ data_form_name }}_batch" name="batch" value="{{ el.oParams2.batch|default(defaultbatch|default('')) }}" type="text" class="{{ input_class }}" {% if el.oState > 1 %}readonly{% endif %}>
+							</div>
+							{% for field_name, field_def in dfields|default([]) %}
+								{% if not is_int(field_name) %}
+									<div>
+										{% set data_field_label = field_def[1]|default(field_name)|replace({'!!': '', '<br>': ' ', '<br/>': ' ', '<br />': ' ', '<small>': ' ', '</small>': '', '&lt;br&gt;': ' ', '&lt;small&gt;': ' ', '&lt;/small&gt;': ''}) %}
+										<label class="{{ label_class }}" for="{{ data_form_name }}_{{ field_name }}">{{ data_field_label }}</label>
+										{% if field_def[0] == 'S' and field_def[3] %}
+											<div class="relative">
+												<select id="{{ data_form_name }}_{{ field_name }}" name="{{ field_name }}" class="{{ input_class }} appearance-none pr-12" {% if el.oState > 1 %}disabled{% endif %}>
+													{% for opt_value, opt_label in field_def[3] %}
+														<option value="{{ opt_value }}" {% if el.oParams2[field_name]|default('') == opt_value %}selected{% endif %}>{{ opt_label }}</option>
+													{% endfor %}
+												</select>
+												<i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400" aria-hidden="true"></i>
+											</div>
+										{% else %}
+											<input id="{{ data_form_name }}_{{ field_name }}" name="{{ field_name }}" value="{{ el.oParams2[field_name]|default('') }}" type="{% if field_def[0] == '*' %}password{% else %}text{% endif %}" class="{{ input_class }}" {% if el.oState > 1 %}readonly{% endif %}>
+										{% endif %}
+									</div>
+								{% endif %}
+							{% endfor %}
+							<div class="sm:col-span-2">
+								<label class="{{ label_class }}" for="{{ data_form_name }}_memo">{{ _t({"key": "opers.col.memo", "default": "Примечание"}) }}</label>
+								<textarea id="{{ data_form_name }}_memo" name="memo" rows="4" class="{{ input_class }}" {% if el.oState > 1 %}readonly{% endif %}>{{ el.oParams2.memo|default('') }}</textarea>
+							</div>
+						</div>
+						{% if el.oState <= 1 %}
+							<div class="flex justify-end border-t border-gray-100 bg-gray-50 p-5 dark:border-gray-800 dark:bg-[#1A1A1A]">
+								<button name="{{ data_form_name }}_btn" value="{{ _t({"key": "form.save", "default": "Сохранить"}) }}" type="submit" class="rounded-2xl bg-brand px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">{{ _t({"key": "form.save", "default": "Сохранить"}) }}</button>
+							</div>
+						{% endif %}
+					</form>
+				{% endif %}
+			</div>
+
+			<aside class="w-full shrink-0 lg:w-80">
+				<div class="sticky top-28 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-[#151515]">
+					<h3 class="mb-6 text-lg font-bold text-brand dark:text-white">{{ _t({"key": "balance.help.title", "default": "Справка по транзакциям"}) }}</h3>
+					<div class="space-y-6">
+						<div class="flex gap-4">
+							<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><i class="fa-solid fa-shield-halved text-sm" aria-hidden="true"></i></div>
+							<div>
+								<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": "balance.help.security", "default": "Защита протокола"}) }}</div>
+								<p class="text-xs leading-relaxed text-gray-500">{{ _t({"key": "balance.help.security_text", "default": "Все финансовые транзакции защищены и фиксируются в истории операций."}) }}</p>
+							</div>
+						</div>
+						<div class="flex gap-4">
+							<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600"><i class="fa-solid fa-headset text-sm" aria-hidden="true"></i></div>
+							<div>
+								<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": "balance.help.support", "default": "Поддержка"}) }}</div>
+								<p class="text-xs leading-relaxed text-gray-500">{{ _t({"key": "balance.help.support_text", "default": "При возникновении вопросов обратитесь в службу поддержки."}) }} <a href="{{ _link('tickets', false, 0) }}" class="font-bold text-blue-500 hover:underline">{{ _t({"key": "nav.tickets", "default": "Тикеты"}) }}</a></p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</aside>
+		</div>
+	{% else %}
+		{% set add_form_name = getFormName('add') %}
+		{% set add_errors = {'psys_empty': _t({"key": "opers.error.psys_empty", "default": "плат.система не указана"}), 'psys2_empty': _t({"key": "opers.error.psys2_empty", "default": "плат.система не указана"}), 'psys2_equal_psys': _t({"key": "opers.error.psys_equal", "default": "плат.системы должны различаться"}), 'ex_rate_not_set': _t({"key": "opers.error.ex_rate", "default": "Курс валюты не задан"}), 'sum_wrong': _t({"key": "opers.error.sum_wrong", "default": "неверная сумма"}), 'limit_exceeded': _t({"key": "opers.error.limit", "default": "превышен лимит"}), 'pin_wrong': _t({"key": "opers.error.pin_wrong", "default": "неверный код"}), 'plan_wrong': _t({"key": "opers.error.plan_wrong", "default": "неверный план"}), 'compnd_wrong': _t({"key": "opers.error.compnd_wrong", "default": "неверное значение"}), 'compnd_wrong1': _t({"key": "opers.error.compnd_plan_wrong", "default": "неверное значение для плана"}), 'user2_empty': _t({"key": "opers.error.user2_empty", "default": "пользователь не найден"}), 'user2_equal_user': _t({"key": "opers.error.user2_equal", "default": "пользователи должны различаться"}), 'wallet_not_defined': _t({"key": "opers.error.wallet_not_defined", "default": "платежные реквизиты не заданы"}), 'low_bal1': _t({"key": "opers.error.low_bal", "default": "недостаточно средств"}), 'oper_disabled': _t({"key": "opers.error.disabled", "default": "операция отключена"})} %}
+		{% set selected_psys = user.aDefCurr|default(0) %}
+		{% if isset_IN('PSys') %}{% set selected_psys = _IN('PSys') %}{% endif %}
+		{% set selected_psys2 = 0 %}
+		{% if isset_IN('PSys2') %}{% set selected_psys2 = _IN('PSys2') %}{% endif %}
+		{% set sum_value = '' %}
+		{% if isset_IN('Sum') %}{% set sum_value = _IN('Sum') %}{% endif %}
+
+		<div class="mb-8 flex items-center justify-between gap-6">
+			<div>
+				<h2 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ oper_title }}</h2>
+				<p class="text-textDim dark:text-gray-400">{{ oper_text }}</p>
+			</div>
+		</div>
+
+		<div class="flex flex-col gap-8 lg:flex-row">
+			<div class="flex-1">
+				<form method="post" action="{{ _selfLink }}?add={{ oper }}" name="{{ add_form_name }}" class="space-y-8 rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515] sm:p-8">
+					{{ _getFormSecurity({"form": add_form_name}) }}
+					<input name="Oper" value="{{ oper }}" type="hidden">
+					{% set add_error_text = formErrorText(add_form_name, add_errors, true) %}
+					{% if add_error_text %}
+						<div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">{{ add_error_text }}</div>
+					{% endif %}
+
+					{% if oper != 'TR' or not _cfg.Const_IntCurr %}
+						<div>
+							<label class="{{ label_class }}" for="{{ add_form_name }}_PSys">{% if oper == 'CASHOUT' %}{{ _t({"key": "balance.field.psys_to", "default": "На платежную систему"}) }}{% else %}{{ _t({"key": "balance.field.psys_from", "default": "Платежная система"}) }}{% endif %}</label>
+							<div class="relative">
+								<select id="{{ add_form_name }}_PSys" name="PSys" class="{{ input_class }} appearance-none pr-12 text-lg font-bold" hx-post="{{ _link('ajax', false, 0) }}?module=balance&do=getcommission" hx-trigger="change" hx-target="#operation-commission" hx-swap="outerHTML" hx-include="closest form">
+									{% if count(clist) > 1 %}<option value="0">{{ _t({"key": "common.choose", "default": "- выберите -"}) }}</option>{% endif %}
+									{% for cid, cname in clist %}
+										<option value="{{ cid }}" {% if selected_psys == cid %}selected{% endif %}>{{ str_replace('{!!}', '', cname) }}</option>
+									{% endfor %}
+								</select>
+								<i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400" aria-hidden="true"></i>
+							</div>
+						</div>
+					{% else %}
+						<input name="PSys" value="1" type="hidden">
+					{% endif %}
+
+					<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+						<div>
+							<label class="{{ label_class }}" for="{{ add_form_name }}_Sum">{% if oper == 'CASHOUT' %}{{ _t({"key": "balance.field.sum_out", "default": "Сумма к выводу"}) }}{% else %}{{ _t({"key": "balance.field.sum", "default": "Сумма"}) }}{% endif %}</label>
+							<input id="{{ add_form_name }}_Sum" name="Sum" value="{{ sum_value }}" type="number" step="0.00000001" min="0" inputmode="decimal" placeholder="0.00" class="{{ input_class }} font-mono text-xl" hx-post="{{ _link('ajax', false, 0) }}?module=balance&do=getcommission" hx-trigger="input changed delay:250ms" hx-target="#operation-commission" hx-swap="outerHTML" hx-include="closest form">
+						</div>
+						<div class="flex flex-col justify-end">
+							{% include "balance/commission.twig" with {"commission_ready": false, "commission_value": 0, "commission_cid": selected_psys} %}
+						</div>
+					</div>
+
+					{% if oper == 'EX' %}
+						<div>
+							<label class="{{ label_class }}" for="{{ add_form_name }}_PSys2">{{ _t({"key": "balance.field.psys_to", "default": "На платежную систему"}) }}</label>
+							<div class="relative">
+								<select id="{{ add_form_name }}_PSys2" name="PSys2" class="{{ input_class }} appearance-none pr-12 text-lg font-bold">
+									{% if count(clist2) > 1 %}<option value="0">{{ _t({"key": "common.choose", "default": "- выберите -"}) }}</option>{% endif %}
+									{% for cid, cname in clist2 %}
+										<option value="{{ cid }}" {% if selected_psys2 == cid %}selected{% endif %}>{{ str_replace('{!!}', '', cname) }}</option>
+									{% endfor %}
+								</select>
+								<i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400" aria-hidden="true"></i>
+							</div>
+						</div>
+					{% endif %}
+
+					{% if oper == 'TR' %}
+						<div>
+							<label class="{{ label_class }}" for="{{ add_form_name }}_Login2">{{ _t({"key": "balance.transfer.receiver", "default": "Получатель"}) }}</label>
+							<input id="{{ add_form_name }}_Login2" name="Login2" value="{% if isset_IN('Login2') %}{{ _IN('Login2') }}{% endif %}" type="text" class="{{ input_class }}" autocomplete="off">
+						</div>
+						<div>
+							<label class="{{ label_class }}" for="{{ add_form_name }}_Memo">{{ _t({"key": "opers.col.memo", "default": "Примечание"}) }}</label>
+							<textarea id="{{ add_form_name }}_Memo" name="Memo" rows="4" class="{{ input_class }}">{% if isset_IN('Memo') %}{{ _IN('Memo') }}{% endif %}</textarea>
+						</div>
+					{% endif %}
+
+					{% if oper == 'CASHIN' and _cfg.Depo_AutoDepo %}
+						<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+							{% if count(plans|default([])) > 1 %}
+								<div>
+									<label class="{{ label_class }}" for="{{ add_form_name }}_Plan">{{ _t({"key": "depo.plan", "default": "План"}) }}</label>
+									<div class="relative">
+										<select id="{{ add_form_name }}_Plan" name="Plan" class="{{ input_class }} appearance-none pr-12">
+											<option value="0">{{ _t({"key": "depo.plan.auto", "default": "- авто -"}) }}</option>
+											{% for pid, pname in plans %}
+												<option value="{{ pid }}" {% if isset_IN('Plan') and _IN('Plan') == pid %}selected{% endif %}>{{ pname }}</option>
+											{% endfor %}
+										</select>
+										<i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400" aria-hidden="true"></i>
+									</div>
+								</div>
+							{% endif %}
+							{% if pcmax %}
+								<div>
+									<label class="{{ label_class }}" for="{{ add_form_name }}_Compnd">{{ _t({"key": "depo.compound", "default": "Процент реинвеста"}) }}</label>
+									<input id="{{ add_form_name }}_Compnd" name="Compnd" value="{% if isset_IN('Compnd') %}{{ _IN('Compnd') }}{% endif %}" type="number" min="0" max="{{ pcmax }}" step="0.01" class="{{ input_class }}">
+								</div>
+							{% endif %}
+						</div>
+					{% endif %}
+
+					{% if oper == 'CASHOUT' and _cfg.Bal_NeedPIN %}
+						<div>
+							<label class="{{ label_class }}" for="{{ add_form_name }}_PIN">{{ _t({"key": "account.security.pin", "default": "Введите PIN-код"}) }}</label>
+							{% include "external/auth.password.twig" with {"password_name": "PIN", "password_id": add_form_name ~ '_PIN', "password_placeholder": "••••", "password_autocomplete": "one-time-code"} %}
+						</div>
+					{% endif %}
+
+					<div class="flex justify-end border-t border-gray-100 pt-6 dark:border-gray-800">
+						<button name="{{ add_form_name }}_btn" value="{{ oper_button }}" type="submit" class="flex w-full items-center justify-center gap-3 rounded-2xl px-10 py-4 text-lg font-bold shadow-lg transition hover:-translate-y-0.5 hover:opacity-95 sm:w-auto {{ oper_button_class }}">
+							{{ oper_button }}
+							<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+						</button>
+					</div>
+				</form>
+			</div>
+
+			<aside class="w-full shrink-0 lg:w-80">
+				<div class="sticky top-28 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-[#151515]">
+					<h3 class="mb-6 text-lg font-bold text-brand dark:text-white">
+						<i class="fa-solid {{ oper_icon }} mr-2 text-blue-500" aria-hidden="true"></i>
+						{{ _t({"key": "balance.info.title", "default": "Информация"}) }}
+					</h3>
+					<div class="space-y-6">
+						{% if oper == 'CASHIN' %}
+							<div class="flex gap-4">
+								<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><i class="fa-solid fa-shield-halved text-sm" aria-hidden="true"></i></div>
+								<div>
+									<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": "balance.cashin.safe", "default": "Защищенный шлюз"}) }}</div>
+									<p class="text-xs leading-relaxed text-gray-500">{{ _t({"key": "balance.cashin.safe_text", "default": "После подтверждения платежа средства автоматически поступят на баланс."}) }}</p>
+								</div>
+							</div>
+						{% elseif oper == 'CASHOUT' %}
+							<div class="flex gap-4">
+								<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600"><i class="fa-solid fa-address-card text-sm" aria-hidden="true"></i></div>
+								<div>
+									<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": "balance.cashout.wallets", "default": "Реквизиты"}) }}</div>
+									<p class="text-xs leading-relaxed text-gray-500">{{ _t({"key": "balance.cashout.wallets_text", "default": "Перед выводом проверьте платежные реквизиты в настройках кошельков."}) }}</p>
+								</div>
+							</div>
+						{% elseif oper == 'EX' %}
+							<div class="flex gap-4">
+								<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600"><i class="fa-solid fa-right-left text-sm" aria-hidden="true"></i></div>
+								<div>
+									<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": "balance.exchange.rate", "default": "Курс обмена"}) }}</div>
+									<p class="text-xs leading-relaxed text-gray-500">{{ _t({"key": "balance.exchange.rate_text", "default": "Итоговая сумма рассчитывается по актуальному внутреннему курсу."}) }}</p>
+								</div>
+							</div>
+						{% elseif oper == 'TR' %}
+							<div class="flex gap-4">
+								<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><i class="fa-solid fa-user-check text-sm" aria-hidden="true"></i></div>
+								<div>
+									<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": "balance.transfer.check", "default": "Проверка получателя"}) }}</div>
+									<p class="text-xs leading-relaxed text-gray-500">{{ _t({"key": "balance.transfer.check_text", "default": "Перед отправкой перевода внимательно проверьте логин получателя."}) }}</p>
+								</div>
+							</div>
+						{% endif %}
+						<div class="border-t border-gray-200 pt-6 dark:border-gray-800">
+							<a href="{{ _link("tickets", false, 0) }}" class="inline-flex items-center gap-2 text-sm font-bold text-blue-500 hover:text-blue-600">
+								<i class="fa-solid fa-headset" aria-hidden="true"></i>
+								{{ _t({"key": "balance.help.need", "default": "Нужна помощь?"}) }}
+							</a>
+						</div>
+					</div>
+				</div>
+			</aside>
+		</div>
+	{% endif %}
+</div>
+
+{% include "footer.twig" %}

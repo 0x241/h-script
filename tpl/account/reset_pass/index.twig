@@ -1,0 +1,77 @@
+{% include "external/auth.header.twig" with {"title": _t({"key": 'auth.reset.title', "default": 'Сброс пароля'})} %}
+
+{% set reset_form_name = getFormName('') %}
+{% set txt_login = valueIf(_cfg.Const_NoLogins, _t({"key": 'auth.field.email', "default": 'E-mail'}), _t({"key": 'auth.field.login', "default": 'Логин'})) %}
+{% set reset_login_value = '' %}
+{% if isset_IN('Login') %}{% set reset_login_value = _IN('Login') %}{% endif %}
+{% set reset_mail_value = '' %}
+{% if isset_IN('Mail') %}{% set reset_mail_value = _IN('Mail') %}{% endif %}
+{% set reset_login_error = formErrorText(reset_form_name, {
+	'login_empty': _t({"key": 'auth.error.login_required', "login": txt_login, "default": 'Укажите {{login}}'}),
+	'login_not_found': _t({"key": 'auth.error.reset_login_not_found', "default": 'Неверная пара логин/e-mail'}),
+	'mail_not_found': _t({"key": 'auth.error.mail_not_found', "default": 'E-mail не найден'})
+}, true) %}
+
+<main class="flex min-h-screen">
+	<aside class="relative hidden w-1/2 flex-col items-center justify-center overflow-hidden bg-[#1E3A8A] p-12 lg:flex">
+		<div class="absolute inset-0 bg-gradient-to-br from-blue-500/30 via-indigo-900/40 to-transparent"></div>
+		<div class="relative z-10 max-w-lg text-center">
+			<div class="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl border border-white/20 bg-white/10 text-white shadow-2xl backdrop-blur-md">
+				<i class="fa-solid fa-key text-4xl"></i>
+			</div>
+			<h2 class="mb-6 text-4xl font-bold text-white">{{ _t({"key": 'auth.reset.aside_title', "default": 'Доступ к активам'}) }}</h2>
+			<p class="text-xl font-medium leading-relaxed text-blue-100/70">{{ _t({"key": 'auth.reset.aside_text', "default": 'Следуйте инструкциям на экране для безопасного восстановления доступа к вашему аккаунту.'}) }}</p>
+		</div>
+	</aside>
+
+	<section class="relative z-10 flex w-full flex-col justify-between bg-white p-6 dark:bg-[#0A0A0A] sm:p-12 lg:w-1/2">
+		<div class="mb-10 flex items-center justify-between">
+			{% include "external/auth.logo.twig" %}
+			{% include "external/auth.controls.twig" %}
+		</div>
+
+		<div class="mx-auto my-auto w-full max-w-md">
+			<h1 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'auth.reset.heading', "default": 'Забыли пароль?'}) }}</h1>
+			<p class="mb-8 text-textDim dark:text-gray-400">{{ _t({"key": 'auth.reset.text', "default": 'Введите ваш E-mail, и мы отправим ссылку для сброса.'}) }}</p>
+
+			{% if isset(_GET.done) %}
+				<div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
+					<div class="text-lg font-bold">{{ _t({"key": 'auth.reset.done.title', "default": 'Операция завершена!'}) }}</div>
+					<p class="mt-1 text-sm">{{ _t({"key": 'auth.reset.done.text', "default": 'Теперь вы можете войти в аккаунт, используя новый пароль.'}) }}</p>
+					<a href="{{ _link('account/login', false, 0) }}" class="mt-4 inline-flex rounded-full bg-emerald-600 px-5 py-2 text-sm font-bold text-white">{{ _t({"key": 'nav.login', "default": 'Войти'}) }}</a>
+				</div>
+			{% elseif isset(_GET.need_confirm) %}
+				<div class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+					<div class="text-lg font-bold">{{ _t({"key": 'auth.reset.need_confirm.title', "default": 'Операция НЕ завершена!'}) }}</div>
+					<p class="mt-1 text-sm">{{ _t({"key": 'auth.reset.need_confirm.text', "default": 'Для получения временного пароля введите код подтверждения или перейдите по ссылке из письма.'}) }}</p>
+					<a href="{{ _link('confirm', false, 0) }}" class="mt-4 inline-flex rounded-full bg-amber-500 px-5 py-2 text-sm font-bold text-white">{{ _t({"key": 'auth.confirm_code', "default": 'Введите код подтверждения'}) }}</a>
+				</div>
+			{% elseif isset(squest) %}
+				{% include "external/auth.sqa.twig" %}
+			{% else %}
+				<form method="post" action="{{ _selfLink }}" name="{{ reset_form_name }}" class="space-y-5">
+					{{ _getFormSecurity({"form": reset_form_name}) }}
+					{% if not _cfg.Const_NoLogins %}
+						<div>
+							<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ reset_form_name }}_Login">{{ txt_login }}</label>
+							<input name="Login" id="{{ reset_form_name }}_Login" value="{{ reset_login_value }}" type="text" placeholder="{{ _t({"key": 'auth.placeholder.login', "default": 'login'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500">
+						</div>
+					{% endif %}
+					<div>
+						<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ reset_form_name }}_Mail">{{ _t({"key": 'auth.field.email', "default": 'E-mail адрес'}) }}</label>
+						<input name="Mail" id="{{ reset_form_name }}_Mail" value="{{ reset_mail_value }}" type="email" placeholder="{{ _t({"key": 'auth.placeholder.email', "default": 'name@example.com'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500" autocomplete="email">
+						{% if reset_login_error %}
+							<p class="mt-2 text-sm font-semibold text-red-500">{{ reset_login_error }}</p>
+						{% endif %}
+					</div>
+					{% include "external/auth.captcha.twig" with {"auth_form_name": reset_form_name, "auth_captcha": _cfg.Account_ResetPassCaptcha} %}
+					<button name="{{ reset_form_name }}_btn" value="{{ _t({"key": 'form.next', "default": 'Далее'}) }}" type="submit" class="mt-4 w-full rounded-2xl bg-blue-600 p-4 font-bold text-white shadow-lg shadow-blue-500/30 transition hover:-translate-y-0.5 hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-blue-500 dark:hover:bg-blue-600">{{ _t({"key": 'auth.reset.submit', "default": 'Отправить ссылку'}) }}</button>
+				</form>
+			{% endif %}
+		</div>
+
+		<div class="mt-10 text-center text-sm text-gray-400">{% include "external/product-copyright.twig" %}</div>
+	</section>
+</main>
+
+{% include "external/auth.footer.twig" %}

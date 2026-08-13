@@ -1,0 +1,143 @@
+
+{#
+	f: name
+	v: array(
+		0 => S - select/string, * - password, C/CC - checkbox, X - static, T/L - text, Y - wysiwyg, F/E - file
+		1 => caption
+		2 => errors or description
+		[row_class] class for row
+		[checkbox_label] visible label near checkbox/toggle
+	)
+	vv: value
+#}
+
+{% if not isset(form) %}{% set form = '' %}{% endif %}
+{% if not isset(edit_form_name) %}{% set edit_form_name = getFormName(form) %}{% endif %}
+{% if not isset(edit_descr_rem) %}{% set edit_descr_rem = '<span class="descr_rem">(' %}{% endif %}
+{% if not isset(edit_descr_star) %}{% set edit_descr_star = '<span class="ml-1 text-red-500" aria-hidden="true">*</span>' %}{% endif %}
+{% if not isset(vv) %}{% set vv = '' %}{% endif %}
+{% if not isset(edit_is_filter) %}{% set edit_is_filter = false %}{% endif %}
+{% set edit_is_settings_grid = form_layout == 'settings_grid' %}
+
+{% if is_array(v) and not (isset(v.skip) and v.skip) %}
+	{% if not isset(v[2]) %}{% set v = array_set_path(v|default([]), [2], []) %}{% endif %}
+	{% if not isset(v[3]) %}{% set v = array_set_path(v|default([]), [3], []) %}{% endif %}
+	{% if not isset(v.default) %}{% set v = array_set_path(v|default([]), ["default"], '') %}{% endif %}
+	{% if not isset(v.readonly) %}{% set v = array_set_path(v|default([]), ["readonly"], false) %}{% endif %}
+	{% if not isset(v.disabled) %}{% set v = array_set_path(v|default([]), ["disabled"], false) %}{% endif %}
+	{% if not isset(v.multiple) %}{% set v = array_set_path(v|default([]), ["multiple"], false) %}{% endif %}
+	{% if not isset(v.row_class) %}{% set v = array_set_path(v|default([]), ["row_class"], '') %}{% endif %}
+	{% if not isset(v.comment) %}{% set v = array_set_path(v|default([]), ["comment"], '') %}{% endif %}
+	{% if not isset(v.hint) %}{% set v = array_set_path(v|default([]), ["hint"], '') %}{% endif %}
+	{% if not isset(v.input_type) %}{% set v = array_set_path(v|default([]), ["input_type"], 'text') %}{% endif %}
+	{% if not isset(v.class) %}{% set v = array_set_path(v|default([]), ["class"], '') %}{% endif %}
+	{% if not isset(v.star) %}{% set v = array_set_path(v|default([]), ["star"], false) %}{% endif %}
+	{% if not isset(v.checkbox_label) %}{% set v = array_set_path(v|default([]), ["checkbox_label"], '') %}{% endif %}
+	{% if not isset(v.size) %}{% set v = array_set_path(v|default([]), ["size"], 0) %}{% endif %}
+	{% if not isset(v.rows) %}{% set v = array_set_path(v|default([]), ["rows"], 0) %}{% endif %}
+	{% if not isset(v.cols) %}{% set v = array_set_path(v|default([]), ["cols"], 40) %}{% endif %}
+	{% if not isset(v.hx_post) %}{% set v = array_set_path(v|default([]), ["hx_post"], '') %}{% endif %}
+	{% if not isset(v.hx_trigger) %}{% set v = array_set_path(v|default([]), ["hx_trigger"], '') %}{% endif %}
+	{% if not isset(v.hx_target) %}{% set v = array_set_path(v|default([]), ["hx_target"], '') %}{% endif %}
+	{% if not isset(v.hx_swap) %}{% set v = array_set_path(v|default([]), ["hx_swap"], '') %}{% endif %}
+	{% if not isset(v.hx_include) %}{% set v = array_set_path(v|default([]), ["hx_include"], '') %}{% endif %}
+	{% if not isset(v.hx_sync) %}{% set v = array_set_path(v|default([]), ["hx_sync"], '') %}{% endif %}
+	{% set field_type = v[0]|default('T') %}
+	{% set field_id = edit_form_name ~ '_' ~ f %}
+	{% if isset_IN(f) %}
+		{% set cv = _IN(f) %}
+	{% else %}
+		{% set cv = firstNotEmpty([vv, v.default]) %}
+	{% endif %}
+	{% set field_caption = str_replace('!!', edit_descr_star, str_replace('<<', edit_descr_rem, str_replace('>>', ')</span>', v[1]))) %}
+	{% set field_required = (strpos(v[1], '!!') != false) or v.star %}
+	{% if v.checkbox_label %}
+		{% set checkbox_label = str_replace('!!', edit_descr_star, str_replace('<<', edit_descr_rem, str_replace('>>', ')</span>', v.checkbox_label))) %}
+	{% else %}
+		{% set checkbox_label = field_caption %}
+	{% endif %}
+	{% set field_help = '' %}
+	{% if v[2] and not is_array(v[2]) %}
+		{% set field_help = v[2] %}
+	{% elseif v.comment %}
+		{% set field_help = v.comment %}
+	{% endif %}
+	{% set field_error_text = (is_array(v[2]) and count(v[2]) > 0) ? formErrorText(edit_form_name, v[2], true) : '' %}
+	{% set field_state_class = valueIf(field_error_text, ' border-red-400 ring-4 ring-red-500/10 dark:border-red-500') %}
+	{% set field_extra_class = valueIf(v.class, ' ' ~ v.class) %}
+	{% set field_input_class = 'w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20' ~ field_state_class ~ field_extra_class %}
+	{% set field_textarea_class = 'w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20' ~ field_state_class ~ field_extra_class %}
+
+	<div class="{% if edit_is_filter %}grid min-w-0 gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]/50{% elseif edit_is_settings_grid %}grid min-w-0 gap-4 px-6 py-5 md:grid-cols-[minmax(220px,320px)_minmax(0,1fr)] md:items-center md:gap-8{% else %}grid gap-3 border-b border-gray-100 px-6 py-5 last:border-b-0 dark:border-gray-800 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)] md:items-center md:gap-8{% endif %}{% if v.row_class %} {{ v.row_class }}{% endif %}">
+		<div>
+			{% if field_type != 'CC' %}
+					<label for="{{ field_id }}" class="block text-sm font-extrabold text-brand dark:text-gray-200">{{ field_caption|raw }}</label>
+				{% else %}
+					<strong class="block text-sm font-extrabold text-brand dark:text-gray-200">{{ field_caption|raw }}</strong>
+				{% endif %}
+				{% if field_required %}<span class="mt-2 inline-flex rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-red-600 dark:bg-red-500/10 dark:text-red-300">{{ _t({"key": 'form.required', "default": 'Обязательное поле'}) }}</span>{% endif %}
+			{% if field_help %}
+				<small class="mt-2 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ field_help|raw }}</small>
+			{% endif %}
+		</div>
+		<div class="min-w-0">
+			{% if field_error_text %}
+				<div class="mb-3 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+					<i class="fa-solid fa-triangle-exclamation mt-0.5" aria-hidden="true"></i>
+					<span>{{ field_error_text }}</span>
+				</div>
+			{% endif %}
+
+			{% if (field_type == 'S') and is_array(v[3]) %}
+				<div class="relative">
+					<select name="{{ f }}{% if v.multiple %}[]{% endif %}" id="{{ field_id }}" class="{{ field_input_class }} appearance-none pr-12"{% if v.size > 0 %} size="{{ v.size }}"{% endif %}{% if v.multiple %} multiple="multiple"{% endif %}{% if field_required and not (v.readonly or v.disabled) %} required aria-required="true"{% endif %}{% if v.readonly or v.disabled %} disabled{% endif %}{% if v.hx_post %} hx-post="{{ v.hx_post }}"{% endif %}{% if v.hx_trigger %} hx-trigger="{{ v.hx_trigger }}"{% endif %}{% if v.hx_target %} hx-target="{{ v.hx_target }}"{% endif %}{% if v.hx_swap %} hx-swap="{{ v.hx_swap }}"{% endif %}{% if v.hx_include %} hx-include="{{ v.hx_include }}"{% endif %}{% if v.hx_sync %} hx-sync="{{ v.hx_sync }}"{% endif %}>
+						{% for k, i in v[3] %}
+							<option value="{{ k }}"{% if (cv == k) or (v.multiple and is_array(cv) and in_array(k, cv)) %} selected{% endif %}>{{ i }}</option>
+						{% endfor %}
+					</select>
+					{% if not v.multiple and v.size <= 1 %}<i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400" aria-hidden="true"></i>{% endif %}
+				</div>
+			{% elseif in_array(field_type, ['T', 'S', 'L', 'D', 'DT']) %}
+					<input name="{{ f }}" id="{{ field_id }}" value="{{ cv }}" type="{{ v.input_type }}" class="{{ field_input_class }}"{% if v.size %} size="{{ v.size }}"{% endif %}{% if v.hint %} placeholder="{{ v.hint }}"{% endif %}{% if field_required and not (v.readonly or v.disabled) %} required aria-required="true"{% endif %}{% if v.readonly %} readonly{% endif %}{% if v.disabled %} disabled{% endif %}>
+			{% elseif field_type == 'I' %}
+					<input name="{{ f }}" id="{{ field_id }}" value="{{ cv }}" type="number" class="{{ field_input_class }}"{% if v.size %} size="{{ v.size }}"{% endif %}{% if v.hint %} placeholder="{{ v.hint }}"{% endif %}{% if field_required and not (v.readonly or v.disabled) %} required aria-required="true"{% endif %}{% if v.readonly %} readonly{% endif %}{% if v.disabled %} disabled{% endif %}>
+			{% elseif in_array(field_type, ['F', '$', '%']) %}
+					<input name="{{ f }}" id="{{ field_id }}" value="{{ cv }}" type="text" class="{{ field_input_class }}"{% if v.size %} size="{{ v.size }}"{% endif %}{% if v.hint %} placeholder="{{ v.hint }}"{% endif %}{% if field_required and not (v.readonly or v.disabled) %} required aria-required="true"{% endif %}{% if v.readonly %} readonly{% endif %}{% if v.disabled %} disabled{% endif %}{% if v.hx_post %} hx-post="{{ v.hx_post }}"{% endif %}{% if v.hx_trigger %} hx-trigger="{{ v.hx_trigger }}"{% endif %}{% if v.hx_target %} hx-target="{{ v.hx_target }}"{% endif %}{% if v.hx_swap %} hx-swap="{{ v.hx_swap }}"{% endif %}{% if v.hx_include %} hx-include="{{ v.hx_include }}"{% endif %}{% if v.hx_sync %} hx-sync="{{ v.hx_sync }}"{% endif %}>
+			{% elseif in_array(field_type, ['P', '*']) %}
+					<input name="{{ f }}" id="{{ field_id }}" value="" type="password" class="{{ field_input_class }}"{% if v.size %} size="{{ v.size }}"{% endif %}{% if v.hint %} placeholder="{{ v.hint }}"{% endif %}{% if field_required and not (v.readonly or v.disabled) %} required aria-required="true"{% endif %}{% if v.readonly %} readonly{% endif %}{% if v.disabled %} disabled{% endif %}>
+			{% elseif in_array(field_type, ['C', 'CC']) %}
+				<label class="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 transition hover:bg-gray-100 dark:border-gray-800 dark:bg-[#1A1A1A] dark:hover:bg-[#202020]">
+						<input name="{{ f }}" id="{{ field_id }}" value="1" type="checkbox" class="peer h-5 w-5 rounded border-gray-300 text-blue-600 focus:outline-none focus:ring-0 focus:ring-offset-0 dark:border-gray-700"{% if cv %} checked{% endif %}{% if field_required and not (v.readonly or v.disabled) %} required aria-required="true"{% endif %}{% if v.readonly or v.disabled %} disabled{% endif %}>
+					{% if edit_is_settings_grid and not v.checkbox_label %}
+						<span class="text-sm font-bold text-gray-500 peer-checked:hidden dark:text-gray-400">{{ _t({"key": "common.disabled", "default": "Выключено"}) }}</span>
+						<span class="hidden text-sm font-bold text-brand peer-checked:inline dark:text-white">{{ _t({"key": "common.enabled", "default": "Включено"}) }}</span>
+					{% else %}
+						<span class="text-sm font-bold text-brand dark:text-white">{{ checkbox_label|raw }}</span>
+					{% endif %}
+				</label>
+			{% elseif field_type == 'X' %}
+				<div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 font-semibold text-brand dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white">
+					{% if is_array(v[3]) and isset(v[3][cv]) %}
+						{{ v[3][cv]|raw }}
+					{% elseif v[3] %}
+						{{ v[3]|raw }}
+					{% elseif v.default %}
+						{{ v.default|raw }}
+					{% else %}
+						{{ cv }}
+					{% endif %}
+				</div>
+			{% elseif in_array(field_type, ['W', 'A']) %}
+					<textarea name="{{ f }}" id="{{ field_id }}" class="{{ field_textarea_class }}" cols="{{ v.cols }}" rows="{% if v.rows %}{{ v.rows }}{% elseif v.size %}{{ v.size }}{% else %}4{% endif %}"{% if v.hint %} placeholder="{{ v.hint }}"{% endif %}{% if field_required and not (v.readonly or v.disabled) %} required aria-required="true"{% endif %}{% if v.readonly %} readonly{% endif %}{% if v.disabled %} disabled{% endif %}>{{ cv }}</textarea>
+				{% elseif field_type == 'Y' %}
+					<textarea name="{{ f }}" id="{{ field_id }}" data-editor="ckeditor" class="{{ field_textarea_class }}" cols="{{ v.cols }}" rows="{% if v.rows %}{{ v.rows }}{% elseif v.size %}{{ v.size }}{% else %}8{% endif %}"{% if v.readonly %} readonly{% endif %}{% if v.disabled %} disabled{% endif %}>{{ cv }}</textarea>
+				{% elseif field_type == 'E' %}
+					<input name="{{ f }}" id="{{ field_id }}" type="file" class="{{ field_input_class }} file:mr-4 file:rounded-lg file:border-0 file:bg-brand file:px-4 file:py-2 file:font-bold file:text-white dark:file:bg-white dark:file:text-brand"{% if v.size %} size="{{ v.size }}"{% endif %}{% if field_required and not (v.readonly or v.disabled) %} required aria-required="true"{% endif %}{% if v.readonly or v.disabled %} disabled{% endif %}>
+			{% endif %}
+
+			{% if (v.readonly or v.disabled) and field_type != 'X' %}
+				<input name="{{ f }}" value="{{ cv }}" type="hidden">
+			{% endif %}
+		</div>
+	</div>
+{% endif %}

@@ -1,0 +1,95 @@
+{% include "admin/header.twig" with {"title": _t({"key": 'admin.telemetry.title', "default": 'Телеметрия'})} %}
+
+{% if telemetry_flash.message %}
+	<aside class="mb-6 flex items-start gap-3 rounded-xl border p-4 text-sm font-semibold {% if telemetry_flash.type == 'error' %}border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100{% elseif telemetry_flash.type == 'warning' %}border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100{% else %}border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100{% endif %}">
+		<i class="fa-solid {% if telemetry_flash.type == 'error' %}fa-circle-exclamation{% elseif telemetry_flash.type == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-check{% endif %} mt-0.5" aria-hidden="true"></i>
+		<p>{{ telemetry_flash.message }}</p>
+	</aside>
+{% endif %}
+
+<section class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+	<header class="flex flex-col gap-4 border-b border-gray-100 p-6 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800">
+		<div class="flex items-start gap-4">
+			<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i></span>
+			<div>
+				<h2 class="text-lg font-extrabold text-brand dark:text-white">{{ _t({"key": 'admin.telemetry.transfer', "default": 'Передача данных'}) }}</h2>
+				<p class="mt-1 max-w-4xl text-sm leading-relaxed text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.telemetry.transfer_text', "default": 'Домен, версия, дата установки, случайный ID и ежедневный heartbeat используются для проверки состояния H-Script.'}) }}</p>
+			</div>
+		</div>
+		<span class="inline-flex self-start items-center gap-2 rounded-full bg-blue-50 px-3 py-2 text-xs font-extrabold text-blue-700 lg:self-auto dark:bg-blue-500/10 dark:text-blue-200">
+			<span class="h-2 w-2 rounded-full bg-blue-500"></span>
+			{{ _t({"key": 'admin.telemetry.required', "default": 'Обязательная регистрация'}) }}
+		</span>
+	</header>
+
+	<div class="grid border-b border-gray-100 sm:grid-cols-2 lg:grid-cols-[minmax(170px,1fr)_repeat(4,minmax(100px,.7fr))_minmax(190px,1fr)] dark:border-gray-800">
+		<div class="flex items-center justify-between gap-4 border-b border-gray-100 p-5 sm:col-span-2 lg:col-span-1 lg:border-b-0 lg:border-r dark:border-gray-800">
+			<div>
+				<p class="text-xs font-extrabold uppercase tracking-wider text-gray-400">{{ _t({"key": 'admin.telemetry.state', "default": 'Состояние'}) }}</p>
+				<p class="mt-1 font-extrabold {% if telemetry.registered %}text-emerald-600 dark:text-emerald-400{% else %}text-gray-500 dark:text-gray-400{% endif %}">{% if telemetry.registered %}{{ _t({"key": 'admin.telemetry.registered', "default": 'Зарегистрировано'}) }}{% else %}{{ _t({"key": 'admin.telemetry.waiting', "default": 'Ожидает связи'}) }}{% endif %}</p>
+			</div>
+			<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {% if telemetry.registered %}bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300{% else %}bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400{% endif %}"><i class="fa-solid {% if telemetry.registered %}fa-link{% else %}fa-link-slash{% endif %}" aria-hidden="true"></i></span>
+		</div>
+		<dl class="contents">
+			<div class="border-b border-gray-100 p-5 sm:border-r lg:border-b-0 dark:border-gray-800"><dt class="text-xs text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.telemetry.domain', "default": 'Домен'}) }}</dt><dd class="mt-1 truncate font-mono font-bold text-brand dark:text-white" title="{{ telemetry.domain }}">{{ telemetry.domain }}</dd></div>
+			<div class="border-b border-gray-100 p-5 lg:border-b-0 lg:border-r dark:border-gray-800"><dt class="text-xs text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.telemetry.version', "default": 'Версия'}) }}</dt><dd class="mt-1 font-mono font-bold text-brand dark:text-white">{{ telemetry.version }}</dd></div>
+			<div class="border-b border-gray-100 p-5 sm:border-r lg:border-b-0 dark:border-gray-800"><dt class="text-xs text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.telemetry.installed', "default": 'Установлена'}) }}</dt><dd class="mt-1 text-sm font-bold text-brand dark:text-white">{{ telemetry.installed_at }}</dd></div>
+			<div class="border-b border-gray-100 p-5 lg:border-b-0 lg:border-r dark:border-gray-800"><dt class="text-xs text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.telemetry.last_sent', "default": 'Последняя отправка'}) }}</dt><dd class="mt-1 text-sm font-bold text-brand dark:text-white">{{ telemetry.last_success_at }}</dd></div>
+		</dl>
+		<form method="post" name="telemetry_send" class="flex items-center p-5 sm:col-span-2 lg:col-span-1">
+			{{ _getFormSecurity({"form": "telemetry_send"}) }}
+			<button type="submit" name="telemetry_send_btnsend" value="1" class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-extrabold text-blue-700 transition hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>{{ _t({"key": 'admin.telemetry.send_now', "default": 'Отправить сейчас'}) }}</button>
+		</form>
+	</div>
+
+	<form method="post" name="telemetry_settings" class="grid gap-5 border-b border-gray-100 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,.7fr)_auto] lg:items-center dark:border-gray-800">
+		{{ _getFormSecurity({"form": "telemetry_settings"}) }}
+		<div class="flex items-start gap-4">
+			<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="fa-solid fa-chart-column" aria-hidden="true"></i></span>
+			<div>
+				<h3 class="font-extrabold text-brand dark:text-white">{{ _t({"key": 'admin.telemetry.public_stats', "default": 'Публичные агрегаты'}) }}</h3>
+				<p class="mt-1 text-sm leading-relaxed text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.telemetry.public_stats_text', "default": 'Раз в сутки отправляются только числовые показатели из статистики вкладов.'}) }}</p>
+			</div>
+		</div>
+		<label class="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
+			<input type="checkbox" name="share_public_stats" value="1" class="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 text-emerald-600" {% if telemetry.share_public_stats %}checked{% endif %}>
+			<span>
+				<strong class="block text-sm font-extrabold text-brand dark:text-white">{{ _t({"key": 'admin.telemetry.share_stats', "default": 'Передавать агрегаты'}) }}</strong>
+				<small class="mt-1 block text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.telemetry.enabled_default', "default": 'Включено по умолчанию.'}) }}</small>
+			</span>
+		</label>
+		<button type="submit" name="telemetry_settings_btnsave" value="1" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-extrabold text-white transition hover:bg-black lg:self-stretch dark:bg-white dark:text-brand dark:hover:bg-gray-100"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>{{ _t({"key": 'common.save', "default": 'Сохранить'}) }}</button>
+	</form>
+
+	<details class="group bg-gray-50/70 dark:bg-black/20">
+		<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4 [&::-webkit-details-marker]:hidden">
+			<span class="flex min-w-0 items-center gap-3">
+				<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-200/70 text-gray-600 dark:bg-gray-800 dark:text-gray-300"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></span>
+				<span>
+					<strong class="block text-sm text-brand dark:text-white">{{ _t({"key": 'admin.telemetry.not_shared', "default": 'Какие данные не передаются'}) }}</strong>
+					<small class="mt-0.5 block text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.telemetry.not_shared_text', "default": 'Личные данные, финансовые операции, пароли и настройки остаются на сервере.'}) }}</small>
+				</span>
+			</span>
+			<i class="fa-solid fa-chevron-down shrink-0 text-xs text-gray-400 transition group-open:rotate-180" aria-hidden="true"></i>
+		</summary>
+		<div class="border-t border-gray-100 px-6 py-5 dark:border-gray-800">
+			<ul class="grid gap-3 text-sm text-gray-500 md:grid-cols-3 dark:text-gray-400">
+				<li class="flex items-start gap-2"><i class="fa-solid fa-circle-xmark mt-0.5 text-gray-400" aria-hidden="true"></i><span>{{ _t({"key": 'admin.telemetry.not_shared_users', "default": 'Логины, e-mail, IP и профили пользователей.'}) }}</span></li>
+				<li class="flex items-start gap-2"><i class="fa-solid fa-circle-xmark mt-0.5 text-gray-400" aria-hidden="true"></i><span>{{ _t({"key": 'admin.telemetry.not_shared_operations', "default": 'Операции и получатели выплат.'}) }}</span></li>
+				<li class="flex items-start gap-2"><i class="fa-solid fa-circle-xmark mt-0.5 text-gray-400" aria-hidden="true"></i><span>{{ _t({"key": 'admin.telemetry.not_shared_secrets', "default": 'Пароли, ключи шлюзов, настройки и содержимое базы.'}) }}</span></li>
+			</ul>
+			<div class="mt-4 grid gap-2 text-xs leading-relaxed text-gray-400 lg:grid-cols-[minmax(0,1fr)_minmax(240px,.7fr)]">
+				<p>{{ _t({"key": 'admin.telemetry.collector_ip', "default": 'Collector видит исходящий IP сервера, как при любом HTTPS-запросе, и использует его для ограничения частоты и диагностики.'}) }}</p>
+				<p class="min-w-0 truncate font-mono lg:text-right" title="{{ telemetry.endpoint }}">Collector: {{ telemetry.endpoint }}</p>
+			</div>
+			{% if telemetry.installation_id or telemetry.last_error %}
+				<dl class="mt-4 grid gap-3 border-t border-gray-200 pt-4 text-xs sm:grid-cols-2 dark:border-gray-800">
+					{% if telemetry.installation_id %}<div><dt class="text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.telemetry.installation_id', "default": 'ID установки'}) }}</dt><dd class="mt-1 break-all font-mono font-bold text-brand dark:text-white">{{ telemetry.installation_id }}</dd></div>{% endif %}
+					{% if telemetry.last_error %}<div><dt class="text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.telemetry.last_response', "default": 'Последний ответ'}) }}</dt><dd class="mt-1 font-mono font-bold text-amber-600 dark:text-amber-300">HTTP {{ telemetry.last_status }} · {{ telemetry.last_error }}</dd></div>{% endif %}
+				</dl>
+			{% endif %}
+		</div>
+	</details>
+</section>
+
+{% include "admin/footer.twig" %}

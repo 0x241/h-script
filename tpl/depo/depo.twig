@@ -1,0 +1,176 @@
+{% include "header.twig" with {"title": _t({"key": 'deposit.title', "default": 'Депозит'})} %}
+{% include "depo/_statuses.twig" %}
+
+<div class="mx-auto w-full max-w-6xl">
+	{% if el %}
+		{% set is_active = el.dState == 1 %}
+		{% set chg = is_active and (el.pCompndMax > 0) and (el.pCompndMin < el.pCompndMax) %}
+		{% set add = is_active and el.pEnAdd %}
+		{% set sub = is_active and (el.pClComis < 100) and (el.dNPer >= el.pMPer) %}
+		{% set can_modify = chg or add or sub %}
+		{% set depo_form_name = getFormName('') %}
+		{% set action_errors = {'oper_disabled': 'операция запрещена', 'sum_empty': 'укажите сумму', 'sum_wrong': 'неверная сумма', 'low_bal1': 'недостаточно средств', 'cant_add': 'невозможно довложить', 'cant_sub': 'невозможно снять', 'plan_not_found': 'нет подходящего плана', 'compnd_wrong': ('неверное значение [' ~ cmin|default(el.pCompndMin|default(0)) ~ '..' ~ cmax|default(el.pCompndMax|default(0)) ~ ']')} %}
+		{% set input_class = 'w-full rounded-xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500' %}
+
+		<div class="mb-8 flex items-center justify-between gap-4">
+			<div>
+				<div class="mb-1 flex items-center gap-3">
+					<span class="font-mono text-sm text-gray-400">#{{ el.dID }}</span>
+					<span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold {% if is_active %}bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400{% elseif el.dState == 3 %}bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400{% else %}bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300{% endif %}">
+						{% if is_active %}<span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>{% endif %}
+						{{ ststrs[el.dState]|default(el.dState) }}
+					</span>
+				</div>
+				<h2 class="text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.manage.title', "default": 'Управление инвестицией'}) }}</h2>
+			</div>
+		</div>
+
+		<div class="flex flex-col gap-8 lg:flex-row">
+			<div class="flex-1 space-y-8">
+				{% include "depo/progress.twig" %}
+
+				<div class="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+					<h3 class="mb-6 text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.details.title', "default": 'Детали начислений'}) }}</h3>
+					<div class="space-y-4">
+						<div class="flex items-center justify-between gap-4 border-b border-gray-100 pb-4 dark:border-gray-800">
+							<span class="font-bold text-gray-500">{{ _t({"key": 'deposit.created', "default": 'Дата создания'}) }}</span>
+							<span class="text-right font-bold text-brand dark:text-white">{{ el.dCTS }}</span>
+						</div>
+						<div class="flex items-center justify-between gap-4 border-b border-gray-100 pb-4 dark:border-gray-800">
+							<span class="font-bold text-gray-500">{{ _t({"key": 'deposit.last_charge', "default": 'Последнее начисление'}) }}</span>
+							<span class="text-right font-bold text-brand dark:text-white">{{ el.dLTS }}</span>
+						</div>
+						<div class="flex items-center justify-between gap-4 border-b border-gray-100 pb-4 dark:border-gray-800">
+							<span class="font-bold text-gray-500">{{ _t({"key": 'deposit.next_charge', "default": 'Следующее начисление'}) }}</span>
+							<span class="text-right font-mono font-bold text-blue-500">{{ el.dNTS }}</span>
+						</div>
+						<div class="flex items-center justify-between gap-4 border-b border-gray-100 pb-4 dark:border-gray-800">
+							<span class="font-bold text-gray-500">{{ _t({"key": 'deposit.percent', "default": 'Процент начисления'}) }}</span>
+							<span class="text-right font-mono font-bold text-emerald-500">{{ el.pPerc|number_format(2, '.', ' ') }}%</span>
+						</div>
+						<div class="flex items-center justify-between gap-4">
+							<span class="font-bold text-gray-500">{{ _t({"key": 'deposit.early_withdraw', "default": 'Досрочное снятие'}) }}</span>
+							{% if el.pClComis >= 100 %}
+								<span class="text-right font-bold text-red-500">{{ _t({"key": 'deposit.withdraw.no', "default": 'Невозможно'}) }}</span>
+							{% elseif el.dNPer >= el.pMPer %}
+								<span class="text-right font-bold text-emerald-500">{{ _t({"key": 'deposit.withdraw.yes', "default": 'Возможно'}) }}</span>
+							{% else %}
+								<span class="text-right font-bold text-amber-500">{{ _t({"key": 'deposit.withdraw.left', "default": 'Осталось начислений'}) }}: {{ el.pMPer - el.dNPer }}</span>
+							{% endif %}
+						</div>
+					</div>
+				</div>
+
+				{% if can_modify %}
+					<form method="post" action="{{ _link('depo/depo', false, 0) }}?id={{ el.dID }}" name="{{ depo_form_name }}" class="rounded-[1.5rem] border border-gray-100 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+						{{ _getFormSecurity({"form": depo_form_name}) }}
+						<input name="dID" value="{{ el.dID }}" type="hidden">
+						<input name="dcID" value="{{ el.dcID }}" type="hidden">
+						{% set action_error_text = formErrorText(depo_form_name, action_errors, true) %}
+						{% if action_error_text %}
+							<div class="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+								<i class="fa-solid fa-triangle-exclamation mt-0.5" aria-hidden="true"></i>
+								<span>{{ action_error_text }}</span>
+							</div>
+						{% endif %}
+						<h3 class="mb-6 text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.operations.title', "default": 'Операции по депозиту'}) }}</h3>
+						<div class="space-y-6">
+							{% if chg %}
+								<div>
+									<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ depo_form_name }}_Compnd">{{ _t({"key": 'deposit.field.compound', "default": 'Новый процент реинвеста (капитализация)'}) }}</label>
+									<div class="flex flex-col gap-4 sm:flex-row sm:items-end">
+										<div class="relative w-full sm:max-w-xs">
+											<input name="Compnd" id="{{ depo_form_name }}_Compnd" value="{% if isset_IN('Compnd') %}{{ _IN('Compnd') }}{% else %}{{ el.dCompnd }}{% endif %}" type="number" step="0.01" min="{{ el.pCompndMin }}" max="{{ el.pCompndMax }}" class="{{ input_class }} pr-10 font-mono">
+											<span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">%</span>
+										</div>
+										<button name="{{ depo_form_name }}_btnchg" value="{{ _t({"key": 'deposit.compound.change', "default": 'Изменить'}) }}" type="submit" class="w-full rounded-xl bg-brand px-6 py-3.5 font-bold text-white shadow-sm transition hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100 sm:w-auto">{{ _t({"key": 'deposit.compound.change', "default": 'Изменить'}) }}</button>
+									</div>
+									<p class="mt-3 text-xs text-gray-500">{{ _t({"key": 'deposit.compound.hint2', "default": 'Укажите, какой процент от прибыли будет добавляться к сумме депозита.'}) }}</p>
+								</div>
+							{% endif %}
+
+							{% if add or sub %}
+								<div class="border-t border-gray-100 pt-6 dark:border-gray-800">
+									<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ depo_form_name }}_Sum">{{ _t({"key": 'deposit.field.change_sum', "default": 'Сумма изменения'}) }}</label>
+									<div class="flex flex-col gap-4 sm:flex-row sm:items-end">
+										<div class="relative w-full">
+											<input name="Sum" id="{{ depo_form_name }}_Sum" value="{% if isset_IN('Sum') %}{{ _IN('Sum') }}{% endif %}" type="number" step="0.01" min="0.01" inputmode="decimal" class="{{ input_class }} pr-16 font-mono">
+											<span class="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">{{ el.cCurrID|default('') }}</span>
+										</div>
+										{% if add %}
+											<button name="{{ depo_form_name }}_btnadd" value="{{ _t({"key": 'deposit.add', "default": 'Довложить'}) }}" type="submit" class="w-full rounded-xl bg-emerald-500 px-6 py-3.5 font-bold text-white shadow-sm transition hover:bg-emerald-600 sm:w-auto">{{ _t({"key": 'deposit.add', "default": 'Довложить'}) }}</button>
+										{% endif %}
+										{% if sub %}
+											<button name="{{ depo_form_name }}_btnsub" value="{{ _t({"key": 'deposit.withdraw', "default": 'Снять средства'}) }}" type="submit" class="w-full rounded-xl bg-red-500 px-6 py-3.5 font-bold text-white shadow-sm transition hover:bg-red-600 sm:w-auto">{{ _t({"key": 'deposit.withdraw', "default": 'Снять средства'}) }}</button>
+										{% endif %}
+									</div>
+									{% if sub %}
+										<p class="mt-3 text-xs text-gray-500">{{ _t({"key": 'deposit.withdraw.hint', "default": 'При досрочном снятии может взиматься комиссия согласно условиям тарифа.'}) }}</p>
+									{% endif %}
+								</div>
+							{% endif %}
+						</div>
+					</form>
+				{% endif %}
+			</div>
+
+			<aside class="w-full shrink-0 lg:w-80">
+				<div class="sticky top-28 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-[#151515]">
+					<h3 class="mb-6 text-lg font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.info.title', "default": 'Информация о вкладе'}) }}</h3>
+					<div class="space-y-6">
+						<div class="flex gap-4">
+							<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><i class="fa-solid fa-rotate text-sm" aria-hidden="true"></i></div>
+							<div>
+								<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.info.reinvest.title', "default": 'Реинвестирование'}) }}</div>
+								<div class="text-xs text-gray-500">{{ _t({"key": 'deposit.info.reinvest.text', "default": 'Вы можете управлять процентом капитализации для автоматического увеличения тела депозита.'}) }}</div>
+							</div>
+						</div>
+						<div class="flex gap-4">
+							<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600"><i class="fa-solid fa-calendar-check text-sm" aria-hidden="true"></i></div>
+							<div>
+								<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.info.charge.title', "default": 'Начисления'}) }}</div>
+								<div class="text-xs text-gray-500">{{ _t({"key": 'deposit.info.charge.text', "default": 'Прибыль начисляется строго по графику выбранного инвестиционного плана.'}) }}</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</aside>
+		</div>
+	{% else %}
+		<div class="mb-8 flex items-center justify-between gap-4">
+			<div>
+				<h2 class="mb-2 text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.new.title', "default": 'Новый депозит'}) }}</h2>
+				<p class="text-textDim dark:text-gray-400">{{ _t({"key": 'deposit.new.text', "default": 'Создайте инвестиционный портфель за пару кликов.'}) }}</p>
+			</div>
+		</div>
+
+		<div class="flex flex-col gap-8 lg:flex-row">
+			<div class="flex-1">
+				{% include "depo/_depo.new.twig" %}
+			</div>
+			<aside class="w-full shrink-0 lg:w-80">
+				<div class="sticky top-28 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-[#151515]">
+					<h3 class="mb-6 text-lg font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.new.guide.title', "default": 'Выбор плана'}) }}</h3>
+					<div class="space-y-6">
+						<div class="flex gap-4">
+							<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><i class="fa-solid fa-check-to-slot text-sm" aria-hidden="true"></i></div>
+							<div>
+								<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.new.guide.instant.title', "default": 'Моментальное открытие'}) }}</div>
+								<div class="text-xs text-gray-500">{{ _t({"key": 'deposit.new.guide.instant.text', "default": 'Депозит начинает работу сразу после подтверждения транзакции с вашего баланса.'}) }}</div>
+							</div>
+						</div>
+						<div class="flex gap-4">
+							<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600"><i class="fa-solid fa-calculator text-sm" aria-hidden="true"></i></div>
+							<div>
+								<div class="mb-1 text-sm font-bold text-brand dark:text-white">{{ _t({"key": 'deposit.new.guide.calc.title', "default": 'Расчет прибыли'}) }}</div>
+								<div class="text-xs text-gray-500">{{ _t({"key": 'deposit.new.guide.calc.text', "default": 'Используйте инвестиционный калькулятор для прогнозирования будущей доходности.'}) }} <a href="{{ _link('depo/calc', false, 0) }}" class="text-blue-500 hover:underline">{{ _t({"key": 'nav.calc', "default": 'Калькулятор'}) }}</a></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</aside>
+		</div>
+	{% endif %}
+</div>
+
+{% include "footer.twig" %}

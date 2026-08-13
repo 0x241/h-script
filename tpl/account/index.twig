@@ -1,0 +1,401 @@
+{% include "header.twig" with {"title": _t({"key": 'account.title', "default": 'Настройки профиля'})} %}
+
+{% set account_form_name = getFormName('') %}
+{% set account_info = getInfoData(account_form_name) %}
+{% set name_value = user.aName %}
+{% if isset_IN('aName') %}{% set name_value = _IN('aName') %}{% endif %}
+{% set tel_value = user.aTel %}
+{% if isset_IN('aTel') %}{% set tel_value = _IN('aTel') %}{% endif %}
+{% set tz_value = utz %}
+{% if isset_IN('TZ') %}{% set tz_value = _IN('TZ') %}{% endif %}
+{% set ipsec_value = user.aIPSec|default(0) %}
+{% if isset_IN('aIPSec') %}{% set ipsec_value = _IN('aIPSec') %}{% endif %}
+{% set sess_ip_value = user.aSessIP|default(0) %}
+{% if isset_IN('aSessIP') %}{% set sess_ip_value = _IN('aSessIP') %}{% endif %}
+{% set sess_uniq_value = user.aSessUniq|default(0) %}
+{% if isset_IN('aSessUniq') %}{% set sess_uniq_value = _IN('aSessUniq') %}{% endif %}
+{% set no_mail_value = user.aNoMail|default(0) %}
+{% if isset_IN('aNoMail') %}{% set no_mail_value = _IN('aNoMail') %}{% endif %}
+{% set timeout_value = user.aTimeOut|default(0) %}
+{% if isset_IN('aTimeOut') %}{% set timeout_value = _IN('aTimeOut') %}{% endif %}
+{% set squestion_value = user.aSQuestion %}
+{% if isset_IN('aSQuestion') %}{% set squestion_value = _IN('aSQuestion') %}{% endif %}
+{% set avatar_form_name = getFormName('avatar') %}
+{% set avatar_info = getInfoData(avatar_form_name) %}
+{% set avatar_error = formErrorText(avatar_form_name, {
+	'avatar_empty': _t({"key": 'account.avatar.empty', "default": 'выберите изображение'}),
+	'avatar_large': _t({"key": 'account.avatar.large', "default": 'файл слишком большой; максимум 5 МБ'}),
+	'avatar_invalid': _t({"key": 'account.avatar.invalid', "default": 'поддерживаются изображения JPEG, PNG и GIF'}),
+	'avatar_write': _t({"key": 'account.avatar.write', "default": 'не удалось сохранить изображение'})
+}, true) %}
+
+{% set name_error = formErrorText(account_form_name, {'name_empty': _t({"key": 'auth.error.name_empty', "default": 'укажите имя'})}, true) %}
+{% set tel_error = formErrorText(account_form_name, {'tel_wrong': _t({"key": 'auth.error.tel_wrong', "default": 'неверный номер'})}, true) %}
+{% set tz_error = formErrorText(account_form_name, {'tz_wrong': _t({"key": 'account.error.tz_wrong', "default": 'неверное смещение [ч:м]'})}, true) %}
+{% set ga_error = formErrorText(account_form_name, {'ga_wrong': _t({"key": 'account.error.ga_wrong', "default": 'неверный код'})}, true) %}
+{% set pin_error = formErrorText(account_form_name, {'pin_wrong': _t({"key": 'account.error.pin_wrong', "default": 'неверный код'})}, true) %}
+{% set secq_error = formErrorText(account_form_name, {'secq_empty': _t({"key": 'auth.error.secq_empty', "default": 'укажите вопрос'}), 'secq_short': _t({"key": 'auth.error.secq_short', "min": _cfg.Sec_MinSQA, "default": 'вопрос слишком короткий'})}, true) %}
+{% set seca_error = formErrorText(account_form_name, {'seca_empty': _t({"key": 'auth.error.seca_empty', "default": 'укажите ответ'}), 'seca_short': _t({"key": 'auth.error.seca_short', "min": _cfg.Sec_MinSQA, "default": 'ответ слишком короткий'}), 'seqa_equal_secq': _t({"key": 'auth.error.seqa_equal_secq', "default": 'ответ не должен совпадать с вопросом'})}, true) %}
+{% set account_form_error = formErrorText(account_form_name) %}
+{% set account_tab = _GET.tab|default('general') %}
+{% set account_tabs = ['general', 'auth', 'security', 'api'] %}
+{% if account_service_token_enabled %}
+	{% set account_tabs = account_tabs|merge(['service']) %}
+{% endif %}
+{% if not in_array(account_tab, account_tabs) %}
+	{% set account_tab = 'general' %}
+{% endif %}
+{% set account_tab_url = _link('account', false, 0) %}
+{% set account_nav_active = 'bg-white text-brand shadow-sm dark:bg-[#202020] dark:text-white' %}
+{% set account_nav_idle = 'text-gray-500 hover:bg-white dark:hover:bg-[#1A1A1A]' %}
+
+<div class="mx-auto w-full max-w-5xl">
+	<div id="account-profile-header" aria-live="polite">
+	<div class="mb-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+		<div class="flex items-center gap-6">
+			<form method="post" action="{{ _selfLink }}" enctype="multipart/form-data" name="{{ avatar_form_name }}" class="shrink-0" hx-post="{{ _selfLink }}" hx-trigger="change from:#{{ avatar_form_name }}_Avatar" hx-encoding="multipart/form-data" hx-target="#account-profile-header" hx-select="#account-profile-header" hx-swap="outerHTML">
+				{{ _getFormSecurity({"form": avatar_form_name}) }}
+				<input name="{{ avatar_form_name }}_btn" value="1" type="hidden">
+				<div class="relative h-20 w-20">
+					{% include "_useravatar.twig" with {
+						"avatar_user": user,
+						"avatar_size": 160,
+						"avatar_class": "h-20 w-20 rounded-full object-cover ring-4 ring-white shadow-sm dark:ring-[#151515]",
+						"avatar_initial_class": "flex h-20 w-20 items-center justify-center rounded-full bg-blue-100 text-3xl font-bold text-blue-600 ring-4 ring-white shadow-sm dark:bg-blue-900/30 dark:ring-[#151515]"
+					} %}
+					<label for="{{ avatar_form_name }}_Avatar" class="absolute -bottom-1 -right-1 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-blue-500 text-xs text-white shadow-md transition hover:bg-blue-600 dark:border-[#151515]" title="{{ _t({"key": 'account.avatar.choose', "default": 'Выбрать аватар'}) }}">
+						<i class="fa-solid fa-camera" aria-hidden="true"></i>
+						<span class="sr-only">{{ _t({"key": 'account.avatar.choose', "default": 'Выбрать аватар'}) }}</span>
+					</label>
+					<input name="Avatar" id="{{ avatar_form_name }}_Avatar" type="file" accept="image/jpeg,image/png,image/gif" class="sr-only">
+				</div>
+			</form>
+			<div>
+				<h2 class="mb-1 text-3xl font-bold text-brand dark:text-white">{{ user.aName|default(user.uLogin) }}</h2>
+				<p class="flex items-center gap-1 text-sm font-bold text-emerald-500">
+					<i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+					{{ _t({"key": 'account.verified', "default": 'Верифицирован'}) }}
+				</p>
+			</div>
+		</div>
+	</div>
+
+	{% if _cfg.Sec_ForceReConfig and user.aNeedReConfig %}
+		<div class="mb-8 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+			<div class="flex gap-4">
+				<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300">
+					<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+				</div>
+				<div>
+					<div class="font-bold">{{ _t({"key": 'account.reconfig.title', "default": 'Обязательная настройка профиля'}) }}</div>
+					<p class="mt-1 text-sm opacity-80">{{ _t({"key": 'account.reconfig.text', "default": 'Перед началом работы задайте личные параметры безопасности и контакты.'}) }}</p>
+				</div>
+			</div>
+		</div>
+	{% endif %}
+
+	{% if account_info %}
+		{% include "info.messages.twig" %}
+		{% if info_msg[account_info[0]] %}
+			<div class="mb-8 rounded-[1.5rem] border p-5 {% if substr(account_info[0], 0, 1) == '*' %}border-red-200 bg-red-50 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100{% else %}border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100{% endif %}">
+				<div class="flex items-center gap-3 font-bold">
+					<i class="fa-solid {% if substr(account_info[0], 0, 1) == '*' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}" aria-hidden="true"></i>
+					{{ info_msg[account_info[0]] }}
+				</div>
+			</div>
+		{% endif %}
+	{% endif %}
+	{% if avatar_info %}
+		<div class="mb-8 rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
+			<div class="flex items-center gap-3 font-bold">
+				<i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+				{{ _t({"key": 'account.avatar.saved', "default": 'Аватар обновлен'}) }}
+			</div>
+		</div>
+	{% endif %}
+	{% if avatar_error %}
+		<div class="mb-8 rounded-[1.5rem] border border-red-200 bg-red-50 p-5 text-sm font-semibold text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">{{ avatar_error }}</div>
+	{% endif %}
+	</div>
+
+	{% if account_form_error %}
+		<div class="mb-8 rounded-[1.5rem] border border-red-200 bg-red-50 p-5 text-sm font-semibold text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">{{ account_form_error }}</div>
+	{% endif %}
+
+	<div id="account-settings-shell" class="flex flex-col gap-8 md:flex-row">
+		<div class="w-full shrink-0 md:w-64">
+			<nav class="sticky top-28 flex flex-col gap-1 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 p-2 dark:border-gray-800 dark:bg-[#151515]" hx-boost="false" aria-label="{{ _t({"key": 'account.nav', "default": 'Разделы настроек'}) }}">
+				<a href="{{ account_tab_url }}?tab=general" hx-get="{{ account_tab_url }}?tab=general" hx-target="#account-settings-shell" hx-select="#account-settings-shell" hx-swap="outerHTML" hx-push-url="true" class="flex items-center gap-3 rounded-xl px-4 py-3 text-left font-bold transition-all {% if account_tab == 'general' %}{{ account_nav_active }}{% else %}{{ account_nav_idle }}{% endif %}">
+					<i class="fa-solid fa-user w-5 text-center" aria-hidden="true"></i>
+					{{ _t({"key": 'account.nav.general', "default": 'Общие данные'}) }}
+				</a>
+				<a href="{{ account_tab_url }}?tab=auth" hx-get="{{ account_tab_url }}?tab=auth" hx-target="#account-settings-shell" hx-select="#account-settings-shell" hx-swap="outerHTML" hx-push-url="true" class="flex items-center gap-3 rounded-xl px-4 py-3 text-left font-bold transition-all {% if account_tab == 'auth' %}{{ account_nav_active }}{% else %}{{ account_nav_idle }}{% endif %}">
+					<i class="fa-solid fa-key w-5 text-center" aria-hidden="true"></i>
+					{{ _t({"key": 'account.nav.auth', "default": 'Авторизация'}) }}
+				</a>
+				<a href="{{ account_tab_url }}?tab=security" hx-get="{{ account_tab_url }}?tab=security" hx-target="#account-settings-shell" hx-select="#account-settings-shell" hx-swap="outerHTML" hx-push-url="true" class="flex items-center gap-3 rounded-xl px-4 py-3 text-left font-bold transition-all {% if account_tab == 'security' %}{{ account_nav_active }}{% else %}{{ account_nav_idle }}{% endif %}">
+					<i class="fa-solid fa-shield-halved w-5 text-center" aria-hidden="true"></i>
+					{{ _t({"key": 'account.nav.security', "default": 'Безопасность'}) }}
+				</a>
+				<a href="{{ account_tab_url }}?tab=api" hx-get="{{ account_tab_url }}?tab=api" hx-target="#account-settings-shell" hx-select="#account-settings-shell" hx-swap="outerHTML" hx-push-url="true" class="flex items-center gap-3 rounded-xl px-4 py-3 text-left font-bold transition-all {% if account_tab == 'api' %}{{ account_nav_active }}{% else %}{{ account_nav_idle }}{% endif %}">
+					<i class="fa-solid fa-code w-5 text-center" aria-hidden="true"></i>
+					{{ _t({"key": 'account.nav.api', "default": 'API-доступ'}) }}
+				</a>
+				{% if account_service_token_enabled %}
+					<a href="{{ account_tab_url }}?tab=service" hx-get="{{ account_tab_url }}?tab=service" hx-target="#account-settings-shell" hx-select="#account-settings-shell" hx-swap="outerHTML" hx-push-url="true" class="flex items-center gap-3 rounded-xl px-4 py-3 text-left font-bold transition-all {% if account_tab == 'service' %}{{ account_nav_active }}{% else %}{{ account_nav_idle }}{% endif %}">
+						<i class="fa-solid fa-satellite-dish w-5 text-center" aria-hidden="true"></i>
+						{{ _t({"key": 'account.nav.service_token', "default": 'Сервисный токен'}) }}
+					</a>
+				{% endif %}
+			</nav>
+		</div>
+
+		<form method="post" action="{{ _selfLink }}" name="{{ account_form_name }}" class="{% if account_tab in ['api', 'service'] %}hidden {% endif %}flex-1 space-y-6">
+			{{ _getFormSecurity({"form": account_form_name}) }}
+			<input name="aNeedReConfig" value="0" type="hidden">
+			<input name="aSessIP" value="0" type="hidden">
+			<input name="aSessUniq" value="0" type="hidden">
+			<input name="aNoMail" value="{% if _cfg.Msg_NoMail %}{{ no_mail_value }}{% else %}0{% endif %}" type="hidden">
+
+				<section id="account-general" class="{% if account_tab != 'general' %}hidden {% endif %}overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm scroll-mt-28 dark:border-gray-800 dark:bg-[#151515]">
+					<div class="border-b border-gray-100 p-6 dark:border-gray-800">
+						<div>
+							<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'account.general.title', "default": 'Персональные данные'}) }}</h3>
+							<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.general.text', "default": 'Основная информация о вашем аккаунте.'}) }}</p>
+						</div>
+					</div>
+				<div class="space-y-6 p-6">
+					<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+						{% if _cfg.Account_UseName > 0 %}
+							<div>
+								<label class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300" for="{{ account_form_name }}_aName">{{ _t({"key": 'account.field.name', "default": 'Ваше имя'}) }}</label>
+								<input name="aName" id="{{ account_form_name }}_aName" value="{{ name_value }}" type="text" {% if _cfg.Account_LockData %}readonly{% endif %} class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500{% if _cfg.Account_LockData %} opacity-70{% endif %}">
+								{% if name_error %}<p class="mt-2 text-sm font-semibold text-red-500">{{ name_error }}</p>{% endif %}
+							</div>
+						{% endif %}
+						{% if not _cfg.Const_NoLogins %}
+							<div>
+								<label class="mb-2 block text-sm font-bold text-gray-500" for="{{ account_form_name }}_uLogin">{{ _t({"key": 'account.field.login', "default": 'Логин'}) }}</label>
+								<input id="{{ account_form_name }}_uLogin" value="{{ user.uLogin }}" type="text" readonly class="w-full cursor-not-allowed rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand opacity-70 outline-none dark:border-white/10 dark:bg-[#151515] dark:text-white">
+							</div>
+						{% endif %}
+						<div>
+							<label class="mb-2 block text-sm font-bold text-gray-500" for="{{ account_form_name }}_uMail">E-mail</label>
+							<input id="{{ account_form_name }}_uMail" value="{{ user.uMail }}" type="email" readonly class="w-full cursor-not-allowed rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand opacity-70 outline-none dark:border-white/10 dark:bg-[#151515] dark:text-white">
+						</div>
+						{% if _cfg.SMS_REG %}
+							<div>
+								<label class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300" for="{{ account_form_name }}_aTel">{{ _t({"key": 'account.field.phone', "default": 'Ваш номер телефона'}) }}</label>
+								<input name="aTel" id="{{ account_form_name }}_aTel" value="{{ tel_value }}" type="text" inputmode="tel" placeholder="{{ _t({"key": 'account.placeholder.phone', "default": 'с кодом страны'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500">
+								{% if tel_error %}<p class="mt-2 text-sm font-semibold text-red-500">{{ tel_error }}</p>{% endif %}
+							</div>
+						{% endif %}
+						<div>
+							<label class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300" for="{{ account_form_name }}_TZ">{{ _t({"key": 'account.field.tz', "default": 'Часовой пояс'}) }} <span class="font-normal text-gray-400">{{ _t({"key": 'account.field.tz_hint', "default": '(от GMT)'}) }}</span></label>
+							<input name="TZ" id="{{ account_form_name }}_TZ" value="{{ tz_value }}" type="text" placeholder="+3:00" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-mono font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500">
+							{% if tz_error %}<p class="mt-2 text-sm font-semibold text-red-500">{{ tz_error }}</p>{% endif %}
+						</div>
+					</div>
+					{% if not _cfg.Msg_NoMail %}
+						<div class="flex items-center justify-between gap-4 rounded-2xl bg-gray-50 p-4 dark:bg-[#1A1A1A]">
+							<div>
+								<div class="font-bold text-brand dark:text-white">{{ _t({"key": 'account.field.no_mail', "default": 'Не получать e-mail о новых сообщениях'}) }}</div>
+								<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.field.no_mail_hint', "default": 'Отключает только письма на e-mail. Внутренние сообщения в кабинете останутся доступны.'}) }}</p>
+							</div>
+							<label class="relative inline-flex shrink-0 cursor-pointer items-center" for="{{ account_form_name }}_aNoMail">
+								<input name="aNoMail" id="{{ account_form_name }}_aNoMail" value="1" type="checkbox" class="peer sr-only" {% if no_mail_value == 1 %}checked{% endif %}>
+								<span class="h-6 w-11 rounded-full bg-gray-200 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:bg-emerald-500 peer-checked:after:translate-x-5 dark:bg-gray-700"></span>
+							</label>
+						</div>
+					{% else %}
+						<div class="flex items-center gap-3 rounded-2xl bg-gray-50 p-4 text-sm text-gray-500 dark:bg-[#1A1A1A] dark:text-gray-400">
+							<i class="fa-solid fa-envelope-circle-check text-lg text-emerald-500" aria-hidden="true"></i>
+							<p><strong class="text-brand dark:text-white">E-mail-уведомления отключены администратором.</strong> Внутренние сообщения продолжают поступать в кабинет и не могут быть отключены пользователем.</p>
+						</div>
+					{% endif %}
+				</div>
+				<div class="flex justify-end border-t border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
+					<button name="{{ account_form_name }}_btn" value="{{ _t({"key": 'form.save', "default": 'Сохранить'}) }}" type="submit" class="rounded-2xl bg-brand px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">{{ _t({"key": 'form.save', "default": 'Сохранить'}) }}</button>
+				</div>
+				</section>
+
+				{% if not (_cfg.Sec_ForceReConfig and user.aNeedReConfig) %}
+					<section id="account-auth" class="{% if account_tab != 'auth' %}hidden {% endif %}overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm scroll-mt-28 dark:border-gray-800 dark:bg-[#151515]">
+						<div class="border-b border-gray-100 p-6 dark:border-gray-800">
+							<div>
+								<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'account.nav.auth', "default": 'Авторизация'}) }}</h3>
+								<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.auth.group_text', "default": 'Управление e-mail, паролем и внешними профилями.'}) }}</p>
+							</div>
+						</div>
+						<div class="space-y-4 p-6">
+							{% if not _cfg.Account_LockData %}
+								<div class="rounded-2xl border border-gray-100 bg-gray-50 p-5 dark:border-gray-800 dark:bg-[#1A1A1A] sm:flex sm:items-center sm:justify-between sm:gap-4">
+									<div>
+										<h3 class="text-lg font-bold text-brand dark:text-white">{{ _t({"key": 'account.auth.email', "default": 'E-mail адрес'}) }}</h3>
+										<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.auth.email_text', "default": 'Изменение адреса электронной почты.'}) }}</p>
+									</div>
+									<a href="{{ _link('account/change_mail', false, 0) }}" class="mt-4 inline-flex rounded-2xl bg-white px-5 py-3 font-bold text-brand transition hover:bg-gray-100 dark:bg-[#202020] dark:text-white dark:hover:bg-[#252525] sm:mt-0">{{ _t({"key": 'account.auth.email_action', "default": 'Сменить E-mail'}) }}</a>
+								</div>
+							{% endif %}
+							<div class="rounded-2xl border border-gray-100 bg-gray-50 p-5 dark:border-gray-800 dark:bg-[#1A1A1A] sm:flex sm:items-center sm:justify-between sm:gap-4">
+								<div>
+									<h3 class="text-lg font-bold text-brand dark:text-white">{{ _t({"key": 'account.auth.password', "default": 'Пароль аккаунта'}) }}</h3>
+									<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.auth.password_text', "default": 'Регулярно обновляйте пароль для безопасности.'}) }}</p>
+								</div>
+								<a href="{{ _link('account/change_pass', false, 0) }}" class="mt-4 inline-flex rounded-2xl bg-brand px-5 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100 sm:mt-0">{{ _t({"key": 'account.auth.password_action', "default": 'Сменить пароль'}) }}</a>
+							</div>
+						</div>
+					</section>
+				{% endif %}
+
+				<section id="account-security" class="{% if account_tab != 'security' %}hidden {% endif %}space-y-6 scroll-mt-28">
+					<div class="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+						<div>
+							<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'account.nav.security', "default": 'Безопасность'}) }}</h3>
+							<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.security.group_text', "default": '2FA, контроль IP и параметры сессий.'}) }}</p>
+						</div>
+					</div>
+					<div class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+					<div class="flex items-center justify-between gap-4 border-b border-gray-100 p-6 dark:border-gray-800">
+						<div>
+							<h3 class="text-xl font-bold text-brand dark:text-white">Google Authenticator</h3>
+							<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.ga.text', "default": 'Обеспечьте защиту с помощью 2FA.'}) }}</p>
+						</div>
+						{% if user.aGA %}
+							<span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">{{ _t({"key": 'account.ga.active', "default": 'Активно'}) }}</span>
+						{% else %}
+							<span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-600 dark:bg-amber-900/30 dark:text-amber-500">{{ _t({"key": 'account.ga.inactive', "default": 'Не активно'}) }}</span>
+						{% endif %}
+					</div>
+					<div class="flex flex-col gap-6 p-6 sm:flex-row">
+						{% if not user.aGA %}
+							<input name="GAKey" value="{{ GACode }}" type="hidden">
+							<div class="flex h-32 w-32 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-white p-2 dark:border-gray-700">
+								<img src="{{ GAQR }}" alt="QR Code" class="h-full w-full rounded-lg">
+							</div>
+							<div class="flex-1 space-y-4">
+								<div>
+									<p class="mb-2 text-sm text-gray-500">{{ _t({"key": 'account.ga.scan', "default": 'Отсканируйте код или введите ключ:'}) }}</p>
+									<div class="inline-block break-all rounded bg-gray-100 px-3 py-1.5 font-mono text-sm font-bold tracking-wider text-brand dark:bg-[#1A1A1A] dark:text-white">{{ GACode }}</div>
+								</div>
+								<div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+									<div>
+										<label class="sr-only" for="{{ account_form_name }}_GACode">{{ _t({"key": 'account.ga.code', "default": 'Код из приложения'}) }}</label>
+										<input name="GACode" id="{{ account_form_name }}_GACode" value="" type="text" inputmode="numeric" maxlength="6" placeholder="••• •••" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-3 text-center font-mono font-medium tracking-widest text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 sm:w-36">
+										{% if ga_error %}<p class="mt-2 text-sm font-semibold text-red-500">{{ ga_error }}</p>{% endif %}
+									</div>
+									<button name="{{ account_form_name }}_btn" value="{{ _t({"key": 'account.ga.connect', "default": 'Подключить'}) }}" type="submit" class="rounded-2xl bg-brand px-5 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">{{ _t({"key": 'account.ga.connect', "default": 'Подключить'}) }}</button>
+								</div>
+							</div>
+						{% else %}
+							<div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-2xl text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
+								<i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+							</div>
+							<div class="flex-1 space-y-4">
+								<div>
+									<div class="font-bold text-brand dark:text-white">{{ _t({"key": 'account.ga.connected', "default": 'Google Authenticator подключен'}) }}</div>
+									<p class="mt-1 text-sm text-gray-500">{{ _t({"key": 'account.ga.disable_text', "default": 'Для отключения защиты введите текущий одноразовый код подтверждения из приложения.'}) }}</p>
+								</div>
+								<div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+									<div>
+										<label class="sr-only" for="{{ account_form_name }}_GACode">{{ _t({"key": 'account.ga.code', "default": 'Код из приложения'}) }}</label>
+										<input name="GACode" id="{{ account_form_name }}_GACode" value="" type="text" inputmode="numeric" maxlength="6" placeholder="••• •••" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-3 text-center font-mono font-medium tracking-widest text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 sm:w-36">
+										{% if ga_error %}<p class="mt-2 text-sm font-semibold text-red-500">{{ ga_error }}</p>{% endif %}
+									</div>
+									<button name="{{ account_form_name }}_btn" value="{{ _t({"key": 'account.ga.disable', "default": 'Отключить'}) }}" type="submit" class="rounded-2xl bg-gray-100 px-5 py-3 font-bold text-brand transition hover:bg-gray-200 dark:bg-[#202020] dark:text-white dark:hover:bg-[#252525]">{{ _t({"key": 'account.ga.disable', "default": 'Отключить'}) }}</button>
+								</div>
+							</div>
+						{% endif %}
+					</div>
+				</div>
+
+				<div class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+					<div class="border-b border-gray-100 p-6 dark:border-gray-800">
+						<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'account.security.title', "default": 'Сессии и Контроль доступа'}) }}</h3>
+					</div>
+					<div class="space-y-5 p-6">
+						<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+							<div class="font-bold text-brand dark:text-white">{{ _t({"key": 'account.security.ipsec', "default": 'Контроль смены IP-адреса'}) }}</div>
+							<div class="relative w-full sm:w-auto">
+								<select name="aIPSec" class="w-full appearance-none rounded-2xl border border-black/10 bg-white px-4 py-3 pr-11 font-mono text-sm font-medium text-brand outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white sm:w-auto">
+									<option value="0" {% if ipsec_value == 0 %}selected{% endif %}>{{ _t({"key": 'form.default', "default": '- по умолчанию -'}) }}</option>
+									<option value="1" {% if ipsec_value == 1 %}selected{% endif %}>x.0.0.0</option>
+									<option value="2" {% if ipsec_value == 2 %}selected{% endif %}>x.x.0.0</option>
+									<option value="3" {% if ipsec_value == 3 %}selected{% endif %}>x.x.x.0</option>
+									<option value="4" {% if ipsec_value == 4 %}selected{% endif %}>x.x.x.x</option>
+								</select>
+								<i class="fa-solid fa-chevron-down pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-400" aria-hidden="true"></i>
+							</div>
+						</div>
+						<div class="h-px w-full bg-gray-100 dark:bg-gray-800"></div>
+						<div class="flex items-center justify-between gap-4">
+							<div class="font-bold text-brand dark:text-white">{{ _t({"key": 'account.security.sess_ip', "default": 'Привязывать сессию к IP-адресу'}) }}</div>
+							<label class="relative inline-flex shrink-0 cursor-pointer items-center" for="{{ account_form_name }}_aSessIP">
+								<input name="aSessIP" id="{{ account_form_name }}_aSessIP" value="1" type="checkbox" class="peer sr-only" {% if sess_ip_value == 1 %}checked{% endif %}>
+								<span class="h-6 w-11 rounded-full bg-gray-200 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:bg-emerald-500 peer-checked:after:translate-x-5 dark:bg-gray-700"></span>
+							</label>
+						</div>
+						<div class="h-px w-full bg-gray-100 dark:bg-gray-800"></div>
+						<div class="flex items-center justify-between gap-4">
+							<div class="font-bold text-brand dark:text-white">{{ _t({"key": 'account.security.sess_uniq', "default": 'Запретить параллельные сессии'}) }}</div>
+							<label class="relative inline-flex shrink-0 cursor-pointer items-center" for="{{ account_form_name }}_aSessUniq">
+								<input name="aSessUniq" id="{{ account_form_name }}_aSessUniq" value="1" type="checkbox" class="peer sr-only" {% if sess_uniq_value == 1 %}checked{% endif %}>
+								<span class="h-6 w-11 rounded-full bg-gray-200 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:bg-emerald-500 peer-checked:after:translate-x-5 dark:bg-gray-700"></span>
+							</label>
+						</div>
+						<div class="h-px w-full bg-gray-100 dark:bg-gray-800"></div>
+						<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+							<div>
+								<div class="font-bold text-brand dark:text-white">{{ _t({"key": 'account.security.timeout', "default": 'Автовыход при бездействии (минут)'}) }}</div>
+								<p class="mt-1 max-w-xl text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ _t({"key": 'account.security.timeout_hint', "default": 'Значение 0 использует общую настройку администратора. Каждый переход по странице считается активностью.'}) }}</p>
+							</div>
+							<input name="aTimeOut" value="{{ timeout_value }}" type="number" min="0" class="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-center font-mono font-medium text-brand outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white sm:w-28">
+						</div>
+						<div class="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm leading-relaxed text-blue-900 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
+							{% if timeout_value > 0 %}
+								{{ _t({"key": 'account.security.timeout_user_active', "default": 'Автовыход сработает после %minutes% мин. без запросов к сайту.'})|replace({'%minutes%': timeout_value}) }}
+							{% elseif _cfg.Sec_TimeOut|default(0) > 0 %}
+								{{ _t({"key": 'account.security.timeout_global_active', "default": 'Используется общий автовыход: %minutes% мин. без запросов к сайту.'})|replace({'%minutes%': _cfg.Sec_TimeOut}) }}
+							{% else %}
+								{{ _t({"key": 'account.security.timeout_disabled', "default": 'Автовыход по бездействию сейчас отключён и не может завершить эту сессию.'}) }}
+							{% endif %}
+							{{ _t({"key": 'account.security.session_termination_hint', "default": 'Привязка к IP завершает сессию при смене адреса, а запрет параллельных сессий — после нового входа в тот же аккаунт.'}) }}
+						</div>
+						{% if _cfg.Sec_MinSQA > 0 %}
+							<div class="h-px w-full bg-gray-100 dark:bg-gray-800"></div>
+							<div>
+								<label class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300" for="{{ account_form_name }}_aSQuestion">{{ _t({"key": 'account.security.question', "default": 'Контрольный вопрос'}) }}</label>
+								<input name="aSQuestion" id="{{ account_form_name }}_aSQuestion" value="{{ squestion_value }}" type="text" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500">
+								{% if secq_error %}<p class="mt-2 text-sm font-semibold text-red-500">{{ secq_error }}</p>{% endif %}
+							</div>
+							<div>
+								<label class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300" for="{{ account_form_name }}_aSAnswer">{{ _t({"key": 'account.security.answer', "default": 'Контрольный ответ'}) }} <span class="font-normal text-gray-400">{{ _t({"key": 'account.security.answer_hint', "default": '(заполните чтобы сменить)'}) }}</span></label>
+								{% include "external/auth.password.twig" with {"password_name": 'aSAnswer', "password_id": account_form_name ~ '_aSAnswer', "password_placeholder": _t({"key": 'account.security.answer_placeholder', "default": 'Новый контрольный ответ'}), "password_autocomplete": 'off'} %}
+								{% if seca_error %}<p class="mt-2 text-sm font-semibold text-red-500">{{ seca_error }}</p>{% endif %}
+							</div>
+						{% endif %}
+						{% if _cfg.Sec_MinPIN > 0 %}
+							<div class="h-px w-full bg-gray-100 dark:bg-gray-800"></div>
+							<div>
+								<label class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300" for="{{ account_form_name }}_PIN">{{ _t({"key": 'account.security.pin', "default": 'Введите PIN-код'}) }} <span class="font-normal text-gray-400">{{ _t({"key": 'account.security.pin_hint', "default": '(чтобы подтвердить изменения)'}) }}</span></label>
+								{% include "external/auth.password.twig" with {"password_name": 'PIN', "password_id": account_form_name ~ '_PIN', "password_placeholder": '••••', "password_autocomplete": 'one-time-code'} %}
+								{% if pin_error %}<p class="mt-2 text-sm font-semibold text-red-500">{{ pin_error }}</p>{% endif %}
+							</div>
+						{% endif %}
+					</div>
+					<div class="flex justify-end border-t border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
+						<button name="{{ account_form_name }}_btn" value="{{ _t({"key": 'account.security.save', "default": 'Сохранить безопасность'}) }}" type="submit" class="rounded-2xl bg-brand px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">{{ _t({"key": 'form.save', "default": 'Сохранить'}) }}</button>
+					</div>
+				</div>
+				</section>
+		</form>
+		{% if account_tab == 'api' %}
+			{% include "account/_api_access.twig" %}
+		{% endif %}
+		{% if account_tab == 'service' and account_service_token_enabled %}
+			{% include "account/_service_token_access.twig" %}
+		{% endif %}
+	</div>
+</div>
+
+{% include "footer.twig" %}

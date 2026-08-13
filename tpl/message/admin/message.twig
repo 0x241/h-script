@@ -1,0 +1,83 @@
+{% include "admin/header.twig" with {"title": 'Сообщение'} %}
+
+{% if el.mID %}
+	{% set message_form_name = getFormName('') %}
+	<div id="admin-message-panel" class="mx-auto flex min-h-[calc(100vh-10rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+		<div class="shrink-0 border-b border-gray-100 bg-white/80 p-5 backdrop-blur-xl dark:border-gray-800 dark:bg-[#151515]/80">
+			<div class="mb-2 flex flex-wrap items-center gap-3">
+				<span class="font-mono text-sm text-gray-400">#{{ el.mID }}</span>
+				{% if el.mAttn %}<span class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="fa-solid fa-star text-[10px]" aria-hidden="true"></i>Важное</span>{% endif %}
+				{% if el.mToCnt > 1 %}<span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">Получателей: {{ el.mToCnt }}</span>{% endif %}
+			</div>
+			<h2 class="text-xl font-bold text-brand dark:text-white">{{ el.mTopic }}</h2>
+			{% if el.mToCnt > 1 %}<p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ el.mTo|replace({'\n': ', '}) }}</p>{% endif %}
+		</div>
+
+		<div class="flex-1 overflow-y-auto bg-gray-50/50 p-4 dark:bg-transparent sm:p-8">
+			<div class="mx-auto flex max-w-4xl flex-col gap-6">
+				{% if el.mToCnt > 1 or not list %}
+					<div class="flex max-w-[85%] items-end gap-3 self-end sm:max-w-[75%]">
+						<div class="flex w-full flex-col gap-1">
+							<div class="mb-1 flex items-center justify-end gap-2 px-1"><span class="text-xs font-bold text-gray-600 dark:text-gray-300">Администратор{% if el.uLogin %} ({{ el.uLogin }}){% endif %}</span><span class="text-xs text-gray-400">{{ el.mTS }}</span></div>
+							<div class="whitespace-pre-line rounded-2xl rounded-br-sm bg-blue-600 p-4 leading-relaxed text-white shadow-sm">{{ el.mText }}</div>
+						</div>
+						{% include "_useravatar.twig" with {"avatar_user": el, "avatar_size": 64, "avatar_class": "h-8 w-8 shrink-0 rounded-full object-cover shadow-sm", "avatar_initial_class": "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-100 text-sm font-bold text-blue-600 shadow-sm dark:border-blue-900/50"} %}
+					</div>
+				{% else %}
+					{% for l in list %}
+						{% set is_staff = l.uLevel >= 50 %}
+						<div class="flex max-w-[85%] items-end gap-3 {% if is_staff %}self-end sm:max-w-[75%]{% else %}self-start sm:max-w-[75%]{% endif %}">
+							{% if not is_staff %}{% include "_useravatar.twig" with {"avatar_user": l, "avatar_size": 64, "avatar_class": "h-8 w-8 shrink-0 rounded-full object-cover shadow-sm", "avatar_initial_class": "flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-600 shadow-sm dark:bg-emerald-900/30 dark:text-emerald-400"} %}{% endif %}
+							<div class="flex w-full flex-col gap-1">
+								<div class="mb-1 flex items-center gap-2 px-1 {% if is_staff %}justify-end{% endif %}">
+									<span class="text-xs font-bold {% if is_staff %}text-gray-600 dark:text-gray-300{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">{% if is_staff %}{% if l.muID == user.uID %}Вы{% elseif l.uLevel >= 90 %}Администратор{% if l.uLogin %} ({{ l.uLogin }}){% endif %}{% else %}Поддержка{% if l.uLogin %} ({{ l.uLogin }}){% endif %}{% endif %}{% else %}Пользователь{% if l.uLogin %} ({{ l.uLogin }}){% elseif l.mMail %} ({{ l.mMail }}){% endif %}{% endif %}</span>
+									<span class="text-xs text-gray-400">{{ l.mTS }}</span>
+								</div>
+								<div class="whitespace-pre-line rounded-2xl p-4 leading-relaxed shadow-sm {% if is_staff %}rounded-br-sm bg-blue-600 text-white{% else %}rounded-bl-sm border border-gray-100 bg-white text-brand dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white{% endif %}">{{ l.mText }}</div>
+							</div>
+							{% if is_staff %}{% include "_useravatar.twig" with {"avatar_user": l, "avatar_size": 64, "avatar_class": "h-8 w-8 shrink-0 rounded-full object-cover shadow-sm", "avatar_initial_class": "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-100 text-sm font-bold text-blue-600 shadow-sm dark:border-blue-900/50"} %}{% endif %}
+						</div>
+					{% endfor %}
+				{% endif %}
+			</div>
+		</div>
+
+		{% if el.mToCnt == 1 and thread_box_id %}
+			{% set reply_error = formErrorText(message_form_name, {'text_empty': 'укажите текст', 'user_not_found': 'получатель не найден', 'message_not_found': 'диалог не найден'}, true) %}
+			<form method="post" class="shrink-0 border-t border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-[#151515] sm:p-6" hx-post="{{ _selfLink }}?id={{ el.mID }}" hx-target="#admin-message-panel" hx-select="#admin-message-panel" hx-swap="outerHTML" hx-push-url="false" hx-disabled-elt="button" hx-sync="this:replace">
+				{{ _getFormSecurity() }}
+				<input name="ThreadBox" value="{{ thread_box_id }}" type="hidden">
+				{% if reply_error %}<div class="mx-auto mb-4 max-w-4xl rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">{{ reply_error }}</div>{% endif %}
+				<div class="mx-auto flex max-w-4xl items-center gap-4">
+					<label class="sr-only" for="{{ message_form_name }}_mText">Ответ</label>
+					<textarea id="{{ message_form_name }}_mText" name="mText" rows="2" placeholder="Написать ответ..." class="min-h-12 flex-1 resize-y rounded-2xl border border-transparent bg-gray-100 px-5 py-3 text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:bg-[#1A1A1A] dark:text-white dark:focus:bg-[#151515]">{% if isset_IN('mText') %}{{ _IN('mText') }}{% endif %}</textarea>
+					<button name="{{ message_form_name }}_btnreply" value="Ответить" type="submit" class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-md transition-colors hover:bg-blue-700" aria-label="Отправить ответ"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></button>
+				</div>
+			</form>
+		{% endif %}
+	</div>
+{% else %}
+	<div class="mb-6 rounded-2xl border border-blue-100 bg-blue-50 p-5 text-sm font-medium text-blue-900 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
+		Сообщение всегда попадает во внутренние входящие получателя. Опция «Полный текст по e-mail» дополнительно отправляет само содержимое письмом; значение <strong>*</strong> в получателях означает всех активных пользователей.
+	</div>
+	<div class="card hs-message-card">
+		{% include "edit.twig" with {
+			"title": 'Новое сообщение',
+			"fields": {
+				'Re': [],
+				'uLogin': {0: 'T', 1: 'Отправитель — пользователь', 2: {'user_not_found': 'пользователь не найден'}, 'default': valueIf(not el.mMail, exValue(user.uLogin, _GET.from)), 'comment': 'Если заполнен внешний e-mail, это поле не используется.'},
+				'mMail': ['T', 'Отправитель — внешний e-mail', {'mail_wrong': 'неверный e-mail'}],
+				'mTo': {0: 'A', 1: 'Получатели!!<br><<одна строка — один логин; для внешнего адреса используйте mailto:; * — все активные пользователи>>', 2: {'to_empty': 'укажите получателей', 'to_wrong': ('получатели не найдены: [' ~ wrusrs ~ ']')}, 'size': 30, 'default': _GET.to, 'comment': el.mLang},
+				'mAttn': ['CC', 'Пометить как важное'],
+				'FullEmail': ['CC', 'Отправить полный текст по e-mail'],
+				'mTopic': {0: 'L', 1: 'Тема!!', 2: {'topic_empty': 'укажите тему'}, 'size': 50},
+				'mText': {0: 'Y', 1: 'Текст!!', 2: {'text_empty': 'укажите текст'}, 'size': 15}
+			},
+			"values": el,
+			"btn_text": ' ',
+			"btns": {'send': 'Отправить'}
+		} %}
+	</div>
+{% endif %}
+
+{% include "admin/footer.twig" %}

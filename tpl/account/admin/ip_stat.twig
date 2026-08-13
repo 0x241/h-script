@@ -1,0 +1,47 @@
+{% set ip_page_title = _t({"key": 'admin.ip_stats.title', "default": 'IP-статистика'}) %}
+{% include "admin/header.twig" with {"title": ip_page_title} %}
+
+<section class="mb-8">
+	<div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+		<div>
+			<span class="inline-flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400"><i class="fa-solid fa-chart-line" aria-hidden="true"></i>{{ _t({"key": 'admin.ip_stats.eyebrow', "default": 'Контроль совпадений'}) }}</span>
+			<h2 class="mt-2 text-3xl font-extrabold text-brand dark:text-white">{{ _t({"key": 'admin.ip_stats.heading', "default": 'Авторизации и регистрации'}) }}</h2>
+			<p class="mt-2 max-w-2xl text-sm font-medium leading-6 text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.ip_stats.description', "default": 'Показаны IP-адреса, которые использовались более одного раза для регистрации или входа.'}) }}</p>
+		</div>
+		<span class="inline-flex self-start rounded-full border border-gray-200 bg-white px-4 py-2 text-xs font-extrabold uppercase text-gray-500 shadow-sm dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400 sm:self-auto">{{ _t({"key": 'admin.ip_stats.filtered', "default": 'Одиночные адреса скрыты'}) }}</span>
+	</div>
+
+	<div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+		<div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="flex items-center justify-between gap-4"><span class="text-sm font-bold text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.ip_stats.addresses', "default": 'Повторных IP'}) }}</span><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-network-wired" aria-hidden="true"></i></span></div>
+			<strong class="mt-4 block font-mono text-3xl font-black text-brand dark:text-white">{{ ip_stats.addresses|default(0) }}</strong>
+		</div>
+		<div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="flex items-center justify-between gap-4"><span class="text-sm font-bold text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.ip_stats.auth', "default": 'Авторизаций'}) }}</span><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i></span></div>
+			<strong class="mt-4 block font-mono text-3xl font-black text-brand dark:text-white">{{ ip_stats.auth|default(0) }}</strong>
+		</div>
+		<div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="flex items-center justify-between gap-4"><span class="text-sm font-bold text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.ip_stats.reg', "default": 'Регистраций'}) }}</span><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300"><i class="fa-solid fa-user-plus" aria-hidden="true"></i></span></div>
+			<strong class="mt-4 block font-mono text-3xl font-black text-brand dark:text-white">{{ ip_stats.reg|default(0) }}</strong>
+		</div>
+		<div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+			<div class="flex items-center justify-between gap-4"><span class="text-sm font-bold text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.ip_stats.events', "default": 'Всего совпадений'}) }}</span><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"><i class="fa-solid fa-fingerprint" aria-hidden="true"></i></span></div>
+			<strong class="mt-4 block font-mono text-3xl font-black text-brand dark:text-white">{{ ip_stats.events|default(0) }}</strong>
+		</div>
+	</div>
+</section>
+
+{% include "list.twig" with {
+	"title": _t({"key": 'admin.ip_stats.list_title', "default": 'Повторные IP-адреса'}),
+	"url": '*',
+	"fields": {
+		'ip': [_t({"key": 'admin.ip_stats.ip', "default": 'IP-адрес'})],
+		'auth': [_t({"key": 'admin.ip_stats.auth', "default": 'Авторизаций'})],
+		'reg': [_t({"key": 'admin.ip_stats.reg', "default": 'Регистраций'})],
+		'sum': [_t({"key": 'admin.ip_stats.events', "default": 'Всего совпадений'})]
+	},
+	"values": list,
+	"row": '*'
+} %}
+
+{% include "admin/footer.twig" %}

@@ -1,0 +1,7 @@
+
+{% set review_title_text = _t({"key": 'reviews.title', "default": 'Отзывы'}) %}
+{% include "admin/header.twig" with {"title": review_title_text} %}
+
+{% include "list.twig" with {"title": review_title_text, "url": '*', "fields": {'oID': [_t({"key": 'common.id', "default": 'ID'})], 'oTS': [_t({"key": 'common.date', "default": 'Дата'})], 'uLogin': [_t({"key": 'reviews.author', "default": 'Автор'})], 'oText': [_t({"key": 'reviews.field.text', "default": 'Текст'})], 'oRating': [_t({"key": 'reviews.rating', "default": 'Оценка'})], 'oState': ['<small>'|cat(_t({"key": 'reviews.approved', "default": 'Одобрен'}))|cat('</small>')], 'oOrder': ['<small>'|cat(_t({"key": 'common.weight', "default": 'Вес'}))|cat('</small>')], '_Action': [_t({"key": 'common.action', "default": 'Действие'})]}, "values": list, "row": '*', "btns": {'accept': _t({"key": 'reviews.approve', "default": 'Одобрить'}), 'del': _t({"key": 'common.delete', "default": 'Удалить'})}} %}
+
+{% include "admin/footer.twig" %}

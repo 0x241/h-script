@@ -1,0 +1,24 @@
+{% if list %}
+	<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+		{% for id, l in list %}
+			<article class="flex flex-col rounded-3xl border border-gray-200 bg-white p-7 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+				<div class="mb-5 flex items-center gap-4">
+					{% include "_useravatar.twig" with {
+						"avatar_user": l,
+						"avatar_size": 96,
+						"avatar_class": "h-12 w-12 shrink-0 rounded-full object-cover",
+						"avatar_initial_class": "flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-lg font-bold text-blue-600 dark:bg-blue-900/30"
+					} %}
+					<div class="min-w-0">
+						<h3 class="truncate font-bold text-brand dark:text-white">{{ l.uLogin }}</h3>
+						<time class="font-mono text-xs text-gray-500">{{ l.oTS }}</time>
+					</div>
+				</div>
+				<div class="mb-4 flex gap-1 text-sm" title="{{ l.oRating|default(5) }} / 5">
+					{% for star in 1..5 %}<i class="{% if star <= l.oRating|default(5) %}fa-solid text-amber-400{% else %}fa-regular text-gray-300 dark:text-gray-700{% endif %} fa-star" aria-hidden="true"></i>{% endfor %}
+				</div>
+				<p class="flex-1 leading-relaxed text-textDim dark:text-gray-400">{{ l.oText|striptags|truncate(220) }}</p>
+			</article>
+		{% endfor %}
+	</div>
+{% endif %}
