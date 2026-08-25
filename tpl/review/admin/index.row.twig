@@ -6,7 +6,7 @@
 	<small>{{ l.oTS }}</small>
 </td>
 <td>
-	<a href="{{ _link('account/admin/user', false, 0) }}?id={{ l.ouID }}">{{ l.uLogin }}</a>
+	{% if l.ouID %}<a href="{{ _link('account/admin/user', false, 0) }}?id={{ l.ouID }}">{{ l.uLogin }}</a>{% else %}<span>{{ l.uLogin }}</span>{% endif %}
 </td>
 <td class="w-full min-w-72 max-w-xl whitespace-normal">
 	<details class="group max-w-xl">

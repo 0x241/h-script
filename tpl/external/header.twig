@@ -13,25 +13,55 @@
 	{% set theme_lang = current_lang %}
 {% endif %}
 {% set theme_toggle_url = _link('system', false, 0) ~ '?lang=' ~ theme_lang ~ '&theme=' ~ theme_next ~ '&url=' ~ (fullURL()|url_encode) %}
+{% set site_name = _cfg.Sys_SiteName|default('H-Script') %}
+{% set document_title = seo_title|default(title ? title ~ ' | ' ~ site_name : site_name) %}
+{% set seo_description = description|default(_t({"key": 'site.meta.description', "default": 'H-Script — открытая финтех CMS для управления финансовыми продуктами, платежами и партнерскими программами.'})) %}
+{% set seo_canonical = canonical_url|default(fullURL()|split('?')|first) %}
+{% set seo_image_url = seo_image|default(fullURL('static/images/cabinet-dashboard.jpg')) %}
+{% set seo_robots_value = robots|default('index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1') %}
 <!doctype html>
-<html lang="{% if current_lang %}{{ current_lang }}{% else %}ru{% endif %}" class="{{ current_theme }}" data-theme="{{ current_theme }}">
+<html lang="{% if current_lang %}{{ current_lang }}{% else %}ru{% endif %}" class="{{ current_theme }} overflow-x-hidden" data-theme="{{ current_theme }}">
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>{% if title %}{{ title }} | {% endif %}{{ _cfg.Sys_SiteName }}</title>
+		<title>{{ document_title }}</title>
+		<meta name="description" content="{{ seo_description }}">
+		<meta name="robots" content="{{ seo_robots_value }}">
+		<link rel="canonical" href="{{ seo_canonical }}">
+		<meta property="og:type" content="{{ og_type|default('website') }}">
+		<meta property="og:site_name" content="{{ site_name }}">
+		<meta property="og:title" content="{{ document_title }}">
+		<meta property="og:description" content="{{ seo_description }}">
+		<meta property="og:url" content="{{ seo_canonical }}">
+		<meta property="og:image" content="{{ seo_image_url }}">
+		<meta property="og:locale" content="{{ current_lang|default('ru') }}">
+		<meta name="twitter:card" content="summary_large_image">
+		<meta name="twitter:title" content="{{ document_title }}">
+		<meta name="twitter:description" content="{{ seo_description }}">
+		<meta name="twitter:image" content="{{ seo_image_url }}">
 		<base href="{{ root_url }}">
 		<link rel="icon" type="image/svg+xml" href="favicon.svg">
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-			<link rel="stylesheet" type="text/css" href="static/css/app.css?v=tailwind-20260813-ui-15">
+			<link rel="stylesheet" type="text/css" href="static/css/app.css?v=tailwind-20260825-seo-ui-1">
 		{% if include_ckeditor_content|default(false) %}<link rel="stylesheet" type="text/css" href="static/lib/ckeditor5/48.2.0/ckeditor5/ckeditor5-content.css">{% endif %}
 		<script src="static/js/htmx.min.js"></script>
-		<script src="static/js/app.js?v=20260812-2" defer></script>
+		<script src="static/js/app.js?v=20260825-1" defer></script>
+		<script type="application/ld+json">{{ {
+			'@context': 'https://schema.org',
+			'@type': 'Organization',
+			'name': site_name,
+			'url': root_url,
+			'logo': fullURL('favicon.svg'),
+			'email': 'business@h-script.com',
+			'sameAs': ['https://github.com/0x241/h-script', 'https://t.me/hs_wscc']
+		}|json_encode|raw }}</script>
+		{% if structured_data %}<script type="application/ld+json">{{ structured_data|json_encode|raw }}</script>{% endif %}
 	</head>
 	<body class="relative min-h-screen flex flex-col overflow-x-hidden bg-bgLight text-brand antialiased transition-colors duration-300 dark:bg-[#0A0A0A] dark:text-gray-100 {% if body_class %}{{ body_class }}{% endif %}">
-	<a class="skip-link" href="#content">{{ _t({"key": 'site.skip_content', "default": 'Перейти к содержимому'}) }}</a>
+	<a class="skip-link" href="{{ fullURL()|split('?')|first }}#content">{{ _t({"key": 'site.skip_content', "default": 'Перейти к содержимому'}) }}</a>
 	{% if not public_active %}
 		{% set public_active = tpl_module %}
 	{% endif %}
@@ -49,17 +79,19 @@
 
 	<nav class="fixed w-full top-0 z-50 border-b border-gray-200/50 bg-bgLight/70 backdrop-blur-[20px] transition-colors dark:border-white/[0.05] dark:bg-[#0A0A0A]/70">
 		<div class="max-w-7xl mx-auto px-6 h-[88px] flex items-center justify-between">
-			<div class="flex items-center gap-10">
+			<div class="flex items-center gap-6 xl:gap-10">
 				{% include "external/logo.twig" %}
-				<div class="hidden lg:flex gap-8 text-[15px] font-semibold text-brand dark:text-gray-300">
-					<a href="{{ _link('index', false, 0) }}" class="transition-colors hover:text-blue-500">{{ _t({"key": 'nav.main', "default": 'Главная'}) }}</a>
-					<a href="{{ _link('news', false, 0) }}" class="transition-colors hover:text-blue-500">{{ _t({"key": 'nav.news', "default": 'Новости'}) }}</a>
-					<a href="{{ _link('faq', false, 0) }}" class="transition-colors hover:text-blue-500">{{ _t({"key": 'nav.faq', "default": 'FAQ'}) }}</a>
-					<a href="{{ _link('review', false, 0) }}" class="transition-colors hover:text-blue-500">{{ _t({"key": 'nav.reviews', "default": 'Отзывы'}) }}</a>
-					<a href="{{ _link('udp/rules', false, 0) }}" class="transition-colors hover:text-blue-500">{{ _t({"key": 'nav.rules', "default": 'Правила'}) }}</a>
+				<div class="hidden items-center gap-x-3 text-[14px] font-semibold text-brand dark:text-gray-300 lg:flex xl:gap-x-5 xl:text-[15px]">
+					<a href="{{ _link('index', false, 0) }}" class="inline-flex h-10 items-center whitespace-nowrap px-1 transition-colors hover:text-blue-500">{{ _t({"key": 'nav.main', "default": 'Главная'}) }}</a>
+					<a href="{{ _link('news', false, 0) }}" class="inline-flex h-10 items-center whitespace-nowrap px-1 transition-colors hover:text-blue-500">{{ _t({"key": 'nav.news', "default": 'Новости'}) }}</a>
+					<a href="{{ _link('faq', false, 0) }}" class="inline-flex h-10 items-center whitespace-nowrap px-1 transition-colors hover:text-blue-500">{{ _t({"key": 'nav.faq', "default": 'FAQ'}) }}</a>
+					<a href="{{ _link('review', false, 0) }}" class="inline-flex h-10 items-center whitespace-nowrap px-1 transition-colors hover:text-blue-500">{{ _t({"key": 'nav.reviews', "default": 'Отзывы'}) }}</a>
+					<a href="{{ _link('index', false, 0) }}#partners" class="inline-flex h-10 items-center whitespace-nowrap px-1 transition-colors hover:text-blue-500">{{ _t({"key": 'nav.partners', "default": 'Партнеры'}) }}</a>
+					<a href="{{ _link('contact', false, 0) }}" class="inline-flex h-10 items-center whitespace-nowrap px-1 transition-colors hover:text-blue-500">{{ _t({"key": 'nav.contacts', "default": 'Контакты'}) }}</a>
+					<a href="{{ _link('udp/rules', false, 0) }}" class="inline-flex h-10 items-center whitespace-nowrap px-1 transition-colors hover:text-blue-500">{{ _t({"key": 'nav.rules', "default": 'Правила'}) }}</a>
 				</div>
 			</div>
-			<div class="flex items-center gap-2 sm:gap-4">
+			<div class="flex items-center gap-2">
 				<details class="relative" hx-boost="false">
 					<summary class="flex h-10 cursor-pointer list-none items-center justify-center gap-1.5 rounded-full border border-black/5 bg-black/[0.03] px-3 text-sm font-bold tracking-wide text-brand transition-all duration-200 hover:bg-black/[0.06] dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:hover:bg-white/10">
 						<i class="fa-solid fa-globe text-gray-400 dark:text-gray-300" aria-hidden="true"></i>
@@ -77,17 +109,23 @@
 						{% endfor %}
 					</div>
 				</details>
-				<a href="{{ theme_toggle_url }}" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
+				<a href="{{ theme_toggle_url }}" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5 sm:hidden" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
 					<i class="fa-solid fa-moon block dark:!hidden text-lg" aria-hidden="true"></i>
 					<i class="fa-solid fa-sun !hidden dark:!block text-lg text-yellow-400" aria-hidden="true"></i>
 				</a>
+				<div class="hidden items-center gap-4 sm:flex">
+					<a href="{{ theme_toggle_url }}" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
+						<i class="fa-solid fa-moon block dark:!hidden text-lg" aria-hidden="true"></i>
+						<i class="fa-solid fa-sun !hidden dark:!block text-lg text-yellow-400" aria-hidden="true"></i>
+					</a>
+					<span class="mx-1 h-6 shrink-0 border-l border-solid border-gray-300 dark:border-gray-700" aria-hidden="true"></span>
+					<a href="{{ public_demo_link }}" class="rounded-full bg-brand px-7 py-3 text-[15px] font-bold text-white shadow-sm transition-all duration-[250ms] hover:-translate-y-0.5 hover:bg-[#2D2D2D] hover:shadow-[0_10px_20px_-5px_rgba(26,26,26,0.3)] dark:bg-white dark:text-brand dark:hover:bg-gray-100 dark:hover:shadow-[0_10px_20px_-5px_rgba(255,255,255,0.1)]">{{ _t({"key": 'home.action.demo', "default": 'Демо'}) }}</a>
+				</div>
 				<input id="public-menu-toggle" class="peer sr-only" type="checkbox">
 				<label for="public-menu-toggle" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-transparent text-xl text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5 lg:hidden" title="{{ _t({"key": 'nav.menu', "default": 'Меню'}) }}" aria-label="{{ _t({"key": 'nav.menu', "default": 'Меню'}) }}">
 					<i class="fa-solid fa-bars" aria-hidden="true"></i>
 				</label>
-				<div class="w-[1px] h-6 bg-gray-200 dark:bg-gray-800 mx-1 hidden sm:block"></div>
-				<a href="{{ public_demo_link }}" class="hidden rounded-full bg-brand px-7 py-3 text-[15px] font-bold text-white shadow-sm transition-all duration-[250ms] hover:-translate-y-0.5 hover:bg-[#2D2D2D] hover:shadow-[0_10px_20px_-5px_rgba(26,26,26,0.3)] dark:bg-white dark:text-brand dark:hover:bg-gray-100 dark:hover:shadow-[0_10px_20px_-5px_rgba(255,255,255,0.1)] sm:block">{{ _t({"key": 'home.action.demo', "default": 'Демо'}) }}</a>
-				<div class="fixed inset-0 z-[60] flex h-dvh min-h-dvh w-screen translate-x-full flex-col overflow-y-auto overscroll-contain bg-white transition-transform duration-300 peer-checked:translate-x-0 dark:bg-[#0A0A0A] lg:hidden">
+				<div class="fixed inset-0 z-[60] flex h-dvh min-h-dvh w-full translate-x-full flex-col overflow-y-auto overscroll-contain bg-white transition-transform duration-300 peer-checked:translate-x-0 dark:bg-[#0A0A0A] lg:hidden">
 					<div class="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-[#0A0A0A]">
 						{% include "external/logo.twig" %}
 						<label for="public-menu-toggle" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-gray-50 text-2xl text-brand dark:bg-[#1A1A1A] dark:text-white" aria-label="{{ _t({"key": 'nav.close', "default": 'Закрыть меню'}) }}">
@@ -99,6 +137,8 @@
 						<a href="{{ _link('news', false, 0) }}" class="hover:text-blue-500">{{ _t({"key": 'nav.news', "default": 'Новости'}) }}</a>
 						<a href="{{ _link('faq', false, 0) }}" class="hover:text-blue-500">{{ _t({"key": 'nav.faq', "default": 'FAQ'}) }}</a>
 						<a href="{{ _link('review', false, 0) }}" class="hover:text-blue-500">{{ _t({"key": 'nav.reviews', "default": 'Отзывы'}) }}</a>
+						<a href="{{ _link('index', false, 0) }}#partners" class="hover:text-blue-500">{{ _t({"key": 'nav.partners', "default": 'Партнеры'}) }}</a>
+						<a href="{{ _link('contact', false, 0) }}" class="hover:text-blue-500">{{ _t({"key": 'nav.contacts', "default": 'Контакты'}) }}</a>
 						<a href="{{ _link('udp/rules', false, 0) }}" class="hover:text-blue-500">{{ _t({"key": 'nav.rules', "default": 'Правила'}) }}</a>
 					</div>
 					<div class="border-t border-gray-100 p-6 dark:border-gray-800">

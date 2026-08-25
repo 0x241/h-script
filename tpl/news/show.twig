@@ -1,4 +1,4 @@
-{% include "external/header.twig" with {"title": el.nTopic, "public_active": 'news', "include_ckeditor_content": true} %}
+{% include "external/header.twig" with {"title": el.nTopic, "description": el.nAnnounce|striptags|truncate(160), "canonical_url": fullURL(_link('news/show', [el.nID, el.nTopic], 0)), "og_type": 'article', "public_active": 'news', "include_ckeditor_content": true} %}
 
 <main id="content" class="flex-1 pt-40 pb-20 px-6 w-full">
 	<article class="max-w-4xl mx-auto">

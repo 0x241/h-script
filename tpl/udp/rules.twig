@@ -153,7 +153,7 @@
 	}
 ] %}
 
-{% include "external/header.twig" with {"title": rules_title, "public_active": 'rules'} %}
+{% include "external/header.twig" with {"title": rules_title, "description": _t({"key": 'rules.lead', "default": 'Условия использования официального демо и открытого исходного кода H-Script.'}), "canonical_url": fullURL(_link('udp/rules', false, 0)), "public_active": 'rules'} %}
 
 <main id="content" class="w-full flex-1 px-6 pb-24 pt-36 sm:pt-40">
 	<section class="relative mx-auto mb-10 max-w-7xl overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-8 shadow-sm dark:border-blue-500/20 dark:from-blue-500/10 dark:via-[#151515] dark:to-emerald-500/10 sm:p-12 lg:p-16">

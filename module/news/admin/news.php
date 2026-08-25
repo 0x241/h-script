@@ -20,6 +20,14 @@ try
 		$a = $_IN;
 		if (!isset($a['nAttn']) || $a['nAttn'] === '')
 			$a['nAttn'] = 0;
+		$dateInput = trim((string)_IN('nTS'));
+		$isNumericDate = preg_match('/^(\d{2})\.(\d{2})\.(\d{4})\s(\d{2}):(\d{2})$/D', $dateInput, $dateParts);
+		if (!preg_match('/^[\p{L}\p{N}.,:\s-]{6,60}$/uD', $dateInput)
+			|| ($isNumericDate && (!checkdate((int)$dateParts[2], (int)$dateParts[1], (int)$dateParts[3])
+				|| (int)$dateParts[4] > 23
+				|| (int)$dateParts[5] > 59)))
+			View::setError('date_empty');
+		$a['nTS'] = $dateInput;
 		View::strArrayToStamp($a, 'nTS', 0);
 		View::strArrayToStamp($a, 'nDBegin', 1);
 		View::strArrayToStamp($a, 'nDEnd', 2);

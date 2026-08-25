@@ -2,6 +2,10 @@
 
 use HScript\Application;
 
+require_once('module/_config/database_state.php');
+
+$cfgDbVersion = cfg_installed_database_version($_cfg, (string)($_GS['domain'] ?? ''));
+
 include('module/_config/_header.php');
 
 ?>
@@ -24,7 +28,7 @@ include('module/_config/_header.php');
 				<div class="flex items-start justify-between gap-4"><div><p class="text-xs font-extrabold uppercase tracking-wider text-emerald-600 dark:text-emerald-300">PHP</p><strong class="mt-2 block text-2xl font-black text-brand dark:text-white"><?php echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION; ?></strong><small class="mt-1 block font-semibold text-gray-500 dark:text-gray-400"><?php echo cfg_t('Серверная среда', 'Server runtime'); ?></small></div><span class="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-emerald-600 shadow-sm dark:bg-[#151515] dark:text-emerald-300"><i class="fa-solid fa-code" aria-hidden="true"></i></span></div>
 			</article>
 			<article class="rounded-lg border border-violet-100 bg-cardPurple p-5 dark:border-violet-500/20 dark:bg-violet-500/10">
-				<div class="flex items-start justify-between gap-4"><div><p class="text-xs font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-300"><?php echo cfg_t('Схема БД', 'DB schema'); ?></p><strong class="mt-2 block text-2xl font-black text-brand dark:text-white"><?php $cfgDbVersion = !empty($_cfg['Const_DBVer']) ? (int)$_cfg['Const_DBVer'] : (is_file('_dbstru.php') ? filemtime('_dbstru.php') : 0); echo $cfgDbVersion ? date('d.m.Y', $cfgDbVersion) : '—'; ?></strong><small class="mt-1 block font-semibold text-gray-500 dark:text-gray-400"><?php echo cfg_t('Версия структуры', 'Structure version'); ?></small></div><span class="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-violet-600 shadow-sm dark:bg-[#151515] dark:text-violet-300"><i class="fa-solid fa-database" aria-hidden="true"></i></span></div>
+				<div class="flex items-start justify-between gap-4"><div><p class="text-xs font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-300"><?php echo cfg_t('Схема БД', 'DB schema'); ?></p><strong class="mt-2 block text-2xl font-black text-brand dark:text-white"><?php echo $cfgDbVersion ? date('d.m.Y', $cfgDbVersion) : '—'; ?></strong><small class="mt-1 block font-semibold text-gray-500 dark:text-gray-400"><?php echo cfg_t('Установленная версия структуры', 'Installed structure version'); ?></small></div><span class="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-violet-600 shadow-sm dark:bg-[#151515] dark:text-violet-300"><i class="fa-solid fa-database" aria-hidden="true"></i></span></div>
 			</article>
 			<article class="rounded-lg border border-orange-100 bg-cardPeach p-5 dark:border-orange-500/20 dark:bg-orange-500/10">
 				<div class="flex items-start justify-between gap-4"><div><p class="text-xs font-extrabold uppercase tracking-wider text-orange-600 dark:text-orange-300"><?php echo cfg_t('Интерфейс', 'Interface'); ?></p><strong class="mt-2 block text-2xl font-black text-brand dark:text-white"><?php echo count($cfgLanguages); ?></strong><small class="mt-1 block font-semibold text-gray-500 dark:text-gray-400"><?php echo cfg_t('Доступных языков', 'Available languages'); ?></small></div><span class="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-orange-600 shadow-sm dark:bg-[#151515] dark:text-orange-300"><i class="fa-solid fa-language" aria-hidden="true"></i></span></div>

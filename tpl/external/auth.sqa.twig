@@ -10,7 +10,14 @@
 	</div>
 	<div>
 		<label class="mb-2 block text-sm font-bold text-brand dark:text-gray-300" for="{{ sqa_form_name }}_SAnswer">{{ _t({"key": 'auth.field.secret_answer', "default": 'Контрольный ответ'}) }}</label>
-		<input name="SAnswer" id="{{ sqa_form_name }}_SAnswer" type="text" placeholder="{{ _t({"key": 'auth.placeholder.secret_answer', "default": 'Ответ'}) }}" class="w-full rounded-2xl border border-black/10 bg-white px-5 py-4 font-medium text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20">
+		{% include "external/auth.password.twig" with {
+			"password_name": 'SAnswer',
+			"password_id": sqa_form_name ~ '_SAnswer',
+			"password_placeholder": _t({"key": 'auth.placeholder.secret_answer', "default": 'Ответ'}),
+			"password_autocomplete": 'off',
+			"password_show_label": _t({"key": 'auth.answer.show', "default": 'Показать ответ'}),
+			"password_hide_label": _t({"key": 'auth.answer.hide', "default": 'Скрыть ответ'})
+		} %}
 		{% if sqa_error %}
 			<p class="mt-2 text-sm font-semibold text-red-500">{{ sqa_error }}</p>
 		{% endif %}

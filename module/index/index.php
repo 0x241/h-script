@@ -35,9 +35,31 @@ if (!$publicMetrics)
 
 $processed = max(0.0, (float)($publicMetrics['processed'] ?? 0));
 $processedDecimals = abs($processed - round($processed)) < 0.000001 ? 0 : 2;
+$platformCount = max(0, (int)($publicMetrics['platforms'] ?? 0));
+$gatewayCount = 25;
+$metricForm = static function (int $count): string
+{
+	$language = strtolower(View::getLang());
+	if (str_starts_with($language, 'ru'))
+	{
+		$count = abs($count);
+		$mod100 = $count % 100;
+		$mod10 = $count % 10;
+		if ($mod10 === 1 && $mod100 !== 11)
+			return 'one';
+		if ($mod10 >= 2 && $mod10 <= 4 && ($mod100 < 12 || $mod100 > 14))
+			return 'few';
+		return 'many';
+	}
+	return $count === 1 ? 'one' : 'many';
+};
+$metricLabel = static fn(string $key, int $count): string => View::_t($key . '.' . $metricForm($count));
 View::setPage('public_metrics', array(
 	'processed' => number_format($processed, $processedDecimals, '.', ','),
-	'platforms' => number_format(max(0, (int)($publicMetrics['platforms'] ?? 0)), 0, '.', ','),
+	'platforms' => number_format($platformCount, 0, '.', ','),
+	'platforms_label' => $metricLabel('home.metric.platforms', $platformCount),
+	'gateways' => number_format($gatewayCount, 0, '.', ',') . '+',
+	'gateways_label' => $metricLabel('home.metric.gateways', $gatewayCount),
 ), 0);
 
 View::showPage();

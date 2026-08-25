@@ -2,6 +2,14 @@
 
 Run migrations once against an existing database from the Docker Compose root after taking a backup. Do not enable `APP_AUTO_INSTALL` to apply schema updates.
 
+Store a review display author independently from an optional user account. This
+allows an administrator to specify either an existing or a new username while
+preserving the account link for existing users:
+
+```sh
+docker compose exec -T database sh -c 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' < www/h-script-3/migrations/20260825_add_review_author.sql
+```
+
 ```sh
 docker compose exec -T database sh -c 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' < migrations/20260716_add_review_rating.sql
 ```

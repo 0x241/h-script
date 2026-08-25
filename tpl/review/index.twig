@@ -1,4 +1,4 @@
-{% include "external/header.twig" with {"title": _t({"key": 'nav.reviews', "default": 'Отзывы'}), "public_active": 'review'} %}
+{% include "external/header.twig" with {"title": _t({"key": 'nav.reviews', "default": 'Отзывы'}), "description": _t({"key": 'reviews.meta.description', "default": 'Отзывы пользователей о возможностях и работе платформы H-Script.'}), "canonical_url": fullURL(_link('review', false, 0)), "public_active": 'review'} %}
 
 <main id="content" class="flex-1 pt-40 pb-20 px-6 max-w-7xl mx-auto w-full">
 	<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">

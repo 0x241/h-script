@@ -1,0 +1,65 @@
+{% set contact_title = _t({"key": 'contacts.meta.title', "default": 'Контакты'}) %}
+{% set contact_description = _t({"key": 'contacts.meta.description', "default": 'Контакты H-Script для партнерских предложений и ответственного сообщения об уязвимостях.'}) %}
+{% set contact_schema = {
+	'@context': 'https://schema.org',
+	'@type': 'ContactPage',
+	'name': contact_title,
+	'url': fullURL(_link('contact', false, 0)),
+	'description': contact_description
+} %}
+{% include "external/header.twig" with {
+	"title": contact_title,
+	"description": contact_description,
+	"canonical_url": fullURL(_link('contact', false, 0)),
+	"public_active": 'contact',
+	"structured_data": contact_schema
+} %}
+
+<main id="content" class="flex-1 px-6 pb-24 pt-40">
+	<div class="mx-auto max-w-6xl">
+		<header class="mx-auto mb-14 max-w-3xl text-center">
+			<span class="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm font-extrabold uppercase tracking-wider text-blue-600 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300">
+				<i class="fa-solid fa-address-card" aria-hidden="true"></i>
+				{{ _t({"key": 'contacts.eyebrow', "default": 'Связаться с нами'}) }}
+			</span>
+			<h1 class="text-4xl font-black tracking-tight text-brand dark:text-white md:text-6xl">{{ _t({"key": 'contacts.heading', "default": 'Контакты H-Script'}) }}</h1>
+			<p class="mt-6 text-xl font-medium leading-relaxed text-textDim dark:text-gray-400">{{ _t({"key": 'contacts.intro', "default": 'Выберите подходящий канал: партнерские обращения обрабатывает бизнес-команда, сообщения об уязвимостях — команда безопасности.'}) }}</p>
+		</header>
+
+		<div class="grid gap-6 lg:grid-cols-2">
+			<section class="flex h-full flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-[#151515] md:p-10" aria-labelledby="business-contacts-title">
+				<span class="mb-7 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-2xl text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-handshake" aria-hidden="true"></i></span>
+				<h2 id="business-contacts-title" class="text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'contacts.business.title', "default": 'Партнерские взаимодействия'}) }}</h2>
+				<p class="mt-4 flex-1 text-lg font-medium leading-relaxed text-textDim dark:text-gray-400">{{ _t({"key": 'contacts.business.text', "default": 'Интеграции, совместные продукты, коммерческие предложения и другие форматы сотрудничества.'}) }}</p>
+				<div class="mt-8 grid gap-3">
+					<a href="https://t.me/hs_wscc" target="_blank" rel="noopener noreferrer" class="group grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-5 transition hover:border-blue-200 hover:bg-blue-50 dark:border-gray-800 dark:bg-[#1A1A1A] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/10">
+						<span class="grid min-w-0 grid-cols-[28px_minmax(0,1fr)] items-center gap-4"><i class="fa-brands fa-telegram text-center text-2xl text-[#229ED9]" aria-hidden="true"></i><span class="min-w-0"><small class="block text-xs font-extrabold uppercase tracking-wider text-gray-400">Telegram</small><strong class="mt-1 block truncate text-brand dark:text-white">@hs_wscc</strong></span></span>
+						<i class="fa-solid fa-arrow-up-right-from-square text-sm text-gray-400 transition group-hover:text-blue-500" aria-hidden="true"></i>
+					</a>
+					<a href="mailto:business@h-script.com" class="group grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-5 transition hover:border-blue-200 hover:bg-blue-50 dark:border-gray-800 dark:bg-[#1A1A1A] dark:hover:border-blue-500/30 dark:hover:bg-blue-500/10">
+						<span class="grid min-w-0 grid-cols-[28px_minmax(0,1fr)] items-center gap-4"><i class="fa-solid fa-envelope text-center text-2xl text-blue-600" aria-hidden="true"></i><span class="min-w-0"><small class="block text-xs font-extrabold uppercase tracking-wider text-gray-400">Email</small><strong class="mt-1 block break-all text-brand dark:text-white">business@h-script.com</strong></span></span>
+						<i class="fa-solid fa-arrow-right text-sm text-gray-400 transition group-hover:translate-x-1 group-hover:text-blue-500" aria-hidden="true"></i>
+					</a>
+				</div>
+			</section>
+
+			<section class="flex h-full flex-col rounded-[2rem] border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-800 dark:bg-[#151515] md:p-10" aria-labelledby="security-contacts-title">
+				<span class="mb-7 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-2xl text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+				<h2 id="security-contacts-title" class="text-3xl font-bold text-brand dark:text-white">{{ _t({"key": 'contacts.security.title', "default": 'Сообщить об уязвимости'}) }}</h2>
+				<p class="mt-4 flex-1 text-lg font-medium leading-relaxed text-textDim dark:text-gray-400">{{ _t({"key": 'contacts.security.text', "default": 'Отправьте техническое описание, шаги воспроизведения и оценку влияния. Не публикуйте детали до согласованного раскрытия.'}) }}</p>
+				<div class="mt-8 grid gap-3">
+					<a href="mailto:security@h-script.com" class="group grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-5 transition hover:border-emerald-300 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:hover:border-emerald-500/40">
+						<span class="grid min-w-0 grid-cols-[28px_minmax(0,1fr)] items-center gap-4"><i class="fa-solid fa-lock text-center text-2xl text-emerald-600" aria-hidden="true"></i><span class="min-w-0"><small class="block text-xs font-extrabold uppercase tracking-wider text-emerald-700/60 dark:text-emerald-300/70">Security Email</small><strong class="mt-1 block break-all text-emerald-900 dark:text-emerald-100">security@h-script.com</strong></span></span>
+						<i class="fa-solid fa-arrow-right text-sm text-emerald-600 transition group-hover:translate-x-1" aria-hidden="true"></i>
+					</a>
+					<a href="https://github.com/0x241/h-script/issues" target="_blank" rel="noopener noreferrer" class="group grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-5 transition hover:border-gray-400 hover:bg-white dark:border-gray-700 dark:bg-[#1A1A1A] dark:hover:border-gray-500 dark:hover:bg-[#202020]">
+						<span class="grid min-w-0 grid-cols-[28px_minmax(0,1fr)] items-center gap-4"><i class="fa-brands fa-github text-center text-2xl text-brand dark:text-white" aria-hidden="true"></i><span class="min-w-0"><small class="block text-xs font-extrabold uppercase tracking-wider text-gray-400">GitHub</small><strong class="mt-1 block text-brand dark:text-white">{{ _t({"key": 'contacts.security.github_issues', "default": 'Создать security issue'}) }}</strong></span></span>
+						<i class="fa-solid fa-arrow-up-right-from-square text-sm text-gray-400 transition group-hover:text-brand dark:group-hover:text-white" aria-hidden="true"></i>
+					</a>
+				</div>
+			</section>
+		</div>
+	</div>
+</main>
+
+{% include "external/footer.twig" %}

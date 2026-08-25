@@ -43,8 +43,8 @@ catch (FormAbortException $e)
 $n = $_cfg['Review_ShowCount'];
 if (!$n)
 	$n = 10;
-$list = opPageGet(_GETN('page'), $n, "$table LEFT JOIN Users ON uID=ouID LEFT JOIN AddInfo ON auID=ouID", 
-	'*', 'oState=1', array(),
+$list = opPageGet(_GETN('page'), $n, "$table LEFT JOIN Users ON uID=ouID LEFT JOIN AddInfo ON auID=ouID",
+	"Review.*, Users.*, AddInfo.*, COALESCE(NULLIF(Review.oAuthor, ''), Users.uLogin, '') AS uLogin", 'oState=1', array(),
 	array(
 		'nTS' => array('oOrder desc, oTS desc, oID desc')
 	),

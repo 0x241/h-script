@@ -504,7 +504,7 @@ release:promote-public:
       trap cleanup_public_tree_files EXIT HUP INT TERM
 
       git ls-tree -r --name-only "${CI_COMMIT_SHA}" > "${PUBLIC_TREE_FILES}"
-      if grep -Eq '(^|/)(\.agents|\.codex|docker/release)(/|$)|(^|/)(future_works?|release-process)\.md$' "${PUBLIC_TREE_FILES}"; then
+      if grep -Eq '(^|/)(\.agents|\.codex|\.gitlab|docker/release)(/|$)|(^|/)(future_works?|release-process)\.md$' "${PUBLIC_TREE_FILES}"; then
         echo "Forbidden private file found in the public release tree" >&2
         exit 1
       fi
@@ -674,7 +674,77 @@ release:promote-images:
       - dist/SHA256SUMS
     expire_in: never
 
+.publish-github-release-helper:
+  before_script:
+    - |
+      PUBLISH_GITHUB_RELEASE_SCRIPT="${CI_PROJECT_DIR}/.publish-github-release-${CI_JOB_ID}.sh"
+      export PUBLISH_GITHUB_RELEASE_SCRIPT
+      umask 077
+      cat > "${PUBLISH_GITHUB_RELEASE_SCRIPT}" <<'PUBLISH_GITHUB_RELEASE'
+      #!/bin/sh
+
+      set -eu
+
+      : "${GITHUB_TOKEN:?GITHUB_TOKEN is required}"
+      : "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
+      : "${RELEASE_TAG:?RELEASE_TAG is required}"
+      : "${EXPECTED_SHA:?EXPECTED_SHA is required}"
+      : "${ARCHIVE:?ARCHIVE is required}"
+
+      ARTIFACT_DIR="${ARTIFACT_DIR:-/artifacts}"
+      API="https://api.github.com/repos/${GITHUB_REPOSITORY}"
+      ACCEPT="Accept: application/vnd.github+json"
+      AUTH="Authorization: Bearer ${GITHUB_TOKEN}"
+      VERSION_HEADER="X-GitHub-Api-Version: 2022-11-28"
+
+      commit_status="$(curl -sS -o /tmp/commit.json -w '%{http_code}' \
+        -H "${ACCEPT}" -H "${AUTH}" -H "${VERSION_HEADER}" \
+        "${API}/commits/${RELEASE_TAG}")"
+      test "${commit_status}" = 200
+      actual_sha="$(php -r '$v=json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); echo $v["sha"] ?? "";' /tmp/commit.json)"
+      test "${actual_sha}" = "${EXPECTED_SHA}"
+
+      release_status="$(curl -sS -o /tmp/release.json -w '%{http_code}' \
+        -H "${ACCEPT}" -H "${AUTH}" -H "${VERSION_HEADER}" \
+        "${API}/releases/tags/${RELEASE_TAG}")"
+      if [ "${release_status}" = 404 ]; then
+        payload="$(php -r 'echo json_encode(["tag_name"=>$argv[1],"name"=>"H-Script ".substr($argv[1],1),"body"=>"Compiled shared-hosting release. Verify SHA256SUMS and the Sigstore bundle before installation.","draft"=>false,"prerelease"=>false,"make_latest"=>"true"], JSON_THROW_ON_ERROR);' "${RELEASE_TAG}")"
+        curl --fail-with-body -sS -o /tmp/release.json \
+          -X POST -H "${ACCEPT}" -H "${AUTH}" -H "${VERSION_HEADER}" \
+          -H 'Content-Type: application/json' --data "${payload}" \
+          "${API}/releases"
+      else
+        test "${release_status}" = 200
+      fi
+
+      upload_url="$(php -r '$v=json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); echo preg_replace("~\\{.*$~", "", $v["upload_url"] ?? "");' /tmp/release.json)"
+      test -n "${upload_url}"
+      for filename in "${ARCHIVE}" SHA256SUMS "${ARCHIVE}.sigstore.json"; do
+        artifact="${ARTIFACT_DIR}/${filename}"
+        test -s "${artifact}"
+        remote_size="$(php -r '$v=json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); foreach (($v["assets"] ?? []) as $asset) { if (($asset["name"] ?? "") === $argv[2]) { echo (string) ($asset["size"] ?? -1); exit; } }' /tmp/release.json "${filename}")"
+        if [ -n "${remote_size}" ]; then
+          local_size="$(wc -c < "${artifact}" | tr -d ' ')"
+          test "${remote_size}" = "${local_size}"
+          printf 'Verified existing %s\n' "${filename}"
+          continue
+        fi
+
+        encoded_name="$(php -r 'echo rawurlencode($argv[1]);' "${filename}")"
+        curl --fail-with-body -sS -o /tmp/upload.json \
+          -X POST -H "${ACCEPT}" -H "${AUTH}" -H "${VERSION_HEADER}" \
+          -H 'Content-Type: application/octet-stream' \
+          --data-binary "@${artifact}" \
+          "${upload_url}?name=${encoded_name}"
+        printf 'Published %s\n' "${filename}"
+      done
+      PUBLISH_GITHUB_RELEASE
+      chmod 0500 "${PUBLISH_GITHUB_RELEASE_SCRIPT}"
+  after_script:
+    - rm -f -- "${CI_PROJECT_DIR}/.publish-github-release-${CI_JOB_ID}.sh"
+
 publish:shared-github-release:
+  extends: .publish-github-release-helper
   stage: publish
   needs:
     - job: release:promote-images
@@ -729,46 +799,114 @@ publish:shared-github-release:
         --env "EXPECTED_SHA=${CI_COMMIT_SHA}" \
         --env "ARCHIVE=${ARCHIVE}" \
         --volume "${CI_PROJECT_DIR}/dist:/artifacts:ro" \
+        --volume "${PUBLISH_GITHUB_RELEASE_SCRIPT}:/usr/local/share/hscript/publish-github-release.sh:ro" \
         "${CANDIDATE_REF}" \
-        -s <<'RELEASE_SH'
-      set -eu
-      API="https://api.github.com/repos/${GITHUB_REPOSITORY}"
-      ACCEPT="Accept: application/vnd.github+json"
-      AUTH="Authorization: Bearer ${GITHUB_TOKEN}"
-      VERSION_HEADER="X-GitHub-Api-Version: 2022-11-28"
+        /usr/local/share/hscript/publish-github-release.sh
 
-      commit_status="$(curl -sS -o /tmp/commit.json -w '%{http_code}' \
-        -H "${ACCEPT}" -H "${AUTH}" -H "${VERSION_HEADER}" \
-        "${API}/commits/${RELEASE_TAG}")"
-      test "${commit_status}" = 200
-      actual_sha="$(php -r '$v=json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); echo $v["sha"] ?? "";' /tmp/commit.json)"
-      test "${actual_sha}" = "${EXPECTED_SHA}"
+publish:recover-shared-github-release:
+  extends: .publish-github-release-helper
+  stage: publish
+  needs: []
+  id_tokens:
+    SIGSTORE_ID_TOKEN:
+      aud: sigstore
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+      when: manual
+  allow_failure: false
+  resource_group: public-github-release
+  variables:
+    RELEASE_RECOVERY_TAG: ""
+  script:
+    - umask 077
+    - |
+      : "${GITHUB_RELEASE_TOKEN:?Set protected masked GITHUB_RELEASE_TOKEN}"
+      : "${RELEASE_RECOVERY_TAG:?Run the job with RELEASE_RECOVERY_TAG=vX.Y.Z}"
+      printf '%s\n' "${RELEASE_RECOVERY_TAG}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'
 
-      release_status="$(curl -sS -o /tmp/release.json -w '%{http_code}' \
-        -H "${ACCEPT}" -H "${AUTH}" -H "${VERSION_HEADER}" \
-        "${API}/releases/tags/${RELEASE_TAG}")"
-      if [ "${release_status}" = 404 ]; then
-        payload="$(php -r 'echo json_encode(["tag_name"=>$argv[1],"name"=>"H-Script ".substr($argv[1],1),"body"=>"Compiled shared-hosting release. Verify SHA256SUMS and the Sigstore bundle before installation.","draft"=>false,"prerelease"=>false,"make_latest"=>"true"], JSON_THROW_ON_ERROR);' "${RELEASE_TAG}")"
-        curl --fail-with-body -sS -o /tmp/release.json \
-          -X POST -H "${ACCEPT}" -H "${AUTH}" -H "${VERSION_HEADER}" \
-          -H 'Content-Type: application/json' --data "${payload}" \
-          "${API}/releases"
+      git fetch origin \
+        "refs/heads/release/public:refs/remotes/origin/release/public" \
+        "refs/tags/${RELEASE_RECOVERY_TAG}:refs/tags/${RELEASE_RECOVERY_TAG}"
+      TAG_SHA="$(git rev-parse "${RELEASE_RECOVERY_TAG}^{commit}")"
+      git merge-base --is-ancestor "${TAG_SHA}" origin/release/public
+
+      GITHUB_AUTH="$(printf 'x-access-token:%s' "${GITHUB_RELEASE_TOKEN}" | base64 | tr -d '\n')"
+      GITHUB_URL="https://github.com/0x241/h-script.git"
+      GITHUB_TAG="$(git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
+        ls-remote --refs "${GITHUB_URL}" "refs/tags/${RELEASE_RECOVERY_TAG}" | awk '{print $1}')"
+      if [ -z "${GITHUB_TAG}" ]; then
+        git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
+          push "${GITHUB_URL}" "${TAG_SHA}:refs/tags/${RELEASE_RECOVERY_TAG}"
       else
-        test "${release_status}" = 200
+        test "${GITHUB_TAG}" = "${TAG_SHA}"
       fi
 
-      upload_url="$(php -r '$v=json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); echo preg_replace("~\\{.*$~", "", $v["upload_url"] ?? "");' /tmp/release.json)"
-      test -n "${upload_url}"
-      for filename in "${ARCHIVE}" SHA256SUMS "${ARCHIVE}.sigstore.json"; do
-        test -s "/artifacts/${filename}"
-        exists="$(php -r '$v=json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); foreach (($v["assets"] ?? []) as $asset) { if (($asset["name"] ?? "") === $argv[2]) { echo "1"; exit; } } echo "0";' /tmp/release.json "${filename}")"
-        test "${exists}" = 0
-        encoded_name="$(php -r 'echo rawurlencode($argv[1]);' "${filename}")"
-        curl --fail-with-body -sS -o /tmp/upload.json \
-          -X POST -H "${ACCEPT}" -H "${AUTH}" -H "${VERSION_HEADER}" \
-          -H 'Content-Type: application/octet-stream' \
-          --data-binary "@/artifacts/${filename}" \
-          "${upload_url}?name=${encoded_name}"
-        printf 'Published %s\n' "${filename}"
-      done
-      RELEASE_SH
+      ARCHIVE="h-script-${RELEASE_RECOVERY_TAG#v}-shared-hosting.tar.gz"
+      SOURCE_DATE_EPOCH="$(git show -s --format=%ct "${RELEASE_RECOVERY_TAG}")"
+      BUILD_DATE="$(git show -s --format=%cI "${RELEASE_RECOVERY_TAG}")"
+      RECOVERY_SOURCE_DIR="$(mktemp -d)"
+      cleanup_recovery_source() {
+        if [ -n "${RECOVERY_SOURCE_DIR:-}" ] && [ -d "${RECOVERY_SOURCE_DIR}" ]; then
+          rm -rf -- "${RECOVERY_SOURCE_DIR}"
+        fi
+      }
+      trap cleanup_recovery_source EXIT HUP INT TERM
+      git archive "${RELEASE_RECOVERY_TAG}" | tar -x -C "${RECOVERY_SOURCE_DIR}"
+      mkdir -p dist
+      docker buildx build \
+        --target shared-release \
+        --build-arg "APP_VERSION=${RELEASE_RECOVERY_TAG#v}" \
+        --build-arg "VCS_REF=${TAG_SHA}" \
+        --build-arg "BUILD_DATE=${BUILD_DATE}" \
+        --build-arg "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}" \
+        --output type=local,dest=dist \
+        "${RECOVERY_SOURCE_DIR}"
+      test -s "dist/${ARCHIVE}"
+      test -s dist/SHA256SUMS
+      (cd dist && sha256sum -c SHA256SUMS)
+
+      docker run --rm \
+        --user "$(id -u):$(id -g)" \
+        --env HOME=/tmp \
+        --env SIGSTORE_ID_TOKEN \
+        --env COSIGN_YES=true \
+        --volume "${CI_PROJECT_DIR}/dist:/artifacts" \
+        ghcr.io/sigstore/cosign/cosign:v3.0.6@sha256:de9c65609e6bde17e6b48de485ee788407c9502fa08b8f4459f595b21f56cd00 \
+        sign-blob \
+        --yes \
+        --bundle "/artifacts/${ARCHIVE}.sigstore.json" \
+        "/artifacts/${ARCHIVE}"
+      docker run --rm \
+        --user "$(id -u):$(id -g)" \
+        --env HOME=/tmp \
+        --volume "${CI_PROJECT_DIR}/dist:/artifacts:ro" \
+        ghcr.io/sigstore/cosign/cosign:v3.0.6@sha256:de9c65609e6bde17e6b48de485ee788407c9502fa08b8f4459f595b21f56cd00 \
+        verify-blob \
+        --bundle "/artifacts/${ARCHIVE}.sigstore.json" \
+        --certificate-identity "${CI_PROJECT_URL}//.gitlab-ci.yml@refs/heads/${CI_COMMIT_REF_NAME}" \
+        --certificate-oidc-issuer "${CI_SERVER_URL}" \
+        "/artifacts/${ARCHIVE}"
+
+      RELEASE_DOCKER_CONFIG="$(mktemp -d)"
+      cleanup_github_recovery() {
+        if [ -n "${RELEASE_DOCKER_CONFIG:-}" ] && [ -d "${RELEASE_DOCKER_CONFIG}" ]; then
+          rm -rf -- "${RELEASE_DOCKER_CONFIG}"
+        fi
+      }
+      trap 'cleanup_github_recovery; cleanup_recovery_source' EXIT HUP INT TERM
+      export DOCKER_CONFIG="${RELEASE_DOCKER_CONFIG}"
+      export GITHUB_TOKEN="${GITHUB_RELEASE_TOKEN}"
+      printf '%s' "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" --username "${CI_REGISTRY_USER}" --password-stdin
+
+      CANDIDATE_REF="${CI_REGISTRY_IMAGE}:tree-$(git rev-parse "${RELEASE_RECOVERY_TAG}^{tree}")"
+      docker run --rm \
+        --entrypoint /bin/sh \
+        --env GITHUB_TOKEN \
+        --env GITHUB_REPOSITORY=0x241/h-script \
+        --env "RELEASE_TAG=${RELEASE_RECOVERY_TAG}" \
+        --env "EXPECTED_SHA=${TAG_SHA}" \
+        --env "ARCHIVE=${ARCHIVE}" \
+        --volume "${CI_PROJECT_DIR}/dist:/artifacts:ro" \
+        --volume "${PUBLISH_GITHUB_RELEASE_SCRIPT}:/usr/local/share/hscript/publish-github-release.sh:ro" \
+        "${CANDIDATE_REF}" \
+        /usr/local/share/hscript/publish-github-release.sh

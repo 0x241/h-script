@@ -44,6 +44,11 @@ $list = opPageGet(_GETN('page'), 20, $table, '*', '', null,
 View::stampTableToStr($list, 'cTS', 1);
 
 View::setPage('list', $list);
+View::setPage('d_types', array(
+	1 => 'рабочий',
+	2 => 'выходной',
+	3 => 'праздничный',
+), 0);
 
 View::showPage();
 
