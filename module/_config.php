@@ -1,7 +1,10 @@
 <?php
 
 $_rwlinks = array(
-	'index' => array('home'), // main home page
+	'index' => array('home', 'indexable' => true, 'sitemap' => array('changefreq' => 'weekly', 'priority' => '1.0')), // main home page
+	'contact' => array('contacts', 'indexable' => true, 'sitemap' => array('changefreq' => 'yearly', 'priority' => '0.6')),
+	'sitemap' => array('sitemap.xml'),
+	'robots' => array('robots.txt'),
 	'cabinet' => array('cabinet'), // user home page
 	
 	'system' => array('interface'), // select interface
@@ -50,8 +53,8 @@ $_rwlinks = array(
 
     // News
 
-    'news' => array('news'),
-    'news/show' => array('show'),
+	'news' => array('news', 'indexable' => true, 'sitemap' => array('changefreq' => 'weekly', 'priority' => '0.8')),
+	'news/show' => array('show', 'indexable' => true),
 	    'news/admin/newses' => array('admin/newses', 'admin' => '{!ru!}Новости{!en!}News{!!}/{!ru!}Публикации{!en!}Publications'),
 	    'news/admin/news' => array('admin/news', 'admin' => '{!ru!}Новости{!en!}News{!!}/-'),
 	    'news/admin/upload' => array('admin/news/upload'),
@@ -113,7 +116,7 @@ $_rwlinks = array(
 
     // FAQ
 
-    'faq' => array('faq'),
+	'faq' => array('faq', 'indexable' => true, 'sitemap' => array('changefreq' => 'monthly', 'priority' => '0.7')),
     'faq/admin/faqs' => array('admin/faqs', 'admin' => '{!ru!}FAQ{!en!}FAQ{!!}/{!ru!}Список{!en!}List'),
     'faq/admin/faq' => array('admin/faq', 'admin' => 'FAQ/-'),
     'faq/admin/setup' => array('admin/faq/setup', 'admin' => '{!ru!}FAQ{!en!}FAQ{!!}/{!ru!}Настройки{!en!}Settings'),
@@ -143,7 +146,7 @@ $_rwlinks = array(
 
     // Reviews
 
-    'review' => array('reviews'),
+	'review' => array('reviews', 'indexable' => true, 'sitemap' => array('changefreq' => 'weekly', 'priority' => '0.7')),
     'review/admin' => array('admin/reviews', 'admin' => '{!ru!}Отзывы{!en!}Reviews{!!}/{!ru!}Список{!en!}List'),
     'review/admin/review' => array('admin/review', 'admin' => '{!ru!}Отзывы{!en!}Reviews{!!}/-'),
     'review/admin/setup' => array('admin/reviews/setup', 'admin' => '{!ru!}Отзывы{!en!}Reviews{!!}/{!ru!}Настройки{!en!}Settings'),
@@ -156,9 +159,9 @@ $_rwlinks = array(
     // User Defined Pages
     // !!! Insert NEW ADDITIONAL pages here !!!
 
-    'udp/intro' => array('intro'),
-    'udp/rules' => array('rules'),
-    'udp/about' => array('about'),
+	'udp/intro' => array('intro', 'indexable' => true, 'sitemap' => array('changefreq' => 'yearly', 'priority' => '0.4')),
+	'udp/rules' => array('rules', 'indexable' => true, 'sitemap' => array('changefreq' => 'yearly', 'priority' => '0.4')),
+	'udp/about' => array('about', 'indexable' => true, 'sitemap' => array('changefreq' => 'yearly', 'priority' => '0.4')),
 
 
     // Captcha

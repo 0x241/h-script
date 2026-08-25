@@ -2,9 +2,12 @@
 {% include "admin/header.twig" with {"title": _t({"key": 'admin.main.title', "default": 'Основные'})} %}
 
 {% if cfg.NeedReConfig %}
-	<aside class="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
-		<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-		{{ _t({"key": 'admin.main.reconfigure', "default": 'Проверьте все настройки скрипта'}) }}
+	<aside class="mb-6 flex items-start gap-4 rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+		<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
+		<div>
+			<strong class="block text-sm font-extrabold">{{ _t({"key": 'admin.main.initial_setup.title', "default": 'Завершите первоначальную настройку'}) }}</strong>
+			<p class="mt-1 text-sm font-medium opacity-80">{{ _t({"key": 'admin.main.initial_setup.text', "default": 'Пока основные параметры не сохранены, доступ к остальным разделам админки ограничен. Проверьте поля ниже и нажмите «Сохранить».'}) }}</p>
+		</div>
 	</aside>
 {% endif %}
 

@@ -3,6 +3,6 @@
 
 {% include "calendar/admin/_statuses.twig" %}
 
-{% include "edit.twig" with {"title": 'День', "title_new": 'Новый день', "fields": {'cID': [], 'cTS': {0: 'D', 1: 'Дата!!', 2: {'date_empty': 'укажите дату', 'date_exist': 'дата уже существует'}, 'default': today}, 'cType': ['S', 'Тип!!', {'type_empty': 'укажите тип'}, merge_arrays({0: '- выберите тип -'}, d_types)], 'cPerc': ['%', 'Процент', {'perc_wrong': 'укажите процент'}]}, "values": el} %}
+{% include "edit.twig" with {"title": 'День', "title_new": 'Новый день', "fields": {'cID': [], 'cTS': {0: 'D', 1: 'Дата!!', 2: {'date_empty': 'укажите корректную дату', 'date_exist': 'дата уже существует'}, 'default': today, 'hint': 'ДД.ММ.ГГГГ', 'comment': 'Например: 25.08.2026'}, 'cType': {0: 'S', 1: 'Тип дня!!', 2: {'type_empty': 'укажите тип дня'}, 3: merge_arrays({0: '- выберите тип дня -'}, d_types), 'comment': 'Для планов с периодом до 24 часов и режимом «только по рабочим дням»: в выходной или праздничный день начисление пропускается.'}, 'cPerc': ['%', 'Процент', {'perc_wrong': 'укажите процент'}]}, "values": el} %}
 
 {% include "admin/footer.twig" %}

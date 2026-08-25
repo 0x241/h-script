@@ -40,6 +40,35 @@ const initializeBulkSelection = (root = document) => {
   root.querySelectorAll?.('[data-hs-select-all]').forEach(syncBulkSelection);
 };
 
+const togglePasswordVisibility = (button) => {
+  if (!(button instanceof HTMLButtonElement)) return;
+  const inputId = button.getAttribute('aria-controls');
+  const input = inputId ? document.getElementById(inputId) : null;
+  if (!(input instanceof HTMLInputElement)) return;
+
+  const showValue = input.type === 'password';
+  input.type = showValue ? 'text' : 'password';
+  button.setAttribute('aria-pressed', showValue ? 'true' : 'false');
+  const label = showValue ? button.dataset.hideLabel : button.dataset.showLabel;
+  if (label) {
+    button.setAttribute('aria-label', label);
+    button.setAttribute('title', label);
+  }
+  button.classList.toggle('text-blue-500', showValue);
+  const icon = button.querySelector('[data-hs-password-icon]');
+  if (icon instanceof HTMLElement) {
+    icon.classList.toggle('fa-eye', !showValue);
+    icon.classList.toggle('fa-eye-slash', showValue);
+  }
+};
+
+document.addEventListener('click', (event) => {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const button = target.closest('[data-hs-password-toggle]');
+  if (button instanceof HTMLButtonElement) togglePasswordVisibility(button);
+});
+
 document.addEventListener('change', (event) => {
   const target = event.target;
   if (!(target instanceof HTMLInputElement)) return;

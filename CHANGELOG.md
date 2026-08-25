@@ -7,6 +7,16 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Added dynamic `robots.txt` and `sitemap.xml`, canonical and social metadata,
+  structured data, and indexable-route metadata based on the configured
+  application URL.
+- Added a localized contacts page for partnership and vulnerability reports,
+  plus a multi-card partners section with W-Shop in the public navigation.
+- Added administrator review creation and editing with a validated existing or
+  standalone author login, an editable publication date, and an explicit
+  migration for persisted review authors.
+- Added initial-setup guidance in administration and production database-backup
+  guidance in the configurator update flow.
 - Added a GitLab-first release pipeline that builds and deploys one signed,
   scanned multi-architecture candidate, promotes its exact digest to Docker Hub
   and GHCR, and publishes a checksummed, signed shared-hosting archive.
@@ -91,9 +101,20 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   fast-forward-only.
 - Added immutable release-tag synchronization from GitLab to GitHub before the
   shared-hosting GitHub Release is created.
+- Added idempotent GitHub Release publication and a guarded recovery job that
+  reproducibly rebuilds an archive without moving an immutable release tag or
+  requiring cross-pipeline artifact access.
 
 ### Changed
 
+- Improved the public home page with Russian numeric inflection for platform
+  and gateway counters, a multi-partner card grid, consistent source-link
+  blocks, and cross-browser navigation spacing.
+- Embedded the GitHub Release publisher in `.gitlab-ci.yml` and made public
+  source promotion reject tracked `.gitlab/` directories, keeping GitLab CI
+  helper paths out of the clean GitHub history.
+- Made configurator version reporting use the detected database/application
+  state consistently on both the main and update pages.
 - Reused a serialized persistent BuildKit builder for multi-platform staging
   candidates, isolated the stable PHP runtime from per-commit image metadata,
   and enabled cancellation of obsolete builds on newer pushes.
@@ -304,6 +325,15 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Shared-hosting `.htaccess` rules protect private directories, configuration files and executable uploads without Apache-only `php_flag` directives.
 
 ### Fixed
+
+- Masked the recovery security-answer field by default and added an accessible
+  eye control for showing and hiding password and answer values.
+- Restored calendar day-type options and documented the accepted date format in
+  review, calendar-day, and news administration forms.
+- Fixed Safari layout differences in the public header and contacts page,
+  including the theme/action divider and navigation spacing.
+- Fixed GitHub Release publication silently skipping its script because the
+  release container was started without attached standard input.
 
 - Fixed the cabinet sidebar balance card appearing whenever only one external
   payment system was enabled; it is now reserved for internal-currency mode.

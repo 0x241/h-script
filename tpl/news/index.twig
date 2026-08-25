@@ -1,4 +1,4 @@
-{% include "external/header.twig" with {"title": _t({"key": 'nav.news', "default": 'Новости'}), "public_active": 'news'} %}
+{% include "external/header.twig" with {"title": _t({"key": 'nav.news', "default": 'Новости'}), "description": _t({"key": 'news.text', "default": 'Обновления сервиса, регламентные уведомления и важные изменения для пользователей.'}), "canonical_url": fullURL(_link('news', false, 0)), "public_active": 'news'} %}
 
 <main id="content" class="flex-1 pt-40 pb-20 px-6 max-w-7xl mx-auto w-full">
 	<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">

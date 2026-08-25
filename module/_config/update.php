@@ -2,9 +2,11 @@
 
 if (!isset_IN('bUpdate'))
 {
+	require_once('module/_config/database_state.php');
+	$currentDbVersion = cfg_installed_database_version($_cfg, (string)($_GS['domain'] ?? ''));
+	clearstatcache(true, '_dbstru.php');
+	$targetDbVersion = is_file('_dbstru.php') ? intval(filemtime('_dbstru.php')) : null;
 	include('module/_config/_header.php');
-	$currentDbVersion = isset($_cfg['Const_DBVer']) ? intval($_cfg['Const_DBVer']) : 0;
-	$targetDbVersion = is_file('_dbstru.php') ? intval(filemtime('_dbstru.php')) : 0;
 	?>
 	<section class="mx-auto max-w-3xl space-y-8">
 		<header>
@@ -14,12 +16,23 @@ if (!isset_IN('bUpdate'))
 		</header>
 
 		<div class="grid gap-4 sm:grid-cols-2">
-			<div class="rounded-lg border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><span class="text-xs font-extrabold uppercase tracking-wider text-gray-400"><?php echo cfg_t('Текущая версия', 'Current version'); ?></span><strong class="mt-2 block font-mono text-lg text-brand dark:text-white"><?php echo $currentDbVersion ?: '—'; ?></strong></div>
-			<div class="rounded-lg border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><span class="text-xs font-extrabold uppercase tracking-wider text-gray-400"><?php echo cfg_t('Целевая версия', 'Target version'); ?></span><strong class="mt-2 block font-mono text-lg text-brand dark:text-white"><?php echo $targetDbVersion ?: '—'; ?></strong></div>
+			<div class="rounded-lg border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><span class="text-xs font-extrabold uppercase tracking-wider text-gray-400"><?php echo cfg_t('Текущая версия', 'Current version'); ?></span><strong class="mt-2 block text-lg text-brand dark:text-white"><?php echo $currentDbVersion ? date('d.m.Y H:i', $currentDbVersion) : '—'; ?></strong><?php if ($currentDbVersion) { ?><small class="mt-1 block font-mono text-xs text-gray-400">ID <?php echo $currentDbVersion; ?></small><?php } ?></div>
+			<div class="rounded-lg border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]"><span class="text-xs font-extrabold uppercase tracking-wider text-gray-400"><?php echo cfg_t('Целевая версия', 'Target version'); ?></span><strong class="mt-2 block text-lg text-brand dark:text-white"><?php echo $targetDbVersion ? date('d.m.Y H:i', $targetDbVersion) : '—'; ?></strong><?php if ($targetDbVersion) { ?><small class="mt-1 block font-mono text-xs text-gray-400">ID <?php echo $targetDbVersion; ?></small><?php } ?></div>
 		</div>
 
 		<form method="post" class="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
-			<div class="flex items-start gap-4 border-b border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span><div><strong class="block text-sm font-extrabold"><?php echo cfg_t('Сделайте резервную копию', 'Create a backup'); ?></strong><p class="mt-1 text-xs font-medium opacity-80"><?php echo cfg_t('Перед изменением структуры базы рекомендуется создать актуальный backup.', 'Create a current backup before changing the database structure.'); ?></p></div></div>
+			<div class="flex items-start gap-4 border-b border-amber-200 bg-amber-50 p-5 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+				<span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-300"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
+				<div class="min-w-0 flex-1">
+					<strong class="block text-sm font-extrabold"><?php echo cfg_t('Сделайте резервную копию', 'Create a backup'); ?></strong>
+					<p class="mt-1 text-xs font-medium opacity-80"><?php echo cfg_t('Перед обновлением структуры создайте проверенный дамп production-базы. Для Docker Compose выполните команду из каталога проекта:', 'Create and verify a production database dump before updating the structure. For Docker Compose, run this command from the project directory:'); ?></p>
+					<div class="mt-4 max-w-full overflow-x-auto rounded-lg border border-amber-200 bg-white/70 p-4 text-xs text-brand dark:border-amber-500/30 dark:bg-black/20 dark:text-amber-100"><pre><code>mkdir -p backup
+docker compose exec -T database sh -c \
+  'if [ -n &quot;${MYSQL_PASSWORD_FILE:-}&quot; ]; then MYSQL_PWD=&quot;$(cat &quot;$MYSQL_PASSWORD_FILE&quot;)&quot;; else MYSQL_PWD=&quot;$MYSQL_PASSWORD&quot;; fi; export MYSQL_PWD; exec mysqldump --single-transaction --routines --triggers --events -u&quot;$MYSQL_USER&quot; &quot;$MYSQL_DATABASE&quot;' \
+  &gt; &quot;backup/h-script-$(date +%Y%m%d-%H%M%S).sql&quot;</code></pre></div>
+					<p class="mt-3 text-xs font-medium opacity-80"><?php echo cfg_t('На VPS или shared-хостинге создайте полный SQL-дамп средствами панели управления либо mysqldump.', 'On a VPS or shared host, create a full SQL dump with the hosting control panel or mysqldump.'); ?></p>
+				</div>
+			</div>
 			<label class="flex cursor-pointer items-center gap-3 p-6 text-sm font-bold text-brand dark:text-white"><input name="confirmUpdate" value="1" type="checkbox" required class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:outline-none focus:ring-0 focus:ring-offset-0 dark:border-gray-700"><span><?php echo cfg_t('Резервная копия создана, начать обновление', 'A backup exists; start the update'); ?></span></label>
 			<div class="flex justify-center border-t border-gray-100 bg-gray-50/60 p-5 dark:border-gray-800 dark:bg-[#1A1A1A]"><button name="bUpdate" value="1" type="submit" class="<?php echo $cfgButtonClass; ?>"><i class="fa-solid fa-rotate" aria-hidden="true"></i><?php echo cfg_t('Обновить базу данных', 'Update database'); ?></button></div>
 		</form>

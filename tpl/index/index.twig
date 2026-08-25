@@ -1,5 +1,18 @@
 {% set page_title = _t({"key": 'home.meta.title', "default": 'H-Script — High-Tech. High-Yield.'}) %}
-{% include "external/header.twig" with {"title": page_title, "public_active": 'index'} %}
+{% set page_description = _t({"key": 'home.meta.description', "default": 'H-Script — открытая финтех CMS для запуска инвестиционных платформ, платежных сценариев и партнерских программ.'}) %}
+{% set software_schema = {
+	'@context': 'https://schema.org',
+	'@type': 'SoftwareApplication',
+	'name': 'H-Script',
+	'applicationCategory': 'BusinessApplication',
+	'operatingSystem': 'Linux, Docker',
+	'softwareVersion': '1.0.0',
+	'url': root_url,
+	'description': page_description,
+	'codeRepository': 'https://github.com/0x241/h-script',
+	'license': 'https://opensource.org/license/mit'
+} %}
+{% include "external/header.twig" with {"title": page_title, "seo_title": page_title, "description": page_description, "public_active": 'index', "structured_data": software_schema} %}
 
 <main id="content" class="flex-1">
 	<section class="pt-48 pb-10 px-6">
@@ -47,7 +60,7 @@
 				<div class="px-4 md:px-5 py-2 md:py-2.5 rounded-2xl bg-blue-50 dark:bg-blue-900/10 border border-blue-200/60 dark:border-blue-800/50 flex items-center gap-3 shadow-sm">
 					<i class="fa-solid fa-server text-blue-500 text-sm md:text-base"></i>
 					<div class="text-sm md:text-base font-bold text-blue-700 dark:text-blue-400 font-mono flex items-center gap-2 tracking-wide">
-						<span id="projects-counter">{{ public_metrics.platforms }}</span> <span class="text-blue-600/70 dark:text-blue-500/70 text-xs md:text-sm font-medium">{{ _t({"key": 'home.metric.platforms', "default": 'платформ'}) }}</span>
+						<span id="projects-counter">{{ public_metrics.platforms }}</span> <span class="text-blue-600/70 dark:text-blue-500/70 text-xs md:text-sm font-medium">{{ public_metrics.platforms_label }}</span>
 					</div>
 				</div>
 
@@ -55,7 +68,7 @@
 				<div class="flex items-center gap-3 rounded-2xl border border-purple-200/60 bg-purple-50 px-4 py-2 shadow-sm dark:border-purple-800/50 dark:bg-purple-900/10 md:px-5 md:py-2.5">
 					<i class="fa-solid fa-bolt text-purple-500 text-sm md:text-base"></i>
 					<div class="text-sm md:text-base font-bold text-purple-700 dark:text-purple-400 font-mono flex items-center gap-2 tracking-wide">
-						<span>25+</span> <span class="text-purple-600/70 dark:text-purple-500/70 text-xs md:text-sm font-medium">{{ _t({"key": 'home.metric.gateways', "default": 'шлюзов'}) }}</span>
+						<span>{{ public_metrics.gateways }}</span> <span class="text-purple-600/70 dark:text-purple-500/70 text-xs md:text-sm font-medium">{{ public_metrics.gateways_label }}</span>
 					</div>
 				</div>
 			</div>
@@ -206,7 +219,7 @@
 				</div>
 			</div>
 
-			<div class="lg:col-span-2 rounded-[2rem] bg-[#1A1A1A] dark:bg-[#0A0A0A] p-10 flex flex-col justify-center relative overflow-hidden text-white border border-gray-800 dark:border-gray-900 shadow-2xl">
+			<div class="flex h-full flex-col justify-center overflow-hidden rounded-[2rem] border border-gray-800 bg-[#1A1A1A] p-10 text-white shadow-2xl dark:border-gray-900 dark:bg-[#0A0A0A] relative lg:col-span-2">
 				<div class="relative z-10">
 					<div class="flex items-center gap-3 mb-4">
 						<i class="fa-brands fa-github text-3xl"></i>
@@ -233,7 +246,7 @@
 					<h3 class="text-2xl font-bold mb-4">{{ _t({"key": 'home.docker.title', "default": 'Docker-образы'}) }}</h3>
 					<p class="text-blue-100 mb-8 font-medium flex-1">{{ _t({"key": 'home.docker.text', "default": 'Официальные образы для локальной разработки и мгновенного деплоя.'}) }}</p>
 					<div class="flex flex-col items-start gap-4">
-						<div class="max-w-full overflow-x-auto rounded-xl border border-[rgba(96,165,250,0.3)] bg-[rgba(30,58,138,0.5)] p-3 font-mono text-xs text-blue-100 shadow-inner">
+						<div class="max-w-full overflow-x-auto rounded-xl border border-[rgba(96,165,250,0.3)] bg-[rgba(30,58,138,0.5)] p-4 font-mono text-xs text-blue-100 shadow-inner">
 							<span class="text-[rgba(147,197,253,0.5)] select-none">$</span> docker pull 0x241/h-script:1.0.0
 						</div>
 						<a href="https://hub.docker.com/r/0x241/h-script" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-white hover:text-brand">
@@ -421,6 +434,42 @@
 						</div>
 					</div>
 				</div>
+			</div>
+		</div>
+	</section>
+
+	{% set partners = [
+		{
+			'name': 'W-SHOP.CC',
+			'url': 'https://w-shop.cc/',
+			'logo': 'static/images/w-shop-logo.svg',
+			'title': _t({"key": 'home.partners.wshop.title', "default": 'Студия цифровых бизнес-решений'}),
+			'text': _t({"key": 'home.partners.wshop.text', "default": 'Разработка цифровых продуктов, корпоративная инфраструктура, сертификаты и решения для роста бизнеса.'})
+		}
+	] %}
+	<section id="partners" class="scroll-mt-28 border-t border-gray-200/50 px-6 py-24 dark:border-gray-800/50">
+		<div class="mx-auto max-w-7xl">
+			<div class="mb-12 max-w-3xl">
+				<span class="mb-4 inline-flex items-center gap-2 rounded-full bg-cardPurple px-4 py-2 text-sm font-extrabold uppercase tracking-wider text-violet-700 dark:bg-purple-500/10 dark:text-violet-300"><i class="fa-solid fa-handshake" aria-hidden="true"></i>{{ _t({"key": 'home.partners.eyebrow', "default": 'Партнеры'}) }}</span>
+				<h2 class="text-4xl font-bold tracking-tight text-brand dark:text-white md:text-5xl">{{ _t({"key": 'home.partners.title', "default": 'Наши партнеры'}) }}</h2>
+				<p class="mt-5 text-lg font-medium leading-relaxed text-textDim dark:text-gray-400">{{ _t({"key": 'home.partners.text', "default": 'Компании, с которыми мы развиваем продукты и инфраструктуру для цифрового бизнеса.'}) }}</p>
+			</div>
+			<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+				{% for partner in partners %}
+					<a href="{{ partner.url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ partner.name }}" class="group flex min-h-72 flex-col rounded-[2rem] border border-gray-100 bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-violet-200 hover:shadow-[0_24px_60px_-32px_rgba(83,49,156,0.55)] dark:border-gray-800 dark:bg-[#151515] dark:hover:border-violet-500/30">
+						<div class="flex h-28 items-center justify-center rounded-2xl p-6">
+							<img src="{{ partner.logo }}" alt="{{ partner.name }}" class="h-auto max-h-full w-full max-w-56 transition duration-300 group-hover:scale-[1.03]" loading="lazy" decoding="async">
+						</div>
+						<div class="mt-6 flex flex-1 flex-col">
+							<div class="flex items-start justify-between gap-4">
+								<h3 class="text-xl font-extrabold text-brand dark:text-white">{{ partner.name }}</h3>
+								<i class="fa-solid fa-arrow-up-right-from-square mt-1 text-sm text-gray-400 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-violet-600 dark:group-hover:text-violet-300" aria-hidden="true"></i>
+							</div>
+							<strong class="mt-2 text-sm font-bold text-violet-700 dark:text-violet-300">{{ partner.title }}</strong>
+							<p class="mt-3 text-sm font-medium leading-relaxed text-textDim dark:text-gray-400">{{ partner.text }}</p>
+						</div>
+					</a>
+				{% endfor %}
 			</div>
 		</div>
 	</section>

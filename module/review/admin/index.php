@@ -37,12 +37,18 @@ catch (FormAbortException $e)
 {
 }
 
-$list = opPageGet(_GETN('page'), 20, "$table LEFT JOIN Users ON uID=ouID", '*', '', null, 
+$list = opPageGet(
+	_GETN('page'),
+	20,
+	"$table LEFT JOIN Users ON uID=ouID",
+	"Review.*, COALESCE(NULLIF(Review.oAuthor, ''), Users.uLogin, '') AS uLogin",
+	'',
+	null,
 	array(
 		$id_field => array(),
 		'oTS' => array('oTS desc', 'oTS'),
-		'uLogin' => array('uLogin', 'uLogin desc')
-	), 
+		'uLogin' => array("COALESCE(NULLIF(Review.oAuthor, ''), Users.uLogin)", "COALESCE(NULLIF(Review.oAuthor, ''), Users.uLogin) desc")
+	),
 	_GET('sort'), $id_field
 );
 View::stampTableToStr($list, 'oTS');

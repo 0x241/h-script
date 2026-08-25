@@ -1,4 +1,4 @@
-{% include "external/header.twig" with {"title": 'FAQ', "public_active": 'faq'} %}
+{% include "external/header.twig" with {"title": 'FAQ', "description": _t({"key": 'faq.text', "default": 'Ответы на самые популярные вопросы по работе платформы.'}), "canonical_url": fullURL(_link('faq', false, 0)), "public_active": 'faq'} %}
 
 <main id="content" class="flex-1 pt-40 pb-20 px-6 max-w-7xl mx-auto w-full">
 	<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">

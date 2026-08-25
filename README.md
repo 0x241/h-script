@@ -720,6 +720,13 @@ Protect `release/public` and release tags, and enable **Allow Git push requests
 to the repository** for this project's CI job tokens before enabling the manual
 publication jobs. No permanent GitLab release token is required.
 
+GitHub Container Registry creates the first personal-account package as private
+even when its source repository is public. After the first successful image
+promotion, open the `h-script` package on GitHub, select **Package settings**, and
+under **Danger Zone** change its visibility to **Public**. This one-time change
+enables anonymous `docker pull ghcr.io/0x241/h-script:1.0.0`; GitHub does not
+allow a public package to be made private again.
+
 ## GitLab staging and GitHub promotion
 
 GitLab keeps the permanent `main`, `stage/docker-release`, and `release/public`
@@ -752,6 +759,15 @@ GitHub `main` mirrors it one way and must resolve to the same commit SHA.
    and publishes the shared-hosting archive, checksum file, and Sigstore bundle.
    An existing GitHub tag is accepted only when it already points to the exact
    same commit; the pipeline never overwrites tags.
+
+If the GitHub release job fails after an immutable tag has already been created,
+run `publish:recover-shared-github-release` from the current protected staging
+pipeline and set its manual job variable `RELEASE_RECOVERY_TAG` to the affected
+tag, for example `v1.0.0`. The recovery job exports that exact immutable source
+tree, reproducibly rebuilds and signs the shared-hosting archive, verifies the
+checksum and both GitLab/GitHub tag targets, and resumes idempotent publication
+without moving the tag. This path does not require the cross-pipeline artifacts
+API available only on higher GitLab tiers.
 
 `release/public` is permanent and is updated for every release; do not create a
 new temporary transfer branch each time. Only release maintainers should be able

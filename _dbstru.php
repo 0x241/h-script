@@ -345,6 +345,7 @@ $_dbstru = array(
   "oID int(10)  auto_increment,
   oTS bigint(14) default 0,
   ouID int(10) default 0,
+  oAuthor varchar(40) default '',
   oText text,
   oRating tinyint unsigned NOT NULL default 5,
   oOrder int(3) default 0,

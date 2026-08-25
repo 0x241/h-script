@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 96" role="img" aria-labelledby="title description">
+  <title id="title">W-SHOP.CC</title>
+  <desc id="description">W-SHOP.CC — We build what works</desc>
+  <g transform="translate(18 18) scale(1.25)" fill="none">
+    <path d="M3.5 6.5 12 35 27 18 40 34 54 7" stroke="#6d4aff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M9 32.5c10.7-2 20.5-5.7 29-11.2C45 16.7 50 11.8 53.5 6" stroke="#ff6b2c" stroke-width="2.8" stroke-linecap="round"/>
+    <path d="M47.3 6h6.2v6.2" stroke="#ff6b2c" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="100" y="53" fill="#171717" font-family="Arial Black, Arial, sans-serif" font-size="30" font-weight="900" letter-spacing="-1.5">W-SHOP<tspan fill="#ff6b2c">.CC</tspan></text>
+  <path d="M100 64h225" stroke="#171717" stroke-opacity=".14"/>
+  <text x="102" y="79" fill="#171717" fill-opacity=".48" font-family="Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="2.2">WE BUILD WHAT WORKS</text>
+</svg>
