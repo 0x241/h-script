@@ -93,6 +93,17 @@ validate:frontend:
   script:
     - docker build --target frontend-build --tag "h-script-frontend:${CI_COMMIT_SHORT_SHA}" .
 
+validate:version:
+  stage: validate
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+    - if: '$CI_COMMIT_BRANCH == "release/public"'
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+  script:
+    - APP_VERSION="$(tr -d '\r\n' < VERSION)"
+    - test -n "${APP_VERSION}"
+    - test -z "${CI_COMMIT_TAG:-}" || test "${CI_COMMIT_TAG#v}" = "${APP_VERSION}"
+
 build:image-candidate:
   stage: build
   interruptible: true
@@ -123,7 +134,7 @@ build:image-candidate:
       TREE_SHA="$(git rev-parse 'HEAD^{tree}')"
       CANDIDATE_TAG="tree-${TREE_SHA}"
       CANDIDATE_REF="${CI_REGISTRY_IMAGE}:${CANDIDATE_TAG}"
-      APP_VERSION="$(awk -F '"' '/"version"[[:space:]]*:/ { print $4; exit }' package.json)"
+      APP_VERSION="$(tr -d '\r\n' < VERSION)"
 
       if docker buildx inspect "${RELEASE_BUILDER}" >/dev/null 2>&1; then
         docker buildx use "${RELEASE_BUILDER}"
@@ -319,7 +330,7 @@ package:shared-candidate:
   rules:
     - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
   script:
-    - PACKAGE_VERSION="$(awk -F '"' '/"version"[[:space:]]*:/ { print $4; exit }' package.json)-stage.${CI_COMMIT_SHORT_SHA}"
+    - PACKAGE_VERSION="$(tr -d '\r\n' < VERSION)-stage.${CI_COMMIT_SHORT_SHA}"
     - *build_shared_archive
   artifacts:
     paths:
@@ -492,6 +503,8 @@ release:promote-public:
       when: manual
   allow_failure: true
   resource_group: public-source-promotion
+  variables:
+    PUBLIC_RELEASE_TITLE: "H-Script public update"
   script:
     - umask 077
     - |
@@ -511,10 +524,46 @@ release:promote-public:
 
       git fetch origin release/public
       PUBLIC_PARENT="$(git rev-parse FETCH_HEAD)"
+      GITHUB_URL="https://github.com/0x241/h-script.git"
+      GITHUB_MAIN="$(git ls-remote "${GITHUB_URL}" refs/heads/main | awk '{print $1}')"
+      test -n "${GITHUB_MAIN}"
+      if [ "${PUBLIC_PARENT}" != "${GITHUB_MAIN}" ]; then
+        echo "release/public ${PUBLIC_PARENT} is not mirrored to GitHub main ${GITHUB_MAIN}" >&2
+        echo "Publish or repair the existing public commit before promoting another staging tree" >&2
+        exit 1
+      fi
+      if [ "${SOURCE_TREE}" = "$(git rev-parse "${PUBLIC_PARENT}^{tree}")" ]; then
+        echo "The tested staging tree is already present in release/public" >&2
+        exit 1
+      fi
+
+      : "${PUBLIC_RELEASE_TITLE:?Set a human-readable public release title}"
+      PUBLIC_RELEASE_TITLE_LENGTH="$(printf '%s' "${PUBLIC_RELEASE_TITLE}" | wc -c | tr -d ' ')"
+      if [ "${PUBLIC_RELEASE_TITLE_LENGTH}" -gt 120 ]; then
+        echo "PUBLIC_RELEASE_TITLE must not exceed 120 bytes" >&2
+        exit 1
+      fi
+      case "${PUBLIC_RELEASE_TITLE}" in
+        *'
+      '*)
+          echo "PUBLIC_RELEASE_TITLE must be a single printable line" >&2
+          exit 1
+          ;;
+      esac
+      if printf '%s' "${PUBLIC_RELEASE_TITLE}" | LC_ALL=C grep -q '[[:cntrl:]]'; then
+        echo "PUBLIC_RELEASE_TITLE must be a single printable line" >&2
+        exit 1
+      fi
+
       RELEASE_AUTHOR_NAME="${GITLAB_USER_NAME:-H-Script Release Bot}"
       git config user.name "${RELEASE_AUTHOR_NAME}"
       git config user.email "no-reply@h-script.com"
-      PUBLIC_COMMIT="$(printf 'release: promote staging %s\n' "${CI_COMMIT_SHORT_SHA}" | git commit-tree "${SOURCE_TREE}" -p "${PUBLIC_PARENT}")"
+      PUBLIC_COMMIT="$(
+        {
+          printf 'release: %s\n\n' "${PUBLIC_RELEASE_TITLE}"
+          printf 'Promoted from tested staging commit %s.\n' "${CI_COMMIT_SHA}"
+        } | git commit-tree "${SOURCE_TREE}" -p "${PUBLIC_PARENT}"
+      )"
       test "${SOURCE_TREE}" = "$(git rev-parse "${PUBLIC_COMMIT}^{tree}")"
 
       PUSH_URL="https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"

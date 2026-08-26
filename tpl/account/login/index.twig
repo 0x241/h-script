@@ -31,6 +31,25 @@
 				</div>
 			{% endif %}
 
+			{% if demo_access_account %}
+				<aside class="mb-6 w-full rounded-2xl border border-violet-200 bg-violet-50 p-4 text-violet-950 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-100">
+					<div class="flex items-start gap-3">
+						<span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-200"><i class="fa-solid fa-users" aria-hidden="true"></i></span>
+						<div class="min-w-0 flex-1">
+							<h2 class="font-bold">{{ _t({"key": 'auth.demo_access.title', "default": 'Доступ к демонстрации'}) }}</h2>
+							<p class="mt-1 text-sm text-violet-800 dark:text-violet-200">{{ _t({"key": 'auth.demo_access.text', "default": 'Используйте тестовую учётную запись для знакомства с интерфейсом.'}) }}</p>
+						</div>
+					</div>
+					<div class="mt-4 w-full min-w-0 rounded-xl border border-violet-200/80 bg-white/80 p-3 dark:border-violet-400/20 dark:bg-black/20">
+						<div class="text-xs font-extrabold uppercase tracking-wider text-violet-700 dark:text-violet-300">{{ _t({"key": 'auth.demo_access.admin', "default": 'Демо-администратор'}) }}</div>
+						<dl class="mt-2 space-y-1 text-xs">
+							<div class="flex min-w-0 items-baseline justify-between gap-3"><dt class="shrink-0 text-violet-700/80 dark:text-violet-300/80">{{ _t({"key": 'auth.demo_access.login', "default": 'Логин'}) }}</dt><dd class="min-w-0 break-all font-mono font-bold">{{ demo_access_account.login }}</dd></div>
+							<div class="flex min-w-0 items-baseline justify-between gap-3"><dt class="shrink-0 text-violet-700/80 dark:text-violet-300/80">{{ _t({"key": 'auth.demo_access.password', "default": 'Пароль'}) }}</dt><dd class="min-w-0 break-all font-mono font-bold">{{ demo_access_account.password }}</dd></div>
+						</dl>
+					</div>
+				</aside>
+			{% endif %}
+
 			{% if isset(_GET.ip_changed) %}
 				<div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
 					<div class="font-bold">{{ _t({"key": 'auth.security.title', "default": 'Система безопасности'}) }}</div>

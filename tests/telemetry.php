@@ -167,7 +167,7 @@ final class TelemetryFakeConnection extends Connection
 }
 
 telemetryAssert(Application::NAME === 'H-Script', 'Application name is invalid');
-telemetryAssert(Application::VERSION === '1.0.0', 'Application version is invalid');
+telemetryAssert(Application::version() === '1.0.1', 'Application version is invalid');
 telemetryAssert(
 	CollectorMode::enabled(
 		array(
@@ -226,7 +226,7 @@ $token = 'hsi_' . str_repeat('a', 64);
 $installation = array(
 	'installation_id' => '123e4567-e89b-42d3-a456-426614174000',
 	'domain' => 'example.com',
-	'version' => '1.0.0',
+	'version' => Application::version(),
 	'installed_at' => time() - 3600,
 	'stats_consent' => true,
 );
@@ -245,7 +245,7 @@ telemetryAssert(
 	$repository->report(
 		$installation['installation_id'],
 		$token,
-		'1.0.0',
+		Application::version(),
 		true,
 		$publicStats,
 		'192.0.2.10'
@@ -292,7 +292,7 @@ telemetryAssert(
 	$repository->report(
 		$duplicateInstallation['installation_id'],
 		$duplicateToken,
-		'1.0.0',
+		Application::version(),
 		true,
 		$inflatedStats,
 		'192.0.2.20'
@@ -326,7 +326,7 @@ telemetryAssert(
 	$repository->report(
 		$localInstallation['installation_id'],
 		$localToken,
-		'1.0.0',
+		Application::version(),
 		true,
 		$inflatedStats,
 		'127.0.0.1'

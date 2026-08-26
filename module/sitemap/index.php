@@ -1,5 +1,6 @@
 <?php
 
+$_GS['stateless'] = true;
 require_once('module/auth.php');
 
 header('Content-Type: application/xml; charset=utf-8');

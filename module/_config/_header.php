@@ -88,6 +88,7 @@ if ($cfgMessage = getMsg())
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 		<link rel="stylesheet" type="text/css" href="static/css/app.css?v=tailwind-20260813-ui-15">
+		<meta name="htmx-config" content='{"allowEval":false}'>
 		<script src="static/js/htmx.min.js"></script>
 	</head>
 	<body class="min-h-screen bg-none bg-[#F7F7F5] text-brand antialiased dark:bg-[#0A0A0A] dark:text-gray-100" hx-boost="true">

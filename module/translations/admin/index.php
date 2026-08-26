@@ -17,6 +17,7 @@ function translationsNormalizeKey($key)
 
 $langs = View::translationLanguages();
 $prefix = translationsNormalizeKey(_GET('prefix'));
+$translationReadonly = !empty($_GS['demo']) && (int)$_user['uLevel'] < 99;
 
 if (View::sendedForm('save', $form))
 {
@@ -104,6 +105,7 @@ View::setPage('translation_add_form', $add_form);
 View::setPage('translation_filter', $prefix);
 View::setPage('translation_base_link', moduleToLink(), 0);
 View::setPage('mail_settings_link', moduleToLink('system/admin/setup_mail'), 0);
+View::setPage('translation_readonly', $translationReadonly, 0);
 
 View::showPage();
 

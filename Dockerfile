@@ -34,8 +34,7 @@ RUN npm run css:build
 FROM alpine:3.22@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce AS application-files
 
 WORKDIR /opt/hscript
-COPY .htaccess 404.html _dbstru.php favicon.ico favicon.svg rw.php ./
-COPY _a-ddos ./_a-ddos
+COPY .htaccess 404.html VERSION _dbstru.php favicon.ico favicon.svg rw.php ./
 COPY bin ./bin
 COPY lang ./lang
 COPY lib ./lib
@@ -54,7 +53,7 @@ RUN rm -f static/css/input.css \
 
 FROM alpine:3.22@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce AS shared-hosting-files
 
-ARG APP_VERSION=1.0.0
+ARG APP_VERSION=0.0.0-dev
 ARG VCS_REF=unknown
 ARG BUILD_DATE=unknown
 
@@ -79,7 +78,7 @@ COPY --from=shared-hosting-files /release/h-script /h-script
 # timestamps are normalized. The final target contains only release artifacts.
 FROM debian:bookworm-slim@sha256:abd67ffcfa541b485a3dff59865ab629aa048a6c613e639d36e7456b0b229241 AS shared-archive
 
-ARG APP_VERSION=1.0.0
+ARG APP_VERSION=0.0.0-dev
 ARG SOURCE_DATE_EPOCH=0
 
 WORKDIR /work
@@ -140,7 +139,7 @@ RUN apk add --no-cache \
 
 FROM runtime AS app
 
-ARG APP_VERSION=1.0.0
+ARG APP_VERSION=0.0.0-dev
 ARG VCS_REF=unknown
 ARG BUILD_DATE=unknown
 

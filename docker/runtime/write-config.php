@@ -32,6 +32,10 @@ if ($sysId === '') {
     $sysId = substr(hash('sha256', $domain . hs_env('APP_KEY', 'hscript')), 0, 8);
 }
 
+$demoMode = hs_env('APP_DEMO_MODE', '0');
+$demoEnabled = in_array(strtolower(trim($demoMode)), array('1', 'true', 'yes', 'on'), true);
+$demoAdminPassword = hs_env('INSTALL_DEMO_ADMIN_PASSWORD');
+
 $cfg = array(
     'sys_id' => $sysId,
     'sys_mail' => hs_env('APP_SYS_MAIL', 'admin@' . $domain),
@@ -40,7 +44,7 @@ $cfg = array(
     'db_name' => hs_env('DB_NAME'),
     'db_credentials_env' => 1,
     'db_type' => hs_env('DB_TYPE', '1'),
-    'demo_mode' => hs_env('APP_DEMO_MODE', '0'),
+    'demo_mode' => $demoEnabled ? '1' : '0',
     'telemetry_endpoint' => hs_env(
         'TELEMETRY_ENDPOINT',
         'https://h-script.com/api/v1/installations'
@@ -49,6 +53,11 @@ $cfg = array(
     'telemetry_collector_domain' => hs_env('TELEMETRY_COLLECTOR_DOMAIN', 'h-script.com'),
     'telemetry_rate_limit' => hs_env('TELEMETRY_RATE_LIMIT', '30')
 );
+
+if ($demoEnabled || $demoAdminPassword !== '') {
+    $cfg['demo_access_admin_login'] = hs_env('INSTALL_DEMO_ADMIN_LOGIN', 'demo-admin');
+    $cfg['demo_access_admin_password'] = $demoAdminPassword;
+}
 
 $httpUserAgent = hs_env('APP_HTTP_USER_AGENT');
 if ($httpUserAgent !== '') {

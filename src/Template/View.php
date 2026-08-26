@@ -805,7 +805,7 @@ public static function showPage($templ = "", $module = false, $exit_after = true
         'InputDateFormat' => trim(self::$dateFormats[$lang][4]),
         'tpl_time' => time() + $_GS["TZ"],
 		'app_name' => Application::NAME,
-		'app_version' => Application::VERSION,
+		'app_version' => Application::version(),
 		'app_license' => Application::LICENSE,
         '_IN' => $_IN,
         '_GET' => $_GET,
