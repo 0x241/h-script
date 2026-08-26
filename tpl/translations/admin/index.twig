@@ -3,13 +3,23 @@
 
 <h2 class="mb-6 text-3xl font-extrabold text-brand dark:text-white">{{ translations_title }}</h2>
 
+{% if translation_readonly %}
+	<aside class="mb-6 flex items-start gap-3 rounded-xl border border-violet-200 bg-violet-50 p-4 text-sm text-violet-900 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-100">
+		<i class="fa-solid fa-eye mt-0.5" aria-hidden="true"></i>
+		<div>
+			<strong class="block font-extrabold">{{ _t({"key": 'translations.demo_readonly.title', "default": 'Режим просмотра'}) }}</strong>
+			<p class="mt-1">{{ _t({"key": 'translations.demo_readonly.text', "default": 'Демо-администратор может просматривать переводы, но не изменять их.'}) }}</p>
+		</div>
+	</aside>
+{% endif %}
+
 <div class="mb-6 flex flex-wrap items-center gap-2">
 	<a href="{{ translation_base_link }}" class="inline-flex items-center rounded-xl border px-4 py-2 text-xs font-extrabold transition {% if not translation_filter %}border-brand bg-brand text-white dark:border-white dark:bg-white dark:text-brand{% else %}border-gray-200 bg-white text-gray-600 dark:border-gray-800 dark:bg-[#151515] dark:text-gray-300{% endif %}">{{ _t({"key": 'translations.filter_all', "default": 'Все ключи'}) }}</a>
 	<a href="{{ translation_base_link }}?prefix=mail." class="inline-flex items-center rounded-xl border px-4 py-2 text-xs font-extrabold transition {% if translation_filter == 'mail.' %}border-brand bg-brand text-white dark:border-white dark:bg-white dark:text-brand{% else %}border-gray-200 bg-white text-gray-600 dark:border-gray-800 dark:bg-[#151515] dark:text-gray-300{% endif %}">{{ _t({"key": 'translations.filter_mail', "default": 'Письма'}) }}</a>
 	<a href="{{ mail_settings_link }}#email-preview" class="ml-auto inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-extrabold text-blue-700 transition hover:bg-blue-100 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-envelope-open-text" aria-hidden="true"></i>{{ _t({"key": 'translations.mail_preview', "default": 'Предпросмотр письма'}) }}</a>
 </div>
 
-<form method="post" class="mb-8 min-w-0" name="{{ translation_add_form }}">
+{% if not translation_readonly %}<form method="post" class="mb-8 min-w-0" name="{{ translation_add_form }}">
 	{{ _getFormSecurity({"form": translation_add_form}) }}
 	<div class="min-w-0 overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
 		<div class="border-b border-gray-100 px-6 py-5 dark:border-gray-800">
@@ -42,7 +52,7 @@
 			</button>
 		</div>
 	</div>
-</form>
+</form>{% endif %}
 
 <div class="min-w-0">
 	<div class="min-w-0 overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
@@ -69,13 +79,13 @@
 									{{ _getFormSecurity({"form": translation_form}) }}
 									<input type="hidden" name="Key" value="{{ row.key|escape }}">
 									<code class="rounded-lg bg-gray-100 px-2 py-1 text-xs font-bold text-brand dark:bg-[#202020] dark:text-white">{{ row.key|escape }}</code>
-									<button name="{{ translation_form }}_btnsave" value="{{ _t({"key": 'common.save', "default": 'Сохранить'}) }}" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2 text-xs font-extrabold text-white shadow-sm transition hover:bg-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-white dark:text-brand dark:hover:bg-gray-100">
+									{% if not translation_readonly %}<button name="{{ translation_form }}_btnsave" value="{{ _t({"key": 'common.save', "default": 'Сохранить'}) }}" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2 text-xs font-extrabold text-white shadow-sm transition hover:bg-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-white dark:text-brand dark:hover:bg-gray-100">
 										<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i><span>{{ _t({"key": 'common.save', "default": 'Сохранить'}) }}</span>
-									</button>
+									</button>{% endif %}
 								</form>
 							</td>
 							{% for lang in active_langs %}
-								<td class="min-w-72 px-5 py-4"><textarea form="{{ row_form_id }}" name="Value[{{ lang }}]" rows="{% if substr(row.key, 0, 5) == 'mail.' %}4{% else %}2{% endif %}" aria-label="{{ row.key|escape }} — {{ lang|upper }}" class="w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-brand outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/20">{{ row[lang]|escape }}</textarea></td>
+								<td class="min-w-72 px-5 py-4"><textarea form="{{ row_form_id }}" name="Value[{{ lang }}]" rows="{% if substr(row.key, 0, 5) == 'mail.' %}4{% else %}2{% endif %}" aria-label="{{ row.key|escape }} — {{ lang|upper }}" {% if translation_readonly %}readonly{% endif %} class="w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-brand outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 read-only:cursor-default read-only:opacity-75 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white dark:focus:border-blue-500 dark:focus:ring-blue-500/20">{{ row[lang]|escape }}</textarea></td>
 							{% endfor %}
 						</tr>
 					{% endfor %}

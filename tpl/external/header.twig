@@ -47,6 +47,7 @@
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 			<link rel="stylesheet" type="text/css" href="static/css/app.css?v=tailwind-20260825-seo-ui-1">
 		{% if include_ckeditor_content|default(false) %}<link rel="stylesheet" type="text/css" href="static/lib/ckeditor5/48.2.0/ckeditor5/ckeditor5-content.css">{% endif %}
+		<meta name="htmx-config" content='{"allowEval":false}'>
 		<script src="static/js/htmx.min.js"></script>
 		<script src="static/js/app.js?v=20260825-1" defer></script>
 		<script type="application/ld+json">{{ {

@@ -6,7 +6,7 @@
 	'name': 'H-Script',
 	'applicationCategory': 'BusinessApplication',
 	'operatingSystem': 'Linux, Docker',
-	'softwareVersion': '1.0.0',
+	'softwareVersion': app_version,
 	'url': root_url,
 	'description': page_description,
 	'codeRepository': 'https://github.com/0x241/h-script',
@@ -19,7 +19,7 @@
 		<div class="max-w-5xl mx-auto text-center relative z-10">
 			<!-- COMBINED HERO -->
 			<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-semibold mb-6 mx-auto border border-blue-100 dark:border-blue-800/50">
-				<span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> {{ _t({"key": 'home.badge', "default": 'H-Script 1.0.0'}) }}
+				<span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> {{ _t({"key": 'home.badge', "version": app_version, "default": 'H-Script {{version}}'}) }}
 			</div>
 
 			<h1 class="text-[2.8rem] sm:text-[4rem] md:text-[5.5rem] font-black tracking-tighter mb-8 leading-[1.05] text-brand dark:text-white">
@@ -247,7 +247,7 @@
 					<p class="text-blue-100 mb-8 font-medium flex-1">{{ _t({"key": 'home.docker.text', "default": 'Официальные образы для локальной разработки и мгновенного деплоя.'}) }}</p>
 					<div class="flex flex-col items-start gap-4">
 						<div class="max-w-full overflow-x-auto rounded-xl border border-[rgba(96,165,250,0.3)] bg-[rgba(30,58,138,0.5)] p-4 font-mono text-xs text-blue-100 shadow-inner">
-							<span class="text-[rgba(147,197,253,0.5)] select-none">$</span> docker pull 0x241/h-script:1.0.0
+							<span class="text-[rgba(147,197,253,0.5)] select-none">$</span> docker pull 0x241/h-script:{{ app_version }}
 						</div>
 						<a href="https://hub.docker.com/r/0x241/h-script" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-white hover:text-brand">
 							<i class="fa-brands fa-docker" aria-hidden="true"></i>

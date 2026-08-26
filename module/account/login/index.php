@@ -52,6 +52,16 @@ catch (FormAbortException $e)
 
 View::setPage('url', urldecode((string)_RQ('url')));
 
+$demoAccessAccount = array();
+if (!empty($_GS['demo']))
+{
+	$login = trim((string)($_cfg['demo_access_admin_login'] ?? ''));
+	$password = trim((string)($_cfg['demo_access_admin_password'] ?? ''));
+	if ($login !== '' && $password !== '')
+		$demoAccessAccount = array('login' => $login, 'password' => $password);
+}
+View::setPage('demo_access_account', $demoAccessAccount, 0);
+
 // External authentication providers may resume the originally requested URL.
 $_SESSION['_go_after_login'] = _RQ('url');
 

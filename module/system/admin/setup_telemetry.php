@@ -112,7 +112,7 @@ View::setPage('telemetry', array(
 	'registered' => !empty($_cfg['Telemetry_Registered']),
 	'installation_id' => (string)($_cfg['Telemetry_InstallationID'] ?? ''),
 	'domain' => (string)($_cfg['Telemetry_Domain'] ?: ($_GS['domain'] ?? '')),
-	'version' => Application::VERSION,
+	'version' => Application::version(),
 	'installed_at' => $formatDate($_cfg['Telemetry_InstalledAt'] ?? 0),
 	'last_attempt_at' => $formatDate($_cfg['Telemetry_LastAttemptAt'] ?? 0),
 	'last_success_at' => $formatDate($_cfg['Telemetry_LastSuccessAt'] ?? 0),

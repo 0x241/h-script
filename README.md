@@ -741,7 +741,9 @@ GitHub `main` mirrors it one way and must resolve to the same commit SHA.
 3. Run the optional manual `release:promote-public` job in the successful staging
    pipeline. It audits the tested tree and creates one release commit whose
    parent is the previous `release/public` commit. It never merges staging
-   history into the public branch.
+   history into the public branch. Open the manual job by name to override
+   `PUBLIC_RELEASE_TITLE` with a concise description of the public update; the
+   tested staging SHA is retained in the commit body.
 4. Audit the complete `release/public` tree and reachable history for secrets,
    local configuration, internal agent files, and unreleased documentation.
 5. Run the manual `publish:github-source` job from the same staging pipeline. It
@@ -759,6 +761,11 @@ GitHub `main` mirrors it one way and must resolve to the same commit SHA.
    and publishes the shared-hosting archive, checksum file, and Sigstore bundle.
    An existing GitHub tag is accepted only when it already points to the exact
    same commit; the pipeline never overwrites tags.
+
+The next public promotion is rejected until the current `release/public` tip is
+already mirrored to GitHub `main`. This prevents multiple unpublished promotion
+commits from accumulating in the public history. Promoting an identical tree is
+also rejected.
 
 If the GitHub release job fails after an immutable tag has already been created,
 run `publish:recover-shared-github-release` from the current protected staging

@@ -49,7 +49,7 @@ final class TelemetryReporter
 			$result = $this->client->request('POST', 'register', array(
 				'installation_id' => $identity['id'],
 				'domain' => $this->domain,
-				'version' => Application::VERSION,
+				'version' => Application::version(),
 				'installed_at' => $identity['installed_at'],
 				'stats_consent' => $this->sharesPublicStats(),
 			), $identity['token']);
@@ -80,7 +80,7 @@ final class TelemetryReporter
 
 			$payload = array(
 				'installation_id' => $identity['id'],
-				'version' => Application::VERSION,
+				'version' => Application::version(),
 				'reported_at' => time(),
 				'stats_consent' => $this->sharesPublicStats(),
 			);

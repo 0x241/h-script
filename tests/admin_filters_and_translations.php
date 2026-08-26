@@ -29,6 +29,7 @@ foreach (array(
     "View::checkFormSecurity(\$add_form)",
     "View::sendedForm('save', \$form)",
     'foreach ($langs as $lang)',
+    "\$translationReadonly = !empty(\$_GS['demo']) && (int)\$_user['uLevel'] < 99",
     "View::showInfo('Added')",
 ) as $fragment) {
     if (!str_contains($translationController, $fragment)) {
@@ -42,6 +43,12 @@ if (str_contains($translationTemplate, 'translation_edit_lang')) {
 
 if (str_contains($translationTemplate, 'name="tr[')) {
     throw new RuntimeException('Translation editor still submits the whole catalog and can exceed max_input_vars.');
+}
+
+foreach (array('translation_readonly', 'readonly', 'translations.demo_readonly.title') as $fragment) {
+    if (!str_contains($translationTemplate, $fragment)) {
+        throw new RuntimeException("Demo translation read-only UI is missing: $fragment.");
+    }
 }
 
 echo "Admin filter spacing and translation matrix tests passed.\n";

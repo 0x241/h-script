@@ -115,7 +115,7 @@ if (!$autoInstall) {
 $adminPassword = hs_install_env('INSTALL_ADMIN_PASSWORD', hs_install_env('ADMIN_PASSWORD'));
 $adminSecretAnswer = hs_install_env('INSTALL_ADMIN_SECRET_ANSWER');
 $adminPin = hs_install_env('INSTALL_ADMIN_PIN');
-$demoMode = !empty($_cfg['demo_mode']) || file_exists('tpl_c/demo');
+$demoMode = hs_install_bool('APP_DEMO_MODE') || file_exists('tpl_c/demo');
 $demoAdminPassword = hs_install_env('INSTALL_DEMO_ADMIN_PASSWORD');
 $missing = array();
 if ($adminPassword === '') {

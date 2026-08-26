@@ -7,6 +7,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Added configurable demo administrator credentials to the login page.
+- Added an explicit read-only translation interface for demo administrators;
+  the existing server-side write restriction remains authoritative.
 - Added dynamic `robots.txt` and `sitemap.xml`, canonical and social metadata,
   structured data, and indexable-route metadata based on the configured
   application URL.
@@ -113,6 +116,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Embedded the GitHub Release publisher in `.gitlab-ci.yml` and made public
   source promotion reject tracked `.gitlab/` directories, keeping GitLab CI
   helper paths out of the clean GitHub history.
+- Made public promotion require the previous `release/public` tip to match
+  GitHub `main`, reject duplicate trees, and support a human-readable
+  `PUBLIC_RELEASE_TITLE` with the staging SHA retained in the commit body.
 - Made configurator version reporting use the detected database/application
   state consistently on both the main and update pages.
 - Reused a serialized persistent BuildKit builder for multi-platform staging
@@ -326,6 +332,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- Fixed Docker `APP_DEMO_MODE` detection so demo restrictions and login access
+  details are applied consistently when demo mode is enabled by environment.
 - Masked the recovery security-answer field by default and added an accessible
   eye control for showing and hiding password and answer values.
 - Restored calendar day-type options and documented the accepted date format in
@@ -419,6 +427,8 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+- Removed the inactive legacy `_a-ddos` browser-loop challenge. It was not
+  loaded by the application and did not provide request-rate or DDoS protection.
 - Removed InvestorsStartPage authorization completely, including its route,
   settings, templates and translations.
 - Removed legacy reCAPTCHA v1, SMSPilot, the request-driven cron fallback,

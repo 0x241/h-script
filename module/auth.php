@@ -11,16 +11,8 @@ hsConfigureErrorHandling();
 $_smode = intval(isset($_smode) ? $_smode : 0); // show mode: 0-user / 1-ajax / 2-bot (cron, captcha..)
 $_auth = intval(isset($_auth) ? $_auth : 0); // required access level
 
-if (empty($_GS['is_api']) && !headers_sent() && session_status() === PHP_SESSION_NONE) {
+if (empty($_GS['is_api']) && empty($_GS['stateless']) && !headers_sent() && session_status() === PHP_SESSION_NONE) {
     startSessionSafely();
-}
-
-// Anti-DDoS
-
-if ($_smode < 2)
-{
-	if (is_file('a-ddos/a-ddos.php'))
-		include('a-ddos/a-ddos.php');
 }
 
 global $_user, $_currs;
@@ -230,7 +222,11 @@ if (!$_cfg['UI__Langs'])
 	$_cfg['UI__Langs'] = array($_GS['default_lang']);
 if (!isset($_GS['demo']))
 	$_GS['demo'] = file_exists('tpl_c/demo');
-if (!empty($_cfg['Demo_Mode']))
+$runtimeDemoMode = strtolower(trim((string)($_cfg['demo_mode'] ?? '0')));
+if (
+	in_array($runtimeDemoMode, array('1', 'true', 'yes', 'on'), true)
+	|| !empty($_cfg['Demo_Mode'])
+)
 	$_GS['demo'] = true;
 
 $_GS['mode'] = View::normalizeTemplateMode(_COOKIE('mode'));
