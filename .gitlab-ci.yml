@@ -503,8 +503,6 @@ release:promote-public:
       when: manual
   allow_failure: true
   resource_group: public-source-promotion
-  variables:
-    PUBLIC_RELEASE_TITLE: "H-Script public update"
   script:
     - umask 077
     - |
@@ -535,6 +533,18 @@ release:promote-public:
       if [ "${SOURCE_TREE}" = "$(git rev-parse "${PUBLIC_PARENT}^{tree}")" ]; then
         echo "The tested staging tree is already present in release/public" >&2
         exit 1
+      fi
+
+      if [ -z "${PUBLIC_RELEASE_TITLE:-}" ]; then
+        SOURCE_DESCRIPTION_COMMIT="${CI_COMMIT_SHA}"
+        set -- $(git show -s --format=%P "${CI_COMMIT_SHA}")
+        if [ "$#" -ge 2 ]; then
+          SOURCE_DESCRIPTION_COMMIT="$2"
+        fi
+        PUBLIC_RELEASE_TITLE="$(
+          git show -s --format=%s "${SOURCE_DESCRIPTION_COMMIT}" |
+            sed -E 's/^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([^)]*\))?!?:[[:space:]]*//'
+        )"
       fi
 
       : "${PUBLIC_RELEASE_TITLE:?Set a human-readable public release title}"

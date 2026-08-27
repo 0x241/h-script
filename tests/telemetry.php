@@ -166,8 +166,9 @@ final class TelemetryFakeConnection extends Connection
 	}
 }
 
+$expectedApplicationVersion = trim((string)file_get_contents(dirname(__DIR__) . '/VERSION'));
 telemetryAssert(Application::NAME === 'H-Script', 'Application name is invalid');
-telemetryAssert(Application::version() === '1.0.1', 'Application version is invalid');
+telemetryAssert(Application::version() === $expectedApplicationVersion, 'Application version is invalid');
 telemetryAssert(
 	CollectorMode::enabled(
 		array(
