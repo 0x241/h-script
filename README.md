@@ -1,6 +1,6 @@
 # H-Script
 
-H-Script 1.0.0 is a PHP CMS for financial projects. It includes user accounts,
+H-Script 1.0.3 is a PHP CMS for financial projects. It includes user accounts,
 deposits, payment gateways, a referral system, administration tools, installation
 telemetry, and a versioned REST API.
 
@@ -24,7 +24,7 @@ telemetry, and a versioned REST API.
 
 For most installations, use the published image. It is reproducible and already
 contains Composer dependencies and compiled CSS. Pin an exact version such as
-`1.0.0`; do not use a floating `latest` tag in production.
+`1.0.3`; do not use a floating `latest` tag in production.
 
 ## Docker with a published image
 
@@ -52,7 +52,7 @@ Select the published image in `.env`:
 
 ```env
 APP_IMAGE=docker.io/0x241/h-script
-APP_IMAGE_TAG=1.0.0
+APP_IMAGE_TAG=1.0.3
 APP_PULL_POLICY=always
 
 APP_ENV=production
@@ -71,7 +71,7 @@ TURNSTILE_SITE_KEY=change-me-site-key
 TURNSTILE_SECRET_KEY=change-me-secret-key
 ```
 
-The same digest is also published as `ghcr.io/0x241/h-script:1.0.0`. Both public
+The same digest is also published as `ghcr.io/0x241/h-script:1.0.3`. Both public
 packages should allow end users to pull without `docker login`. A private GHCR
 package requires a token with `read:packages` permission.
 
@@ -281,7 +281,7 @@ checksum:
 ```bash
 docker buildx build \
   --target shared-release \
-  --build-arg APP_VERSION=1.0.0 \
+  --build-arg APP_VERSION=1.0.3 \
   --output type=local,dest=dist \
   .
 (cd dist && sha256sum -c SHA256SUMS)
@@ -315,7 +315,7 @@ The complete reference is `docker/env.example`.
 | --- | --- |
 | `APP_ENV`, `APP_DEBUG` | Environment and diagnostic output; use `production` and `0` in production. |
 | `APP_IMAGE` | Local image name, Docker Hub repository, or GHCR package. |
-| `APP_IMAGE_TAG` | Exact release tag, for example `1.0.0`. |
+| `APP_IMAGE_TAG` | Exact release tag, for example `1.0.3`. |
 | `APP_PULL_POLICY` | `build` for source builds or `always` for registry images. |
 | `APP_DOMAIN` | Public domain without a scheme; keep it stable after installation. |
 | `APP_SYS_ID` | Stable system secret/identifier; keep it stable after installation. |
@@ -730,10 +730,10 @@ Published references:
 
 ```text
 registry.gitlab.com/0x241/h-script:tree-<tree-sha>
-docker.io/0x241/h-script:1.0.0
+docker.io/0x241/h-script:1.0.3
 docker.io/0x241/h-script:1.0
 docker.io/0x241/h-script:1
-ghcr.io/0x241/h-script:1.0.0
+ghcr.io/0x241/h-script:1.0.3
 ghcr.io/0x241/h-script:1.0
 ghcr.io/0x241/h-script:1
 ```
@@ -775,7 +775,7 @@ GitHub Container Registry creates the first personal-account package as private
 even when its source repository is public. After the first successful image
 promotion, open the `h-script` package on GitHub, select **Package settings**, and
 under **Danger Zone** change its visibility to **Public**. This one-time change
-enables anonymous `docker pull ghcr.io/0x241/h-script:1.0.0`; GitHub does not
+enables anonymous `docker pull ghcr.io/0x241/h-script:1.0.3`; GitHub does not
 allow a public package to be made private again.
 
 ## GitLab staging and GitHub promotion
