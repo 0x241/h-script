@@ -14,7 +14,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "${APP_PORT:-8080}:80"
+      - "${APP_BIND_IP:-127.0.0.1}:${APP_PORT:-8080}:80"
     environment:
       APP_ENV: ${APP_ENV:-production}
       APP_DEBUG: ${APP_DEBUG:-0}
@@ -23,7 +23,7 @@ services:
       APP_SYS_MAIL: ${APP_SYS_MAIL:?set APP_SYS_MAIL}
       APP_CFG_LINK: ${APP_CFG_LINK:-_cfg}
       APP_HTTP_USER_AGENT: ${APP_HTTP_USER_AGENT:-}
-      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-127.0.0.1/32,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-127.0.0.1/32,::1/128}
       APP_GENERATE_CONFIG: ${APP_GENERATE_CONFIG:-1}
       APP_DEMO_MODE: ${APP_DEMO_MODE:-0}
       APP_DATA_KEY: ${APP_DATA_KEY:-}
@@ -32,6 +32,25 @@ services:
       TELEMETRY_COLLECTOR_ENABLED: ${TELEMETRY_COLLECTOR_ENABLED:-0}
       TELEMETRY_COLLECTOR_DOMAIN: ${TELEMETRY_COLLECTOR_DOMAIN:-h-script.com}
       TELEMETRY_RATE_LIMIT: ${TELEMETRY_RATE_LIMIT:-30}
+      BACKUP_STORAGE_PATH: ${BACKUP_STORAGE_PATH:-}
+      BACKUP_MAX_BYTES: ${BACKUP_MAX_BYTES:-2147483648}
+      BACKUP_MIN_FREE_BYTES: ${BACKUP_MIN_FREE_BYTES:-134217728}
+      BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-10}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      BACKUP_MYSQLDUMP_PATH: ${BACKUP_MYSQLDUMP_PATH:-}
+      BACKUP_MYSQL_PATH: ${BACKUP_MYSQL_PATH:-}
+      UPDATE_WORK_PATH: ${UPDATE_WORK_PATH:-}
+      UPDATE_MAX_PACKAGE_BYTES: ${UPDATE_MAX_PACKAGE_BYTES:-268435456}
+      UPDATE_MAX_UNPACKED_BYTES: ${UPDATE_MAX_UNPACKED_BYTES:-536870912}
+      UPDATE_MAX_FILES: ${UPDATE_MAX_FILES:-10000}
+      UPDATE_MIN_FREE_BYTES: ${UPDATE_MIN_FREE_BYTES:-134217728}
+      UPDATE_RETENTION_COUNT: ${UPDATE_RETENTION_COUNT:-3}
+      CONFIGURATOR_ALLOWED_CIDRS: ${CONFIGURATOR_ALLOWED_CIDRS:-}
+      INTEGRITY_SCAN_BATCH_FILES: ${INTEGRITY_SCAN_BATCH_FILES:-1000}
+      INTEGRITY_SCAN_MAX_SECONDS: ${INTEGRITY_SCAN_MAX_SECONDS:-10}
+      INTEGRITY_SCAN_MAX_FILES: ${INTEGRITY_SCAN_MAX_FILES:-20000}
+      INTEGRITY_SCAN_MAX_FINDINGS: ${INTEGRITY_SCAN_MAX_FINDINGS:-500}
+      INTEGRITY_NOTIFY: ${INTEGRITY_NOTIFY:-0}
       CONFIGURATOR_PASSWORD: ${CONFIGURATOR_PASSWORD:-}
       CONFIGURATOR_PASSWORD_FILE: ${CONFIGURATOR_PASSWORD_FILE:-}
       ALLOW_EMPTY_CONFIGURATOR_PASSWORD: ${ALLOW_EMPTY_CONFIGURATOR_PASSWORD:-0}
@@ -54,7 +73,6 @@ services:
       TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
       TURNSTILE_SECRET_KEY_FILE: ${TURNSTILE_SECRET_KEY_FILE:-}
       APP_AUTO_INSTALL: ${APP_AUTO_INSTALL:-0}
-      APP_INSTALL_FORCE: ${APP_INSTALL_FORCE:-0}
       INSTALL_ADMIN_NAME: ${INSTALL_ADMIN_NAME:-Administrator}
       INSTALL_ADMIN_LOGIN: ${INSTALL_ADMIN_LOGIN:-admin}
       INSTALL_ADMIN_PASSWORD: ${INSTALL_ADMIN_PASSWORD:-}
@@ -90,17 +108,21 @@ services:
       INSTALL_INT_CURR_ID: ${INSTALL_INT_CURR_ID:-USD}
       INSTALL_TELEMETRY_STATS: ${INSTALL_TELEMETRY_STATS:-1}
     volumes:
-      - hscript_upload:/var/www/html/upload
-      - hscript_logs:/var/www/html/logs
-      - hscript_tpl_c:/var/www/html/tpl_c
-      - hscript_backup:/var/www/html/backup
+      - hscript_upload:/var/www/shared/upload
+      - hscript_logs:/var/www/shared/logs
+      - hscript_tpl_c:/var/www/shared/tpl_c
+      - hscript_compile:/var/www/shared/compile
+      - hscript_backup:/var/www/shared/backup
+      - hscript_cfg:/var/www/shared/.cfg
+      - hscript_config:/var/www/shared/config
+      - hscript_themes:/var/www/shared/themes
     networks:
       internal:
       proxy:
         aliases:
           - ${APP_NETWORK_ALIAS:-hscript-app}
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS -H \"Host: $${APP_DOMAIN}\" http://127.0.0.1/ -o /dev/null || exit 1"]
+      test: ["CMD-SHELL", "curl -fsS -H \"Host: $${APP_DOMAIN}\" \"http://127.0.0.1/$${APP_CFG_LINK:-_cfg}?update\" -o /dev/null || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -128,12 +150,26 @@ services:
       APP_SYS_MAIL: ${APP_SYS_MAIL:?set APP_SYS_MAIL}
       APP_CFG_LINK: ${APP_CFG_LINK:-_cfg}
       APP_HTTP_USER_AGENT: ${APP_HTTP_USER_AGENT:-}
-      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-127.0.0.1/32,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+      TRUSTED_PROXY_CIDRS: ${TRUSTED_PROXY_CIDRS:-127.0.0.1/32,::1/128}
       APP_GENERATE_CONFIG: ${APP_GENERATE_CONFIG:-1}
       APP_DEMO_MODE: ${APP_DEMO_MODE:-0}
       APP_DATA_KEY: ${APP_DATA_KEY:-}
       APP_DATA_KEY_FILE: ${APP_DATA_KEY_FILE:-}
       TELEMETRY_ENDPOINT: ${TELEMETRY_ENDPOINT:-https://h-script.com/api/v1/installations}
+      BACKUP_STORAGE_PATH: ${BACKUP_STORAGE_PATH:-}
+      BACKUP_MAX_BYTES: ${BACKUP_MAX_BYTES:-2147483648}
+      BACKUP_MIN_FREE_BYTES: ${BACKUP_MIN_FREE_BYTES:-134217728}
+      BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-10}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      BACKUP_MYSQLDUMP_PATH: ${BACKUP_MYSQLDUMP_PATH:-}
+      BACKUP_MYSQL_PATH: ${BACKUP_MYSQL_PATH:-}
+      UPDATE_WORK_PATH: ${UPDATE_WORK_PATH:-}
+      CONFIGURATOR_ALLOWED_CIDRS: ${CONFIGURATOR_ALLOWED_CIDRS:-}
+      INTEGRITY_SCAN_BATCH_FILES: ${INTEGRITY_SCAN_BATCH_FILES:-1000}
+      INTEGRITY_SCAN_MAX_SECONDS: ${INTEGRITY_SCAN_MAX_SECONDS:-10}
+      INTEGRITY_SCAN_MAX_FILES: ${INTEGRITY_SCAN_MAX_FILES:-20000}
+      INTEGRITY_SCAN_MAX_FINDINGS: ${INTEGRITY_SCAN_MAX_FINDINGS:-500}
+      INTEGRITY_NOTIFY: ${INTEGRITY_NOTIFY:-0}
       CONFIGURATOR_PASSWORD: ${CONFIGURATOR_PASSWORD:-}
       CONFIGURATOR_PASSWORD_FILE: ${CONFIGURATOR_PASSWORD_FILE:-}
       ALLOW_EMPTY_CONFIGURATOR_PASSWORD: ${ALLOW_EMPTY_CONFIGURATOR_PASSWORD:-0}
@@ -163,10 +199,14 @@ services:
       CRON_TIMEOUT_SECONDS: ${CRON_TIMEOUT_SECONDS:-30}
       CRON_START_DELAY_SECONDS: ${CRON_START_DELAY_SECONDS:-10}
     volumes:
-      - hscript_upload:/var/www/html/upload
-      - hscript_logs:/var/www/html/logs
-      - hscript_tpl_c:/var/www/html/tpl_c
-      - hscript_backup:/var/www/html/backup
+      - hscript_upload:/var/www/shared/upload
+      - hscript_logs:/var/www/shared/logs
+      - hscript_tpl_c:/var/www/shared/tpl_c
+      - hscript_compile:/var/www/shared/compile
+      - hscript_backup:/var/www/shared/backup
+      - hscript_cfg:/var/www/shared/.cfg
+      - hscript_config:/var/www/shared/config
+      - hscript_themes:/var/www/shared/themes
     networks:
       - internal
 
@@ -210,8 +250,12 @@ services:
 
 volumes:
   hscript_backup:
+  hscript_cfg:
+  hscript_compile:
+  hscript_config:
   hscript_db:
   hscript_logs:
+  hscript_themes:
   redis_data:
   hscript_tpl_c:
   hscript_upload:

@@ -1,0 +1,11 @@
+{
+    "format": 1,
+    "application": {
+        "minimum": "1.0.0",
+        "maximum": "1.0.2"
+    },
+    "schema": {
+        "minimum": "1.0.0",
+        "maximum": "1.0.0"
+    }
+}

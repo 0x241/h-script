@@ -1,7 +1,10 @@
 <?php
 
+use HScript\Security\IntegrityStateRepository;
+use HScript\Update\ConfiguratorCsrf;
+
 $cfgActive = 'modules';
-foreach (array('update', 'install', 'setup', 'pass', 'login') as $cfgItem)
+foreach (array('security', 'backup', 'update', 'install', 'setup', 'pass', 'login') as $cfgItem)
 {
 	if (isset($_GET[$cfgItem]))
 	{
@@ -24,8 +27,9 @@ if (!function_exists('cfg_url'))
 $cfgSectionTitles = array(
 	'modules' => cfg_t('Модули', 'Modules'),
 	'setup' => cfg_t('Настройки', 'Setup'),
-	'install' => cfg_t('Установка', 'Install'),
 	'update' => cfg_t('Обновление', 'Update'),
+	'backup' => cfg_t('Резервные копии', 'Backups'),
+	'security' => cfg_t('Безопасность', 'Security'),
 	'pass' => cfg_t('Смена пароля', 'Change password'),
 	'login' => cfg_t('Вход', 'Sign in')
 );
@@ -33,6 +37,17 @@ $cfgPageTitle = isset($cfgSectionTitles[$cfgActive]) ? $cfgSectionTitles[$cfgAct
 $cfgTheme = isset($_SESSION['cfg_theme']) && $_SESSION['cfg_theme'] === 'light' ? 'light' : 'dark';
 $cfgNextTheme = $cfgTheme === 'dark' ? 'light' : 'dark';
 $cfgLogged = !empty($_SESSION['cfg_logged']);
+$cfgIntegrityAlert = null;
+if ($cfgLogged)
+{
+	try
+	{
+		$cfgIntegrityState = (new IntegrityStateRepository(dirname(__DIR__, 2)))->get();
+		if (($cfgIntegrityState['status'] ?? '') === 'completed' && (int)($cfgIntegrityState['counts']['critical'] ?? 0) > 0)
+			$cfgIntegrityAlert = $cfgIntegrityState;
+	}
+	catch (Throwable $exception) { error_log('Configurator integrity alert unavailable: ' . $exception->getMessage()); }
+}
 $cfgInputClass = 'w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20';
 $cfgButtonClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-white dark:text-brand dark:hover:bg-gray-100';
 
@@ -113,8 +128,9 @@ if ($cfgMessage = getMsg())
 							$cfgNav = array(
 								'modules' => array('fa-boxes-stacked', cfg_t('Модули', 'Modules')),
 								'setup' => array('fa-sliders', cfg_t('Подключение', 'Connection')),
-								'install' => array('fa-wand-magic-sparkles', cfg_t('Установка', 'Install')),
-								'update' => array('fa-database', cfg_t('Обновление БД', 'Database update'))
+								'backup' => array('fa-box-archive', cfg_t('Резервные копии', 'Backups')),
+								'update' => array('fa-rotate', cfg_t('Обновление', 'Update')),
+								'security' => array('fa-shield-halved', cfg_t('Безопасность', 'Security'))
 							);
 							foreach ($cfgNav as $section => $item) {
 								$isActive = $cfgActive === $section;
@@ -122,6 +138,7 @@ if ($cfgMessage = getMsg())
 								<a href="?<?php echo $section; ?>" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-bold transition <?php echo $isActive ? 'bg-brand text-white shadow-sm dark:bg-white dark:text-brand' : 'text-gray-500 hover:bg-gray-100 hover:text-brand dark:text-gray-400 dark:hover:bg-[#1A1A1A] dark:hover:text-white'; ?>">
 									<i class="fa-solid <?php echo $item[0]; ?> w-5 text-center" aria-hidden="true"></i>
 									<span><?php echo $item[1]; ?></span>
+									<?php if ($section === 'security' && $cfgIntegrityAlert) { ?><span class="ml-auto h-2.5 w-2.5 rounded-full bg-red-500" aria-label="<?php echo cfg_t('Есть критические изменения', 'Critical changes detected'); ?>"></span><?php } ?>
 								</a>
 							<?php } ?>
 						</div>
@@ -136,10 +153,13 @@ if ($cfgMessage = getMsg())
 					</nav>
 
 					<div class="border-t border-gray-100 p-4 dark:border-gray-800">
-						<a href="?login&out" hx-boost="false" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-bold text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10">
+						<form method="post" action="?login" hx-boost="false">
+							<input type="hidden" name="csrf" value="<?php echo htmlspecialchars(ConfiguratorCsrf::token(), ENT_QUOTES, 'UTF-8'); ?>">
+							<button type="submit" name="out" value="1" class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-bold text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10">
 							<i class="fa-solid fa-right-from-bracket w-5 text-center" aria-hidden="true"></i>
 							<span><?php echo cfg_t('Выйти', 'Sign out'); ?></span>
-						</a>
+							</button>
+						</form>
 					</div>
 				</aside>
 
@@ -184,6 +204,13 @@ if ($cfgMessage = getMsg())
 								<?php foreach ($cfgMessages as $message) { ?><p><?php echo htmlspecialchars($message); ?></p><?php } ?>
 							</div>
 							<label for="cfg-message-close" class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg opacity-60 transition hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/5" aria-label="<?php echo cfg_t('Закрыть', 'Close'); ?>"><i class="fa-solid fa-xmark" aria-hidden="true"></i></label>
+						</aside>
+					<?php } ?>
+
+					<?php if ($cfgIntegrityAlert) { ?>
+						<aside role="alert" class="mx-5 mt-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100 lg:mx-10">
+							<i class="fa-solid fa-shield-virus mt-0.5" aria-hidden="true"></i>
+							<div><strong class="font-extrabold"><?php echo cfg_t('Обнаружены критические изменения файлов.', 'Critical file changes detected.'); ?></strong> <a href="?security" class="font-extrabold underline"><?php echo cfg_t('Открыть результат', 'Open result'); ?></a></div>
 						</aside>
 					<?php } ?>
 

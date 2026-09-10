@@ -38,8 +38,8 @@ docker compose exec -T database sh -c 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD"
 For the `feature/debug` update, run the two `20260811` migrations in the order
 shown above after deploying the matching application code. Verify the backup
 before the custom-page migration because dropping `Pages` is irreversible.
-These scripts are explicit update steps; do not enable `APP_AUTO_INSTALL` or
-`APP_INSTALL_FORCE` to apply them.
+These scripts are explicit update steps; do not enable `APP_AUTO_INSTALL` to
+apply them. It only bootstraps an empty initial database.
 
 Remove InvestorsStartPage authorization, reCAPTCHA v1, SMSPilot and the retired
 request-driven cron flag. The migration preserves ePochta API v3 and Turnstile:
@@ -73,10 +73,14 @@ enable the collector API:
 docker compose exec -T database sh -c 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' < migrations/20260725_add_installation_telemetry.sql
 ```
 
-On staging, the Configurator database update is an alternative to the command
-above and also synchronizes the `Const_DBVer` schema marker. Back up the
-database first and run it once after deploying the telemetry schema. Never use
-`APP_AUTO_INSTALL` or `APP_INSTALL_FORCE` as a migration mechanism.
+После перехода на явные версии конфигуратор больше не перестраивает таблицы по
+`_dbstru.php`. Существующая установка один раз фиксирует фактические исходные
+версии командой
+`APP_DOMAIN=example.com php bin/update.php bootstrap --acknowledge-application=1.0.1 --acknowledge-schema=1.0.0`,
+после чего
+новые изменения схемы проходят только через `migrations/versioned` и общий
+реестр. Никогда не используйте `APP_AUTO_INSTALL` как механизм миграции: он
+работает только при первичной инициализации пустой базы.
 
 The migration creates `Installations`, `InstallationReports`, and
 `TelemetryServiceTokens`. The central `/admin/setup/collector` route reads the

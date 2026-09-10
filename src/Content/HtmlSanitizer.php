@@ -30,12 +30,13 @@ final class HtmlSanitizer
 		if ($html === '')
 			return '';
 		if (!class_exists(DOMDocument::class))
-			return htmlspecialchars($html, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8');
+			throw new \RuntimeException('The PHP DOM extension is required to sanitize rich text safely');
 
 		$document = new DOMDocument('1.0', 'UTF-8');
 		$previousErrors = libxml_use_internal_errors(true);
 		$document->loadHTML(
-			'<!doctype html><html><body><div id="hs-sanitize-root">' . $html . '</div></body></html>',
+			'<!doctype html><html><head><meta charset="UTF-8"></head><body>'
+				. '<div id="hs-sanitize-root">' . $html . '</div></body></html>',
 			LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD | LIBXML_NONET
 		);
 		libxml_clear_errors();
@@ -49,7 +50,22 @@ final class HtmlSanitizer
 		$result = '';
 		foreach ($root->childNodes as $child)
 			$result .= $document->saveHTML($child);
-		return $result;
+		return self::unwrapLanguageMarkerParagraphs($result);
+	}
+
+	/**
+	 * CKEditor requires block-level root content and therefore wraps standalone
+	 * language markers in paragraphs. Keep the application's marker syntax
+	 * stable when rich text is saved or prepared for rendering.
+	 */
+	private static function unwrapLanguageMarkerParagraphs(string $html): string
+	{
+		$normalized = preg_replace(
+			'~<p>(?:\s|&nbsp;|\x{00A0})*(\{![a-z0-9_-]{0,16}!\})(?:\s|&nbsp;|\x{00A0})*</p>~iu',
+			'$1',
+			$html
+		);
+		return $normalized === null ? $html : $normalized;
 	}
 
 	private static function sanitizeChildren(DOMNode $parent): void

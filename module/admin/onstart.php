@@ -2,6 +2,9 @@
 
 use HScript\Template\View;
 use HScript\Telemetry\CollectorMode;
+use HScript\Application;
+use HScript\Security\IntegrityStateRepository;
+use HScript\Update\SchemaVersion;
 
 global $self_category, $admin_modules;
 $self_category = '';
@@ -85,7 +88,23 @@ View::setPage('admin_unpinned_modules', $admin_unpinned_modules);
 View::setPage('admin_pinned_ids', $admin_pinned_ids);
 View::setPage('admin_pinned_modules', $admin_pinned_modules);
 
-clearstatcache();
-View::setPage('needupdatedb', ($_cfg['Const_DBVer'] != (is_file('_dbstru.php') ? filemtime('_dbstru.php') : 0)));
+$installedSchemaVersion = (string)($_cfg['Const_SchemaVersion'] ?? '');
+$installedApplicationVersion = (string)($_cfg['Const_AppVersion'] ?? '');
+View::setPage('needupdatedb', (
+	!SchemaVersion::isValid($installedSchemaVersion)
+	|| $installedSchemaVersion !== Application::schemaVersion()
+	|| !SchemaVersion::isValid($installedApplicationVersion)
+	|| $installedApplicationVersion !== Application::version()
+));
+
+$adminIntegrityAlert = false;
+try
+{
+	$adminIntegrityState = (new IntegrityStateRepository(dirname(__DIR__, 2)))->get();
+	$adminIntegrityAlert = ($adminIntegrityState['status'] ?? '') === 'completed'
+		&& (int)($adminIntegrityState['counts']['critical'] ?? 0) > 0;
+}
+catch (Throwable $exception) { error_log('Admin integrity alert unavailable: ' . $exception->getMessage()); }
+View::setPage('integrityalert', $adminIntegrityAlert);
 
 ?>

@@ -22,6 +22,9 @@ default:
 
 variables:
   COMPOSE_PROJECT_NAME: hscript_staging
+  # Override with the server's Tailscale IPv4 in an environment-scoped GitLab
+  # variable. Loopback is the safe fallback and does not expose the app port.
+  APP_BIND_IP: "127.0.0.1"
   RELEASE_PLATFORMS: linux/amd64,linux/arm64
   PUBLIC_IMAGE_NAME: h-script
   DOCKERHUB_NAMESPACE: "0x241"
@@ -60,9 +63,13 @@ variables:
         h-script/README.md \
         h-script/LICENSE \
         h-script/RELEASE \
+        h-script/SCHEMA_VERSION \
+        h-script/resources/release-baseline.json \
+        h-script/resources/update-compatibility.json \
         h-script/vendor/autoload.php \
         h-script/static/css/app.css \
         h-script/logs/.htaccess \
+        h-script/backup/.htaccess \
         h-script/tpl_c/.htaccess \
         h-script/upload/.htaccess
       do
@@ -101,7 +108,11 @@ validate:version:
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
   script:
     - APP_VERSION="$(tr -d '\r\n' < VERSION)"
+    - SCHEMA_VERSION="$(tr -d '\r\n' < SCHEMA_VERSION)"
     - test -n "${APP_VERSION}"
+    - test -n "${SCHEMA_VERSION}"
+    - echo "${APP_VERSION}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$'
+    - echo "${SCHEMA_VERSION}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$'
     - test -z "${CI_COMMIT_TAG:-}" || test "${CI_COMMIT_TAG#v}" = "${APP_VERSION}"
 
 build:image-candidate:
@@ -426,10 +437,11 @@ deploy:staging:
         printf 'TELEMETRY_COLLECTOR_ENABLED=%s\n' "${TELEMETRY_COLLECTOR_ENABLED:-0}"
         printf 'TELEMETRY_COLLECTOR_DOMAIN=%s\n' "${TELEMETRY_COLLECTOR_DOMAIN:-h-script.com}"
         printf 'TELEMETRY_RATE_LIMIT=%s\n' "${TELEMETRY_RATE_LIMIT:-30}"
+        printf 'APP_BIND_IP=%s\n' "${APP_BIND_IP:-127.0.0.1}"
         printf 'APP_PORT=%s\n' "${APP_PORT:-8080}"
         printf 'APP_EXTERNAL_NETWORK=%s\n' "$APP_EXTERNAL_NETWORK"
         printf 'APP_NETWORK_ALIAS=%s\n' "${APP_NETWORK_ALIAS:-hscript-app}"
-        printf 'TRUSTED_PROXY_CIDRS=%s\n' "${TRUSTED_PROXY_CIDRS:-127.0.0.1/32,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}"
+        printf 'TRUSTED_PROXY_CIDRS=%s\n' "${TRUSTED_PROXY_CIDRS:-127.0.0.1/32,::1/128}"
         printf 'CONFIGURATOR_PASSWORD=%s\n' "$CONFIGURATOR_PASSWORD"
         printf 'ALLOW_EMPTY_CONFIGURATOR_PASSWORD=%s\n' "${ALLOW_EMPTY_CONFIGURATOR_PASSWORD:-0}"
         printf 'DB_NAME=%s\n' "${DB_NAME:-hscript}"
@@ -441,7 +453,6 @@ deploy:staging:
         printf 'TURNSTILE_SITE_KEY=%s\n' "$TURNSTILE_SITE_KEY"
         printf 'TURNSTILE_SECRET_KEY=%s\n' "$TURNSTILE_SECRET_KEY"
         printf 'APP_AUTO_INSTALL=%s\n' "${APP_AUTO_INSTALL:-0}"
-        printf 'APP_INSTALL_FORCE=%s\n' "${APP_INSTALL_FORCE:-0}"
         printf 'INSTALL_ADMIN_NAME=%s\n' "${INSTALL_ADMIN_NAME:-Administrator}"
         printf 'INSTALL_ADMIN_LOGIN=%s\n' "${INSTALL_ADMIN_LOGIN:-admin}"
         printf 'INSTALL_ADMIN_PASSWORD=%s\n' "$INSTALL_ADMIN_PASSWORD"

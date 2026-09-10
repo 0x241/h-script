@@ -7,7 +7,7 @@ namespace HScript\Http;
  */
 final class ClientIp
 {
-	private const DEFAULT_TRUSTED_PROXY_CIDRS = '127.0.0.1/32,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16';
+	private const DEFAULT_TRUSTED_PROXY_CIDRS = '127.0.0.1/32,::1/128';
 
 	public static function resolve(?array $server = null, ?string $trustedProxyCidrs = null): string
 	{
@@ -87,7 +87,20 @@ final class ClientIp
 		return filter_var($value, FILTER_VALIDATE_IP) !== false ? $value : null;
 	}
 
-	private static function matchesCidr(string $ip, string $cidr): bool
+	public static function isValidCidr(string $cidr): bool
+	{
+		$parts = explode('/', trim($cidr), 2);
+		$network = self::validIp($parts[0] ?? null);
+		if ($network === null) return false;
+		$bytes = inet_pton($network);
+		if ($bytes === false) return false;
+		$maxBits = strlen($bytes) * 8;
+		if (!isset($parts[1]) || $parts[1] === '') return true;
+		$prefix = filter_var($parts[1], FILTER_VALIDATE_INT);
+		return $prefix !== false && $prefix >= 0 && $prefix <= $maxBits;
+	}
+
+	public static function matchesCidr(string $ip, string $cidr): bool
 	{
 		$parts = explode('/', trim($cidr), 2);
 		$network = self::validIp($parts[0] ?? null);

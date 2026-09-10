@@ -52,4 +52,23 @@ $assertSame(true, ClientIp::isForwardedHttps(array(
 	'HTTP_X_FORWARDED_SSL' => 'on',
 ), $trusted), 'trusted forwarded ssl');
 
+$previousTrustedProxyCidrs = getenv('TRUSTED_PROXY_CIDRS');
+putenv('TRUSTED_PROXY_CIDRS');
+try
+{
+	$assertSame('172.20.0.5', ClientIp::resolve(array(
+		'REMOTE_ADDR' => '172.20.0.5',
+		'HTTP_X_FORWARDED_FOR' => '198.51.100.25',
+	)), 'default trust excludes private networks');
+	$assertSame(false, ClientIp::isForwardedHttps(array(
+		'REMOTE_ADDR' => '172.20.0.5',
+		'HTTP_X_FORWARDED_PROTO' => 'https',
+	)), 'default trust rejects private proxy HTTPS header');
+}
+finally
+{
+	if ($previousTrustedProxyCidrs === false) putenv('TRUSTED_PROXY_CIDRS');
+	else putenv('TRUSTED_PROXY_CIDRS=' . $previousTrustedProxyCidrs);
+}
+
 echo "Client IP component tests passed.\n";

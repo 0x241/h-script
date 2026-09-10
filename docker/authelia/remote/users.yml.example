@@ -1,0 +1,12 @@
+---
+
+# Создайте хеш интерактивно: authelia crypto hash generate argon2
+# Не храните здесь пароль в открытом виде.
+users:
+  admin:
+    disabled: false
+    displayname: 'Administrator'
+    password: '<ARGON2ID_HASH>'
+    email: 'admin@example.com'
+    groups:
+      - 'admins'

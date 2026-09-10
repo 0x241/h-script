@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-use HScript\Util\StringHelper;
+use HScript\Application;
 use HScript\Telemetry\TelemetryReporter;
+use HScript\Util\StringHelper;
 
 function hs_install_env(string $name, string $default = ''): string
 {
@@ -112,6 +113,17 @@ if (!$autoInstall) {
     exit(0);
 }
 
+$tables = $startupTables;
+if ($tables) {
+    if (in_array('Cfg', $tables, true) && $db->count('Cfg') > 0) {
+        echo "H-Script database already installed, skipping APP_AUTO_INSTALL\n";
+        exit(0);
+    }
+
+    fwrite(STDERR, "Database is not empty. APP_AUTO_INSTALL only supports an empty database.\n");
+    exit(1);
+}
+
 $adminPassword = hs_install_env('INSTALL_ADMIN_PASSWORD', hs_install_env('ADMIN_PASSWORD'));
 $adminSecretAnswer = hs_install_env('INSTALL_ADMIN_SECRET_ANSWER');
 $adminPin = hs_install_env('INSTALL_ADMIN_PIN');
@@ -137,24 +149,7 @@ if ($missing) {
 
 require '_dbstru.php';
 
-$tables = $startupTables;
-$force = hs_install_bool('APP_INSTALL_FORCE');
-if ($tables) {
-    if (in_array('Cfg', $tables, true) && $db->count('Cfg') > 0 && !$force) {
-        echo "H-Script database already installed, skipping APP_AUTO_INSTALL\n";
-        exit(0);
-    }
-    if (!$force) {
-        fwrite(STDERR, "Database is not empty. Set APP_INSTALL_FORCE=1 to recreate it.\n");
-        exit(1);
-    }
-}
-
 $db->query("ALTER DATABASE " . $db->field($_cfg['db_name']) . " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci");
-foreach ($tables as $table) {
-    $db->query('DROP TABLE IF EXISTS ' . $db->field($table));
-}
-
 $engine = StringHelper::valueIf($_cfg['db_type'], ' ENGINE=' . StringHelper::valueIf($_cfg['db_type'] == 1, 'InnoDB', 'MYISAM'));
 foreach ($_dbstru as $table => $command) {
     $db->query("CREATE TABLE $table ($command)$engine CHARACTER SET utf8 COLLATE utf8_general_ci");
@@ -196,7 +191,8 @@ $cfg = array(
         'Salt' => $psalt,
         'NoLogins' => $noLogins ? 1 : 0,
         'IntCurr' => $intCurr ? 1 : 0,
-        'DBVer' => @filemtime('_dbstru.php')
+        'AppVersion' => Application::version(),
+        'SchemaVersion' => Application::schemaVersion()
     ),
     'Sec' => array(
         'BFC' => 1
@@ -270,6 +266,11 @@ foreach ($cfg as $module => $values) {
         ));
     }
 }
+$db->insert('SchemaState', array(
+    'ssKey' => 'current',
+    'ssVersion' => Application::schemaVersion(),
+    'ssUpdatedAt' => time()
+));
 
 $admin = $noLogins ? $adminMail : $adminLogin;
 hs_install_seed_user($db, 1, $admin, $adminPassword, $adminMail, $adminPin, 99, $adminName, $adminSecretQuestion, $adminSecretAnswer, $psalt, 4);

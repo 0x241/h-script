@@ -97,6 +97,7 @@ function authApplyConfigDefaults(&$cfg)
 		'Const_IntCurr' => 0,
 		'Const_NoLogins' => 0,
 		'Cron_Enabled' => 0,
+		'Cron_integrity' => 0,
 		'Cron_telemetry' => 0,
 		'Sec_HTTPSMode' => 0,
 		'Sec_TimeOut' => 0,

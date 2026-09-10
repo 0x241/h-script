@@ -1,5 +1,8 @@
 <?php
 
+use HScript\Update\ConfiguratorRouteRegistry;
+use HScript\Security\ConfiguratorSecurity;
+
 error_reporting(7);
 startSessionSafely();
 
@@ -28,6 +31,21 @@ if (!function_exists('cfg_t')) {
 	function cfg_t($ru, $en) {
 		return ($_SESSION['cfg_lang'] === 'ru') ? $ru : $en;
 	}
+}
+
+$cfgSecurity = new ConfiguratorSecurity(dirname(__DIR__, 2));
+$cfgClientIp = $cfgSecurity->clientIp();
+try
+{
+	$cfgSecurity->assertAllowed($cfgClientIp);
+}
+catch (Throwable $exception)
+{
+	$cfgSecurity->audit('access', 'blocked', $cfgClientIp, array('reason' => 'cidr'));
+	http_response_code(403);
+	header('Content-Type: text/plain; charset=UTF-8');
+	echo cfg_t('Доступ к конфигуратору запрещён для этого адреса.', 'Configurator access is denied for this address.');
+	exit;
 }
 
 function getMsg()
@@ -60,9 +78,40 @@ if (!$pass)
 	$_GET['pass'] = 1;
 elseif (!$_cfg['cfg_link'])
 	$_GET['setup'] = 1;
-foreach (array('login', 'pass', 'setup', 'install', 'modules', 'update') as $m)
+foreach (ConfiguratorRouteRegistry::keys() as $m)
 	if (isset($_GET[$m]))
 	{
+		$route = ConfiguratorRouteRegistry::get($m);
+		$method = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+		if (!in_array($method, $route['methods'], true))
+		{
+			header('Allow: ' . implode(', ', $route['methods']));
+			http_response_code(405);
+			exit;
+		}
+		if ($method === 'POST' && $route['mutates_server_state'])
+		{
+			try
+			{
+				$rate = $cfgSecurity->consumeRateLimit('route-' . $m, $cfgClientIp, $m === 'login' ? 10 : 60, $m === 'login' ? 300 : 60);
+				if (!$rate['allowed'])
+				{
+					$cfgSecurity->audit('rate_limit', 'blocked', $cfgClientIp, array('route' => $m));
+					header('Retry-After: ' . (int)$rate['retry_after']);
+					http_response_code(429);
+					addMsg(cfg_t('Слишком много запросов. Повторите позже.', 'Too many requests. Try again later.'));
+					goToURL($_cfg['cfg_link'] . '?' . $m);
+				}
+			}
+			catch (Throwable $exception)
+			{
+				$cfgSecurity->audit('rate_limit', 'error', $cfgClientIp, array('route' => $m));
+				http_response_code(503);
+				header('Content-Type: text/plain; charset=UTF-8');
+				echo cfg_t('Защита конфигуратора временно недоступна.', 'Configurator protection is temporarily unavailable.');
+				exit;
+			}
+		}
 		include("module/_config/$m.php");
 		exit;
 	}

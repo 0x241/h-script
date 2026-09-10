@@ -77,6 +77,8 @@ if [ "$APP_ENV_VALUE" != "dev" ] && [ "$APP_ENV_VALUE" != "development" ] && [ "
     exit 1
 fi
 
+php /usr/local/share/hscript/check-schema.php
+
 if [ "${START_PHP_FPM:-1}" != "0" ]; then
     php-fpm -D
 fi

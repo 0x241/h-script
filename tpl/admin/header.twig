@@ -27,7 +27,7 @@
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 			<link rel="stylesheet" type="text/css" href="static/css/app.css?v=tailwind-20260813-ui-15">
-			{% if tpl_module == 'news/admin/news' %}<link rel="stylesheet" type="text/css" href="static/lib/ckeditor5/48.2.0/ckeditor5/ckeditor5.css">{% endif %}
+			{% if tpl_module in ['news/admin/news', 'faq/admin/faq'] %}<link rel="stylesheet" type="text/css" href="static/lib/ckeditor5/48.2.0/ckeditor5/ckeditor5.css">{% endif %}
 			<meta name="htmx-config" content='{"allowEval":false}'>
 			<script src="static/js/htmx.min.js"></script>
 			<script src="static/js/app.js?v=20260825-1" defer></script>
@@ -89,6 +89,15 @@
 						<div>
 							<strong>{{ _t({"key": 'admin.db_update.warning'}) }}</strong>
 							<p>{{ _t({"key": 'admin.db_update.text'}) }} <a href="{{ _cfg.cfg_link }}" class="font-bold text-blue-500 underline">{{ _t({"key": 'admin.configurator'}) }}</a></p>
+						</div>
+					</aside>
+				{% endif %}
+				{% if integrityalert %}
+					<aside class="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
+						<i class="fa-solid fa-shield-virus mt-0.5" aria-hidden="true"></i>
+						<div>
+							<strong>{% if current_lang == 'ru' %}Обнаружены критические изменения файлов.{% else %}Critical file changes detected.{% endif %}</strong>
+							<p><a href="{{ _cfg.cfg_link }}?security" class="font-bold text-blue-500 underline">{% if current_lang == 'ru' %}Открыть раздел «Безопасность»{% else %}Open Security{% endif %}</a></p>
 						</div>
 					</aside>
 				{% endif %}

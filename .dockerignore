@@ -12,6 +12,7 @@ future_works.md
 AGENTS.md
 CLAUDE.md
 .agents/
+/docs/
 .github/
 .codex/
 .claude/
@@ -108,9 +109,10 @@ tpl_c/*
 compile/*
 !compile/.htaccess
 !compile/.gitkeep
-backup/*
-!backup/.htaccess
-!backup/.gitkeep
+# Exclude generated backup archives and manifests from every build context.
+/backup/**
+!/backup/.htaccess
+!/backup/.gitkeep
 logs/*
 !logs/.htaccess
 /.cfg/*

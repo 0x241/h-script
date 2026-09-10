@@ -1,0 +1,76 @@
+---
+
+# Полный минимальный пример для native/systemd Authelia на VPS-шлюзе.
+# Перед запуском замените все CHANGE_ME и домены example.com.
+
+server:
+  address: 'tcp://127.0.0.1:9091/'
+  endpoints:
+    authz:
+      auth-request:
+        implementation: 'AuthRequest'
+
+log:
+  level: 'info'
+  format: 'text'
+
+authentication_backend:
+  password_reset:
+    disable: true
+  password_change:
+    disable: true
+  file:
+    path: '/etc/authelia/users.yml'
+    watch: true
+    password:
+      algorithm: 'argon2'
+
+session:
+  secret: 'CHANGE_ME_SESSION_SECRET_WITH_AT_LEAST_64_RANDOM_ALPHANUMERIC_CHARACTERS'
+  same_site: 'lax'
+  inactivity: '15m'
+  expiration: '8h'
+  remember_me: '30d'
+  cookies:
+    - domain: 'example.com'
+      authelia_url: 'https://sso.example.com'
+      default_redirection_url: 'https://hs.example.com'
+
+storage:
+  encryption_key: 'CHANGE_ME_STORAGE_KEY_WITH_AT_LEAST_64_RANDOM_ALPHANUMERIC_CHARACTERS'
+  local:
+    path: '/var/lib/authelia/db.sqlite3'
+
+# Authelia разрешает ровно один notifier. Для порта 465 используйте
+# submissions://smtp.example.com:465, для STARTTLS на 587 — submission://.
+notifier:
+  disable_startup_check: false
+  smtp:
+    address: 'submission://smtp.example.com:587'
+    timeout: '5s'
+    username: 'no-reply@example.com'
+    password: 'CHANGE_ME_SMTP_PASSWORD'
+    sender: 'Authelia <no-reply@example.com>'
+    identifier: 'sso.example.com'
+    subject: '[Authelia] {title}'
+    startup_check_address: 'admin@example.com'
+    disable_require_tls: false
+    disable_starttls: false
+    tls:
+      server_name: 'smtp.example.com'
+      skip_verify: false
+      minimum_version: 'TLS1.2'
+
+regulation:
+  max_retries: 3
+  find_time: '2m'
+  ban_time: '5m'
+
+access_control:
+  default_policy: 'deny'
+  rules:
+    - domain: 'hs.example.com'
+      policy: 'two_factor'
+      resources:
+        - '^/_cfg([/?].*)?$'
+        - '^/admin([/?].*)?$'

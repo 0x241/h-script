@@ -152,14 +152,4 @@ if ($tableExists('Queue'))
 		echo "Legacy Queue table preserved. Re-run with --drop-legacy after taking a database backup.\n";
 }
 
-if ($tableExists('Cfg'))
-{
-	clearstatcache();
-	$db->replace('Cfg', array(
-		'Module' => 'Const',
-		'Prop' => 'DBVer',
-		'Val' => is_file($root . '/_dbstru.php') ? (int)filemtime($root . '/_dbstru.php') : 0,
-	));
-}
-
 echo "Jobs migration complete: migrated=$migrated skipped=$skipped.\n";

@@ -189,6 +189,7 @@ $_onstart = array( // access level (_auth)
 $_oncron = array( // once in N minutes
 	'balance' => 5,
 	'depo' => 1,
+	'integrity' => 1440,
 	'telemetry' => 1440
 );
 

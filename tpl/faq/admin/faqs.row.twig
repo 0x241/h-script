@@ -15,7 +15,8 @@
 	<span class="block max-w-64 truncate" title="{{ l.fQuestion }}">{{ l.fQuestion }}</span>
 </td>
 <td class="max-w-80">
-	<a href="{{ _link('faq/admin/faq', false, 0) }}?id={{ l.fID }}" class="block max-w-80 truncate" title="{{ l.fAnswer }}">{{ l.fAnswer }}</a>
+	{% set answer_text = l.fAnswer|replace({'</p>': ' ', '</li>': ' ', '<br>': ' ', '<br/>': ' ', '<br />': ' '})|striptags|trim %}
+	<a href="{{ _link('faq/admin/faq', false, 0) }}?id={{ l.fID }}" class="block max-w-80 truncate" title="{{ answer_text }}">{{ answer_text }}</a>
 </td>
 <td>
 	{{ l.fOrder }}

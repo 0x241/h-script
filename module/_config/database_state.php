@@ -1,6 +1,8 @@
 <?php
 
 use HScript\Database\Connection;
+use HScript\Application;
+use HScript\Update\UpdateStatusService;
 
 if (!function_exists('cfg_database_environment_value'))
 {
@@ -16,10 +18,26 @@ if (!function_exists('cfg_database_environment_value'))
 
 if (!function_exists('cfg_installed_database_version'))
 {
-	function cfg_installed_database_version(array $config, string $domain): ?int
+	function cfg_installed_database_version(array $config, string $domain): ?string
+	{
+		return cfg_update_status($config, $domain)['installed_schema_version'];
+	}
+}
+
+if (!function_exists('cfg_update_status'))
+{
+	function cfg_update_status(array $config, string $domain): array
 	{
 		if (!hsHasDatabaseConfiguration($config))
-			return null;
+			return array(
+				'application_version' => Application::version(),
+				'installed_application_version' => null,
+				'installed_schema_version' => null,
+				'target_schema_version' => Application::schemaVersion(),
+				'framework_ready' => false,
+				'schema_gate' => null,
+				'latest_run' => null,
+			);
 
 		if (!empty($config['db_credentials_env']))
 		{
@@ -40,26 +58,31 @@ if (!function_exists('cfg_installed_database_version'))
 			(string)$login,
 			(string)$password
 		))
-			return null;
+			return array(
+				'application_version' => Application::version(),
+				'installed_application_version' => null,
+				'installed_schema_version' => null,
+				'target_schema_version' => Application::schemaVersion(),
+				'framework_ready' => false,
+				'schema_gate' => null,
+				'latest_run' => null,
+			);
 
 		try
 		{
-			$version = $database->fetch1($database->select(
-				'Cfg',
-				'Val',
-				'Module=? and Prop=?',
-				array('Const', 'DBVer'),
-				'',
-				1
-			));
-			if ($version === null || $version === false || !is_numeric($version))
-				return null;
-			$version = (int)$version;
-			return $version > 0 ? $version : null;
+			return (new UpdateStatusService($database))->snapshot();
 		}
 		catch (Throwable)
 		{
-			return null;
+			return array(
+				'application_version' => Application::version(),
+				'installed_application_version' => null,
+				'installed_schema_version' => null,
+				'target_schema_version' => Application::schemaVersion(),
+				'framework_ready' => false,
+				'schema_gate' => null,
+				'latest_run' => null,
+			);
 		}
 		finally
 		{

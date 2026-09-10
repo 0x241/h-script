@@ -3,6 +3,7 @@
 use HScript\Util\StringHelper;
 use HScript\Template\View;
 use HScript\Http\ApiResponse;
+use HScript\Update\SchemaUpdateGate;
 
 // Rewrite module
 
@@ -103,6 +104,19 @@ $is_api_v1 = ($f === 'api/v1') || str_starts_with($f, 'api/v1/');
 $_GS['is_api'] = $is_api_v1;
 if ($is_api_v1)
 	ini_set('display_errors', '0');
+$schemaUpdateRequired = SchemaUpdateGate::requiresTrafficGate(__DIR__);
+if ($f !== $_cfg['cfg_link'] && (is_file('.cfg/maintenance.json') || $schemaUpdateRequired))
+{
+	header('Retry-After: 60');
+	if ($is_api_v1)
+		ApiResponse::error('maintenance', 'H-Script update is in progress', 503);
+	http_response_code(503);
+	header('Content-Type: text/html; charset=UTF-8');
+	echo $schemaUpdateRequired
+		? '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Update completion required | H-Script</title><body><main><h1>CMS update completion required</h1><p>Open the Configurator to verify the image and, when required, back up and update the database.</p></main></body></html>'
+		: '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Maintenance | H-Script</title><body><main><h1>H-Script is being updated</h1><p>Please retry in one minute.</p></main></body></html>';
+	exit;
+}
 if (!hsHasDatabaseConfiguration($_cfg) && ($f != $_cfg['cfg_link']))
 {
 	if ($is_api_v1)
