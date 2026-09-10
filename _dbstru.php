@@ -8,6 +8,44 @@ $_dbstru = array(
   Val text,
   UNIQUE KEY  (Module, Prop)",
 
+  'SchemaState' =>
+  "ssKey varchar(32) not null,
+  ssVersion varchar(32) not null,
+  ssUpdatedAt bigint unsigned default 0,
+  PRIMARY KEY (ssKey)",
+
+  'SchemaMigrations' =>
+  "smID varchar(80) not null,
+  smChecksum char(64) not null,
+  smFromVersion varchar(32) not null,
+  smToVersion varchar(32) not null,
+  smClassification varchar(24) not null,
+  smStatus varchar(16) not null,
+  smAppVersion varchar(32) not null,
+  smStartedAt bigint unsigned default 0,
+  smFinishedAt bigint unsigned default 0,
+  smErrorCode varchar(64) default '',
+  smErrorSummary varchar(500) default '',
+  PRIMARY KEY (smID),
+  KEY SMSTATUS (smStatus, smStartedAt)",
+
+  'UpdateRuns' =>
+  "urID char(32) not null,
+  urManifestChecksum char(64) not null,
+  urSourceVersion varchar(32) not null,
+  urTargetVersion varchar(32) not null,
+  urSourceSchemaVersion varchar(32) not null,
+  urTargetSchemaVersion varchar(32) not null,
+  urClassification varchar(24) not null,
+  urState varchar(16) not null,
+  urMessageCode varchar(64) default '',
+  urMessageSummary varchar(500) default '',
+  urCreatedAt bigint unsigned default 0,
+  urUpdatedAt bigint unsigned default 0,
+  urFinishedAt bigint unsigned default 0,
+  PRIMARY KEY (urID),
+  KEY URSTATE (urState, urUpdatedAt)",
+
   'ApiTokens' =>
   "atID int(10) auto_increment,
   atuID int(10) not null,

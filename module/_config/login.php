@@ -1,9 +1,19 @@
 <?php
 
+use HScript\Update\ConfiguratorCsrf;
+
 require_once('module/_config/password.php');
 
-if (isset($_GET['out']))
+if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' && isset_IN('out'))
 {
+	try { ConfiguratorCsrf::consume($_POST['csrf'] ?? ''); }
+	catch (Throwable)
+	{
+		$cfgSecurity->audit('logout', 'failed', $cfgClientIp, array('reason' => 'csrf'));
+		addMsg(cfg_t('Сессия формы устарела. Повторите действие.', 'The form session expired. Try again.'));
+		goToURL($_cfg['cfg_link']);
+	}
+	$cfgSecurity->audit('logout', 'success', $cfgClientIp);
 	resetSessionSafely();
 	goToURL($_cfg['cfg_link']);
 }
@@ -15,16 +25,27 @@ if (!$pass)
 }
 if (isset_IN('bLogin'))
 {
+	try { ConfiguratorCsrf::consume($_POST['csrf'] ?? ''); }
+	catch (Throwable)
+	{
+		$cfgSecurity->audit('login', 'failed', $cfgClientIp, array('reason' => 'csrf'));
+		addMsg(cfg_t('Сессия формы устарела. Повторите вход.', 'The form session expired. Try signing in again.'));
+		goToURL($_cfg['cfg_link'] . '?login');
+	}
 	if (cfgPasswordVerify(_IN('pass'), $pass, $_GS['domain']))
 	{
 		if (cfgPasswordNeedsRehash($pass))
 			file_put_contents('module/_config/pass', cfgPasswordHash(_IN('pass')), LOCK_EX);
 		startSessionSafely(true);
 		$_SESSION['cfg_logged'] = 1;
+		$cfgSecurity->audit('login', 'success', $cfgClientIp);
 		goToURL($_cfg['cfg_link']);
 	}
 	else
+	{
+		$cfgSecurity->audit('login', 'failed', $cfgClientIp, array('reason' => 'password'));
 		addMsg('Wrong password');
+	}
 }
 
 include('module/_config/_header.php');
@@ -62,6 +83,7 @@ include('module/_config/_header.php');
 			<h1 class="mt-2 text-3xl font-bold text-brand dark:text-white"><?php echo cfg_t('Вход в конфигуратор', 'Configurator sign in'); ?></h1>
 			<p class="mb-8 mt-3 font-medium leading-7 text-gray-500 dark:text-gray-400"><?php echo cfg_t('Войдите для управления установкой и системными настройками.', 'Sign in to manage installation and system settings.'); ?></p>
 			<form method="post" class="space-y-5">
+				<input type="hidden" name="csrf" value="<?php echo htmlspecialchars(ConfiguratorCsrf::token(), ENT_QUOTES, 'UTF-8'); ?>">
 				<label class="block"><span class="mb-2 block text-sm font-bold text-brand dark:text-gray-200"><?php echo cfg_t('Пароль', 'Password'); ?></span><input name="pass" value="" type="password" autocomplete="current-password" placeholder="••••••••" required autofocus class="<?php echo $cfgInputClass; ?> !rounded-2xl px-5 py-4"></label>
 				<button class="<?php echo $cfgButtonClass; ?> w-full !rounded-2xl py-4" name="bLogin" value="1" type="submit"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i><?php echo cfg_t('Войти в систему', 'Sign in'); ?></button>
 			</form>

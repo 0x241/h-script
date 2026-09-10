@@ -16,12 +16,12 @@
 				</main>
 		</div>
 		{% endif %}
-	{% if tpl_module == 'news/admin/news' %}
+	{% if tpl_module in ['news/admin/news', 'faq/admin/faq'] %}
 		<script type="module">
 			import {
 				Alignment, Autoformat, BlockQuote, Bold, ClassicEditor, Code, CodeBlock,
 				Essentials, FindAndReplace, Font, Fullscreen, GeneralHtmlSupport, Heading,
-				HorizontalLine, HtmlEmbed, Image, ImageCaption, ImageInsert, ImageResize,
+				HorizontalLine, Image, ImageCaption, ImageInsert, ImageResize,
 				ImageStyle, ImageToolbar, ImageUpload, Italic, Link, List, ListProperties,
 				MediaEmbed, Paragraph, RemoveFormat, ShowBlocks, SimpleUploadAdapter,
 				SourceEditing, SpecialCharacters, SpecialCharactersEssentials, Strikethrough,
@@ -39,7 +39,7 @@
 					plugins: [
 						Alignment, Autoformat, BlockQuote, Bold, Code, CodeBlock, Essentials,
 						FindAndReplace, Font, Fullscreen, GeneralHtmlSupport, Heading, HorizontalLine,
-						HtmlEmbed, Image, ImageCaption, ImageInsert, ImageResize, ImageStyle,
+						Image, ImageCaption, ImageInsert, ImageResize, ImageStyle,
 						ImageToolbar, ImageUpload, Italic, Link, List, ListProperties, MediaEmbed,
 						Paragraph, RemoveFormat, ShowBlocks, SimpleUploadAdapter, SourceEditing,
 						SpecialCharacters, SpecialCharactersEssentials, Strikethrough, Table,
@@ -51,7 +51,7 @@
 							'fontColor', 'fontBackgroundColor', '|', 'bold', 'italic', 'underline',
 							'strikethrough', 'removeFormat', '|', 'alignment', '|', 'bulletedList',
 							'numberedList', '|', 'link', 'insertImage', 'mediaEmbed', 'insertTable',
-							'horizontalLine', 'blockQuote', 'codeBlock', 'htmlEmbed', '|',
+							'horizontalLine', 'blockQuote', 'codeBlock', '|',
 							'findAndReplace', 'showBlocks', 'sourceEditing', 'fullscreen'
 						],
 						shouldNotGroupWhenFull: false

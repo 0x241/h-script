@@ -43,7 +43,9 @@ $list = opPageGet(_GETN('page'), 20, $table, '*', '', null,
 );
 View::stampTableToStr($list, 'fCTS');
 
-View::setPage('list', $list);
+// Apply language selection without pre-escaping. Twig performs contextual
+// escaping, and the row template presents answers as plain-text excerpts.
+View::setPage('list', $list, 1);
 
 View::showPage();
 

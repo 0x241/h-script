@@ -60,6 +60,7 @@ APP_DEBUG=0
 APP_DOMAIN=example.com
 APP_SYS_ID=change-me-stable-secret
 APP_SYS_MAIL=admin@example.com
+APP_BIND_IP=127.0.0.1
 APP_EXTERNAL_NETWORK=external-proxy-network
 
 DB_PASSWORD=change-me-db-password
@@ -116,9 +117,8 @@ and apply the configuration:
 docker compose up -d --no-build
 ```
 
-`APP_AUTO_INSTALL=1` is not a migration mechanism. Never set
-`APP_INSTALL_FORCE=1` on an existing staging or production database unless the
-explicit goal is to delete and recreate its tables.
+`APP_AUTO_INSTALL=1` is not a migration mechanism. It works only with an empty
+database and never recreates existing tables.
 
 ### Image upgrades and rollback
 
@@ -127,14 +127,30 @@ new exact version, then run:
 
 ```bash
 docker compose pull app cron
-docker compose up -d --no-build --remove-orphans
+docker compose up -d --no-build app
 docker compose ps
-docker compose logs --tail=200 app cron
+docker compose logs --tail=200 app
 ```
+
+The new container gates normal routes before Apache starts serving them when its
+CMS or schema version differs from the recorded installed versions; the
+Configurator stays available. Open its update page and complete the common
+update run. A schema update creates a verified SQL backup and runs bundled
+migrations; a code-only update skips both and records the new CMS version only
+after its health check. Then start `cron` with
+`docker compose up -d --no-build cron`. The Configurator never replaces Docker
+image files or accesses the Docker socket. Changes made directly inside the old
+container are not preserved; keep custom code in a derived image, local module,
+custom theme, or an explicit volume.
 
 To roll back, restore the previous image tag and repeat `pull` and `up`. If a
 release contains an irreversible database migration, restore a compatible
 database backup as part of the rollback.
+
+The Configurator and CLI can create a streamed, checksum-verified SQL backup.
+Use `php bin/backup.php` without arguments to display the create, verify, list,
+delete, and CLI-only restore commands. Docker updates use an exact image tag;
+shared hosting uses the official release archive through `php bin/update.php`.
 
 ## Docker build from source
 
@@ -306,10 +322,11 @@ The complete reference is `docker/env.example`.
 | `APP_SYS_MAIL` | Default installation email; used for the main administrator, sender and system-notification fallbacks unless their dedicated overrides are set. |
 | `APP_CFG_LINK` | Configurator path; defaults to `_cfg`. |
 | `APP_DEMO_MODE` | Enables demo restrictions without rewriting existing users. |
+| `APP_BIND_IP` | Host IP used for the published application port; defaults to `127.0.0.1`. Use the server's Tailscale IPv4 for private remote access. |
 | `APP_PORT` | Host port mapped to container port 80. |
 | `APP_EXTERNAL_NETWORK` | Existing external reverse-proxy network. |
 | `APP_NETWORK_ALIAS` | Application alias on the external proxy network. |
-| `TRUSTED_PROXY_CIDRS` | Trusted reverse-proxy CIDRs allowed to supply forwarded headers. |
+| `TRUSTED_PROXY_CIDRS` | Exact trusted reverse-proxy CIDRs allowed to supply forwarded headers; defaults to loopback only. |
 | `TELEMETRY_ENDPOINT` | Installation collector; defaults to `https://h-script.com/api/v1/installations`. |
 | `INSTALL_TELEMETRY_STATS` | `1` sends public aggregates; `0` sends mandatory installation data only. |
 | `TELEMETRY_COLLECTOR_ENABLED` | Enables incoming collector APIs on the central instance only. |
@@ -319,6 +336,25 @@ The complete reference is `docker/env.example`.
 `APP_SYS_ID` must remain stable because it identifies the installation.
 Docker database credentials are read directly from environment variables or
 mounted secret files and are not persisted in `_config.php`.
+
+For staging, create an environment-scoped GitLab variable named `APP_BIND_IP`
+with the server's Tailscale IPv4 (normally in `100.64.0.0/10`). Compose then
+publishes `${APP_PORT}` only on that address. Keep the `127.0.0.1` default when
+the port should be reachable only from the host; the external proxy network can
+still reach the `app` service directly on container port 80.
+
+When a separate Nginx/Authelia gateway reaches H-Script over Tailscale, also
+create the environment-scoped GitLab variable `TRUSTED_PROXY_CIDRS` with the
+gateway's exact Tailscale address and `/32` suffix. It is not a secret and does
+not need masking, but it should be protected with the deployment environment.
+Do not use the whole Tailscale or private-network range.
+
+An optional gateway VPS can run both public Nginx and Authelia, require 1FA or
+2FA only for chosen routes, and proxy H-Script to its second VPS over a private
+Tailscale connection. H-Script does not embed or run Authelia, and its built-in
+authorization remains active. The two-server setup, proxy-bypass controls and
+machine-route exclusions have complete copy-ready examples in
+[`docker/authelia/`](docker/authelia/README.md).
 
 ### Database, Redis, and scheduler
 
@@ -340,13 +376,13 @@ mounted secret files and are not persisted in `_config.php`.
 | Variable | Purpose |
 | --- | --- |
 | `CONFIGURATOR_PASSWORD` | Independent configurator password; mandatory in production. |
+| `CONFIGURATOR_ALLOWED_CIDRS` | Optional comma-separated IPv4/IPv6 CIDR allowlist for the Configurator. |
 | `APP_DATA_KEY` | Long random key for authenticated encryption of persisted integration secrets; mandatory in production. |
 | `ALLOW_EMPTY_CONFIGURATOR_PASSWORD` | Local-only exception; keep `0` in production. |
 | `REQUIRE_TURNSTILE` | Requires configured Turnstile keys at startup. |
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Public and secret Turnstile keys. |
 | `SESSION_COOKIE_SECURE`, `SESSION_COOKIE_SAMESITE`, `SESSION_GC_MAXLIFETIME` | Session cookie policy and server-side lifetime in seconds; the default lifetime is 30 days while application idle limits remain authoritative. |
 | `APP_AUTO_INSTALL` | One-time schema bootstrap on an empty database; return to `0`. |
-| `APP_INSTALL_FORCE` | Destructive database recreation; normally always `0`. |
 | `INSTALL_ADMIN_*` | First main administrator credentials, PIN, and secret answer. |
 | `INSTALL_DEMO_ADMIN_*` | Separate demo administrator when demo mode is enabled. |
 | `INSTALL_MAIL_HOST`, `INSTALL_MAIL_PORT` | Initial SMTP endpoint. |
@@ -356,6 +392,21 @@ mounted secret files and are not persisted in `_config.php`.
 | `INSTALL_MAIL_ADMIN_ADDRESS` | Optional initial `Sys.AdminMail` notification destination override; defaults to `INSTALL_ADMIN_MAIL`, then `APP_SYS_MAIL`. |
 | `INSTALL_MAIL_ADMIN_LANG` | Initial administrator email language, such as `en` or `ru`. |
 | `INSTALL_NO_LOGINS`, `INSTALL_INT_CURR`, `INSTALL_INT_CURR_ID` | Initial login policy and internal currency. |
+| `INTEGRITY_SCAN_BATCH_FILES`, `INTEGRITY_SCAN_MAX_SECONDS` | Bound one local file-integrity pass; an interrupted scan resumes from its saved cursor. |
+| `INTEGRITY_SCAN_MAX_FILES`, `INTEGRITY_SCAN_MAX_FINDINGS` | Hard limits for scanned files and persisted findings. |
+| `INTEGRITY_NOTIFY` | `1` sends one generic administrator notification for each new critical change set. |
+
+After the first successful installation, the following GitLab variables are no
+longer needed: `APP_INSTALL_FORCE` (removed completely), `APP_AUTO_INSTALL`, and
+all `INSTALL_*` bootstrap variables. `APP_AUTO_INSTALL` may instead remain
+explicitly set to `0`. Variables whose names start with `UPDATE_` are current
+only when they also appear in `docker/env.example`; old feed, channel,
+public-key, or signature variables are not read by the updater.
+
+The authenticated Configurator **Security** page shows production preflight,
+official-release file integrity and a redacted action audit. All Twig templates
+are customizable and do not trigger a critical alert by themselves. Unexpected
+executable files in writable or template directories remain critical.
 
 Sensitive values support Docker-style `*_FILE` variants, including
 `APP_DATA_KEY_FILE`, `DB_PASSWORD_FILE`, `MYSQL_ROOT_PASSWORD_FILE`,
@@ -877,8 +928,8 @@ Application logs are in `logs/`. Queue health is visible in the scheduler and
 the `Jobs` table. Redis failures are fail-open and logged once per request.
 
 After the first bootstrap, keep `APP_AUTO_INSTALL=0`. Apply future schema changes
-only with an explicit migration/update step and a verified backup. Never use
-`APP_INSTALL_FORCE=1` to repair or upgrade an existing database.
+only with the Configurator update flow or another explicit migration step after
+a verified backup. The application has no destructive force-reinstall flag.
 
 ### Stale `mysql.sock` in the local macOS LAMP environment
 

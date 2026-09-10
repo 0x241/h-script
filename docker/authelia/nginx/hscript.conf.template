@@ -1,0 +1,132 @@
+# Полный Nginx-конфиг для отдельного VPS-шлюза.
+# На этом VPS работают публичный Nginx и Authelia, а H-Script доступен через
+# Tailscale на другом сервере. Перед установкой файл рендерится через envsubst.
+
+upstream hscript_backend {
+    server ${HS_TAILSCALE_IP}:${HS_UPSTREAM_PORT};
+    keepalive 16;
+}
+
+upstream hscript_authelia_backend {
+    server ${AUTHELIA_LISTEN_IP}:${AUTHELIA_LISTEN_PORT};
+    keepalive 4;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name ${HS_PUBLIC_HOST} ${AUTHELIA_PUBLIC_HOST};
+
+    location ^~ /.well-known/acme-challenge/ {
+        root ${ACME_WEBROOT};
+        default_type text/plain;
+        try_files $uri =404;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    server_name ${HS_PUBLIC_HOST};
+
+    ssl_certificate ${HS_TLS_CERTIFICATE};
+    ssl_certificate_key ${HS_TLS_CERTIFICATE_KEY};
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    proxy_http_version 1.1;
+    proxy_connect_timeout 5s;
+    proxy_read_timeout 60s;
+    proxy_set_header Connection "";
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Host $http_host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # H-Script не использует identity-заголовки Authelia. Очищаем входящие
+    # значения, чтобы клиент не мог подделать их самостоятельно.
+    proxy_set_header Remote-User "";
+    proxy_set_header Remote-Groups "";
+    proxy_set_header Remote-Name "";
+    proxy_set_header Remote-Email "";
+    proxy_set_header X-Forwarded-User "";
+    proxy_set_header X-Forwarded-Groups "";
+    proxy_set_header X-Forwarded-Name "";
+    proxy_set_header X-Forwarded-Email "";
+    proxy_set_header CF-Connecting-IP "";
+    proxy_set_header True-Client-IP "";
+
+    # Только внутренний subrequest Nginx может обращаться к authz endpoint.
+    location = /internal/authelia/authz {
+        internal;
+        proxy_pass http://hscript_authelia_backend/api/authz/auth-request;
+        proxy_pass_request_body off;
+        proxy_http_version 1.1;
+        proxy_connect_timeout 2s;
+        proxy_send_timeout 5s;
+        proxy_read_timeout 5s;
+        proxy_next_upstream off;
+        proxy_set_header Content-Length "";
+        proxy_set_header Connection "";
+        proxy_set_header X-Original-Method $request_method;
+        proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Host $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-URI $request_uri;
+    }
+
+    # Регистрозависимые закреплённые пути. Если APP_CFG_LINK изменён, замените
+    # _cfg одновременно здесь и в access_control Authelia.
+    location ~ ^/_cfg(?:/|$) {
+        auth_request /internal/authelia/authz;
+        auth_request_set $hscript_authelia_redirect $upstream_http_location;
+        error_page 401 =302 $hscript_authelia_redirect;
+        proxy_pass http://hscript_backend;
+    }
+
+    location ~ ^/admin(?:/|$) {
+        auth_request /internal/authelia/authz;
+        auth_request_set $hscript_authelia_redirect $upstream_http_location;
+        error_page 401 =302 $hscript_authelia_redirect;
+        proxy_pass http://hscript_backend;
+    }
+
+    # Публичные страницы, callbacks, cron и API не требуют интерактивной 2FA.
+    location / {
+        proxy_pass http://hscript_backend;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    server_name ${AUTHELIA_PUBLIC_HOST};
+
+    ssl_certificate ${AUTHELIA_TLS_CERTIFICATE};
+    ssl_certificate_key ${AUTHELIA_TLS_CERTIFICATE_KEY};
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    location / {
+        proxy_pass http://hscript_authelia_backend;
+        proxy_http_version 1.1;
+        proxy_connect_timeout 5s;
+        proxy_read_timeout 60s;
+        proxy_set_header Connection "";
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $http_host;
+        proxy_set_header X-Forwarded-URI $request_uri;
+        proxy_set_header X-Forwarded-Ssl on;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}

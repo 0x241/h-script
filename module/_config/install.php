@@ -1,29 +1,36 @@
 <?php
 
+use HScript\Application;
 use HScript\Telemetry\TelemetryReporter;
+use HScript\Update\ConfiguratorCsrf;
 use HScript\Util\StringHelper;
 
-if (isset_IN('doFill'))
+require_once('module/dbinit.php');
+$installObjects = $db->fetchRows($db->query('SHOW FULL TABLES'));
+$installDatabasePopulated = count($installObjects) > 0;
+
+if ($installDatabasePopulated)
 {
+	addMsg(cfg_t('База уже инициализирована. Для изменения версии используйте раздел «Обновление».', 'The database is already initialized. Use Update to change versions.'));
+	goToURL($_cfg['cfg_link'] . '?modules');
+}
 
-	if (!file_exists('_dbstru.php'))
-		addMsg('Database structure "_dbstru.php" required');
-	else
+if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' && isset_IN('bStart'))
+{
+	try
 	{
+		ConfiguratorCsrf::consume($_POST['csrf'] ?? '');
+		if (!file_exists('_dbstru.php'))
+			throw new RuntimeException('Database structure "_dbstru.php" required');
+		if (count($db->fetchRows($db->query('SHOW FULL TABLES'))) > 0)
+			throw new RuntimeException('Database is not empty; initial installation requires an empty database');
 
-	require_once('module/dbinit.php');
-	
 	require('_dbstru.php');
 	
 	$db->query("ALTER DATABASE " . $db->field($_cfg['db_name']) . " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci");
 
 //	if (in_array('InnoDB', $db->fetchRows($db->query('SHOW TABLE TYPES'), 'Engine')))
 //		addMsg('* Server can process transactions');
-
-	$ts = $db->fetchRows($db->query('SHOW TABLES'));
-	if (count($ts) > 0)
-		foreach ($ts as $t) 
-			$db->query('DROP TABLE IF EXISTS ' . reset($t));
 
 	$dt = StringHelper::valueIf($_cfg['db_type'], ' ENGINE=' . StringHelper::valueIf($_cfg['db_type'] == 1, 'InnoDB', 'MYISAM'));
 	foreach ($_dbstru as $t => $cmnd)
@@ -36,7 +43,8 @@ if (isset_IN('doFill'))
 			'Salt' => $psalt,
 			'NoLogins' => 0 + isset_IN('noLogins'),
 			'IntCurr' => 0 + isset_IN('intCurr'),
-			'DBVer' => is_file('_dbstru.php') ? intval(filemtime('_dbstru.php')) : 0
+			'AppVersion' => Application::version(),
+			'SchemaVersion' => Application::schemaVersion()
 		),
 		'Sec' => array(
 			'BFC' => 1
@@ -99,6 +107,11 @@ if (isset_IN('doFill'))
 					'Val' => $v
 				)
 			);
+	$db->insert('SchemaState', array(
+		'ssKey' => 'current',
+		'ssVersion' => Application::schemaVersion(),
+		'ssUpdatedAt' => time()
+	));
 		
 	$admin = (isset_IN('noLogins') ? _IN('aMail') : _IN('aLogin'));
 	$db->insert('Users',
@@ -150,16 +163,19 @@ if (isset_IN('doFill'))
 		$telemetryConfig,
 		(string)($_GS['domain'] ?? '')
 	))->register();
+	$cfgSecurity->audit('initial_setup', 'success', $cfgClientIp);
 	
 	
 	addMsg(cfg_t('Установка успешно завершена!', 'Installation complete!'));
 	goToURL($_cfg['cfg_link'] . '?modules');
-	
 	}
-	
+	catch (Throwable $exception)
+	{
+		$cfgSecurity->audit('initial_setup', 'failed', $cfgClientIp, array('reason' => 'operation'));
+		error_log('Web installation stopped: ' . $exception->getMessage());
+		addMsg(cfg_t('Установка остановлена: ', 'Installation stopped: ') . $exception->getMessage());
+	}
 }
-elseif (isset_IN('bStart'))
-	addMsg('To process, markup "Create and fill base.." checkbox below');
 
 include('module/_config/_header.php');
 
@@ -172,18 +188,16 @@ include('module/_config/_header.php');
 		<p class="mt-2 max-w-3xl text-sm font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Создание структуры базы данных и первой учетной записи администратора.', 'Create the database structure and the first administrator account.'); ?></p>
 	</header>
 
-	<aside class="flex items-start gap-4 rounded-lg border border-red-200 bg-red-50 p-5 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
-		<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-300"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
-		<div><strong class="block text-base font-extrabold"><?php echo cfg_t('Полная перезапись данных', 'Complete data replacement'); ?></strong><p class="mt-1 text-sm font-medium opacity-80"><?php echo cfg_t('Запуск установки безвозвратно удалит все существующие таблицы и данные.', 'Running the installer permanently removes all existing tables and data.'); ?></p></div>
+	<aside class="flex items-start gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
+		<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300"><i class="fa-solid fa-database" aria-hidden="true"></i></span>
+		<div><strong class="block text-base font-extrabold"><?php echo cfg_t('База готова к первичной настройке', 'Database is ready for initial setup'); ?></strong><p class="mt-1 text-sm font-medium opacity-80"><?php echo cfg_t('Будет создана начальная структура H-Script. Этот шаг доступен только для пустой базы и исчезнет после завершения.', 'The initial H-Script structure will be created. This step is available only for an empty database and disappears after completion.'); ?></p></div>
 	</aside>
 
 	<form method="post" class="space-y-6">
+		<input type="hidden" name="csrf" value="<?php echo htmlspecialchars(ConfiguratorCsrf::token(), ENT_QUOTES, 'UTF-8'); ?>">
 		<section class="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
-			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-300"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span><div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('Подтверждение установки', 'Installation confirmation'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Обязательное подтверждение опасной операции', 'Required confirmation for a destructive action'); ?></p></div></header>
-			<label class="flex cursor-pointer items-center justify-between gap-5 p-6">
-				<span><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('Создать и заполнить базу данных', 'Create and populate database'); ?></strong><small class="mt-1 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Удалить текущие данные и загрузить начальную структуру.', 'Remove current data and load the initial structure.'); ?></small></span>
-				<span class="relative inline-flex shrink-0 items-center"><input name="doFill" value="1" type="checkbox" class="peer sr-only"><span class="h-6 w-11 rounded-full bg-gray-200 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-red-500 peer-checked:after:translate-x-5 dark:bg-gray-700"></span></span>
-			</label>
+			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span><div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('Первичная настройка', 'Initial setup'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Создание новой базы без удаления данных', 'Create a new database without deleting data'); ?></p></div></header>
+			<div class="p-6"><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('Создать и заполнить базу данных', 'Create and populate database'); ?></strong><small class="mt-1 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Перед запуском будет повторно проверено, что база полностью пустая.', 'The database will be checked again to ensure it is completely empty before setup starts.'); ?></small></div>
 		</section>
 
 		<section class="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
@@ -216,8 +230,8 @@ include('module/_config/_header.php');
 			</div>
 		</section>
 
-		<div class="flex justify-center rounded-lg border border-red-100 bg-white p-5 shadow-sm dark:border-red-500/20 dark:bg-[#151515]">
-			<button name="bStart" value="1" type="submit" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-600 px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-red-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20"><i class="fa-solid fa-database" aria-hidden="true"></i><?php echo cfg_t('Выполнить установку', 'Run installation'); ?></button>
+		<div class="flex justify-center rounded-lg border border-emerald-100 bg-white p-5 shadow-sm dark:border-emerald-500/20 dark:bg-[#151515]">
+			<button name="bStart" value="1" type="submit" class="<?php echo $cfgButtonClass; ?>"><i class="fa-solid fa-check" aria-hidden="true"></i><?php echo cfg_t('Завершить первичную настройку', 'Complete initial setup'); ?></button>
 		</div>
 	</form>
 </section>

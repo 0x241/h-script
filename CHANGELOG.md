@@ -7,6 +7,22 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Added a two-VPS deployment example where public Nginx and Authelia share the
+  gateway VPS, while Nginx proxies H-Script over Tailscale with matching
+  anchored, case-sensitive access-control rules for the Configurator and
+  administration routes.
+- Kept Authelia entirely outside the H-Script runtime while preserving built-in
+  authorization, keeping public and machine routes outside `auth_request`, and
+  clearing client identity headers before the application upstream.
+- Added an authenticated Configurator Security page with production preflight,
+  optional trusted-proxy-aware CIDR access control, persistent rate limits and a
+  redacted local action audit.
+- Added bounded, resumable official-release file integrity checks with neutral
+  Twig customization reporting, critical writable-directory executable checks,
+  daily cron continuation, persistent Configurator/admin alerts and optional
+  one-time generic e-mail notification.
+- Added an immutable file baseline generated inside each official Docker image
+  and shared-hosting archive and replaced only after a verified update succeeds.
 - Added configurable demo administrator credentials to the login page.
 - Added an explicit read-only translation interface for demo administrators;
   the existing server-side write restriction remains authoritative.
@@ -110,6 +126,17 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Kept legacy installations online while they record lifecycle metadata for the
+  first time; only a confirmed CMS or schema mismatch now blocks public traffic.
+- Kept Docker lifecycle markers readable by the unprivileged web process so
+  metadata onboarding cannot leave the public site behind a false update gate.
+- Restricted the default trusted-proxy list to IPv4/IPv6 loopback and stopped
+  Apache from treating an arbitrary client `X-Forwarded-Proto` header as HTTPS;
+  deployments behind a proxy must now declare its exact CIDR explicitly.
+- Replaced hard-coded example proxy addresses with an env-rendered Nginx
+  topology template and named H-Script/Authelia upstreams.
+- Excluded generated backup archives and manifests from Git and Docker build
+  contexts while keeping the access-denying `backup/.htaccess` in releases.
 - Improved the public home page with Russian numeric inflection for platform
   and gateway counters, a multi-partner card grid, consistent source-link
   blocks, and cross-browser navigation spacing.
@@ -427,6 +454,9 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+- Removed the persistent Configurator installation section and the destructive
+  `APP_INSTALL_FORCE` path. Initial web/Docker setup now accepts only an empty
+  database.
 - Removed the inactive legacy `_a-ddos` browser-loop challenge. It was not
   loaded by the application and did not provide request-rate or DDoS protection.
 - Removed InvestorsStartPage authorization completely, including its route,
@@ -470,4 +500,3 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   secret, and the same value is used by default when the CI/CD variable is
   absent.
 - `APP_DEMO_MODE=1` enables demo mode for first installation. Existing databases are not rewritten by changing the env variable later.
-- `APP_INSTALL_FORCE=1` recreates a non-empty database and deletes existing tables.

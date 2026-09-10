@@ -1,10 +1,19 @@
 <?php
 
 use HScript\Mail\Mailer;
+use HScript\Update\ConfiguratorCsrf;
 
 if (isset_IN('bSave')) {
+	$setupDatabaseIsEmpty = false;
+	try { ConfiguratorCsrf::consume($_POST['csrf'] ?? ''); }
+	catch (Throwable)
+	{
+		$cfgSecurity->audit('connection_save', 'failed', $cfgClientIp, array('reason' => 'csrf'));
+		addMsg(cfg_t('Сессия формы устарела. Повторите действие.', 'The form session expired. Try again.'));
+		goToURL($_cfg['cfg_link'] . '?setup');
+	}
 
-	function chkwr($n) 
+	function chkwr($n)
 	{
 		if (file_exists($n) and !is_writeable($n))
 			addMsg('Please set 777 permissions for "' . $n . '"');
@@ -48,13 +57,18 @@ if (isset_IN('bSave')) {
 			addMsg('Can\'t remove "tpl_c/nt_db"');
 
 		require_once('module/dbinit.php');
-		
+		$setupDatabaseIsEmpty = count($db->fetchRows($db->query('SHOW FULL TABLES'))) === 0;
+		$cfgSecurity->audit('connection_save', 'success', $cfgClientIp);
+
 			addMsg('Please do not forget to make "_config.php" writable only during configuration');
 	} 
 	else
+	{
+		$cfgSecurity->audit('connection_save', 'failed', $cfgClientIp, array('reason' => 'write'));
 		addMsg("Can't open \"$fn\" for writing");
+	}
 		
-	goToURL($_cfg['cfg_link'] . '?install');
+	goToURL($_cfg['cfg_link'] . ($setupDatabaseIsEmpty ? '?install' : '?modules'));
 	
 }
 
@@ -70,6 +84,7 @@ include('module/_config/_header.php');
 	</header>
 
 	<form method="post" class="space-y-6">
+		<input type="hidden" name="csrf" value="<?php echo htmlspecialchars(ConfiguratorCsrf::token(), ENT_QUOTES, 'UTF-8'); ?>">
 		<section class="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
 			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
 				<span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-gears" aria-hidden="true"></i></span>

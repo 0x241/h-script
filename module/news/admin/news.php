@@ -59,7 +59,10 @@ if (!isset($_GET['add']))
 		goToURL(moduleToLink() . '?add');
 	View::stampArrayToStr($el, 'nTS', 0);
 	View::stampArrayToStr($el, 'nDBegin, nDEnd', 1);
-	View::setPage('el', $el, 2);
+	$el['nText'] = HtmlSanitizer::sanitize((string)($el['nText'] ?? ''));
+	// Twig escapes form values for their output context. Pre-escaping here would
+	// turn stored rich text into literal tags when CKEditor reads the textarea.
+	View::setPage('el', $el, 0);
 }
 else
 	View::setPage('today', View::timeToStr(time(), 0));

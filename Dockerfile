@@ -34,16 +34,18 @@ RUN npm run css:build
 FROM alpine:3.22@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce AS application-files
 
 WORKDIR /opt/hscript
-COPY .htaccess 404.html VERSION _dbstru.php favicon.ico favicon.svg rw.php ./
+COPY .htaccess 404.html VERSION SCHEMA_VERSION _dbstru.php favicon.ico favicon.svg rw.php ./
 COPY bin ./bin
 COPY lang ./lang
 COPY lib ./lib
 COPY migrations ./migrations
 COPY module ./module
+COPY resources ./resources
 COPY src ./src
 COPY static ./static
 COPY tpl ./tpl
 COPY logs/.htaccess ./logs/.htaccess
+COPY backup/.htaccess ./backup/.htaccess
 COPY tpl_c/.htaccess ./tpl_c/.htaccess
 COPY upload/.htaccess ./upload/.htaccess
 
@@ -51,7 +53,7 @@ RUN rm -f static/css/input.css \
     && mkdir -p backup compile .cfg \
     && chmod 0750 backup compile logs tpl_c upload .cfg
 
-FROM alpine:3.22@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce AS shared-hosting-files
+FROM composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 AS shared-hosting-files
 
 ARG APP_VERSION=0.0.0-dev
 ARG VCS_REF=unknown
@@ -62,13 +64,13 @@ COPY --from=application-files /opt/hscript ./
 COPY --from=vendor /app/vendor ./vendor
 COPY --from=frontend-build /app/static/css/app.css ./static/css/app.css
 COPY README.md CHANGELOG.md LICENSE composer.json composer.lock ./
-COPY docs ./docs
 
 RUN printf '%s\n' \
         "H-Script ${APP_VERSION}" \
         "Revision: ${VCS_REF}" \
         "Built: ${BUILD_DATE}" \
         > RELEASE \
+	&& php bin/build-release-baseline.php /release/h-script /release/h-script/resources/release-baseline.json \
     && chmod 0644 RELEASE
 
 FROM scratch AS shared-hosting
@@ -120,6 +122,7 @@ RUN apk add --no-cache \
         freetype \
         libjpeg-turbo \
         libpng \
+        mariadb-client \
         tzdata \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
@@ -142,7 +145,10 @@ FROM runtime AS app
 ARG APP_VERSION=0.0.0-dev
 ARG VCS_REF=unknown
 ARG BUILD_DATE=unknown
+ENV APP_RELEASE_VERSION=${APP_VERSION} \
+    UPDATE_WORK_PATH=/var/www/shared/.cfg/update
 
+WORKDIR /var/www/html
 COPY --from=application-files /opt/hscript ./
 COPY --from=vendor /app/vendor ./vendor
 COPY --from=frontend-build /app/static/css/app.css ./static/css/app.css
@@ -152,9 +158,28 @@ COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint-hscript
 COPY docker/runtime/cron.sh /usr/local/bin/hscript-cron
 COPY docker/runtime/write-config.php /usr/local/share/hscript/write-config.php
 COPY docker/runtime/install-db.php /usr/local/share/hscript/install-db.php
+COPY docker/runtime/check-schema.php /usr/local/share/hscript/check-schema.php
 
 RUN chmod +x /usr/local/bin/docker-entrypoint-hscript /usr/local/bin/hscript-cron \
-    && chown -R www-data:www-data logs tpl_c upload compile backup .cfg
+	&& php bin/build-release-baseline.php /var/www/html /var/www/html/resources/release-baseline.json \
+    && mkdir -p /var/www/shared/config \
+    && mv backup compile logs tpl_c upload .cfg /var/www/shared/ \
+    && mv tpl/themes /var/www/shared/themes \
+    && touch /var/www/shared/config/configurator-pass \
+    && printf '<?php\n' > /var/www/shared/config/_config.php \
+    && printf '<?php\n' > /var/www/shared/config/_config.local.php \
+    && ln -s /var/www/shared/backup backup \
+    && ln -s /var/www/shared/compile compile \
+    && ln -s /var/www/shared/logs logs \
+    && ln -s /var/www/shared/tpl_c tpl_c \
+    && ln -s /var/www/shared/upload upload \
+    && ln -s /var/www/shared/.cfg .cfg \
+    && ln -s /var/www/shared/themes tpl/themes \
+    && ln -s /var/www/shared/config/_config.php _config.php \
+    && ln -s /var/www/shared/config/_config.local.php _config.local.php \
+    && ln -s /var/www/shared/config/configurator-pass module/_config/pass \
+    && chown -h www-data:www-data backup compile logs tpl_c upload .cfg tpl/themes _config.php _config.local.php module/_config/pass \
+    && chown -R www-data:www-data /var/www/shared
 
 LABEL org.opencontainers.image.title="H-Script" \
       org.opencontainers.image.source="https://github.com/0x241/h-script" \

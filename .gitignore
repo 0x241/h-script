@@ -115,6 +115,7 @@ future_works.md
 AGENTS.md
 CLAUDE.md
 .agents/
+/docs/
 /docker/release/
 showcase/
 ui-preview.html
@@ -127,9 +128,10 @@ upload/*
 compile/*
 !compile/.htaccess
 !compile/.gitkeep
-backup/*
-!backup/.htaccess
-!backup/.gitkeep
+# Generated backup archives and manifests are local runtime data. Never commit.
+/backup/**
+!/backup/.htaccess
+!/backup/.gitkeep
 /.cfg/*
 !/.cfg/.gitkeep
 

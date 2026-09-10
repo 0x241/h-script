@@ -1,0 +1,11 @@
+Options -Indexes -ExecCGI
+
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Deny from all
+</IfModule>
+
+RemoveHandler .sql .gz .json .php .phtml .phar .cgi .pl
+RemoveType .sql .gz .json .php .phtml .phar .cgi .pl
