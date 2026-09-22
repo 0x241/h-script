@@ -2,6 +2,8 @@
 
 use HScript\Database\Connection;
 use HScript\Mail\Mailer;
+use HScript\Observability\CorrelationContext;
+use HScript\Observability\StructuredLogger;
 use HScript\Queue\JobQueue;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -159,6 +161,11 @@ final class JobQueueFakeConnection extends Connection
 }
 
 ini_set('error_log', '/dev/null');
+$queueLogDirectory = sys_get_temp_dir() . '/hscript-queue-observability-' . bin2hex(random_bytes(4));
+mkdir($queueLogDirectory, 0700, true);
+putenv('OBSERVABILITY_LOG_PATH=' . $queueLogDirectory . '/events.ndjson');
+StructuredLogger::reset();
+CorrelationContext::adopt(str_repeat('3', 32), 'authenticated');
 
 $db = new JobQueueFakeConnection();
 $jobQueue = new JobQueue($db);
@@ -170,11 +177,18 @@ queueAssert(
 $emailId = array_key_first($db->jobs);
 queueAssert($db->jobs[$emailId]['jType'] === 'email', 'Mailer created the wrong job type');
 queueAssert($db->jobs[$emailId]['jState'] === JobQueue::STATE_PENDING, 'Email is not pending');
+$emailPayload = JobQueue::decodePayload($db->jobs[$emailId]['jPayload']);
+queueAssert(($emailPayload['_hs_correlation_id'] ?? '') === str_repeat('3', 32), 'Queue did not persist correlation ID');
 
-$jobQueue->registerHandler('email', static fn(array $payload): array => array(
-	'delivered' => $payload['to'] === 'queue@example.test',
-));
+$handledCorrelation = '';
+$jobQueue->registerHandler('email', static function (array $payload) use (&$handledCorrelation): array
+{
+	$handledCorrelation = CorrelationContext::current();
+	return array('delivered' => $payload['to'] === 'queue@example.test');
+});
 queueAssert($jobQueue->processBatch(10) === 1, 'Email batch size is wrong');
+queueAssert($handledCorrelation === str_repeat('3', 32), 'Queue handler did not adopt correlation ID');
+queueAssert(CorrelationContext::current() === str_repeat('3', 32), 'Queue did not restore its caller context');
 queueAssert($db->jobs[$emailId]['jState'] === JobQueue::STATE_DONE, 'Email was not completed');
 queueAssert(
 	JobQueue::decodePayload($db->jobs[$emailId]['jPayload'])['result']['delivered'] === true,
@@ -229,5 +243,13 @@ queueAssert($db->jobs[$staleId]['jState'] === JobQueue::STATE_PENDING, 'Automati
 $db->setJob($emailId, array('jDTS' => timeToStamp(time() - (31 * HS2_UNIX_DAY))));
 queueAssert($jobQueue->cleanup(30) === 1, 'Old completed job was not deleted');
 queueAssert(!isset($db->jobs[$emailId]), 'Cleanup left the old completed job behind');
+
+$queueLog = (string)file_get_contents($queueLogDirectory . '/events.ndjson');
+queueAssert(str_contains($queueLog, str_repeat('3', 32)), 'Queue events do not contain correlation ID');
+unlink($queueLogDirectory . '/events.ndjson');
+rmdir($queueLogDirectory);
+putenv('OBSERVABILITY_LOG_PATH');
+StructuredLogger::reset();
+CorrelationContext::reset();
 
 echo "Job queue component tests passed.\n";

@@ -4,6 +4,7 @@ stages:
   - scan
   - package
   - deploy
+  - verify-staging
   - release
   - publish
 
@@ -11,6 +12,8 @@ workflow:
   auto_cancel:
     on_new_commit: interruptible
   rules:
+    - if: '$CI_DEBUG_TRACE == "true" || $CI_DEBUG_SERVICES == "true"'
+      when: never
     - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
     - if: '$CI_COMMIT_BRANCH == "release/public"'
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
@@ -75,12 +78,58 @@ variables:
       do
         grep -Fxq "${required}" "${ARCHIVE_CONTENTS}"
       done
-      if grep -Eq '^h-script/(\.agents|\.codex|\.git|tests|node_modules|docker|dist)(/|$)|^h-script/(\.env($|\.)|_config\.php|future_works?\.md|AGENTS\.md)$|^h-script/static/css/input\.css$' "${ARCHIVE_CONTENTS}"; then
+      if grep -Eq '^h-script/(\.agents|\.codex|\.git|ci|docs|tests|node_modules|docker|dist)(/|$)|^h-script/(\.env($|\.)|_config\.php|future_works?\.md|AGENTS\.md)$|^h-script/static/css/input\.css$' "${ARCHIVE_CONTENTS}"; then
         echo "Forbidden development or secret-bearing file found in ${ARCHIVE}" >&2
         exit 1
       fi
       rm -f -- "${ARCHIVE_CONTENTS}"
       (cd dist && sha256sum -c SHA256SUMS)
+
+validate:composer-audit:
+  stage: validate
+  script:
+    - sh ci/supply-chain/audit.sh composer
+  artifacts:
+    when: always
+    paths: [dist/evidence/composer.report.json, dist/evidence/composer-version.txt]
+    expire_in: 30 days
+
+validate:npm-audit:
+  stage: validate
+  script:
+    - sh ci/supply-chain/audit.sh npm
+  artifacts:
+    when: always
+    paths: [dist/evidence/npm-production.report.json, dist/evidence/npm-toolchain.report.json, dist/evidence/node-npm-version.txt]
+    expire_in: 30 days
+
+validate:supply-chain:
+  stage: validate
+  script:
+    - |
+      docker run --rm --network none --entrypoint php -v "${CI_PROJECT_DIR}:/src:ro" \
+        composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 /src/tests/supply_chain.php
+    - sh tests/supply_chain_promotion.sh
+    - sh tests/supply_chain_recovery.sh
+    - sh tests/staging_image.sh
+
+validate:secret-boundary:
+  stage: validate
+  resource_group: staging-image-build
+  script:
+    - sh ci/supply-chain/leak-test.sh
+  artifacts:
+    paths: [dist/evidence/secret-boundary.txt]
+    expire_in: 30 days
+
+scan:source:
+  stage: scan
+  script:
+    - sh ci/supply-chain/scan-files.sh source
+  artifacts:
+    when: always
+    paths: [dist/evidence/source.report.json, dist/evidence/source.cdx.json]
+    expire_in: 30 days
 
 validate:compose:
   stage: validate
@@ -90,6 +139,7 @@ validate:compose:
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
   script:
     - docker compose --env-file docker/env.example config --quiet
+    - sh tests/recovery_compose.sh
 
 validate:frontend:
   stage: validate
@@ -293,58 +343,94 @@ scan:image-candidate:
   needs:
     - job: build:image-candidate
       artifacts: true
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+      optional: true
+    - job: build:verify-release-candidate
+      artifacts: true
+      optional: true
+    - job: validate:composer-audit
+    - job: validate:npm-audit
+    - job: validate:supply-chain
+    - job: validate:secret-boundary
   script:
-    - umask 077
     - |
+      set -eu
+      set +x
+      umask 077
       RELEASE_DOCKER_CONFIG="$(mktemp -d)"
-      TRIVY_CACHE_DIR="${CI_PROJECT_DIR}/.trivy-cache-${CI_JOB_ID}"
-      cleanup_release_scan() {
-        if [ -n "${RELEASE_DOCKER_CONFIG:-}" ] && [ -d "${RELEASE_DOCKER_CONFIG}" ]; then
-          rm -rf -- "${RELEASE_DOCKER_CONFIG}"
-        fi
-        if [ -n "${TRIVY_CACHE_DIR:-}" ] && [ -d "${TRIVY_CACHE_DIR}" ]; then
-          rm -rf -- "${TRIVY_CACHE_DIR}"
-        fi
-      }
-      trap cleanup_release_scan EXIT HUP INT TERM
-      export DOCKER_CONFIG="${RELEASE_DOCKER_CONFIG}"
-      printf '%s' "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" --username "${CI_REGISTRY_USER}" --password-stdin
-      mkdir -p dist "${TRIVY_CACHE_DIR}"
-
-      docker run --rm \
-        --user "$(id -u):$(id -g)" \
-        --env DOCKER_CONFIG=/tmp/docker-config \
-        --volume "${DOCKER_CONFIG}:/tmp/docker-config:ro" \
-        --volume "${TRIVY_CACHE_DIR}:/tmp/trivy" \
-        --volume "${CI_PROJECT_DIR}/dist:/reports" \
-        aquasec/trivy:0.73.0@sha256:7cced7cae583819fc7806d4cbc0dbbc7cad18b99f7d3e235192e6da8c091045c \
-        image --cache-dir /tmp/trivy --db-repository "${TRIVY_DB_REPOSITORY}" --scanners vuln --format cyclonedx --output /reports/h-script.cdx.json "${CANDIDATE_REF}"
-
-      docker run --rm \
-        --user "$(id -u):$(id -g)" \
-        --env DOCKER_CONFIG=/tmp/docker-config \
-        --volume "${DOCKER_CONFIG}:/tmp/docker-config:ro" \
-        --volume "${TRIVY_CACHE_DIR}:/tmp/trivy" \
-        aquasec/trivy:0.73.0@sha256:7cced7cae583819fc7806d4cbc0dbbc7cad18b99f7d3e235192e6da8c091045c \
-        image --cache-dir /tmp/trivy --db-repository "${TRIVY_DB_REPOSITORY}" --scanners vuln,secret --severity CRITICAL --ignore-unfixed --exit-code 1 "${CANDIDATE_REF}"
+      trap 'rm -rf -- "$RELEASE_DOCKER_CONFIG"' EXIT HUP INT TERM
+      export DOCKER_CONFIG="$RELEASE_DOCKER_CONFIG"
+      printf '%s' "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
+      sh ci/supply-chain/scan-image.sh
   artifacts:
-    paths:
-      - dist/h-script.cdx.json
+    when: always
+    paths: [dist/evidence/]
+    expire_in: 30 days
+
+test:release-components:
+  stage: scan
+  needs:
+    - job: build:image-candidate
+      artifacts: true
+      optional: true
+    - job: build:verify-release-candidate
+      artifacts: true
+      optional: true
+  script:
+    - sh ci/release-components.sh
+  artifacts:
+    when: always
+    paths: [dist/release-components.txt]
+    expire_in: 30 days
+
+test:release-migrations:
+  stage: scan
+  needs:
+    - job: build:image-candidate
+      artifacts: true
+      optional: true
+    - job: build:verify-release-candidate
+      artifacts: true
+      optional: true
+  script:
+    - sh ci/release-migrations.sh
+  artifacts:
+    when: always
+    paths: [dist/release-migrations.txt]
+    expire_in: 30 days
+
+test:release-browser:
+  stage: scan
+  needs:
+    - job: build:image-candidate
+      artifacts: true
+      optional: true
+    - job: build:verify-release-candidate
+      artifacts: true
+      optional: true
+  script:
+    - sh ci/release-browser.sh
+  artifacts:
+    when: always
+    paths: [dist/release-browser.txt]
     expire_in: 30 days
 
 package:shared-candidate:
   stage: package
   needs:
+    - job: test:release-components
+    - job: test:release-migrations
+    - job: test:release-browser
+    - job: scan:source
     - job: scan:image-candidate
   rules:
     - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
   script:
     - PACKAGE_VERSION="$(tr -d '\r\n' < VERSION)-stage.${CI_COMMIT_SHORT_SHA}"
     - *build_shared_archive
+    - sh ci/supply-chain/scan-files.sh shared "dist/h-script-${PACKAGE_VERSION}-shared-hosting.tar.gz"
   artifacts:
     paths:
+      - dist/evidence/
       - dist/h-script-*-shared-hosting.tar.gz
       - dist/SHA256SUMS
     expire_in: 14 days
@@ -355,13 +441,19 @@ package:shared-release:
     SIGSTORE_ID_TOKEN:
       aud: sigstore
   needs:
+    - job: test:release-components
+    - job: test:release-migrations
+    - job: test:release-browser
     - job: build:verify-release-candidate
       artifacts: true
+    - job: scan:image-candidate
+    - job: scan:source
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
   script:
     - PACKAGE_VERSION="${CI_COMMIT_TAG#v}"
     - *build_shared_archive
+    - sh ci/supply-chain/scan-files.sh shared "dist/h-script-${PACKAGE_VERSION}-shared-hosting.tar.gz"
     - |
       ARCHIVE="dist/h-script-${CI_COMMIT_TAG#v}-shared-hosting.tar.gz"
       docker run --rm \
@@ -390,14 +482,44 @@ package:shared-release:
       - dist/h-script-*-shared-hosting.tar.gz
       - dist/h-script-*-shared-hosting.tar.gz.sigstore.json
       - dist/SHA256SUMS
+      - dist/evidence/
+    expire_in: never
+
+release:evidence:
+  stage: deploy
+  id_tokens:
+    SIGSTORE_ID_TOKEN:
+      aud: sigstore
+  needs:
+    - job: build:verify-release-candidate
+    - job: validate:composer-audit
+    - job: validate:npm-audit
+    - job: scan:source
+    - job: validate:secret-boundary
+    - job: scan:image-candidate
+    - job: package:shared-release
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+  script:
+    - sh ci/supply-chain/evidence.sh build
+  artifacts:
+    paths:
+      - dist/evidence/
+      - dist/release-evidence.tar.gz
+      - dist/h-script-*-shared-hosting.tar.gz
+      - dist/h-script-*-shared-hosting.tar.gz.sigstore.json
+      - dist/SHA256SUMS
     expire_in: never
 
 deploy:staging:
   stage: deploy
+  resource_group: staging-runtime
   needs:
     - job: build:image-candidate
       artifacts: true
     - job: scan:image-candidate
+    - job: package:shared-candidate
+      artifacts: false
   rules:
     - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
   script:
@@ -418,6 +540,7 @@ deploy:staging:
       # deployment always uses the exact tree candidate built by this pipeline.
       export APP_IMAGE="${CI_REGISTRY_IMAGE}"
       export APP_IMAGE_TAG="${CANDIDATE_TAG}"
+      export APP_IMAGE_REF="${CANDIDATE_REF%@*}@${CANDIDATE_DIGEST}"
       export APP_PULL_POLICY=always
 
       INSTALL_MAIL_PASSWORD_B64_VALUE="$(printf '%s' "${INSTALL_MAIL_PASSWORD:-}" | base64 | tr -d '\n')"
@@ -432,9 +555,11 @@ deploy:staging:
         printf 'APP_DATA_KEY=%s\n' "$APP_DATA_KEY"
         printf 'APP_IMAGE=%s\n' "${APP_IMAGE}"
         printf 'APP_IMAGE_TAG=%s\n' "${APP_IMAGE_TAG}"
+        printf 'APP_IMAGE_REF=%s\n' "${APP_IMAGE_REF}"
         printf 'APP_PULL_POLICY=%s\n' "${APP_PULL_POLICY}"
         printf 'TELEMETRY_ENDPOINT=%s\n' "${TELEMETRY_ENDPOINT:-https://h-script.com/api/v1/installations}"
         printf 'TELEMETRY_COLLECTOR_ENABLED=%s\n' "${TELEMETRY_COLLECTOR_ENABLED:-0}"
+        printf 'TELEMETRY_INGESTION_ENABLED=%s\n' "${TELEMETRY_INGESTION_ENABLED:-0}"
         printf 'TELEMETRY_COLLECTOR_DOMAIN=%s\n' "${TELEMETRY_COLLECTOR_DOMAIN:-h-script.com}"
         printf 'TELEMETRY_RATE_LIMIT=%s\n' "${TELEMETRY_RATE_LIMIT:-30}"
         printf 'APP_BIND_IP=%s\n' "${APP_BIND_IP:-127.0.0.1}"
@@ -499,23 +624,56 @@ deploy:staging:
         exit 1
       fi
     - docker compose --env-file .env ps
+    - mkdir -p dist
+    - sh ci/verify-staging-image.sh > dist/staging-image.txt
+  artifacts:
+    paths:
+      - dist/staging-image.txt
+    expire_in: 30 days
   environment:
     name: staging
+
+test:staging-reconciliation:
+  stage: verify-staging
+  # Wait for the operator to complete the Configurator update, if required.
+  # This job only verifies state; it never migrates the database.
+  when: manual
+  allow_failure: false
+  manual_confirmation: 'Завершите требуемое обновление через конфигуратор staging, затем подтвердите проверку. Эта job не запускает миграцию БД. Используйте pipeline текущего развёрнутого образа.'
+  resource_group: staging-runtime
+  needs:
+    - job: build:image-candidate
+      artifacts: true
+    - job: deploy:staging
+      artifacts: false
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
+  script:
+    - sh ci/reconcile-staging.sh
+  artifacts:
+    when: always
+    paths: [dist/staging-reconciliation.json]
+    expire_in: 30 days
 
 release:promote-public:
   stage: release
   needs:
+    - job: build:image-candidate
+      artifacts: true
     - job: package:shared-candidate
       artifacts: false
     - job: deploy:staging
+      artifacts: false
+    - job: test:staging-reconciliation
       artifacts: false
   rules:
     - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
       when: manual
   allow_failure: true
-  resource_group: public-source-promotion
+  resource_group: staging-runtime
   script:
     - umask 077
+    - sh ci/reconcile-staging.sh
     - |
       test "${CI_COMMIT_SHA}" = "$(git rev-parse HEAD)"
       SOURCE_TREE="$(git rev-parse "${CI_COMMIT_SHA}^{tree}")"
@@ -648,7 +806,7 @@ release:promote-images:
   needs:
     - job: build:verify-release-candidate
       artifacts: true
-    - job: package:shared-release
+    - job: release:evidence
       artifacts: true
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
@@ -679,36 +837,14 @@ release:promote-images:
       VERSION="${CI_COMMIT_TAG#v}"
       MINOR="${VERSION%.*}"
       MAJOR="${VERSION%%.*}"
-      RELEASE_TAGS="${VERSION} ${MINOR} ${MAJOR} sha-${CI_COMMIT_SHORT_SHA}"
       DOCKERHUB_IMAGE="docker.io/${DOCKERHUB_NAMESPACE}/${PUBLIC_IMAGE_NAME}"
       GHCR_IMAGE="ghcr.io/${GHCR_NAMESPACE}/${PUBLIC_IMAGE_NAME}"
 
-      promote_image() {
-        source_image=$1
-        destination_repository=$2
-        shift 2
-
-        source_digest="$(docker buildx imagetools inspect "${source_image}" --format '{{.Manifest.Digest}}')"
-        test "${source_digest}" = "${CANDIDATE_DIGEST}"
-        for release_tag in "$@"; do
-          case "${release_tag}" in
-            *[!0-9A-Za-z._-]*|'') echo "Invalid destination tag: ${release_tag}" >&2; return 1 ;;
-          esac
-          destination="${destination_repository}:${release_tag}"
-          docker buildx imagetools create \
-            --tag "${destination}" \
-            "${source_image%@*}@${source_digest}"
-          destination_digest="$(docker buildx imagetools inspect "${destination}" --format '{{.Manifest.Digest}}')"
-          test "${destination_digest}" = "${source_digest}"
-          printf '%s@%s\n' "${destination}" "${destination_digest}"
-        done
-      }
-
-      mkdir -p dist
-      : > dist/published-images.txt
-      promote_image "${CANDIDATE_REF}" "${CI_REGISTRY_IMAGE}" ${RELEASE_TAGS} | tee -a dist/published-images.txt
-      promote_image "${CANDIDATE_REF}" "${DOCKERHUB_IMAGE}" ${RELEASE_TAGS} | tee -a dist/published-images.txt
-      promote_image "${CANDIDATE_REF}" "${GHCR_IMAGE}" ${RELEASE_TAGS} | tee -a dist/published-images.txt
+      # Verify signed evidence and exception expiry immediately before any registry write.
+      sh ci/supply-chain/evidence.sh publication
+      sh ci/supply-chain/promote.sh promote "${CANDIDATE_REF}" "${CANDIDATE_DIGEST}" "${VERSION}" \
+        "${CI_REGISTRY_IMAGE}" "${DOCKERHUB_IMAGE}" "${GHCR_IMAGE}" > dist/published-images.txt
+      cat dist/published-images.txt
 
       for image in "${DOCKERHUB_IMAGE}" "${GHCR_IMAGE}"; do
         docker run --rm \
@@ -737,8 +873,12 @@ release:promote-images:
           "${image}@${CANDIDATE_DIGEST}"
       done
   artifacts:
+    when: always
     paths:
       - dist/published-images.txt
+      - dist/publication-checks/
+      - dist/evidence/
+      - dist/release-evidence.tar.gz
       - dist/h-script-*-shared-hosting.tar.gz
       - dist/h-script-*-shared-hosting.tar.gz.sigstore.json
       - dist/SHA256SUMS
@@ -789,13 +929,14 @@ release:promote-images:
 
       upload_url="$(php -r '$v=json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); echo preg_replace("~\\{.*$~", "", $v["upload_url"] ?? "");' /tmp/release.json)"
       test -n "${upload_url}"
-      for filename in "${ARCHIVE}" SHA256SUMS "${ARCHIVE}.sigstore.json"; do
+      for filename in "${ARCHIVE}" SHA256SUMS "${ARCHIVE}.sigstore.json" release-evidence.tar.gz; do
         artifact="${ARTIFACT_DIR}/${filename}"
         test -s "${artifact}"
         remote_size="$(php -r '$v=json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); foreach (($v["assets"] ?? []) as $asset) { if (($asset["name"] ?? "") === $argv[2]) { echo (string) ($asset["size"] ?? -1); exit; } }' /tmp/release.json "${filename}")"
         if [ -n "${remote_size}" ]; then
-          local_size="$(wc -c < "${artifact}" | tr -d ' ')"
-          test "${remote_size}" = "${local_size}"
+          asset_url="$(php -r '$v=json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR); foreach ($v["assets"] as $a) if ($a["name"] === $argv[2]) { echo $a["url"]; break; }' /tmp/release.json "${filename}")"
+          curl --fail -sS -L -H "${AUTH}" -H 'Accept: application/octet-stream' -H "${VERSION_HEADER}" "${asset_url}" -o /tmp/existing-asset
+          test "$(sha256sum "${artifact}" | cut -d ' ' -f 1)" = "$(sha256sum /tmp/existing-asset | cut -d ' ' -f 1)"
           printf 'Verified existing %s\n' "${filename}"
           continue
         fi
@@ -823,9 +964,14 @@ publish:shared-github-release:
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
       when: manual
   allow_failure: false
+  artifacts:
+    when: always
+    paths: [dist/publication-checks/]
+    expire_in: 30 days
   resource_group: public-github-release
   script:
     - umask 077
+    - sh ci/supply-chain/evidence.sh publication
     - |
       : "${GITHUB_RELEASE_TOKEN:?Set protected masked GITHUB_RELEASE_TOKEN}"
 
@@ -860,7 +1006,7 @@ publish:shared-github-release:
       printf '%s' "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" --username "${CI_REGISTRY_USER}" --password-stdin
 
       ARCHIVE="h-script-${CI_COMMIT_TAG#v}-shared-hosting.tar.gz"
-      CANDIDATE_REF="${CI_REGISTRY_IMAGE}:tree-$(git rev-parse 'HEAD^{tree}')"
+      CANDIDATE_REF="$(cat dist/evidence/candidate-image.txt)"
       docker run --rm \
         --entrypoint /bin/sh \
         --env GITHUB_TOKEN \
@@ -877,106 +1023,17 @@ publish:recover-shared-github-release:
   extends: .publish-github-release-helper
   stage: publish
   needs: []
-  id_tokens:
-    SIGSTORE_ID_TOKEN:
-      aud: sigstore
   rules:
     - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
       when: manual
   allow_failure: false
+  artifacts:
+    when: always
+    paths: [dist/publication-checks/]
+    expire_in: 30 days
   resource_group: public-github-release
   variables:
     RELEASE_RECOVERY_TAG: ""
+    RELEASE_EVIDENCE_JOB_ID: ""
   script:
-    - umask 077
-    - |
-      : "${GITHUB_RELEASE_TOKEN:?Set protected masked GITHUB_RELEASE_TOKEN}"
-      : "${RELEASE_RECOVERY_TAG:?Run the job with RELEASE_RECOVERY_TAG=vX.Y.Z}"
-      printf '%s\n' "${RELEASE_RECOVERY_TAG}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'
-
-      git fetch origin \
-        "refs/heads/release/public:refs/remotes/origin/release/public" \
-        "refs/tags/${RELEASE_RECOVERY_TAG}:refs/tags/${RELEASE_RECOVERY_TAG}"
-      TAG_SHA="$(git rev-parse "${RELEASE_RECOVERY_TAG}^{commit}")"
-      git merge-base --is-ancestor "${TAG_SHA}" origin/release/public
-
-      GITHUB_AUTH="$(printf 'x-access-token:%s' "${GITHUB_RELEASE_TOKEN}" | base64 | tr -d '\n')"
-      GITHUB_URL="https://github.com/0x241/h-script.git"
-      GITHUB_TAG="$(git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
-        ls-remote --refs "${GITHUB_URL}" "refs/tags/${RELEASE_RECOVERY_TAG}" | awk '{print $1}')"
-      if [ -z "${GITHUB_TAG}" ]; then
-        git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${GITHUB_AUTH}" \
-          push "${GITHUB_URL}" "${TAG_SHA}:refs/tags/${RELEASE_RECOVERY_TAG}"
-      else
-        test "${GITHUB_TAG}" = "${TAG_SHA}"
-      fi
-
-      ARCHIVE="h-script-${RELEASE_RECOVERY_TAG#v}-shared-hosting.tar.gz"
-      SOURCE_DATE_EPOCH="$(git show -s --format=%ct "${RELEASE_RECOVERY_TAG}")"
-      BUILD_DATE="$(git show -s --format=%cI "${RELEASE_RECOVERY_TAG}")"
-      RECOVERY_SOURCE_DIR="$(mktemp -d)"
-      cleanup_recovery_source() {
-        if [ -n "${RECOVERY_SOURCE_DIR:-}" ] && [ -d "${RECOVERY_SOURCE_DIR}" ]; then
-          rm -rf -- "${RECOVERY_SOURCE_DIR}"
-        fi
-      }
-      trap cleanup_recovery_source EXIT HUP INT TERM
-      git archive "${RELEASE_RECOVERY_TAG}" | tar -x -C "${RECOVERY_SOURCE_DIR}"
-      mkdir -p dist
-      docker buildx build \
-        --target shared-release \
-        --build-arg "APP_VERSION=${RELEASE_RECOVERY_TAG#v}" \
-        --build-arg "VCS_REF=${TAG_SHA}" \
-        --build-arg "BUILD_DATE=${BUILD_DATE}" \
-        --build-arg "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}" \
-        --output type=local,dest=dist \
-        "${RECOVERY_SOURCE_DIR}"
-      test -s "dist/${ARCHIVE}"
-      test -s dist/SHA256SUMS
-      (cd dist && sha256sum -c SHA256SUMS)
-
-      docker run --rm \
-        --user "$(id -u):$(id -g)" \
-        --env HOME=/tmp \
-        --env SIGSTORE_ID_TOKEN \
-        --env COSIGN_YES=true \
-        --volume "${CI_PROJECT_DIR}/dist:/artifacts" \
-        ghcr.io/sigstore/cosign/cosign:v3.0.6@sha256:de9c65609e6bde17e6b48de485ee788407c9502fa08b8f4459f595b21f56cd00 \
-        sign-blob \
-        --yes \
-        --bundle "/artifacts/${ARCHIVE}.sigstore.json" \
-        "/artifacts/${ARCHIVE}"
-      docker run --rm \
-        --user "$(id -u):$(id -g)" \
-        --env HOME=/tmp \
-        --volume "${CI_PROJECT_DIR}/dist:/artifacts:ro" \
-        ghcr.io/sigstore/cosign/cosign:v3.0.6@sha256:de9c65609e6bde17e6b48de485ee788407c9502fa08b8f4459f595b21f56cd00 \
-        verify-blob \
-        --bundle "/artifacts/${ARCHIVE}.sigstore.json" \
-        --certificate-identity "${CI_PROJECT_URL}//.gitlab-ci.yml@refs/heads/${CI_COMMIT_REF_NAME}" \
-        --certificate-oidc-issuer "${CI_SERVER_URL}" \
-        "/artifacts/${ARCHIVE}"
-
-      RELEASE_DOCKER_CONFIG="$(mktemp -d)"
-      cleanup_github_recovery() {
-        if [ -n "${RELEASE_DOCKER_CONFIG:-}" ] && [ -d "${RELEASE_DOCKER_CONFIG}" ]; then
-          rm -rf -- "${RELEASE_DOCKER_CONFIG}"
-        fi
-      }
-      trap 'cleanup_github_recovery; cleanup_recovery_source' EXIT HUP INT TERM
-      export DOCKER_CONFIG="${RELEASE_DOCKER_CONFIG}"
-      export GITHUB_TOKEN="${GITHUB_RELEASE_TOKEN}"
-      printf '%s' "${CI_REGISTRY_PASSWORD}" | docker login "${CI_REGISTRY}" --username "${CI_REGISTRY_USER}" --password-stdin
-
-      CANDIDATE_REF="${CI_REGISTRY_IMAGE}:tree-$(git rev-parse "${RELEASE_RECOVERY_TAG}^{tree}")"
-      docker run --rm \
-        --entrypoint /bin/sh \
-        --env GITHUB_TOKEN \
-        --env GITHUB_REPOSITORY=0x241/h-script \
-        --env "RELEASE_TAG=${RELEASE_RECOVERY_TAG}" \
-        --env "EXPECTED_SHA=${TAG_SHA}" \
-        --env "ARCHIVE=${ARCHIVE}" \
-        --volume "${CI_PROJECT_DIR}/dist:/artifacts:ro" \
-        --volume "${PUBLISH_GITHUB_RELEASE_SCRIPT}:/usr/local/share/hscript/publish-github-release.sh:ro" \
-        "${CANDIDATE_REF}" \
-        /usr/local/share/hscript/publish-github-release.sh
+    - sh ci/supply-chain/recover-publication.sh

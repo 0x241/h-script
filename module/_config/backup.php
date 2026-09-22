@@ -5,7 +5,7 @@ use HScript\Security\ProductionPreflight;
 use HScript\Update\ConfiguratorCsrf;
 
 require_once('module/dbinit.php');
-$backupPreflight = new ProductionPreflight(dirname(__DIR__, 2), hsIsHttpsRequest(), trim((string)(getenv('APP_RELEASE_VERSION') ?: '')) !== '');
+$backupPreflight = new ProductionPreflight(dirname(__DIR__, 2), hsIsHttpsRequest(), trim((string)(getenv('APP_RELEASE_VERSION') ?: '')) !== '', cfg_language());
 $backupPreflightBlockers = $backupPreflight->forOperation('backup');
 
 $backupService = null;
@@ -40,17 +40,14 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST')
 		{
 			$backupPreflight->assertAllows('backup');
 			$created = $backupService->create('plain');
-			addMsg(cfg_t(
-				'Проверенный бэкап создан. ID: ',
-				'Verified backup created. ID: '
-			) . $created['id']);
+			addMsg(cfg_t('configurator.backup.verified_backup_created_id') . $created['id']);
 			$cfgSecurity->audit('backup_create', 'success', $cfgClientIp, array('id' => $created['id']));
 		}
 		elseif ($action === 'delete')
 		{
 			$backupService->delete((string)($_POST['backupId'] ?? ''));
 			$cfgSecurity->audit('backup_delete', 'success', $cfgClientIp, array('id' => (string)($_POST['backupId'] ?? '')));
-			addMsg(cfg_t('Бэкап удалён.', 'Backup deleted.'));
+			addMsg(cfg_t('configurator.backup.backup_deleted'));
 		}
 		elseif ($action === 'download')
 		{
@@ -86,7 +83,7 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST')
 	{
 		$cfgSecurity->audit('backup_action', 'failed', $cfgClientIp, array('reason' => 'operation'));
 		error_log('Configurator backup action failed: ' . $exception->getMessage());
-		addMsg(cfg_t('Ошибка бэкапа: ', 'Backup error: ') . $exception->getMessage());
+		addMsg(cfg_t('configurator.backup.backup_error') . cfg_t('configurator.common.technical_error'), true);
 	}
 	goToURL($_cfg['cfg_link'] . '?backup');
 }
@@ -118,31 +115,31 @@ include('module/_config/_header.php');
 <section class="mx-auto max-w-5xl space-y-8">
 	<header class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
 		<div>
-			<span class="mb-3 inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400"><i class="fa-solid fa-box-archive" aria-hidden="true"></i><?php echo cfg_t('База данных', 'Database'); ?></span>
-			<h1 class="text-3xl font-black text-brand dark:text-white sm:text-4xl"><?php echo cfg_t('Резервные копии', 'Backups'); ?></h1>
-			<p class="mt-2 max-w-2xl text-sm font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Одна кнопка создаёт потоковый дамп, проверяет его SHA-256, структуру и завершённость.', 'One button creates a streaming dump and verifies its SHA-256, structure, and completion.'); ?></p>
+			<span class="mb-3 inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-violet-600 dark:text-violet-400"><i class="fa-solid fa-box-archive" aria-hidden="true"></i><?php echo cfg_t('configurator.common.database'); ?></span>
+			<h1 class="text-3xl font-black text-brand dark:text-white sm:text-4xl"><?php echo cfg_t('configurator.common.backups'); ?></h1>
+			<p class="mt-2 max-w-2xl text-sm font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.backup.one_button_creates_a_streaming_dump_and_verifies_its_sha_256_structure_and_compl'); ?></p>
 		</div>
 		<form method="post" hx-boost="false">
 			<input type="hidden" name="csrf" value="<?php echo htmlspecialchars($backupCsrf, ENT_QUOTES, 'UTF-8'); ?>">
 			<input type="hidden" name="backupAction" value="create">
-			<button type="submit" class="<?php echo $cfgButtonClass; ?>" <?php echo $backupService instanceof BackupService ? '' : 'disabled'; ?>><i class="fa-solid fa-plus" aria-hidden="true"></i><?php echo cfg_t('Создать проверенный бэкап', 'Create verified backup'); ?></button>
+			<button type="submit" class="<?php echo $cfgButtonClass; ?>" <?php echo $backupService instanceof BackupService ? '' : 'disabled'; ?>><i class="fa-solid fa-plus" aria-hidden="true"></i><?php echo cfg_t('configurator.backup.create_verified_backup'); ?></button>
 		</form>
 	</header>
 	<?php if ($backupPreflightBlockers) { ?>
-		<aside class="rounded-lg border border-red-200 bg-red-50 p-5 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100"><strong class="font-extrabold"><?php echo cfg_t('Бэкап заблокирован предварительной проверкой:', 'Backup is blocked by preflight:'); ?></strong><span class="ml-1"><?php echo htmlspecialchars(implode(', ', array_column($backupPreflightBlockers, 'label')), ENT_QUOTES, 'UTF-8'); ?></span> <a class="font-extrabold underline" href="?security"><?php echo cfg_t('Открыть безопасность', 'Open security'); ?></a></aside>
+		<aside class="rounded-lg border border-red-200 bg-red-50 p-5 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100"><strong class="font-extrabold"><?php echo cfg_t('configurator.backup.backup_is_blocked_by_preflight'); ?></strong><span class="ml-1"><?php echo htmlspecialchars(implode(', ', array_column($backupPreflightBlockers, 'label')), ENT_QUOTES, 'UTF-8'); ?></span> <a class="font-extrabold underline" href="?security"><?php echo cfg_t('configurator.common.open_security'); ?></a></aside>
 	<?php } ?>
 
 	<?php if ($backupServiceError !== '') { ?>
-		<aside class="rounded-lg border border-red-200 bg-red-50 p-5 text-sm font-bold text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"><?php echo htmlspecialchars(cfg_t('Бэкап недоступен: ', 'Backup is unavailable: ') . $backupServiceError, ENT_QUOTES, 'UTF-8'); ?></aside>
+		<aside class="rounded-lg border border-red-200 bg-red-50 p-5 text-sm font-bold text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200"><?php echo htmlspecialchars(cfg_t('configurator.backup.backup_is_unavailable') . cfg_t('configurator.common.technical_error'), ENT_QUOTES, 'UTF-8'); ?></aside>
 	<?php } ?>
 
 	<?php if ($backupService instanceof BackupService) { ?><aside class="flex items-start gap-4 rounded-lg border p-5 <?php echo $backupStorageExternal ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100' : 'border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100'; ?>">
 		<i class="fa-solid <?php echo $backupStorageExternal ? 'fa-shield-halved' : 'fa-lock'; ?> mt-0.5" aria-hidden="true"></i>
 		<div class="min-w-0 flex-1">
-			<strong class="block text-sm font-extrabold"><?php echo $backupStorageExternal ? cfg_t('Хранилище вне document root', 'Storage outside document root') : cfg_t('Защищённое локальное хранилище', 'Protected local storage'); ?></strong>
-			<p class="mt-1 text-xs font-medium opacity-80"><?php echo $backupStorageExternal ? cfg_t('Архивы не доступны через веб-сервер.', 'Archives are not reachable through the web server.') : cfg_t('Apache блокирует прямой доступ через backup/.htaccess. Если используется Nginx, добавьте правило ниже в server для сайта.', 'Apache blocks direct access through backup/.htaccess. If you use Nginx, add the rule below to the site server block.'); ?></p>
+			<strong class="block text-sm font-extrabold"><?php echo $backupStorageExternal ? cfg_t('configurator.backup.storage_outside_document_root') : cfg_t('configurator.backup.protected_local_storage'); ?></strong>
+			<p class="mt-1 text-xs font-medium opacity-80"><?php echo $backupStorageExternal ? cfg_t('configurator.backup.archives_are_not_reachable_through_the_web_server') : cfg_t('configurator.backup.apache_blocks_direct_access_through_backup_htaccess_if_you_use_nginx_add_the_rul'); ?></p>
 			<?php if (!$backupStorageExternal) { ?><details class="mt-4 rounded-lg border border-current/15 bg-white/50 p-4 dark:bg-black/10">
-				<summary class="cursor-pointer text-xs font-extrabold"><?php echo cfg_t('Показать правило для Nginx', 'Show the Nginx rule'); ?></summary>
+				<summary class="cursor-pointer text-xs font-extrabold"><?php echo cfg_t('configurator.backup.show_the_nginx_rule'); ?></summary>
 				<pre class="mt-3 overflow-x-auto rounded-lg bg-white/70 p-4 text-xs text-brand dark:bg-black/20 dark:text-white"><code>location ^~ /backup/ {
     deny all;
     return 404;
@@ -152,17 +149,17 @@ include('module/_config/_header.php');
 	</aside><?php } ?>
 
 	<section class="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
-		<header class="border-b border-gray-100 px-6 py-4 dark:border-gray-800"><h2 class="text-lg font-extrabold text-brand dark:text-white"><?php echo cfg_t('Готовые бэкапы', 'Available backups'); ?></h2></header>
+		<header class="border-b border-gray-100 px-6 py-4 dark:border-gray-800"><h2 class="text-lg font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.backup.available_backups'); ?></h2></header>
 		<?php if (!$backupItems) { ?>
-			<p class="p-8 text-center text-sm font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Бэкапов пока нет.', 'No backups yet.'); ?></p>
+			<p class="p-8 text-center text-sm font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.backup.no_backups_yet'); ?></p>
 		<?php } else { ?>
 			<div class="divide-y divide-gray-100 dark:divide-gray-800">
 				<?php foreach ($backupItems as $item) { ?>
 					<article class="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
-						<div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm font-extrabold text-brand dark:text-white"><?php echo htmlspecialchars(gmdate('d.m.Y H:i', (int)strtotime($item['created_at'])), ENT_QUOTES, 'UTF-8'); ?> UTC</strong><span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-extrabold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"><?php echo cfg_t('Проверен', 'Verified'); ?></span></div><p class="mt-2 break-all font-mono text-xs text-gray-400">ID <?php echo htmlspecialchars($item['id'], ENT_QUOTES, 'UTF-8'); ?></p><p class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo htmlspecialchars($backupSize((int)$item['stored_size']) . ' · ' . $item['adapter'] . ' · CMS ' . $item['application_version'] . ' · DB ' . $item['schema_version'] . ' · ' . $item['table_count'] . ' ' . cfg_t('таблиц', 'tables'), ENT_QUOTES, 'UTF-8'); ?></p></div>
+						<div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><strong class="text-sm font-extrabold text-brand dark:text-white"><?php echo htmlspecialchars(gmdate('d.m.Y H:i', (int)strtotime($item['created_at'])), ENT_QUOTES, 'UTF-8'); ?> UTC</strong><span class="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-extrabold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"><?php echo cfg_t('configurator.backup.verified'); ?></span></div><p class="mt-2 break-all font-mono text-xs text-gray-400">ID <?php echo htmlspecialchars($item['id'], ENT_QUOTES, 'UTF-8'); ?></p><p class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo htmlspecialchars($backupSize((int)$item['stored_size']) . ' · ' . $item['adapter'] . ' · CMS ' . $item['application_version'] . ' · DB ' . $item['schema_version'] . ' · ' . $item['table_count'] . ' ' . cfg_t('configurator.backup.tables'), ENT_QUOTES, 'UTF-8'); ?></p></div>
 						<div class="flex flex-wrap gap-2">
-							<form method="post" hx-boost="false"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars($backupCsrf, ENT_QUOTES, 'UTF-8'); ?>"><input type="hidden" name="backupAction" value="download"><input type="hidden" name="backupId" value="<?php echo htmlspecialchars($item['id'], ENT_QUOTES, 'UTF-8'); ?>"><button type="submit" class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-gray-200 px-4 text-xs font-extrabold text-brand dark:border-gray-700 dark:text-white"><i class="fa-solid fa-download" aria-hidden="true"></i><?php echo cfg_t('Скачать', 'Download'); ?></button></form>
-							<form method="post" hx-boost="false" onsubmit="return confirm('<?php echo cfg_t('Удалить этот бэкап?', 'Delete this backup?'); ?>')"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars($backupCsrf, ENT_QUOTES, 'UTF-8'); ?>"><input type="hidden" name="backupAction" value="delete"><input type="hidden" name="backupId" value="<?php echo htmlspecialchars($item['id'], ENT_QUOTES, 'UTF-8'); ?>"><button type="submit" class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-red-200 px-4 text-xs font-extrabold text-red-600 dark:border-red-500/30 dark:text-red-300"><i class="fa-solid fa-trash" aria-hidden="true"></i><?php echo cfg_t('Удалить', 'Delete'); ?></button></form>
+							<form method="post" hx-boost="false"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars($backupCsrf, ENT_QUOTES, 'UTF-8'); ?>"><input type="hidden" name="backupAction" value="download"><input type="hidden" name="backupId" value="<?php echo htmlspecialchars($item['id'], ENT_QUOTES, 'UTF-8'); ?>"><button type="submit" class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-gray-200 px-4 text-xs font-extrabold text-brand dark:border-gray-700 dark:text-white"><i class="fa-solid fa-download" aria-hidden="true"></i><?php echo cfg_t('configurator.backup.download'); ?></button></form>
+							<form method="post" hx-boost="false" data-confirm="<?php echo htmlspecialchars(cfg_t('configurator.backup.delete_this_backup'), ENT_QUOTES, 'UTF-8'); ?>" onsubmit="return confirm(this.dataset.confirm)"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars($backupCsrf, ENT_QUOTES, 'UTF-8'); ?>"><input type="hidden" name="backupAction" value="delete"><input type="hidden" name="backupId" value="<?php echo htmlspecialchars($item['id'], ENT_QUOTES, 'UTF-8'); ?>"><button type="submit" class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-red-200 px-4 text-xs font-extrabold text-red-600 dark:border-red-500/30 dark:text-red-300"><i class="fa-solid fa-trash" aria-hidden="true"></i><?php echo cfg_t('configurator.backup.delete'); ?></button></form>
 						</div>
 					</article>
 				<?php } ?>
@@ -171,12 +168,12 @@ include('module/_config/_header.php');
 	</section>
 
 	<aside id="restore-guide" class="rounded-lg border border-blue-200 bg-blue-50 p-5 text-sm text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
-		<strong class="block font-extrabold"><?php echo cfg_t('Автоматическое восстановление выполняется через CLI', 'Automated restore runs through the CLI'); ?></strong>
-		<p class="mt-1 text-xs font-medium opacity-80"><?php echo cfg_t('Браузер никогда не перезаписывает рабочую базу. Сначала создайте отдельную пустую базу, затем выберите команду для своего способа установки.', 'The browser never overwrites the live database. First create a separate empty database, then choose the command for your installation type.'); ?></p>
+		<strong class="block font-extrabold"><?php echo cfg_t('configurator.backup.automated_restore_runs_through_the_cli'); ?></strong>
+		<p class="mt-1 text-xs font-medium opacity-80"><?php echo cfg_t('configurator.backup.the_browser_never_overwrites_the_live_database_first_create_a_separate_empty_dat'); ?></p>
 		<div class="mt-4 grid gap-4 lg:grid-cols-2">
 			<section class="rounded-lg bg-white/70 p-4 dark:bg-black/20">
-				<strong class="text-xs font-extrabold"><?php echo cfg_t('Обычный сервер без Docker', 'Regular server without Docker'); ?></strong>
-				<p class="mt-1 text-xs font-medium opacity-80"><?php echo cfg_t('Запустите из каталога H-Script через установленный PHP CLI.', 'Run from the H-Script directory using the installed PHP CLI.'); ?></p>
+				<strong class="text-xs font-extrabold"><?php echo cfg_t('configurator.backup.regular_server_without_docker'); ?></strong>
+				<p class="mt-1 text-xs font-medium opacity-80"><?php echo cfg_t('configurator.backup.run_from_the_h_script_directory_using_the_installed_php_cli'); ?></p>
 				<pre class="mt-3 overflow-x-auto text-xs"><code>RESTORE_DB_PASSWORD='...' APP_DOMAIN=example.com \
 php bin/backup.php restore &lt;backup-id&gt; \
   --target-host=127.0.0.1:3306 --target-database=hscript_restore \
@@ -184,7 +181,7 @@ php bin/backup.php restore &lt;backup-id&gt; \
 			</section>
 			<section class="rounded-lg bg-white/70 p-4 dark:bg-black/20">
 				<strong class="text-xs font-extrabold">Docker Compose</strong>
-				<p class="mt-1 text-xs font-medium opacity-80"><?php echo cfg_t('Запустите из каталога, где находится docker-compose.yml.', 'Run from the directory containing docker-compose.yml.'); ?></p>
+				<p class="mt-1 text-xs font-medium opacity-80"><?php echo cfg_t('configurator.backup.run_from_the_directory_containing_docker_compose_yml'); ?></p>
 				<pre class="mt-3 overflow-x-auto text-xs"><code>docker compose exec \
   -e RESTORE_DB_PASSWORD='...' \
   -e APP_DOMAIN=example.com app \
@@ -195,7 +192,7 @@ php bin/backup.php restore &lt;backup-id&gt; \
   --confirm-target=hscript_restore</code></pre>
 			</section>
 		</div>
-		<p class="mt-4 text-xs font-medium opacity-80"><?php echo cfg_t('Если хостинг не предоставляет PHP CLI или SSH, скачайте проверенный SQL и импортируйте его средствами панели хостинга только в отдельную пустую базу.', 'If the host provides no PHP CLI or SSH, download the verified SQL and import it with the hosting control panel into a separate empty database only.'); ?></p>
+		<p class="mt-4 text-xs font-medium opacity-80"><?php echo cfg_t('configurator.backup.if_the_host_provides_no_php_cli_or_ssh_download_the_verified_sql_and_import_it_w'); ?></p>
 	</aside>
 </section>
 

@@ -20,10 +20,17 @@ final class BackupStreamWriter
 		$this->path = $path;
 		$this->compression = $compression;
 		$this->maximumBytes = $maximumBytes;
-		$this->stream = $compression === 'gzip' ? gzopen($path, 'wb6') : fopen($path, 'xb');
+		$mask = umask(0077);
+		try { $this->stream = fopen($path, 'xb'); }
+		finally { umask($mask); }
 		if ($this->stream === false)
 			throw new RuntimeException('Temporary backup file could not be opened');
-		chmod($path, 0640);
+		if ($compression === 'gzip' && stream_filter_append($this->stream, 'zlib.deflate', STREAM_FILTER_WRITE, array('window' => 31, 'level' => 6)) === false)
+		{
+			fclose($this->stream);
+			$this->closed = true;
+			throw new RuntimeException('Backup compression filter is unavailable');
+		}
 	}
 
 	public function write(string $chunk): void
@@ -36,9 +43,7 @@ final class BackupStreamWriter
 		$offset = 0;
 		while ($offset < $length)
 		{
-			$written = $this->compression === 'gzip'
-				? gzwrite($this->stream, substr($chunk, $offset))
-				: fwrite($this->stream, substr($chunk, $offset));
+			$written = fwrite($this->stream, substr($chunk, $offset));
 			if ($written === false || $written === 0)
 				throw new RuntimeException('Backup stream could not be written');
 			$offset += $written;
@@ -50,7 +55,7 @@ final class BackupStreamWriter
 	{
 		if (!$this->closed)
 		{
-			$closed = $this->compression === 'gzip' ? gzclose($this->stream) : fclose($this->stream);
+			$closed = fclose($this->stream);
 			$this->closed = true;
 			if (!$closed)
 				throw new RuntimeException('Backup stream could not be finalized');
@@ -71,10 +76,7 @@ final class BackupStreamWriter
 	{
 		if (!$this->closed && is_resource($this->stream))
 		{
-			if ($this->compression === 'gzip')
-				gzclose($this->stream);
-			else
-				fclose($this->stream);
+			fclose($this->stream);
 		}
 	}
 }

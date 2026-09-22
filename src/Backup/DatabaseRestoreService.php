@@ -52,7 +52,19 @@ final class DatabaseRestoreService
 				throw new RuntimeException('Target database is not empty; use --allow-non-empty-target explicitly');
 
 			$archive = $this->backups->archive($backupId);
-			$this->streamIntoMysql($archive['path'], $archive['manifest']['compression'], $target);
+			try
+			{
+				$this->streamIntoMysql($archive['path'], $archive['manifest']['compression'], $target);
+			}
+			catch (Throwable $mysqlError)
+			{
+				error_log('mysql restore client failed; using PDO stream fallback');
+				(new PdoStreamingRestoreAdapter())->restore(
+					$archive['path'],
+					$archive['manifest']['compression'],
+					$target
+				);
+			}
 			return $this->restoredState($targetDatabase, $target);
 		}
 		finally
@@ -118,7 +130,7 @@ final class DatabaseRestoreService
 				}
 				if ($write && $pending !== '')
 				{
-					$written = fwrite($pipes[0], $pending);
+					$written = $this->writeProcessInput($pipes[0], $pending);
 					if ($written === false || $written === 0)
 					{
 						$details = stream_get_contents($pipes[2]);
@@ -168,6 +180,21 @@ final class DatabaseRestoreService
 			{
 				if ($compression === 'gzip') gzclose($reader); else fclose($reader);
 			}
+		}
+	}
+
+	private function writeProcessInput(mixed $stream, string $data): int|false
+	{
+		set_error_handler(static function (int $severity, string $message): never {
+			throw new ErrorException($message, 0, $severity);
+		});
+		try
+		{
+			return fwrite($stream, $data);
+		}
+		finally
+		{
+			restore_error_handler();
 		}
 	}
 

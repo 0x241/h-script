@@ -4,6 +4,8 @@ use HScript\Http\ApiRateLimiter;
 use HScript\Http\ApiRequest;
 use HScript\Http\ApiResponse;
 use HScript\Http\ApiTokenRepository;
+use HScript\Observability\CorrelationContext;
+use HScript\Observability\StructuredLogger;
 
 $_smode = 2;
 $_auth = 0;
@@ -58,6 +60,7 @@ try
 			header('WWW-Authenticate: Bearer realm="H-Script API", error="invalid_token"');
 		ApiResponse::error('invalid_token', 'The Bearer token is invalid or expired', 401);
 	}
+	CorrelationContext::setActorClass('service');
 
 	$_currs = $db->fetchIDRows($db->select(
 		'Currs LEFT JOIN Wallets ON wcID=cID and wuID=?d',
@@ -69,7 +72,7 @@ try
 }
 catch (Throwable $e)
 {
-	error_log('API bootstrap failed: ' . $e->getMessage());
+	StructuredLogger::event('error', 'api', 'api_bootstrap_failed', 'failure', 0, '', array('error_class' => $e::class));
 	ApiResponse::error('api_unavailable', 'The API is temporarily unavailable', 503);
 }
 

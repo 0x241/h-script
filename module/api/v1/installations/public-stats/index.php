@@ -4,6 +4,8 @@ use HScript\Http\ApiResponse;
 
 require dirname(__DIR__) . '/bootstrap.php';
 telemetryApiRequireMethod(array('GET'));
+telemetryApiRequireSchema();
+telemetryApiApplyRateLimit('telemetry-ip', HScript\Http\ApiRequest::clientIp());
 
 if (!headers_sent())
 	header('Cache-Control: public, max-age=300, stale-while-revalidate=60');

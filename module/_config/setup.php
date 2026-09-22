@@ -9,14 +9,14 @@ if (isset_IN('bSave')) {
 	catch (Throwable)
 	{
 		$cfgSecurity->audit('connection_save', 'failed', $cfgClientIp, array('reason' => 'csrf'));
-		addMsg(cfg_t('Сессия формы устарела. Повторите действие.', 'The form session expired. Try again.'));
+		addMsg(cfg_t('configurator.common.the_form_session_expired_try_again'), true);
 		goToURL($_cfg['cfg_link'] . '?setup');
 	}
 
 	function chkwr($n)
 	{
 		if (file_exists($n) and !is_writeable($n))
-			addMsg('Please set 777 permissions for "' . $n . '"');
+			addMsg(cfg_t('configurator.common.file_not_writable', array('file' => $n)), true);
 	}
 	chkwr('logs');
 	chkwr('module');
@@ -46,30 +46,30 @@ if (isset_IN('bSave')) {
 		);
 		fclose($f);
 		require($fn);
-		addMsg(cfg_t('Настройки успешно сохранены!', 'Configuration saved!'));
-		
-		if (Mailer::sendNow(_IN('sysMail'), 'Test mail', 'This is a test mail from ' . $_GS['root_url']))
-			addMsg('Test mail sended to "' . _IN('sysMail') . '"');
+		addMsg(cfg_t('configurator.setup.configuration_saved'));
+
+		if (Mailer::sendNow(_IN('sysMail'), cfg_t('configurator.setup.test_mail_subject'), cfg_t('configurator.setup.test_mail_body', array('url' => $_GS['root_url']))))
+			addMsg(cfg_t('configurator.setup.test_mail_sent', array('email' => _IN('sysMail'))));
 		else
-			addMsg('Can\'t send test mail to "' . _IN('sysMail') .'"');
-		
+			addMsg(cfg_t('configurator.setup.test_mail_failed', array('email' => _IN('sysMail'))), true);
+
 		if (is_file('tpl_c/nt_db') && !unlink('tpl_c/nt_db'))
-			addMsg('Can\'t remove "tpl_c/nt_db"');
+			addMsg(cfg_t('configurator.common.file_not_removed', array('file' => 'tpl_c/nt_db')), true);
 
 		require_once('module/dbinit.php');
 		$setupDatabaseIsEmpty = count($db->fetchRows($db->query('SHOW FULL TABLES'))) === 0;
 		$cfgSecurity->audit('connection_save', 'success', $cfgClientIp);
 
-			addMsg('Please do not forget to make "_config.php" writable only during configuration');
-	} 
+			addMsg(cfg_t('configurator.setup.config_permissions_reminder'));
+	}
 	else
 	{
 		$cfgSecurity->audit('connection_save', 'failed', $cfgClientIp, array('reason' => 'write'));
-		addMsg("Can't open \"$fn\" for writing");
+		addMsg(cfg_t('configurator.common.file_not_writable', array('file' => $fn)), true);
 	}
-		
+
 	goToURL($_cfg['cfg_link'] . ($setupDatabaseIsEmpty ? '?install' : '?modules'));
-	
+
 }
 
 include('module/_config/_header.php');
@@ -78,9 +78,9 @@ include('module/_config/_header.php');
 
 <section class="space-y-8">
 	<header>
-		<span class="mb-3 inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400"><i class="fa-solid fa-sliders" aria-hidden="true"></i><?php echo cfg_t('Окружение', 'Environment'); ?></span>
-		<h1 class="text-3xl font-black text-brand dark:text-white sm:text-4xl"><?php echo cfg_t('Настройки подключения', 'Connection setup'); ?></h1>
-		<p class="mt-2 max-w-3xl text-sm font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Системная почта, приватный путь конфигуратора и параметры подключения к базе данных.', 'System mail, private configurator path and database connection parameters.'); ?></p>
+		<span class="mb-3 inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400"><i class="fa-solid fa-sliders" aria-hidden="true"></i><?php echo cfg_t('configurator.setup.environment'); ?></span>
+		<h1 class="text-3xl font-black text-brand dark:text-white sm:text-4xl"><?php echo cfg_t('configurator.setup.connection_setup'); ?></h1>
+		<p class="mt-2 max-w-3xl text-sm font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.setup.system_mail_private_configurator_path_and_database_connection_parameters'); ?></p>
 	</header>
 
 	<form method="post" class="space-y-6">
@@ -88,18 +88,18 @@ include('module/_config/_header.php');
 		<section class="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
 			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
 				<span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-gears" aria-hidden="true"></i></span>
-				<div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('Системные параметры', 'System parameters'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Контакты и адрес конфигуратора', 'Contacts and configurator route'); ?></p></div>
+				<div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.setup.system_parameters'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.setup.contacts_and_configurator_route'); ?></p></div>
 			</header>
 			<div class="grid gap-6 p-6 md:grid-cols-2">
 				<label class="block">
-					<span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('E-mail центра оповещения', 'Notification e-mail'); ?></span>
+					<span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.setup.notification_e_mail'); ?></span>
 					<input name="sysMail" value="<?php echo htmlspecialchars(isset($_cfg['sys_mail']) ? $_cfg['sys_mail'] : ''); ?>" type="email" class="<?php echo $cfgInputClass; ?>">
-					<small class="mt-2 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Системные и технические уведомления.', 'System and technical notifications.'); ?></small>
+					<small class="mt-2 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.setup.system_and_technical_notifications'); ?></small>
 				</label>
 				<label class="block">
-					<span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('Ссылка на конфигуратор', 'Configurator route'); ?></span>
+					<span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.setup.configurator_route'); ?></span>
 					<input name="cfgLink" value="<?php echo htmlspecialchars(!empty($_cfg['cfg_link']) ? $_cfg['cfg_link'] : '_cfg'); ?>" type="text" class="<?php echo $cfgInputClass; ?>">
-					<small class="mt-2 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Приватный путь без начального слеша.', 'Private path without a leading slash.'); ?></small>
+					<small class="mt-2 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.setup.private_path_without_a_leading_slash'); ?></small>
 				</label>
 			</div>
 		</section>
@@ -107,19 +107,19 @@ include('module/_config/_header.php');
 		<section class="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
 			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
 				<span class="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"><i class="fa-solid fa-database" aria-hidden="true"></i></span>
-				<div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('База данных', 'Database'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('MySQL / MariaDB подключение', 'MySQL / MariaDB connection'); ?></p></div>
+				<div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.common.database'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.setup.mysql_mariadb_connection'); ?></p></div>
 			</header>
 			<div class="grid gap-6 p-6 md:grid-cols-2">
-				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('Хост', 'Host'); ?></span><input name="dbHost" value="<?php echo htmlspecialchars(!empty($_cfg['db_host']) ? $_cfg['db_host'] : 'localhost'); ?>" type="text" class="<?php echo $cfgInputClass; ?>"></label>
-				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('Имя базы данных', 'Database name'); ?></span><input name="dbName" value="<?php echo htmlspecialchars(isset($_cfg['db_name']) ? $_cfg['db_name'] : ''); ?>" type="text" class="<?php echo $cfgInputClass; ?>"></label>
-				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('Пользователь', 'User'); ?></span><input name="dbLogin" value="" type="text" autocomplete="username" class="<?php echo $cfgInputClass; ?>"><small class="mt-2 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Введите заново для сохранения.', 'Enter again before saving.'); ?></small></label>
-				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('Пароль', 'Password'); ?></span><input name="dbPass" value="" type="password" autocomplete="new-password" class="<?php echo $cfgInputClass; ?>"><small class="mt-2 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Пароль не выводится из конфигурации.', 'The stored password is never displayed.'); ?></small></label>
-				<label class="block md:col-span-2"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('Тип хранилища', 'Storage engine'); ?></span><select name="dbType" class="<?php echo $cfgInputClass; ?>"><option value="0"<?php if (empty($_cfg['db_type'])) echo ' selected'; ?>><?php echo cfg_t('По умолчанию', 'Default'); ?></option><option value="1"<?php if (isset($_cfg['db_type']) && intval($_cfg['db_type']) === 1) echo ' selected'; ?>>InnoDB</option><option value="2"<?php if (isset($_cfg['db_type']) && intval($_cfg['db_type']) === 2) echo ' selected'; ?>>MyISAM</option></select></label>
+				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.setup.host'); ?></span><input name="dbHost" value="<?php echo htmlspecialchars(!empty($_cfg['db_host']) ? $_cfg['db_host'] : 'localhost'); ?>" type="text" class="<?php echo $cfgInputClass; ?>"></label>
+				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.setup.database_name'); ?></span><input name="dbName" value="<?php echo htmlspecialchars(isset($_cfg['db_name']) ? $_cfg['db_name'] : ''); ?>" type="text" class="<?php echo $cfgInputClass; ?>"></label>
+				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.setup.user'); ?></span><input name="dbLogin" value="" type="text" autocomplete="username" class="<?php echo $cfgInputClass; ?>"><small class="mt-2 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.setup.enter_again_before_saving'); ?></small></label>
+				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.common.password'); ?></span><input name="dbPass" value="" type="password" autocomplete="new-password" class="<?php echo $cfgInputClass; ?>"><small class="mt-2 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.setup.the_stored_password_is_never_displayed'); ?></small></label>
+				<label class="block md:col-span-2"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.setup.storage_engine'); ?></span><select name="dbType" class="<?php echo $cfgInputClass; ?>"><option value="0"<?php if (empty($_cfg['db_type'])) echo ' selected'; ?>><?php echo cfg_t('configurator.setup.default'); ?></option><option value="1"<?php if (isset($_cfg['db_type']) && intval($_cfg['db_type']) === 1) echo ' selected'; ?>>InnoDB</option><option value="2"<?php if (isset($_cfg['db_type']) && intval($_cfg['db_type']) === 2) echo ' selected'; ?>>MyISAM</option></select></label>
 			</div>
 		</section>
 
 		<div class="flex justify-center rounded-lg border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
-			<button class="<?php echo $cfgButtonClass; ?>" name="bSave" value="1" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i><?php echo cfg_t('Сохранить настройки', 'Save configuration'); ?></button>
+			<button class="<?php echo $cfgButtonClass; ?>" name="bSave" value="1" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i><?php echo cfg_t('configurator.setup.save_configuration'); ?></button>
 		</div>
 	</form>
 </section>
@@ -127,5 +127,5 @@ include('module/_config/_header.php');
 <?php
 
 include('module/_config/_footer.php');
-	
+
 ?>

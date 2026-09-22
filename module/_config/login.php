@@ -10,7 +10,7 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' && isse
 	catch (Throwable)
 	{
 		$cfgSecurity->audit('logout', 'failed', $cfgClientIp, array('reason' => 'csrf'));
-		addMsg(cfg_t('Сессия формы устарела. Повторите действие.', 'The form session expired. Try again.'));
+		addMsg(cfg_t('configurator.common.the_form_session_expired_try_again'), true);
 		goToURL($_cfg['cfg_link']);
 	}
 	$cfgSecurity->audit('logout', 'success', $cfgClientIp);
@@ -29,7 +29,7 @@ if (isset_IN('bLogin'))
 	catch (Throwable)
 	{
 		$cfgSecurity->audit('login', 'failed', $cfgClientIp, array('reason' => 'csrf'));
-		addMsg(cfg_t('Сессия формы устарела. Повторите вход.', 'The form session expired. Try signing in again.'));
+		addMsg(cfg_t('configurator.login.the_form_session_expired_try_signing_in_again'), true);
 		goToURL($_cfg['cfg_link'] . '?login');
 	}
 	if (cfgPasswordVerify(_IN('pass'), $pass, $_GS['domain']))
@@ -44,7 +44,7 @@ if (isset_IN('bLogin'))
 	else
 	{
 		$cfgSecurity->audit('login', 'failed', $cfgClientIp, array('reason' => 'password'));
-		addMsg('Wrong password');
+		addMsg(cfg_t('configurator.login.wrong_password'), true);
 	}
 }
 
@@ -72,7 +72,7 @@ include('module/_config/_header.php');
 						<?php } ?>
 					</div>
 				</details>
-				<a href="<?php echo cfg_url('login', array('theme' => $cfgNextTheme)); ?>" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition hover:border-black/10 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" aria-label="<?php echo cfg_t('Сменить тему', 'Toggle theme'); ?>">
+				<a href="<?php echo cfg_url('login', array('theme' => $cfgNextTheme)); ?>" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition hover:border-black/10 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" aria-label="<?php echo cfg_t('configurator.common.toggle_theme'); ?>">
 					<i class="fa-solid fa-moon block text-lg dark:!hidden" aria-hidden="true"></i><i class="fa-solid fa-sun !hidden text-lg text-yellow-400 dark:!block" aria-hidden="true"></i>
 				</a>
 			</div>
@@ -80,12 +80,12 @@ include('module/_config/_header.php');
 
 		<div class="mx-auto my-auto w-full max-w-md">
 			<span class="text-xs font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400">H-Script Configurator</span>
-			<h1 class="mt-2 text-3xl font-bold text-brand dark:text-white"><?php echo cfg_t('Вход в конфигуратор', 'Configurator sign in'); ?></h1>
-			<p class="mb-8 mt-3 font-medium leading-7 text-gray-500 dark:text-gray-400"><?php echo cfg_t('Войдите для управления установкой и системными настройками.', 'Sign in to manage installation and system settings.'); ?></p>
+			<h1 class="mt-2 text-3xl font-bold text-brand dark:text-white"><?php echo cfg_t('configurator.login.configurator_sign_in'); ?></h1>
+			<p class="mb-8 mt-3 font-medium leading-7 text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.login.sign_in_to_manage_installation_and_system_settings'); ?></p>
 			<form method="post" class="space-y-5">
 				<input type="hidden" name="csrf" value="<?php echo htmlspecialchars(ConfiguratorCsrf::token(), ENT_QUOTES, 'UTF-8'); ?>">
-				<label class="block"><span class="mb-2 block text-sm font-bold text-brand dark:text-gray-200"><?php echo cfg_t('Пароль', 'Password'); ?></span><input name="pass" value="" type="password" autocomplete="current-password" placeholder="••••••••" required autofocus class="<?php echo $cfgInputClass; ?> !rounded-2xl px-5 py-4"></label>
-				<button class="<?php echo $cfgButtonClass; ?> w-full !rounded-2xl py-4" name="bLogin" value="1" type="submit"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i><?php echo cfg_t('Войти в систему', 'Sign in'); ?></button>
+				<label class="block"><span class="mb-2 block text-sm font-bold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.common.password'); ?></span><input name="pass" value="" type="password" autocomplete="current-password" placeholder="••••••••" required autofocus class="<?php echo $cfgInputClass; ?> !rounded-2xl px-5 py-4"></label>
+				<button class="<?php echo $cfgButtonClass; ?> w-full !rounded-2xl py-4" name="bLogin" value="1" type="submit"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i><?php echo cfg_t('configurator.login.sign_in'); ?></button>
 			</form>
 		</div>
 
@@ -95,8 +95,8 @@ include('module/_config/_header.php');
 	<aside class="relative hidden w-1/2 flex-col items-center justify-center overflow-hidden bg-brand p-12 lg:flex">
 		<div class="relative z-10 max-w-lg text-center">
 			<div class="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-3xl border border-white/20 bg-white/10 text-white shadow-2xl"><i class="fa-solid fa-shield-halved text-4xl" aria-hidden="true"></i></div>
-			<h2 class="mb-6 text-4xl font-bold text-white"><?php echo cfg_t('Системный доступ', 'System access'); ?></h2>
-			<p class="text-xl font-medium leading-relaxed text-gray-400"><?php echo cfg_t('Конфигуратор управляет подключением к базе, установкой и обновлениями. Доступ должен быть только у доверенных администраторов.', 'The configurator controls database connectivity, installation and updates. Access should be limited to trusted administrators.'); ?></p>
+			<h2 class="mb-6 text-4xl font-bold text-white"><?php echo cfg_t('configurator.login.system_access'); ?></h2>
+			<p class="text-xl font-medium leading-relaxed text-gray-400"><?php echo cfg_t('configurator.login.the_configurator_controls_database_connectivity_installation_and_updates_access'); ?></p>
 		</div>
 	</aside>
 </div>

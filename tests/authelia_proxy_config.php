@@ -49,6 +49,9 @@ foreach (array('HS_PUBLIC_HOST', 'AUTHELIA_PUBLIC_HOST', 'HS_TAILSCALE_IP', 'HS_
 	autheliaProxyAssert(str_contains($topology, $variable . '='), 'Topology environment variable is missing: ' . $variable);
 autheliaProxyAssert(str_contains($topology, 'APP_BIND_IP=${HS_TAILSCALE_IP}') && str_contains($topology, 'TRUSTED_PROXY_CIDRS=${GATEWAY_TAILSCALE_IP}/32'), 'H-Script topology does not derive its bind or trusted proxy address');
 autheliaProxyAssert(str_contains($readme, "envsubst '\${HS_PUBLIC_HOST} \${AUTHELIA_PUBLIC_HOST}"), 'Documented Nginx rendering does not restrict envsubst variables');
+foreach (array('/api/v1/installations/register', '/api/v1/installations/report', '/api/v1/installations/domain-verification', '/api/v1/installations/domain-proof', '/balance/status', '/cron?auto') as $bypassExample)
+	autheliaProxyAssert(str_contains($readme, $bypassExample), 'Mandatory machine-route bypass example is missing: ' . $bypassExample);
+autheliaProxyAssert(str_contains($readme, 'по умолчанию отключена'), 'Documentation does not state that Authelia is disabled by default');
 
 foreach (array('server:', 'authentication_backend:', 'session:', 'storage:', 'notifier:', 'access_control:') as $section)
 	autheliaProxyAssert(str_contains($autheliaConfig, $section), 'Full Authelia example is missing section: ' . $section);

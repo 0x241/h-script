@@ -2,7 +2,6 @@
 
 namespace HScript\Backup;
 
-use HScript\Application;
 use HScript\Database\Connection;
 use HScript\Update\SchemaStateRepository;
 use HScript\Update\UpdateLock;
@@ -52,14 +51,14 @@ final class BackupService
 		if (!in_array($compression, array('gzip', 'plain'), true))
 			throw new RuntimeException('Backup compression must be gzip or plain');
 		$state = new SchemaStateRepository($this->database);
-		$schemaVersion = $state->currentVersion();
-		if ($schemaVersion === null)
-			throw new RuntimeException('Explicit schema version must be initialized before backup');
-
 		$lock = new UpdateLock($this->database);
 		$lock->acquire();
 		try
 		{
+			$schemaVersion = $state->currentVersion();
+			$applicationVersion = $state->installedApplicationVersion();
+			if ($schemaVersion === null || $applicationVersion === null)
+				throw new RuntimeException('Explicit schema/application versions must be initialized before backup');
 			$inspector = new DatabaseInspector($this->database);
 			$unsupported = $inspector->unsupportedObjects();
 			if ($unsupported)
@@ -111,7 +110,7 @@ final class BackupService
 						'created_at' => $createdAt,
 						'verified_at' => gmdate('Y-m-d\TH:i:s\Z'),
 						'database_sha256' => $this->credentials->databaseHash(),
-						'application_version' => Application::version(),
+						'application_version' => $applicationVersion,
 						'schema_version' => $schemaVersion,
 						'archive' => $archive,
 						'compression' => $compression,

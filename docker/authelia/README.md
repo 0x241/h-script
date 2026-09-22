@@ -4,6 +4,11 @@
 Authelia работают на публичном VPS-шлюзе, а H-Script — на втором VPS и доступен
 шлюзу только через Tailscale.
 
+Authelia опциональна и по умолчанию отключена: сервис не входит в
+`docker-compose.yml`, Composer-зависимости или runtime H-Script. Без отдельной
+установки шлюза продолжают действовать встроенные пароль конфигуратора и
+авторизация администратора.
+
 ## Файлы
 
 - `nginx/hscript.conf.template` — полный виртуальный хост Nginx для H-Script и
@@ -64,6 +69,25 @@ sudo systemctl reload nginx
 разрешать этот порт только Tailscale IP шлюза, а `TRUSTED_PROXY_CIDRS` — содержать
 точный `/32` адрес шлюза. Authelia не заменяет встроенный пароль конфигуратора и
 авторизацию администратора H-Script.
+
+Шаблон Nginx вызывает `auth_request` только для закреплённых
+регистрозависимых путей `/_cfg` и `/admin`. Общий `location /` остаётся
+публичным и поэтому является обязательным bypass для машинных маршрутов,
+которые не могут пройти интерактивную 2FA. Проверьте как минимум:
+
+```text
+POST /api/v1/installations/register   # установка регистрируется по Bearer hsi_
+POST /api/v1/installations/report     # ежедневный подписанный отчёт
+POST /api/v1/installations/domain-verification # challenge/проверка по Bearer hsi_
+GET  /api/v1/installations/domain-proof # временный публичный challenge, без секретов
+POST /balance/status                  # callback платёжного провайдера
+GET  /cron?auto                       # внешний планировщик
+```
+
+Не добавляйте `/api/v1`, `/balance/status` или `/cron` в защищённые regex
+Nginx/Authelia. Их собственная проверка Bearer token, подписи callback или
+внутреннего scheduler-флага остаётся обязательной. После изменения шаблона
+проверьте, что `auth_request` встречается только в двух защищённых location.
 
 Если `.env` для H-Script формирует GitLab deployment job, добавьте
 `TRUSTED_PROXY_CIDRS` как environment-scoped protected variable со значением

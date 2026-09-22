@@ -65,9 +65,9 @@ Use a comma-separated scope list instead of `*` to restrict a token. Available
 scopes are `user:read`, `balance:read`, `operations:read`, `deposit:write`, and
 `withdraw:write`.
 
-Add the central installation registry and daily aggregate reports. Run this
-only on the central H-Script collector; ordinary installations do not need to
-enable the collector API:
+The legacy SQL bootstrap below creates the original central installation
+registry. Run it only when reconstructing a pre-versioned collector database;
+ordinary current updates must not invoke it directly:
 
 ```sh
 docker compose exec -T database sh -c 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" "$MYSQL_DATABASE"' < migrations/20260725_add_installation_telemetry.sql
@@ -75,17 +75,29 @@ docker compose exec -T database sh -c 'mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD"
 
 После перехода на явные версии конфигуратор больше не перестраивает таблицы по
 `_dbstru.php`. Существующая установка один раз фиксирует фактические исходные
-версии командой
-`APP_DOMAIN=example.com php bin/update.php bootstrap --acknowledge-application=1.0.1 --acknowledge-schema=1.0.0`,
-после чего
+версии командой `APP_DOMAIN=example.com php bin/update.php bootstrap
+--acknowledge-application=<installed-cms-version>
+--acknowledge-schema=1.0.0`, после чего
 новые изменения схемы проходят только через `migrations/versioned` и общий
 реестр. Никогда не используйте `APP_AUTO_INSTALL` как механизм миграции: он
 работает только при первичной инициализации пустой базы.
 
-The migration creates `Installations`, `InstallationReports`, and
-`TelemetryServiceTokens`. The central `/admin/setup/collector` route reads the
-database directly and issues a separate hashed `hst_…` token per external
-service. It is available only when the current administrator has `uLevel=99`,
-collector mode is enabled, and the request domain equals
-`TELEMETRY_COLLECTOR_DOMAIN`. Ordinary installations keep only their local
-outbound telemetry page at `/admin/setup/telemetry`.
+`versioned/202609101200_telemetry_ingestion.php` is the current
+backup-required transition from schema `1.0.0` to `1.0.1`. It upgrades or
+creates `Installations`, `InstallationReports`, and
+`TelemetryServiceTokens`; adds `InstallationIpHistory`,
+`InstallationDomainEvents`, and `TelemetryIngestionCounters`; backfills report
+sequence/hash metadata; and installs the indexes used by bounded collector
+lists. Apply it only through the authenticated Configurator/common update
+service. Docker uses the bundled migration action after the new exact image is
+running; shared hosting applies it as part of the verified official archive.
+The service acquires the migration lock and refuses this transition until a
+verified backup has been attached.
+
+The central `/admin/setup/collector` route reads the database directly and
+issues a separate hashed `hst_…` token per external service. It is available
+only when the current administrator has `uLevel=99`, collector mode and
+ingestion are enabled, the request domain equals
+`TELEMETRY_COLLECTOR_DOMAIN`, and schema `1.0.1` is current. Ordinary
+installations keep only their local outbound telemetry page at
+`/admin/setup/telemetry`.

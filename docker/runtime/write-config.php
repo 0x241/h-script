@@ -50,6 +50,7 @@ $cfg = array(
         'https://h-script.com/api/v1/installations'
     ),
     'telemetry_collector_enabled' => hs_env('TELEMETRY_COLLECTOR_ENABLED', '0'),
+    'telemetry_ingestion_enabled' => hs_env('TELEMETRY_INGESTION_ENABLED', '0'),
     'telemetry_collector_domain' => hs_env('TELEMETRY_COLLECTOR_DOMAIN', 'h-script.com'),
     'telemetry_rate_limit' => hs_env('TELEMETRY_RATE_LIMIT', '30')
 );

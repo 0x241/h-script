@@ -2,7 +2,10 @@
 
 use HScript\Template\View;
 use HScript\Telemetry\CollectorMode;
+use HScript\Telemetry\CollectorSchema;
+use HScript\Telemetry\InstallationListQuery;
 use HScript\Telemetry\InstallationRepository;
+use HScript\Telemetry\ServiceTokenListQuery;
 use HScript\Telemetry\TelemetryServiceTokenRepository;
 
 $_auth = 99;
@@ -10,6 +13,35 @@ require_once('module/auth.php');
 
 if (!CollectorMode::enabled($_cfg, (string)($_GS['domain'] ?? '')))
 	View::showInfo('*Denied', moduleToLink('admin'));
+$collectorSchemaReady = CollectorSchema::ready($db);
+$collectorQueryInput = array();
+foreach (array('page', 'per_page', 'q', 'version', 'connection', 'sharing', 'dns_status', 'ip') as $field)
+	if (array_key_exists($field, $_GET))
+		$collectorQueryInput[$field] = $_GET[$field];
+$collectorFilterError = '';
+try
+{
+	$collectorListQuery = InstallationListQuery::fromArray($collectorQueryInput);
+}
+catch (InvalidArgumentException $exception)
+{
+	$collectorFilterError = 'Некорректный фильтр: ' . str_replace('query_invalid:', '', $exception->getMessage());
+	$collectorListQuery = InstallationListQuery::fromArray(array());
+}
+$tokenQueryInput = array();
+foreach (array('token_page', 'token_per_page', 'token_q', 'token_status') as $field)
+	if (array_key_exists($field, $_GET))
+		$tokenQueryInput[$field] = $_GET[$field];
+$tokenFilterError = '';
+try
+{
+	$tokenListQuery = ServiceTokenListQuery::fromArray($tokenQueryInput);
+}
+catch (InvalidArgumentException $exception)
+{
+	$tokenFilterError = 'Некорректный фильтр service token: ' . str_replace('query_invalid:', '', $exception->getMessage());
+	$tokenListQuery = ServiceTokenListQuery::fromArray(array());
+}
 
 $redirect = static function (): void {
 	goToURL(moduleToLink('system/admin/setup_collector'));
@@ -57,6 +89,8 @@ if ($action !== '')
 {
 	try
 	{
+		if (!$collectorSchemaReady)
+			throw new RuntimeException('Collector schema is not ready');
 		$tokenRepository = new TelemetryServiceTokenRepository($db);
 		if ($action === 'create')
 		{
@@ -139,6 +173,9 @@ $collector = array(
 );
 $tokens = array();
 $tokenCounts = array('active' => 0, 'paused' => 0, 'expired' => 0, 'revoked' => 0);
+$tokenList = array(
+	'pagination' => array('page' => 1, 'per_page' => 25, 'total' => 0, 'total_pages' => 0),
+);
 $collectorAccounts = (array)$db->fetchRows($db->select(
 	'Users',
 	'uID, uLogin, uMail, uState',
@@ -147,8 +184,7 @@ $collectorAccounts = (array)$db->fetchRows($db->select(
 	'uLogin'
 ));
 $collectorUsers = array();
-$collectorAccountIndex = array();
-foreach ($collectorAccounts as $accountIndex => &$account)
+foreach ($collectorAccounts as &$account)
 {
 	$account['TokenTotal'] = 0;
 	$account['TokenActive'] = 0;
@@ -165,91 +201,169 @@ foreach ($collectorAccounts as $accountIndex => &$account)
 		4 => 'Резерв',
 		default => 'Не активен',
 	};
-	$collectorAccountIndex[(int)$account['uID']] = $accountIndex;
 	if ((int)$account['uState'] === 1)
 		$collectorUsers[] = $account;
 }
 unset($account);
 
-try
+if ($collectorSchemaReady)
 {
-	$collector = array_merge(
-		$collector,
-		(new InstallationRepository($db))->dashboard(),
-		array('ready' => true)
-	);
-	$tokens = (new TelemetryServiceTokenRepository($db))->listAll();
-	foreach ($tokens as &$token)
+	try
 	{
-		if (empty($token['uLogin']))
-			$token['uLogin'] = '[администратор удалён]';
-		$token['ExpiresInput'] = (int)$token['tstExpiresAt'] > 0
-			? gmdate('Y-m-d\TH:i', (int)$token['tstExpiresAt'])
-			: '';
-		$token['CreatedText'] = $formatDate($token['tstCreatedAt']);
-		$token['ExpiresText'] = $formatDate($token['tstExpiresAt'], 'Без срока');
-		$token['LastUsedText'] = $formatDate($token['tstLastUsedAt'], 'Не использовался');
-		$token['Expired'] = (int)$token['tstExpiresAt'] > 0
-			&& (int)$token['tstExpiresAt'] <= time();
-		if ((int)$token['tstState'] === 1 && !$token['Expired'])
-			$tokenCounts['active']++;
-		elseif ((int)$token['tstState'] === 2)
-			$tokenCounts['paused']++;
-		elseif ($token['Expired'] && (int)$token['tstState'] !== 0)
-			$tokenCounts['expired']++;
-		else
-			$tokenCounts['revoked']++;
-
-		$ownerId = (int)$token['tstuID'];
-		if (isset($collectorAccountIndex[$ownerId]))
+		$collector = array_merge(
+			$collector,
+			(new InstallationRepository($db))->dashboard($collectorListQuery, true),
+			array('ready' => true)
+		);
+		$tokenRepository = new TelemetryServiceTokenRepository($db);
+		$tokenList = $tokenRepository->listPage($tokenListQuery);
+		$tokens = $tokenList['tokens'];
+		$tokenCounts = $tokenList['summary'];
+		$ownerSummaries = $tokenRepository->ownerSummaries();
+		foreach ($collectorAccounts as &$account)
 		{
-			$accountIndex = $collectorAccountIndex[$ownerId];
-			$collectorAccounts[$accountIndex]['TokenTotal']++;
-			$collectorAccounts[$accountIndex]['LastTokenCreatedAt'] = max(
-				(int)$collectorAccounts[$accountIndex]['LastTokenCreatedAt'],
-				(int)$token['tstCreatedAt']
-			);
-			$collectorAccounts[$accountIndex]['LastTokenUsedAt'] = max(
-				(int)$collectorAccounts[$accountIndex]['LastTokenUsedAt'],
-				(int)$token['tstLastUsedAt']
-			);
-			if ((int)$token['tstState'] === 1 && !$token['Expired'])
-				$collectorAccounts[$accountIndex]['TokenActive']++;
-			elseif ((int)$token['tstState'] === 2)
-				$collectorAccounts[$accountIndex]['TokenPaused']++;
-			else
-				$collectorAccounts[$accountIndex]['TokenRevoked']++;
+			$owner = $ownerSummaries[(int)$account['uID']] ?? array();
+			$account['TokenTotal'] = (int)($owner['token_total'] ?? 0);
+			$account['TokenActive'] = (int)($owner['token_active'] ?? 0);
+			$account['TokenPaused'] = (int)($owner['token_paused'] ?? 0);
+			$account['TokenRevoked'] = (int)($owner['token_revoked'] ?? 0);
+			$account['LastTokenCreatedAt'] = (int)($owner['last_created_at'] ?? 0);
+			$account['LastTokenUsedAt'] = (int)($owner['last_used_at'] ?? 0);
 		}
-	}
-	unset($token);
+		unset($account);
+		foreach ($tokens as &$token)
+		{
+			if (empty($token['uLogin']))
+				$token['uLogin'] = '[администратор удалён]';
+			$token['ExpiresInput'] = (int)$token['tstExpiresAt'] > 0
+				? gmdate('Y-m-d\TH:i', (int)$token['tstExpiresAt'])
+				: '';
+			$token['CreatedText'] = $formatDate($token['tstCreatedAt']);
+			$token['ExpiresText'] = $formatDate($token['tstExpiresAt'], 'Без срока');
+			$token['LastUsedText'] = $formatDate($token['tstLastUsedAt'], 'Не использовался');
+			$token['Expired'] = (int)$token['tstExpiresAt'] > 0
+				&& (int)$token['tstExpiresAt'] <= time();
+		}
+		unset($token);
 
-	foreach ($collectorAccounts as &$account)
-	{
-		$account['LastTokenCreatedText'] = $formatDate(
-			$account['LastTokenCreatedAt'],
-			'Токены не выпускались'
-		);
-		$account['LastTokenUsedText'] = $formatDate(
-			$account['LastTokenUsedAt'],
-			'Не использовались'
-		);
-	}
-	unset($account);
+		foreach ($collectorAccounts as &$account)
+		{
+			$account['LastTokenCreatedText'] = $formatDate(
+				$account['LastTokenCreatedAt'],
+				'Токены не выпускались'
+			);
+			$account['LastTokenUsedText'] = $formatDate(
+				$account['LastTokenUsedAt'],
+				'Не использовались'
+			);
+		}
+		unset($account);
 
-	foreach ($collector['installations'] as &$installation)
-	{
-		$installation['installed_at_text'] = $formatDate($installation['installed_at']);
-		$installation['registered_at_text'] = $formatDate($installation['registered_at']);
-		$installation['last_seen_at_text'] = $formatDate($installation['last_seen_at']);
-		$installation['last_report_at_text'] = $formatDate($installation['last_report_at']);
-		$installation['active_24h'] = (int)$installation['last_seen_at'] >= time() - 86400;
+		foreach ($collector['installations'] as &$installation)
+		{
+			$installation['installed_at_text'] = $formatDate($installation['installed_at']);
+			$installation['registered_at_text'] = $formatDate($installation['registered_at']);
+			$installation['last_seen_at_text'] = $formatDate($installation['last_seen_at']);
+			$installation['last_report_at_text'] = $formatDate($installation['last_report_at']);
+			$installation['dns_checked_at_text'] = $formatDate($installation['dns_checked_at']);
+			$installation['domain_verified_until_text'] = $formatDate($installation['domain_verified_until'] ?? 0);
+			$installation['active_24h'] = $installation['connection_state'] === 'active';
+			foreach ($installation['ip_history'] as &$history)
+			{
+				$history['first_seen_at_text'] = $formatDate($history['first_seen_at']);
+				$history['last_seen_at_text'] = $formatDate($history['last_seen_at']);
+			}
+			unset($history);
+		}
+		unset($installation);
 	}
-	unset($installation);
+	catch (Throwable $exception)
+	{
+		error_log('Telemetry collector dashboard failed: ' . $exception->getMessage());
+		$collector['error'] = 'Таблицы collector ещё не созданы или недоступны.';
+	}
 }
-catch (Throwable $exception)
+else
 {
-	error_log('Telemetry collector dashboard failed: ' . $exception->getMessage());
-	$collector['error'] = 'Таблицы collector ещё не созданы или недоступны.';
+	$collector['error'] = 'Требуется миграция схемы collector до версии ' . HScript\Application::schemaVersion() . '.';
+}
+
+$collectorBaseUrl = moduleToLink('system/admin/setup_collector');
+$buildCollectorUrl = static function (array $parameters) use ($collectorBaseUrl): string {
+	$query = http_build_query($parameters, '', '&', PHP_QUERY_RFC3986);
+	return $collectorBaseUrl . ($query === '' ? '' : (str_contains($collectorBaseUrl, '?') ? '&' : '?') . $query);
+};
+$collectorQueryParameters = $collectorListQuery->queryParameters((int)($collector['pagination']['page'] ?? 1));
+$tokenQueryParameters = $tokenListQuery->queryParameters((int)($tokenList['pagination']['page'] ?? 1));
+$collectorBuildUrl = static function (int $page) use ($buildCollectorUrl, $collectorQueryParameters, $tokenQueryParameters): string {
+	$collectorQueryParameters['page'] = $page;
+	return $buildCollectorUrl(array_merge(
+		$collectorQueryParameters,
+		$tokenQueryParameters
+	));
+};
+$tokenBuildUrl = static function (int $page) use ($buildCollectorUrl, $collectorQueryParameters, $tokenQueryParameters): string {
+	$tokenQueryParameters['token_page'] = $page;
+	return $buildCollectorUrl(array_merge(
+		$collectorQueryParameters,
+		$tokenQueryParameters
+	));
+};
+$collectorPagination = array(
+	'page' => (int)($collector['pagination']['page'] ?? 1),
+	'total_pages' => (int)($collector['pagination']['total_pages'] ?? 0),
+	'total' => (int)($collector['pagination']['total'] ?? 0),
+	'previous_url' => '',
+	'next_url' => '',
+	'first_url' => '',
+	'last_url' => '',
+	'pages' => array(),
+);
+if ($collectorPagination['total_pages'] > 0)
+{
+	$currentPage = $collectorPagination['page'];
+	$totalPages = $collectorPagination['total_pages'];
+	$collectorPagination['first_url'] = $collectorBuildUrl(1);
+	$collectorPagination['last_url'] = $collectorBuildUrl($totalPages);
+	if ($currentPage > 1)
+		$collectorPagination['previous_url'] = $collectorBuildUrl($currentPage - 1);
+	if ($currentPage < $totalPages)
+		$collectorPagination['next_url'] = $collectorBuildUrl($currentPage + 1);
+	$startPage = max(1, $currentPage - 2);
+	$endPage = min($totalPages, $currentPage + 2);
+	for ($pageNumber = $startPage; $pageNumber <= $endPage; $pageNumber++)
+		$collectorPagination['pages'][] = array(
+			'number' => $pageNumber,
+			'url' => $collectorBuildUrl($pageNumber),
+			'current' => $pageNumber === $currentPage,
+		);
+}
+$tokenPagination = array(
+	'page' => (int)($tokenList['pagination']['page'] ?? 1),
+	'total_pages' => (int)($tokenList['pagination']['total_pages'] ?? 0),
+	'total' => (int)($tokenList['pagination']['total'] ?? 0),
+	'previous_url' => '',
+	'next_url' => '',
+	'first_url' => '',
+	'last_url' => '',
+	'pages' => array(),
+);
+if ($tokenPagination['total_pages'] > 0)
+{
+	$currentPage = $tokenPagination['page'];
+	$totalPages = $tokenPagination['total_pages'];
+	$tokenPagination['first_url'] = $tokenBuildUrl(1);
+	$tokenPagination['last_url'] = $tokenBuildUrl($totalPages);
+	if ($currentPage > 1)
+		$tokenPagination['previous_url'] = $tokenBuildUrl($currentPage - 1);
+	if ($currentPage < $totalPages)
+		$tokenPagination['next_url'] = $tokenBuildUrl($currentPage + 1);
+	for ($pageNumber = max(1, $currentPage - 2); $pageNumber <= min($totalPages, $currentPage + 2); $pageNumber++)
+		$tokenPagination['pages'][] = array(
+			'number' => $pageNumber,
+			'url' => $tokenBuildUrl($pageNumber),
+			'current' => $pageNumber === $currentPage,
+		);
 }
 
 $flash = isset($_SESSION['_telemetry_collector_flash'])
@@ -264,11 +378,37 @@ View::setPage('collector_token_counts', $tokenCounts);
 View::setPage('collector_users', $collectorUsers);
 View::setPage('collector_accounts', $collectorAccounts);
 View::setPage('collector_flash', $flash);
+View::setPage('collector_filter_error', $collectorFilterError);
+View::setPage('collector_token_filter_error', $tokenFilterError);
+View::setPage('collector_filters', array_merge(
+	$collectorListQuery->filters(),
+	array(
+		'per_page' => $collectorListQuery->perPage(),
+		'page_sizes' => InstallationListQuery::PAGE_SIZES,
+	)
+));
+View::setPage('collector_pagination', $collectorPagination);
+View::setPage('collector_token_filters', array_merge(
+	$tokenListQuery->filters(),
+	array(
+		'token_per_page' => $tokenListQuery->perPage(),
+		'page_sizes' => ServiceTokenListQuery::PAGE_SIZES,
+	)
+));
+View::setPage('collector_token_pagination', $tokenPagination);
+View::setPage('collector_token_query', $tokenQueryParameters);
+View::setPage('collector_installation_query', $collectorQueryParameters);
+View::setPage('collector_clear_url', $buildCollectorUrl($tokenQueryParameters));
+View::setPage('collector_token_clear_url', $buildCollectorUrl($collectorQueryParameters));
 View::setPage(
 	'collector_endpoint',
 	getRootURL(!empty($_GS['https'])) . 'api/v1/installations/stats'
 );
 View::setPage('collector_domain', CollectorMode::expectedDomain($_cfg));
+View::setPage(
+	'collector_ingestion_enabled',
+	CollectorMode::ingestionEnabled($_cfg, (string)($_GS['domain'] ?? ''), $collectorSchemaReady)
+);
 View::showPage();
 
 ?>

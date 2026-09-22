@@ -25,15 +25,15 @@ if (!function_exists('cfg_url'))
 }
 
 $cfgSectionTitles = array(
-	'modules' => cfg_t('Модули', 'Modules'),
-	'setup' => cfg_t('Настройки', 'Setup'),
-	'update' => cfg_t('Обновление', 'Update'),
-	'backup' => cfg_t('Резервные копии', 'Backups'),
-	'security' => cfg_t('Безопасность', 'Security'),
-	'pass' => cfg_t('Смена пароля', 'Change password'),
-	'login' => cfg_t('Вход', 'Sign in')
+	'modules' => cfg_t('configurator.common.modules'),
+	'setup' => cfg_t('configurator.header.setup'),
+	'update' => cfg_t('configurator.common.update'),
+	'backup' => cfg_t('configurator.common.backups'),
+	'security' => cfg_t('configurator.common.security'),
+	'pass' => cfg_t('configurator.common.change_password'),
+	'login' => cfg_t('configurator.header.sign_in')
 );
-$cfgPageTitle = isset($cfgSectionTitles[$cfgActive]) ? $cfgSectionTitles[$cfgActive] : cfg_t('Конфигуратор', 'Configurator');
+$cfgPageTitle = isset($cfgSectionTitles[$cfgActive]) ? $cfgSectionTitles[$cfgActive] : cfg_t('configurator.common.configurator');
 $cfgTheme = isset($_SESSION['cfg_theme']) && $_SESSION['cfg_theme'] === 'light' ? 'light' : 'dark';
 $cfgNextTheme = $cfgTheme === 'dark' ? 'light' : 'dark';
 $cfgLogged = !empty($_SESSION['cfg_logged']);
@@ -51,43 +51,16 @@ if ($cfgLogged)
 $cfgInputClass = 'w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 font-semibold text-brand outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white dark:placeholder:text-gray-500 dark:focus:border-blue-500 dark:focus:ring-blue-500/20';
 $cfgButtonClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-6 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-white dark:text-brand dark:hover:bg-gray-100';
 
-$cfgAllLangs = array('ru', 'en');
-if (!empty($_cfg['_Langs']))
-	$cfgAllLangs = is_array($_cfg['_Langs']) ? $_cfg['_Langs'] : explode("\n", str_replace("\r", '', $_cfg['_Langs']));
-elseif (!empty($_cfg['UI__Langs']))
-	$cfgAllLangs = is_array($_cfg['UI__Langs']) ? $_cfg['UI__Langs'] : explode("\n", str_replace("\r", '', $_cfg['UI__Langs']));
-else
-{
-	$jsonLangs = array();
-	foreach ((array)glob('lang/*.json') as $file)
-	{
-		$lang = basename($file, '.json');
-		if ($lang)
-			$jsonLangs[] = $lang;
-	}
-	if ($jsonLangs)
-		$cfgAllLangs = $jsonLangs;
-}
-$cfgLanguages = array();
-foreach ($cfgAllLangs as $lang)
-{
-	$lang = trim($lang);
-	if ($lang && !in_array($lang, $cfgLanguages, true))
-		$cfgLanguages[] = $lang;
-}
+$cfgLanguages = \HScript\Template\View::translationLanguages();
 
 $cfgMessages = array();
-$cfgMessageIsError = false;
+$cfgMessageIsError = !empty($_SESSION['cfg_info_error']);
+unset($_SESSION['cfg_info_error']);
 if ($cfgMessage = getMsg())
 {
 	unset($_SESSION['cfg_info_message']);
 	$cfgMessages = preg_split('/<br\s*\/?\s*>/i', trim($cfgMessage));
 	$cfgMessages = array_values(array_filter(array_map('trim', $cfgMessages)));
-	$cfgMessageText = strtolower(implode(' ', $cfgMessages));
-	$cfgMessageIsError = strpos($cfgMessageText, 'wrong') !== false
-		|| strpos($cfgMessageText, "can't") !== false
-		|| strpos($cfgMessageText, 'required') !== false
-		|| strpos($cfgMessageText, 'error') !== false;
 }
 
 ?>
@@ -109,7 +82,7 @@ if ($cfgMessage = getMsg())
 	<body class="min-h-screen bg-none bg-[#F7F7F5] text-brand antialiased dark:bg-[#0A0A0A] dark:text-gray-100" hx-boost="true">
 		<?php if ($cfgLogged) { ?>
 			<input id="cfg-sidebar-toggle" type="checkbox" class="peer sr-only">
-			<label for="cfg-sidebar-toggle" class="fixed inset-0 z-40 hidden cursor-pointer bg-black/40 backdrop-blur-sm peer-checked:block lg:hidden" aria-label="<?php echo cfg_t('Закрыть меню', 'Close menu'); ?>"></label>
+			<label for="cfg-sidebar-toggle" class="fixed inset-0 z-40 hidden cursor-pointer bg-black/40 backdrop-blur-sm peer-checked:block lg:hidden" aria-label="<?php echo cfg_t('configurator.header.close_menu'); ?>"></label>
 			<div class="flex min-h-screen peer-checked:[&_#cfg-sidebar]:translate-x-0">
 				<aside id="cfg-sidebar" class="fixed inset-y-0 left-0 z-50 flex w-72 -translate-x-full flex-col border-r border-gray-200 bg-white transition-transform dark:border-gray-800 dark:bg-[#111111] lg:sticky lg:top-0 lg:h-screen lg:translate-x-0">
 					<div class="flex h-20 items-center border-b border-gray-100 px-6 dark:border-gray-800">
@@ -121,16 +94,16 @@ if ($cfgMessage = getMsg())
 						</a>
 					</div>
 
-					<nav class="flex-1 overflow-y-auto p-4" aria-label="<?php echo cfg_t('Разделы конфигуратора', 'Configurator sections'); ?>">
-						<p class="mb-2 px-3 text-[11px] font-extrabold uppercase tracking-wider text-gray-400"><?php echo cfg_t('Система', 'System'); ?></p>
+					<nav class="flex-1 overflow-y-auto p-4" aria-label="<?php echo cfg_t('configurator.header.configurator_sections'); ?>">
+						<p class="mb-2 px-3 text-[11px] font-extrabold uppercase tracking-wider text-gray-400"><?php echo cfg_t('configurator.header.system'); ?></p>
 						<div class="space-y-1">
 							<?php
 							$cfgNav = array(
-								'modules' => array('fa-boxes-stacked', cfg_t('Модули', 'Modules')),
-								'setup' => array('fa-sliders', cfg_t('Подключение', 'Connection')),
-								'backup' => array('fa-box-archive', cfg_t('Резервные копии', 'Backups')),
-								'update' => array('fa-rotate', cfg_t('Обновление', 'Update')),
-								'security' => array('fa-shield-halved', cfg_t('Безопасность', 'Security'))
+								'modules' => array('fa-boxes-stacked', cfg_t('configurator.common.modules')),
+								'setup' => array('fa-sliders', cfg_t('configurator.common.connection')),
+								'backup' => array('fa-box-archive', cfg_t('configurator.common.backups')),
+								'update' => array('fa-rotate', cfg_t('configurator.common.update')),
+								'security' => array('fa-shield-halved', cfg_t('configurator.common.security'))
 							);
 							foreach ($cfgNav as $section => $item) {
 								$isActive = $cfgActive === $section;
@@ -138,16 +111,16 @@ if ($cfgMessage = getMsg())
 								<a href="?<?php echo $section; ?>" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-bold transition <?php echo $isActive ? 'bg-brand text-white shadow-sm dark:bg-white dark:text-brand' : 'text-gray-500 hover:bg-gray-100 hover:text-brand dark:text-gray-400 dark:hover:bg-[#1A1A1A] dark:hover:text-white'; ?>">
 									<i class="fa-solid <?php echo $item[0]; ?> w-5 text-center" aria-hidden="true"></i>
 									<span><?php echo $item[1]; ?></span>
-									<?php if ($section === 'security' && $cfgIntegrityAlert) { ?><span class="ml-auto h-2.5 w-2.5 rounded-full bg-red-500" aria-label="<?php echo cfg_t('Есть критические изменения', 'Critical changes detected'); ?>"></span><?php } ?>
+									<?php if ($section === 'security' && $cfgIntegrityAlert) { ?><span class="ml-auto h-2.5 w-2.5 rounded-full bg-red-500" aria-label="<?php echo cfg_t('configurator.header.critical_changes_detected'); ?>"></span><?php } ?>
 								</a>
 							<?php } ?>
 						</div>
 
-						<p class="mb-2 mt-7 px-3 text-[11px] font-extrabold uppercase tracking-wider text-gray-400"><?php echo cfg_t('Доступ', 'Access'); ?></p>
+						<p class="mb-2 mt-7 px-3 text-[11px] font-extrabold uppercase tracking-wider text-gray-400"><?php echo cfg_t('configurator.common.access'); ?></p>
 						<div class="space-y-1">
 							<a href="?pass" class="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-bold transition <?php echo $cfgActive === 'pass' ? 'bg-brand text-white shadow-sm dark:bg-white dark:text-brand' : 'text-gray-500 hover:bg-gray-100 hover:text-brand dark:text-gray-400 dark:hover:bg-[#1A1A1A] dark:hover:text-white'; ?>">
 								<i class="fa-solid fa-key w-5 text-center" aria-hidden="true"></i>
-								<span><?php echo cfg_t('Сменить пароль', 'Change password'); ?></span>
+								<span><?php echo cfg_t('configurator.common.change_password_header'); ?></span>
 							</a>
 						</div>
 					</nav>
@@ -157,7 +130,7 @@ if ($cfgMessage = getMsg())
 							<input type="hidden" name="csrf" value="<?php echo htmlspecialchars(ConfiguratorCsrf::token(), ENT_QUOTES, 'UTF-8'); ?>">
 							<button type="submit" name="out" value="1" class="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-bold text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10">
 							<i class="fa-solid fa-right-from-bracket w-5 text-center" aria-hidden="true"></i>
-							<span><?php echo cfg_t('Выйти', 'Sign out'); ?></span>
+							<span><?php echo cfg_t('configurator.header.sign_out'); ?></span>
 							</button>
 						</form>
 					</div>
@@ -166,7 +139,7 @@ if ($cfgMessage = getMsg())
 				<div class="flex min-h-screen min-w-0 flex-1 flex-col">
 					<header class="sticky top-0 z-30 flex min-h-20 items-center justify-between gap-4 border-b border-black/5 bg-white/80 px-5 backdrop-blur-xl dark:border-white/5 dark:bg-[#151515]/80 lg:px-8">
 						<div class="flex min-w-0 items-center gap-4">
-							<label for="cfg-sidebar-toggle" class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-brand transition hover:bg-gray-100 dark:text-white dark:hover:bg-[#202020] lg:hidden" aria-label="<?php echo cfg_t('Открыть меню', 'Open menu'); ?>">
+							<label for="cfg-sidebar-toggle" class="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-brand transition hover:bg-gray-100 dark:text-white dark:hover:bg-[#202020] lg:hidden" aria-label="<?php echo cfg_t('configurator.header.open_menu'); ?>">
 								<i class="fa-solid fa-bars" aria-hidden="true"></i>
 							</label>
 							<div class="min-w-0">
@@ -189,7 +162,7 @@ if ($cfgMessage = getMsg())
 									<?php } ?>
 								</div>
 							</details>
-								<a href="<?php echo cfg_url($cfgActive, array('theme' => $cfgNextTheme)); ?>" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="<?php echo cfg_t('Сменить тему', 'Toggle theme'); ?>" aria-label="<?php echo cfg_t('Сменить тему', 'Toggle theme'); ?>">
+								<a href="<?php echo cfg_url($cfgActive, array('theme' => $cfgNextTheme)); ?>" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="<?php echo cfg_t('configurator.common.toggle_theme'); ?>" aria-label="<?php echo cfg_t('configurator.common.toggle_theme'); ?>">
 									<i class="fa-solid fa-moon block text-lg dark:!hidden" aria-hidden="true"></i>
 									<i class="fa-solid fa-sun !hidden text-lg text-yellow-400 dark:!block" aria-hidden="true"></i>
 								</a>
@@ -203,14 +176,14 @@ if ($cfgMessage = getMsg())
 							<div class="min-w-0 flex-1 text-sm font-bold">
 								<?php foreach ($cfgMessages as $message) { ?><p><?php echo htmlspecialchars($message); ?></p><?php } ?>
 							</div>
-							<label for="cfg-message-close" class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg opacity-60 transition hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/5" aria-label="<?php echo cfg_t('Закрыть', 'Close'); ?>"><i class="fa-solid fa-xmark" aria-hidden="true"></i></label>
+							<label for="cfg-message-close" class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg opacity-60 transition hover:bg-black/5 hover:opacity-100 dark:hover:bg-white/5" aria-label="<?php echo cfg_t('configurator.header.close'); ?>"><i class="fa-solid fa-xmark" aria-hidden="true"></i></label>
 						</aside>
 					<?php } ?>
 
 					<?php if ($cfgIntegrityAlert) { ?>
 						<aside role="alert" class="mx-5 mt-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100 lg:mx-10">
 							<i class="fa-solid fa-shield-virus mt-0.5" aria-hidden="true"></i>
-							<div><strong class="font-extrabold"><?php echo cfg_t('Обнаружены критические изменения файлов.', 'Critical file changes detected.'); ?></strong> <a href="?security" class="font-extrabold underline"><?php echo cfg_t('Открыть результат', 'Open result'); ?></a></div>
+							<div><strong class="font-extrabold"><?php echo cfg_t('configurator.header.critical_file_changes_detected'); ?></strong> <a href="?security" class="font-extrabold underline"><?php echo cfg_t('configurator.header.open_result'); ?></a></div>
 						</aside>
 					<?php } ?>
 

@@ -699,16 +699,16 @@ public static function getLang($lang = "")
 {
     global $_GS;
     if ($lang == "") {
-        $lang = $_GS["lang"];
+        $lang = $_GS["lang"] ?? ($_GS["default_lang"] ?? 'en');
     } else {
         if ($lang == "*") {
-            $lang = $_GS["default_lang"];
+            $lang = $_GS["default_lang"] ?? 'en';
         }
     }
     if (self::existLang($lang)) {
         return $lang;
     }
-    return $_GS["default_lang"];
+    return $_GS["default_lang"] ?? 'en';
 }
 public static function getLangDir($lang = "")
 {

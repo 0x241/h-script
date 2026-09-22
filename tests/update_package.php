@@ -16,6 +16,7 @@ $_SERVER += array(
 );
 chdir($root);
 require $root . '/vendor/autoload.php';
+require_once __DIR__ . '/fixtures/update_contract.php';
 global $_cfg;
 $_cfg = array();
 if (is_file($root . '/_config.php')) require $root . '/_config.php';
@@ -75,11 +76,7 @@ final class TestOfficialReleaseProvider implements OfficialReleaseProvider
 
 function updatePackageCompatibility(string $sourceVersion, string $targetVersion, string $schema): string
 {
-	return json_encode(array(
-		'format' => 1,
-		'application' => array('minimum' => $sourceVersion, 'maximum' => $targetVersion),
-		'schema' => array('minimum' => $schema, 'maximum' => $schema),
-	), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
+	return json_encode(updateTestCompatibility($sourceVersion, $targetVersion, $schema, $schema), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
 }
 
 function updatePackageArchive(string $directory, string $sourceVersion, string $version, string $schema, string $twigPath, string $twig, array $extraFiles = array()): string
@@ -149,8 +146,9 @@ try
 {
 	$schemaVersion = (new SchemaStateRepository($db))->currentVersion();
 	if ($schemaVersion === null) throw new RuntimeException('Schema metadata is not initialized');
-	$version = '1.0.3';
 	$sourceVersion = trim((string)file_get_contents($root . '/VERSION'));
+	$version = preg_replace_callback('/^(\d+)\.(\d+)\.(\d+).*$/',
+		static fn(array $parts): string => $parts[1] . '.' . $parts[2] . '.' . ((int)$parts[3] + 1), $sourceVersion);
 	$twigPath = 'tpl/account/login.twig';
 	if (!is_file($root . '/' . $twigPath))
 	{

@@ -8,8 +8,10 @@ use HScript\Update\ReleaseManifest;
 use HScript\Update\SchemaUpdateGate;
 use HScript\Update\SchemaVersion;
 use HScript\Update\UpdateRunState;
+use HScript\Update\UpdateCompatibility;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
+require_once __DIR__ . '/fixtures/update_contract.php';
 
 function updateFoundationAssert(bool $condition, string $message): void
 {
@@ -35,16 +37,27 @@ updateFoundationAssert(Application::version() === trim((string)file_get_contents
 updateFoundationAssert(Application::schemaVersion() === trim((string)file_get_contents($root . '/SCHEMA_VERSION')), 'Schema version is not explicit');
 updateFoundationAssert(SchemaVersion::compare('1.0.1', '1.0.0') > 0, 'Semantic schema ordering failed');
 
+// A wide source range is not permission to downgrade either code or schema.
+$direction = UpdateCompatibility::fromArray(updateTestCompatibility('1.0.0', '1.0.5', '1.0.0', '1.0.2'));
+$direction->assertUpgrade('1.0.4', '1.0.1', '1.0.5', '1.0.1');
+$direction->assertUpgrade('1.0.4', '1.0.1', '1.0.4', '1.0.2');
+$direction->assertUpgrade('1.0.4', '1.0.1', '1.0.4', '1.0.1');
+updateFoundationRejects(static fn() => $direction->assertUpgrade('1.0.4', '1.0.1', '1.0.3', '1.0.1'), 'Code downgrade accepted');
+updateFoundationRejects(static fn() => $direction->assertUpgrade('1.0.4', '1.0.1', '1.0.5', '1.0.0'), 'Schema downgrade accepted');
+updateFoundationRejects(static fn() => $direction->assertUpgrade('1.0.6', '1.0.1', '1.0.7', '1.0.1'), 'Unsupported source accepted');
+
 $gateRoot = sys_get_temp_dir() . '/hscript-update-gate-' . bin2hex(random_bytes(8));
 mkdir($gateRoot . '/.cfg', 0700, true);
 try
 {
 	updateFoundationAssert(!SchemaUpdateGate::requiresTrafficGate($gateRoot), 'Missing marker enabled the traffic gate');
-	foreach (array('schema_metadata_missing', 'application_metadata_missing') as $reason)
+	foreach (array('schema_metadata_missing', 'application_metadata_missing', 'application_update_required') as $reason)
 	{
 		file_put_contents($gateRoot . '/.cfg/schema-update-required.json', json_encode(array('reason' => $reason), JSON_THROW_ON_ERROR));
-		updateFoundationAssert(!SchemaUpdateGate::requiresTrafficGate($gateRoot), 'Lifecycle onboarding blocked public traffic: ' . $reason);
+		updateFoundationAssert(!SchemaUpdateGate::requiresTrafficGate($gateRoot), 'Safe lifecycle state blocked public traffic: ' . $reason);
 	}
+	file_put_contents($gateRoot . '/.cfg/schema-update-required.json', json_encode(array('reason' => 'unsupported_source_version'), JSON_THROW_ON_ERROR));
+	updateFoundationAssert(SchemaUpdateGate::requiresTrafficGate($gateRoot), 'Unsupported source version did not enable the traffic gate');
 	file_put_contents($gateRoot . '/.cfg/schema-update-required.json', json_encode(array('reason' => 'schema_update_required'), JSON_THROW_ON_ERROR));
 	updateFoundationAssert(SchemaUpdateGate::requiresTrafficGate($gateRoot), 'Schema mismatch did not enable the traffic gate');
 	file_put_contents($gateRoot . '/.cfg/schema-update-required.json', '{');
@@ -71,11 +84,7 @@ $manifest = ReleaseManifest::fromArray(array(
 	'format' => 1,
 	'source' => 'github',
 	'activation_plan_sha256' => hash('sha256', '[]'),
-	'compatibility' => array(
-		'format' => 1,
-		'application' => array('minimum' => '1.0.0', 'maximum' => '1.0.2'),
-		'schema' => array('minimum' => '1.0.0', 'maximum' => '1.0.0'),
-	),
+	'compatibility' => updateTestCompatibility('1.0.0', '1.0.2', '1.0.0', '1.0.0'),
 	'release' => array(
 		'application_version' => '1.0.3',
 		'schema_version' => '1.0.0',
@@ -189,14 +198,14 @@ updateFoundationRejects(
 $legacyUpdater = (string)file_get_contents($root . '/module/_config/update.php');
 updateFoundationAssert(!str_contains($legacyUpdater, 'RENAME TABLE'), 'Legacy table replacement is still active');
 updateFoundationAssert(!str_contains($legacyUpdater, '_hs_new_'), 'Legacy replacement table is still active');
-foreach (array('cfg_update_error_message', 'Обновления не найдены:', 'Установлена актуальная или более новая версия CMS.', 'cfg_update_run_message') as $localizedUpdateUi)
+foreach (array('cfg_update_error_message', 'configurator.update.no_update_found', 'cfg_update_run_message') as $localizedUpdateUi)
 	updateFoundationAssert(str_contains($legacyUpdater, $localizedUpdateUi), 'Russian update status localization is missing: ' . $localizedUpdateUi);
 $backupConfigurator = (string)file_get_contents($root . '/module/_config/backup.php');
-foreach (array('location ^~ /backup/', 'Обычный сервер без Docker', '--target-host=database:3306') as $inlineOperatorGuide)
+foreach (array('location ^~ /backup/', 'configurator.backup.regular_server_without_docker', '--target-host=database:3306') as $inlineOperatorGuide)
 	updateFoundationAssert(str_contains($backupConfigurator, $inlineOperatorGuide), 'Inline backup operator guide is missing: ' . $inlineOperatorGuide);
 updateFoundationAssert(!is_file($root . '/resources/nginx/hscript-backups.conf'), 'Obsolete standalone Nginx backup snippet is still shipped');
 $securityConfigurator = (string)file_get_contents($root . '/module/_config/security.php');
-foreach (array('securityOfficialBuild', 'Локальная сборка запущена без эталона релиза', 'Не создавайте новый эталон из текущих рабочих файлов') as $baselineDiagnostic)
+foreach (array('securityOfficialBuild', 'configurator.security.the_local_build_is_running_without_a_release_baseline', 'configurator.security.do_not_create_a_new_baseline_from_the_current_live_files_redeploy_the_exact_offi') as $baselineDiagnostic)
 	updateFoundationAssert(str_contains($securityConfigurator, $baselineDiagnostic), 'Integrity baseline diagnostic is missing: ' . $baselineDiagnostic);
 $webInstaller = (string)file_get_contents($root . '/module/_config/install.php');
 foreach (array('SHOW FULL TABLES', 'initial installation requires an empty database', 'ConfiguratorCsrf::consume') as $requiredSafety)
@@ -207,7 +216,7 @@ $dockerInstaller = (string)file_get_contents($root . '/docker/runtime/install-db
 foreach (array('APP_INSTALL_FORCE', 'DROP TABLE', 'DROP VIEW') as $removedDestructivePath)
 	updateFoundationAssert(!str_contains($dockerInstaller, $removedDestructivePath), 'Destructive Docker reinstall path is still active: ' . $removedDestructivePath);
 $configuratorHeader = (string)file_get_contents($root . '/module/_config/_header.php');
-updateFoundationAssert(!str_contains($configuratorHeader, "cfg_t('Установка', 'Install')"), 'Persistent installation section is still visible');
+updateFoundationAssert(!str_contains($configuratorHeader, "'install' =>"), 'Persistent installation section is still visible');
 updateFoundationAssert(!str_contains($configuratorHeader, '?login&out'), 'Logout is still a state-changing GET action');
 $configuratorIndex = (string)file_get_contents($root . '/module/_config/index.php');
 foreach (array('assertAllowed', 'consumeRateLimit', 'mutates_server_state') as $securityGuard)

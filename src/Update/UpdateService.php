@@ -5,6 +5,7 @@ namespace HScript\Update;
 use HScript\Application;
 use HScript\Backup\BackupService;
 use HScript\Database\Connection;
+use HScript\Security\ProductionPreflight;
 use RuntimeException;
 use Throwable;
 
@@ -56,6 +57,17 @@ final class UpdateService
 	{
 		if ($this->deploymentMode !== 'docker')
 			throw new RuntimeException('Bundled database update is available only for a Docker image installation');
+		$active = $this->runs->latest();
+		if ($active && !UpdateRunState::terminal((string)$active['urState']))
+		{
+			$record = $this->packages->preparedForRun((string)$active['urID']);
+			$manifest = ReleaseManifest::fromArray($record['manifest']);
+			if ($record['source'] !== 'bundled'
+				|| $manifest->applicationVersion() !== Application::version()
+				|| $manifest->schemaVersion() !== Application::schemaVersion())
+				throw new RuntimeException('An unfinished update run already exists');
+			return $this->apply($record['id'], array());
+		}
 		$prepared = $this->packages->prepareBundled();
 		return $this->apply($prepared['id'], array());
 	}
@@ -100,6 +112,8 @@ final class UpdateService
 		if ($record['file_choices'] !== $fileChoices)
 			$record = $this->packages->saveFileChoices($preparedId, $fileChoices);
 		$run = $record['run_id'] !== '' ? $this->requiredRun($record['run_id']) : null;
+		if ($run === null || in_array($run['urState'], array(UpdateRunState::PREFLIGHT, UpdateRunState::BACKUP, UpdateRunState::PACKAGE), true))
+			$this->releasePreflight($manifest);
 		if ($run === null)
 		{
 			$schemaVersion = (new SchemaStateRepository($this->database))->currentVersion();
@@ -165,6 +179,14 @@ final class UpdateService
 		$lock->acquire();
 		try
 		{
+			// MySQL/MariaDB DDL can commit before SchemaState advances. An unchanged
+			// version alone is not proof that an interrupted migration changed no data.
+			$run = $this->requiredRun($runId);
+			if (UpdateRunState::terminal((string)$run['urState'])
+				|| (new SchemaStateRepository($this->database))->currentVersion() !== (string)$run['urSourceSchemaVersion']
+				|| (UpdateClassification::requiresBackup(ReleaseManifest::fromArray($record['manifest'])->classification())
+					&& in_array($run['urState'], array(UpdateRunState::MIGRATION, UpdateRunState::HEALTH), true)))
+				throw new RuntimeException('Code rollback is unsafe after migration entry; resume the migration or restore the verified full backup');
 			$journal = $this->activator->rollback($runId);
 			(new SchemaStateRepository($this->database))->setInstalledApplicationVersion((string)$run['urSourceVersion']);
 			$this->maintenance->disable($runId);
@@ -237,7 +259,8 @@ final class UpdateService
 			$backupId = $created['id'];
 			$this->packages->attachRun($record['id'], (string)$run['urID'], $backupId);
 		}
-		$backup->verifyForUpdate($backupId, (string)$run['urSourceSchemaVersion']);
+		$verified = $backup->verifyForUpdate($backupId, (string)$run['urSourceSchemaVersion']);
+		$this->assertBackupFresh($verified);
 		return $this->runs->transition(
 			(string)$run['urID'],
 			UpdateRunState::PACKAGE,
@@ -257,17 +280,19 @@ final class UpdateService
 		if ($state === UpdateRunState::PACKAGE)
 		{
 			$this->packages->revalidate($record);
+			$this->releasePreflight($manifest);
 			if (UpdateClassification::requiresBackup($manifest->classification()))
 			{
 				$backupId = (string)$record['backup_id'];
 				if ($backupId === '')
 					throw new RuntimeException('Verified update backup reference is missing');
-				BackupService::fromConfig(
+				$verified = BackupService::fromConfig(
 					$this->database,
 					$this->config,
 					$this->domain,
 					$this->settings->projectRoot()
 				)->verifyForUpdate($backupId, (string)$run['urSourceSchemaVersion']);
+				$this->assertBackupFresh($verified);
 			}
 			$this->maintenance->enable($runId, $manifest->applicationVersion());
 			if ($record['source'] === 'bundled')
@@ -308,9 +333,7 @@ final class UpdateService
 			$this->ensureMaintenance($runId, $manifest);
 			(new UpdateHealthChecker(
 				$this->database,
-				$record['source'] === 'bundled' ? $this->settings->projectRoot() : $this->activator->activeRoot(),
-				$this->config,
-				$this->domain
+				$record['source'] === 'bundled' ? $this->settings->projectRoot() : $this->activator->activeRoot()
 			))->check($manifest);
 			if ($record['source'] !== 'bundled')
 			{
@@ -345,6 +368,20 @@ final class UpdateService
 			if (!isset($known[$path]))
 				throw new RuntimeException('Unknown file conflict choice: ' . $path);
 		return $result;
+	}
+
+	private function releasePreflight(ReleaseManifest $manifest): void
+	{
+		(new ProductionPreflight($this->settings->projectRoot(), PHP_SAPI === 'cli' || \hsIsHttpsRequest(), $this->deploymentMode === 'docker'))
+			->assertRelease($manifest, $this->database, $this->config, $this->domain);
+	}
+
+	private function assertBackupFresh(array $verified): void
+	{
+		$maximumAge = getenv('UPDATE_BACKUP_MAX_AGE_SECONDS') ?: '3600';
+		if (!ctype_digit($maximumAge) || (int)$maximumAge < 1 || (int)$maximumAge > 86400)
+			throw new RuntimeException('UPDATE_BACKUP_MAX_AGE_SECONDS must be between 1 and 86400');
+		RecoveryPreflight::assertAge($verified['created_at'] ?? null, (int)$maximumAge);
 	}
 
 	private function ensureMaintenance(string $runId, ReleaseManifest $manifest): void

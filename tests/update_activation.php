@@ -8,6 +8,7 @@ use HScript\Update\UpdateSettings;
 
 $root = dirname(__DIR__);
 require $root . '/vendor/autoload.php';
+require_once __DIR__ . '/fixtures/update_contract.php';
 
 function activationAssert(bool $condition, string $message): void
 {
@@ -51,7 +52,7 @@ function activationFixture(string $staging): array
 		'format' => 1,
 		'source' => 'manual',
 		'activation_plan_sha256' => hash('sha256', json_encode($plan, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)),
-		'compatibility' => array('format' => 1, 'application' => array('minimum' => '1.0.0', 'maximum' => '1.0.0'), 'schema' => array('minimum' => '1.0.0', 'maximum' => '1.0.0')),
+		'compatibility' => updateTestCompatibility('1.0.0', '1.0.0', '1.0.0', '1.0.0'),
 		'release' => array('application_version' => '1.0.1', 'schema_version' => '1.0.0', 'released_at' => '2026-09-08T00:00:00Z', 'summary' => 'Тест активации.', 'changes' => array('Переключение релиза.')),
 		'classification' => 'code-only',
 		'artifact' => array('name' => 'h-script-1.0.1-shared-hosting.tar.gz', 'sha256' => str_repeat('a', 64), 'sigstore_url' => ''),

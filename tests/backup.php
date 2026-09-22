@@ -20,6 +20,7 @@ function backupAssert(bool $condition, string $message): void
 
 function backupRejects(callable $callback, string $message): void
 {
+	set_error_handler(static fn(): bool => true);
 	try
 	{
 		$callback();
@@ -28,6 +29,7 @@ function backupRejects(callable $callback, string $message): void
 	{
 		return;
 	}
+	finally { restore_error_handler(); }
 	throw new RuntimeException($message);
 }
 
@@ -75,6 +77,15 @@ try
 			$id
 		);
 		backupAssert($verification['footer_present'], 'Backup footer was not verified');
+		backupAssert((fileperms($path) & 0777) === 0600, 'Backup is readable by group/other users');
+		$bytes = file_get_contents($path);
+		backupRejects(static fn() => new BackupStreamWriter($path, $compression, 1048576), 'Existing backup was overwritten');
+		backupAssert(file_get_contents($path) === $bytes, 'Rejected overwrite changed backup bytes');
+		$link = $path . '-link';
+		symlink($path, $link);
+		backupRejects(static fn() => new BackupStreamWriter($link, $compression, 1048576), 'Backup writer followed a symlink');
+		backupAssert(file_get_contents($path) === $bytes, 'Symlink target was modified');
+		unlink($link);
 	}
 
 	$plainPath = $temporaryDirectory . '/archive-plain';
@@ -191,6 +202,18 @@ try
 	));
 	$repository->publish($repositoryManifest, $repositoryTemporary);
 	backupAssert($repository->find($repositoryId)->id() === $repositoryId, 'Published backup could not be found');
+	backupAssert((fileperms($repositoryDirectory . '/' . $repositoryArchive) & 0777) === 0600, 'Published backup permissions are too broad');
+	$publishedHash = hash_file('sha256', $repositoryDirectory . '/' . $repositoryArchive);
+	backupRejects(static fn() => $repository->publish($repositoryManifest, $repositoryTemporary), 'Existing manifest was overwritten');
+	backupAssert(hash_file('sha256', $repositoryDirectory . '/' . $repositoryArchive) === $publishedHash, 'Rejected publish changed archive');
+	$wrongId = str_repeat('9', 32);
+	copy($repositoryDirectory . '/' . $repositoryId . '.manifest.json', $repositoryDirectory . '/' . $wrongId . '.manifest.json');
+	backupRejects(static fn() => $repository->find($wrongId), 'Manifest ID/filename mismatch accepted');
+	unlink($repositoryDirectory . '/' . $wrongId . '.manifest.json');
+	$manifestLink = $repositoryDirectory . '/manifest-link';
+	symlink($repositoryDirectory . '/' . $repositoryId . '.manifest.json', $manifestLink);
+	backupRejects(static fn() => BackupManifest::fromFile($manifestLink), 'Symlink manifest accepted');
+	unlink($manifestLink);
 	backupAssert(dirname($repository->archivePath($repositoryManifest)) === $repositoryDirectory, 'Backup escaped its storage directory');
 	backupRejects(static fn() => $repository->find('../outside'), 'Repository accepted path traversal as a backup ID');
 
@@ -234,6 +257,27 @@ try
 		'Configured document-root storage was incorrectly marked external'
 	);
 	putenv('BACKUP_STORAGE_PATH');
+	backupAssert((fileperms($protectedDirectory) & 0777) === 0700, 'Backup directory is accessible to other users');
+	putenv('BACKUP_STORAGE_PATH=' . $projectDirectory);
+	backupRejects(static fn() => BackupSettings::fromEnvironment($projectDirectory), 'Project root accepted as backup storage');
+	putenv('BACKUP_STORAGE_PATH=' . $protectedDirectory);
+	file_put_contents($protectedDirectory . '/.htaccess', "Require all granted\n");
+	backupRejects(static fn() => BackupSettings::fromEnvironment($projectDirectory), 'Non-denying htaccess accepted');
+	putenv('BACKUP_STORAGE_PATH');
+
+	$privateJson = $temporaryDirectory . '/private.json';
+	$protectedFile = $temporaryDirectory . '/unchanged.txt';
+	file_put_contents($protectedFile, 'unchanged');
+	symlink($protectedFile, $privateJson . '.part');
+	\HScript\Backup\PrivateJsonFile::write($privateJson, array('safe' => true));
+	backupAssert(file_get_contents($protectedFile) === 'unchanged', 'Metadata writer followed predictable temp link');
+	backupAssert((fileperms($privateJson) & 0777) === 0600, 'Private metadata permissions are not 0600');
+	\HScript\Backup\PrivateJsonFile::write($privateJson, array('safe' => false));
+	backupAssert(json_decode(file_get_contents($privateJson), true) === array('safe' => false), 'Atomic metadata update failed');
+	unlink($privateJson);
+	symlink($protectedFile, $privateJson);
+	backupRejects(static fn() => \HScript\Backup\PrivateJsonFile::write($privateJson, array()), 'Metadata writer accepted destination symlink');
+	backupAssert(file_get_contents($protectedFile) === 'unchanged', 'Metadata destination target was modified');
 
 	if (session_status() !== PHP_SESSION_ACTIVE)
 		session_start();

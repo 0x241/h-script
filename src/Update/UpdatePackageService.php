@@ -56,13 +56,14 @@ final class UpdatePackageService
 		$classification = $this->classification($plan);
 		$version = $this->readVersion($root . '/VERSION', 'application');
 		$compatibility = UpdateCompatibility::fromRoot($root);
+		$compatibility->assertRuntime(RuntimeEnvironment::inspect($this->database));
 		$state = new SchemaStateRepository($this->database);
 		$currentSchema = $state->currentVersion();
 		if ($currentSchema === null) throw new RuntimeException('Explicit schema version must be initialized before update');
 		$sourceApplication = $state->installedApplicationVersion();
 		if ($sourceApplication === null)
 			throw new RuntimeException('Installed application version must be recorded before a Docker database update');
-		$compatibility->assertSource($sourceApplication, $currentSchema);
+		$compatibility->assertUpgrade($sourceApplication, $currentSchema, $version, $targetSchema);
 		$activationPlan = array();
 		$activationPlanChecksum = $this->activationPlanChecksum($activationPlan);
 		$manifest = ReleaseManifest::fromArray(array(
@@ -110,6 +111,7 @@ final class UpdatePackageService
 	public function revalidate(array $record): ReleaseManifest
 	{
 		$manifest = ReleaseManifest::fromArray($record['manifest']);
+		UpdateCompatibility::fromArray($manifest->compatibility())->assertRuntime(RuntimeEnvironment::inspect($this->database));
 		if (!hash_equals((string)$record['manifest_checksum'], $manifest->checksum()))
 			throw new RuntimeException('Prepared release metadata changed');
 		if ($record['source'] === 'bundled')
@@ -170,7 +172,8 @@ final class UpdatePackageService
 			$this->verifiedTargetBaseline($staging, $version);
 			$schema = $this->readVersion($staging . '/SCHEMA_VERSION', 'schema');
 			$compatibility = UpdateCompatibility::fromRoot($staging);
-			$compatibility->assertSource($currentVersion, $currentSchema);
+			$compatibility->assertRuntime(RuntimeEnvironment::inspect($this->database));
+			$compatibility->assertUpgrade($currentVersion, $currentSchema, $version, $schema);
 			$plan = $this->migrationPlan($staging, $schema);
 			$class = $this->classification($plan);
 			$managedFiles = ReleaseInventory::managed($staging, $sourceBaseline);
@@ -253,7 +256,8 @@ final class UpdatePackageService
 		$currentVersion = $this->readVersion($this->settings->projectRoot() . '/VERSION', 'current application');
 		$currentSchema = (new SchemaStateRepository($this->database))->currentVersion();
 		if ($currentSchema === null) throw new RuntimeException('Explicit schema version must be initialized before update');
-		$sourceApplication = $manifest->source() === 'bundled' ? null : $currentVersion;
+		$sourceApplication = $manifest->source() === 'bundled'
+			? (new SchemaStateRepository($this->database))->installedApplicationVersion() : $currentVersion;
 		$sourceSchema = $currentSchema;
 		if ($runId === '')
 		{
@@ -275,7 +279,11 @@ final class UpdatePackageService
 					throw new RuntimeException('Active CMS version does not match the resumable update run');
 			}
 		}
-		UpdateCompatibility::fromArray($manifest->compatibility())->assertSource($sourceApplication, $sourceSchema);
+		if ($sourceApplication === null)
+			throw new RuntimeException('Installed application version must be recorded before an update');
+		UpdateCompatibility::fromArray($manifest->compatibility())->assertUpgrade(
+			$sourceApplication, $sourceSchema, $manifest->applicationVersion(), $manifest->schemaVersion()
+		);
 		if (SchemaVersion::compare($manifest->schemaVersion(), $currentSchema) < 0)
 			throw new RuntimeException('Schema downgrade is not supported');
 		return $this->migrationPlan($root, $manifest->schemaVersion());

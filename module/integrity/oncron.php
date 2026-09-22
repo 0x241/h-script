@@ -22,7 +22,7 @@ try
 		$integrityState = $integrityScanner->advance();
 		$integrityRan = true;
 	}
-	elseif ($integrityState === null || (int)($integrityState['completed_at'] ?? 0) <= time() - 86400)
+	elseif ($integrityState === null || !$integrityScanner->matchesBaseline($integrityState) || (int)($integrityState['completed_at'] ?? 0) <= time() - 86400)
 	{
 		$integrityState = $integrityScanner->start();
 		$integrityRan = true;

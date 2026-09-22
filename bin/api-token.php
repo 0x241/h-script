@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 use HScript\Http\ApiTokenRepository;
+use HScript\Backup\DatabaseCredentials;
+use HScript\Database\Connection;
+use HScript\Telemetry\CollectorMode;
+use HScript\Telemetry\TelemetryServiceTokenRepository;
+use HScript\Observability\CorrelationContext;
+use HScript\Observability\StructuredLogger;
 
 $root = dirname(__DIR__);
 $domain = (string)(getenv('APP_DOMAIN') ?: 'localhost');
@@ -18,6 +24,36 @@ $_SERVER += array(
 
 chdir($root);
 require $root . '/vendor/autoload.php';
+
+// Keep the emergency operation in the existing operator token CLI. Do not use
+// web dbinit, which may render an error and terminate with exit status zero.
+if (($argv[1] ?? '') === 'stop-collector-consumer')
+{
+	try
+	{
+		if (PHP_SAPI !== 'cli' || count($argv) !== 4 || !preg_match('/^[1-9][0-9]{0,9}$/', $argv[2])
+			|| $argv[3] !== '--confirm-consumer=' . $argv[2])
+			throw new InvalidArgumentException('Explicit consumer confirmation required');
+		$_cfg = array();
+		if (is_file($root . '/_config.php')) require $root . '/_config.php';
+		if (is_file($root . '/_config.local.php')) require $root . '/_config.local.php';
+		if (!CollectorMode::enabled($_cfg, $domain)) throw new RuntimeException('Collector mode required');
+		$credentials = DatabaseCredentials::fromConfig($_cfg, $domain);
+		$db = new Connection();
+		if (!$db->open($credentials->connectionHost(), $credentials->database(), $credentials->username(), $credentials->password()))
+			throw new RuntimeException('Database unavailable');
+		(new TelemetryServiceTokenRepository($db))->stopConsumer((int)$argv[2]);
+		CorrelationContext::setActorClass('system');
+		StructuredLogger::event('warning', 'telemetry', 'collector_consumer_stopped', 'success', 0, StructuredLogger::resourceId('consumer', $argv[2]));
+		echo json_encode(array('status'=>'stopped','consumer_id'=>(int)$argv[2]), JSON_THROW_ON_ERROR) . PHP_EOL;
+		exit(0);
+	}
+	catch (Throwable)
+	{
+		echo json_encode(array('status'=>'failed','error_code'=>'collector_consumer_stop_failed')) . PHP_EOL;
+		exit(1);
+	}
+}
 
 global $_cfg;
 $_cfg = array();
@@ -37,6 +73,7 @@ $usage = static function (): void {
 	fwrite(STDERR, "  php bin/api-token.php create <user-id> <name> [scopes] [expires-at]\n");
 	fwrite(STDERR, "  php bin/api-token.php list <user-id>\n");
 	fwrite(STDERR, "  php bin/api-token.php revoke <token-id> [user-id]\n");
+	fwrite(STDERR, "  php bin/api-token.php stop-collector-consumer <user-id> --confirm-consumer=<user-id>\n");
 };
 
 try

@@ -3,6 +3,10 @@
 namespace HScript\Queue;
 
 use HScript\Database\Connection;
+use HScript\Observability\CorrelationContext;
+use HScript\Observability\MetricRegistry;
+use HScript\Observability\StructuredLogger;
+use HScript\Security\SensitiveDataRedactor;
 use JsonException;
 use RuntimeException;
 use Throwable;
@@ -52,6 +56,7 @@ final class JobQueue
 	{
 		$type = $this->normalizeType($type);
 		$maxAttempts = max(1, min(99, $maxAttempts));
+		$payload['_hs_correlation_id'] = CorrelationContext::current();
 		return (int)$this->db->insert('Jobs', array(
 			'jType' => $type,
 			'jPayload' => $this->encodePayload($payload),
@@ -130,7 +135,7 @@ final class JobQueue
 	{
 		if ($jobId <= 0)
 			return;
-		$this->db->update(
+		$updated = $this->db->update(
 			'Jobs',
 			array(
 				'jState' => self::STATE_PENDING,
@@ -140,6 +145,7 @@ final class JobQueue
 			'jID=?d and jState=?d and jAttempts<jMaxAttempts',
 			array($jobId, self::STATE_FAILED)
 		);
+		if ($updated) MetricRegistry::increment('queue_retries_total', array('reason' => 'handler_failure'));
 	}
 
 	/**
@@ -162,7 +168,7 @@ final class JobQueue
 		), 1);
 		if (!$ids)
 			return 0;
-		return (int)$this->db->update(
+		$updated = (int)$this->db->update(
 			'Jobs',
 			array(
 				'jState' => self::STATE_PENDING,
@@ -172,6 +178,8 @@ final class JobQueue
 			'jID ?i and jState=?d and jAttempts<jMaxAttempts',
 			array($ids, self::STATE_FAILED)
 		);
+		if ($updated > 0) MetricRegistry::increment('queue_retries_total', array('reason' => 'handler_failure'), $updated);
+		return $updated;
 	}
 
 	/**
@@ -179,7 +187,7 @@ final class JobQueue
 	 */
 	public function recoverStale(int $olderThanSeconds = 600): int
 	{
-		return (int)$this->db->update(
+		$updated = (int)$this->db->update(
 			'Jobs',
 			array(
 				'jState' => self::STATE_FAILED,
@@ -193,6 +201,8 @@ final class JobQueue
 				timeToStamp(time() - max(1, $olderThanSeconds)),
 			)
 		);
+		if ($updated > 0) MetricRegistry::increment('queue_retries_total', array('reason' => 'stale'), $updated);
+		return $updated;
 	}
 
 	/**
@@ -254,11 +264,18 @@ final class JobQueue
 	{
 		$jobId = (int)($job['jID'] ?? 0);
 		$type = (string)($job['jType'] ?? '');
+		$startedAt = microtime(true);
+		$snapshot = CorrelationContext::snapshot();
 		try
 		{
+			$payload = self::decodePayload((string)($job['jPayload'] ?? ''));
+			CorrelationContext::adopt((string)($payload['_hs_correlation_id'] ?? ''), 'system');
 			if (!isset($this->handlers[$type]))
 				throw new RuntimeException('No handler registered for job type: ' . $type);
-			$payload = self::decodePayload((string)($job['jPayload'] ?? ''));
+			StructuredLogger::event('info', 'queue', 'queue_job_started', 'started', 0, StructuredLogger::resourceId('job', $jobId), array(
+				'job_type' => $type,
+				'attempt' => (int)($job['jAttempts'] ?? 0),
+			));
 			$result = ($this->handlers[$type])($payload, $job);
 			if (is_array($result))
 			{
@@ -279,21 +296,32 @@ final class JobQueue
 				'jID=?d and jState=?d',
 				array($jobId, self::STATE_PROCESSING)
 			);
+			StructuredLogger::event('info', 'queue', 'queue_job_completed', 'success',
+				(int)round((microtime(true) - $startedAt) * 1000), StructuredLogger::resourceId('job', $jobId), array('job_type' => $type));
 		}
 		catch (Throwable $e)
 		{
+			$error = substr(SensitiveDataRedactor::redactText($e->getMessage()), 0, 500);
 			$this->db->update(
 				'Jobs',
 				array(
 					'jState' => self::STATE_FAILED,
 					'jDTS' => timeToStamp(),
-					'jError' => $e->getMessage(),
+					'jError' => $error,
 				),
 				'',
 				'jID=?d and jState=?d',
 				array($jobId, self::STATE_PROCESSING)
 			);
-			error_log('Job #' . $jobId . ' (' . $type . ') failed: ' . $e->getMessage());
+			StructuredLogger::event('error', 'queue', 'queue_job_failed', 'failure',
+				(int)round((microtime(true) - $startedAt) * 1000), StructuredLogger::resourceId('job', $jobId), array(
+					'job_type' => $type,
+					'error_class' => $e::class,
+				));
+		}
+		finally
+		{
+			CorrelationContext::restore($snapshot);
 		}
 	}
 

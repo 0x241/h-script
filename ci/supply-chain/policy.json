@@ -1,0 +1,7 @@
+{
+  "format": 1,
+  "blocking_severities": ["HIGH", "CRITICAL", "UNKNOWN"],
+  "maximum_report_age_hours": 24,
+  "maximum_exception_days": 30,
+  "exceptions": []
+}

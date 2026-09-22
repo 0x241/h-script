@@ -2,17 +2,18 @@
 
 use HScript\Update\ConfiguratorRouteRegistry;
 use HScript\Security\ConfiguratorSecurity;
+use HScript\Observability\CorrelationContext;
 
 error_reporting(7);
 startSessionSafely();
+require_once __DIR__ . '/translations.php';
+CorrelationContext::setActorClass(!empty($_SESSION['cfg_logged']) ? 'administrator' : 'public');
 
 if (isset($_GET['lang'])) {
-	$cfgRequestedLang = strtolower((string)$_GET['lang']);
-	$_SESSION['cfg_lang'] = preg_match('/^[a-z]{2}(?:-[a-z]{2})?$/', $cfgRequestedLang) ? $cfgRequestedLang : 'en';
-	$redir = '?' . $_SERVER['QUERY_STRING'];
-	$redir = preg_replace('/&?lang=[a-z]+/i', '', $redir);
-	$redir = str_replace('?&', '?', $redir);
-	header("Location: " . ($redir === '?' ? '?modules' : $redir));
+	$_SESSION['cfg_lang'] = cfg_language($_GET['lang']);
+	$cfgQuery = $_GET;
+	unset($cfgQuery['lang']);
+	header('Location: ?' . ($cfgQuery ? http_build_query($cfgQuery, '', '&', PHP_QUERY_RFC3986) : 'modules'));
 	exit;
 }
 if (isset($_GET['theme'])) {
@@ -23,15 +24,7 @@ if (isset($_GET['theme'])) {
 	header("Location: " . ($redir === '?' ? '?modules' : $redir));
 	exit;
 }
-if (!isset($_SESSION['cfg_lang'])) {
-	global $_cfg;
-	$_SESSION['cfg_lang'] = (isset($_cfg['Sys_AdminLang']) && $_cfg['Sys_AdminLang'] === 'ru') ? 'ru' : 'en';
-}
-if (!function_exists('cfg_t')) {
-	function cfg_t($ru, $en) {
-		return ($_SESSION['cfg_lang'] === 'ru') ? $ru : $en;
-	}
-}
+$_SESSION['cfg_lang'] = cfg_language();
 
 $cfgSecurity = new ConfiguratorSecurity(dirname(__DIR__, 2));
 $cfgClientIp = $cfgSecurity->clientIp();
@@ -44,7 +37,7 @@ catch (Throwable $exception)
 	$cfgSecurity->audit('access', 'blocked', $cfgClientIp, array('reason' => 'cidr'));
 	http_response_code(403);
 	header('Content-Type: text/plain; charset=UTF-8');
-	echo cfg_t('Доступ к конфигуратору запрещён для этого адреса.', 'Configurator access is denied for this address.');
+	echo cfg_t('configurator.index.configurator_access_is_denied_for_this_address');
 	exit;
 }
 
@@ -53,11 +46,12 @@ function getMsg()
 	return '' . (isset($_SESSION['cfg_info_message']) ? $_SESSION['cfg_info_message'] : '');
 }
 
-function addMsg($s)
+function addMsg($s, bool $error = false)
 {
 	if (!isset($_SESSION['cfg_info_message']))
 		$_SESSION['cfg_info_message'] = '';
 	$_SESSION['cfg_info_message'] .= "$s<br>";
+	$_SESSION['cfg_info_error'] = !empty($_SESSION['cfg_info_error']) || $error;
 }
 
 function showMsg()
@@ -99,7 +93,7 @@ foreach (ConfiguratorRouteRegistry::keys() as $m)
 					$cfgSecurity->audit('rate_limit', 'blocked', $cfgClientIp, array('route' => $m));
 					header('Retry-After: ' . (int)$rate['retry_after']);
 					http_response_code(429);
-					addMsg(cfg_t('Слишком много запросов. Повторите позже.', 'Too many requests. Try again later.'));
+					addMsg(cfg_t('configurator.index.too_many_requests_try_again_later'), true);
 					goToURL($_cfg['cfg_link'] . '?' . $m);
 				}
 			}
@@ -108,7 +102,7 @@ foreach (ConfiguratorRouteRegistry::keys() as $m)
 				$cfgSecurity->audit('rate_limit', 'error', $cfgClientIp, array('route' => $m));
 				http_response_code(503);
 				header('Content-Type: text/plain; charset=UTF-8');
-				echo cfg_t('Защита конфигуратора временно недоступна.', 'Configurator protection is temporarily unavailable.');
+				echo cfg_t('configurator.index.configurator_protection_is_temporarily_unavailable');
 				exit;
 			}
 		}

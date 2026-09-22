@@ -34,7 +34,7 @@ RUN npm run css:build
 FROM alpine:3.22@sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce AS application-files
 
 WORKDIR /opt/hscript
-COPY .htaccess 404.html VERSION SCHEMA_VERSION _dbstru.php favicon.ico favicon.svg rw.php ./
+COPY .htaccess system-page.html VERSION SCHEMA_VERSION _dbstru.php favicon.ico favicon.svg rw.php ./
 COPY bin ./bin
 COPY lang ./lang
 COPY lib ./lib
@@ -110,11 +110,14 @@ RUN case "${APP_VERSION}" in \
 FROM scratch AS shared-release
 COPY --from=shared-archive /out /
 
-FROM php:8.4-fpm-alpine@sha256:5992f8b7433fe7fa96dfbf67746c86d6c41bc91e686eac38fe531c72a02e40e4 AS runtime
+FROM php:8.4-fpm-alpine@sha256:49734670eccf414af884c2a0c2e558401e228615f8028f1c9fca30a0d4fb1bc2 AS runtime
 
 WORKDIR /var/www/html
 
-RUN apk add --no-cache \
+# Refresh inherited packages too: `apk add curl` alone keeps a vulnerable copy
+# already present in a pinned base. Stay on the base's stable Alpine repositories.
+RUN apk upgrade --no-cache \
+    && apk add --no-cache \
         apache2 \
         apache2-proxy \
         ca-certificates \
@@ -156,11 +159,12 @@ COPY docker/apache/httpd.conf /etc/apache2/httpd.conf
 COPY docker/php/conf.d/app.ini /usr/local/etc/php/conf.d/90-hscript.ini
 COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint-hscript
 COPY docker/runtime/cron.sh /usr/local/bin/hscript-cron
+COPY docker/runtime/recovery.sh /usr/local/bin/hscript-recovery-scheduler
 COPY docker/runtime/write-config.php /usr/local/share/hscript/write-config.php
 COPY docker/runtime/install-db.php /usr/local/share/hscript/install-db.php
 COPY docker/runtime/check-schema.php /usr/local/share/hscript/check-schema.php
 
-RUN chmod +x /usr/local/bin/docker-entrypoint-hscript /usr/local/bin/hscript-cron \
+RUN chmod +x /usr/local/bin/docker-entrypoint-hscript /usr/local/bin/hscript-cron /usr/local/bin/hscript-recovery-scheduler \
 	&& php bin/build-release-baseline.php /var/www/html /var/www/html/resources/release-baseline.json \
     && mkdir -p /var/www/shared/config \
     && mv backup compile logs tpl_c upload .cfg /var/www/shared/ \

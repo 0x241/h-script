@@ -3,14 +3,21 @@
 declare(strict_types=1);
 
 use HScript\Application;
+use HScript\Backup\DatabaseCredentials;
+use HScript\Database\Connection;
+use HScript\Cache\CatalogCache;
+use HScript\Cache\RedisCache;
 use HScript\Update\MigrationLoader;
 use HScript\Update\MigrationRunner;
 use HScript\Update\SchemaStateRepository;
 use HScript\Update\SchemaStorageInstaller;
 use HScript\Update\UpdateStatusService;
 use HScript\Update\UpdateService;
+use HScript\Update\UpdateHealthChecker;
+use HScript\Update\UpdateCliContext;
 
 $root = dirname(__DIR__);
+$engineRoot = $root;
 $domain = (string)(getenv('APP_DOMAIN') ?: 'localhost');
 $_SERVER += array(
 	'SERVER_NAME' => $domain,
@@ -25,22 +32,11 @@ $_SERVER += array(
 chdir($root);
 require $root . '/vendor/autoload.php';
 
-global $_cfg;
-$_cfg = array();
-if (is_file($root . '/_config.php'))
-	require $root . '/_config.php';
-if (is_file($root . '/_config.local.php'))
-	require $root . '/_config.local.php';
-if (!hsHasDatabaseConfiguration($_cfg))
-{
-	fwrite(STDERR, "Application database configuration was not found.\n");
-	exit(1);
-}
-require $root . '/module/dbinit.php';
-
 $usage = static function (): void {
 	fwrite(STDERR, "Usage:\n");
+	fwrite(STDERR, "  Shared-hosting external verified engine: append --project-root=/absolute/installed-site\n");
 	fwrite(STDERR, "  php bin/update.php status\n");
+	fwrite(STDERR, "  php bin/update.php reconcile\n");
 	fwrite(STDERR, "  php bin/update.php bootstrap --acknowledge-application=<version> --acknowledge-schema=<version>\n");
 	fwrite(STDERR, "  php bin/update.php plan [target-schema-version]\n");
 	fwrite(STDERR, "  php bin/update.php prepare --package=/absolute/h-script-<version>-shared-hosting.tar.gz\n");
@@ -77,11 +73,44 @@ $fileChoices = static function (array $arguments): array {
 
 try
 {
+	[$root, $argv, $externalEngine] = UpdateCliContext::resolve($argv, $engineRoot);
+	chdir($root);
 	$command = strtolower((string)($argv[1] ?? ''));
+	global $_cfg;
+	$_cfg = array();
+	if (is_file($root . '/_config.php')) require $root . '/_config.php';
+	if (is_file($root . '/_config.local.php')) require $root . '/_config.local.php';
+	if (!hsHasDatabaseConfiguration($_cfg))
+		throw new RuntimeException('Application database configuration was not found.');
+	if ($command === 'reconcile' || $externalEngine)
+	{
+		// Web dbinit can render an error and exit(0); a release gate must instead
+		// fail with a bounded JSON result and must not install mutation callbacks.
+		$credentials = DatabaseCredentials::fromConfig($_cfg, $domain);
+		$db = new Connection();
+		if (!$db->open($credentials->connectionHost(), $credentials->database(), $credentials->username(), $credentials->password()))
+			throw new RuntimeException('Reconciliation database is unavailable');
+	}
+	if ($command === 'reconcile')
+	{
+		if (count($argv) !== 2) throw new InvalidArgumentException('Reconcile does not accept options');
+		if ($db->query('START TRANSACTION READ ONLY') === false) throw new RuntimeException('Read-only reconciliation could not start');
+		try { $result = (new UpdateHealthChecker($db, $root))->reconcile(); }
+		finally { $db->query('ROLLBACK'); }
+		$jsonOutput($result);
+		exit(0);
+	}
+	// Load the verified engine, not a possibly interrupted/old target bootstrap.
+	if (!$externalEngine) require $engineRoot . '/module/dbinit.php';
+	else
+	{
+		$catalogCache = new CatalogCache(RedisCache::fromEnvironment());
+		$db->onMutation(static fn(string $table) => $catalogCache->invalidateTable($table));
+	}
 	if ($command === 'status')
 	{
 		echo json_encode(
-			(new UpdateStatusService($db))->snapshot(),
+			(new UpdateStatusService($db, $root))->snapshot(),
 			JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
 		) . PHP_EOL;
 		exit(0);
@@ -135,6 +164,7 @@ try
 		}
 		if ($command === 'prepare')
 		{
+			if (count($argv) !== 3) throw new InvalidArgumentException('Prepare requires exactly one package source');
 			$source = (string)($argv[2] ?? '');
 			if ($source === '--github')
 				$result = $service->prepareLatest();
@@ -142,12 +172,20 @@ try
 				$result = $service->prepareManual(substr($source, strlen('--package=')));
 			else
 				throw new InvalidArgumentException('Use exactly --github or --package=/absolute/h-script-<version>-shared-hosting.tar.gz');
+			if ($externalEngine && $result['manifest']['release']['application_version'] !== Application::version())
+				throw new RuntimeException('External engine must come from the exact target release');
 			$jsonOutput($result);
 			exit(0);
 		}
 		$id = (string)($argv[2] ?? '');
 		if ($id === '')
 			throw new InvalidArgumentException('Prepared update or run ID is required');
+		if ($externalEngine && in_array($command, array('apply', 'resume'), true))
+		{
+			$record = $command === 'apply' ? $service->prepared($id) : $service->preparedForRun($id);
+			if ($record['manifest']['release']['application_version'] !== Application::version())
+				throw new RuntimeException('External engine must come from the exact target release');
+		}
 		if ($command === 'apply')
 			$result = $service->apply($id, $fileChoices(array_slice($argv, 3)));
 		elseif ($command === 'resume')
@@ -176,6 +214,14 @@ try
 }
 catch (Throwable $exception)
 {
+	if (($command ?? '') === 'reconcile')
+	{
+		$result = array('format' => 1, 'checked_at' => gmdate('Y-m-d\TH:i:s\Z'), 'status' => 'not_ready', 'error_code' => 'reconciliation_failed');
+		if ($exception instanceof \HScript\Update\UpdateHealthCheckFailed)
+			$result['failed_checks'] = $exception->failedChecks();
+		$jsonOutput($result);
+		exit(1);
+	}
 	fwrite(STDERR, $exception->getMessage() . PHP_EOL);
 	exit(1);
 }

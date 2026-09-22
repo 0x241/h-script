@@ -43,7 +43,7 @@ if ($action !== '')
 		if ($action === 'save')
 		{
 			View::checkFormSecurity('telemetry_settings');
-			$shareStats = isset_IN('share_public_stats');
+			$shareStats = empty($_GS['demo']) && isset_IN('share_public_stats');
 
 			$save('Enabled', 1);
 			$save('SharePublicStats', $shareStats ? 1 : 0);
@@ -66,7 +66,7 @@ if ($action !== '')
 		{
 			View::checkFormSecurity('telemetry_send');
 			$stats = null;
-			if (!empty($_cfg['Telemetry_SharePublicStats']))
+			if (empty($_GS['demo']) && !empty($_cfg['Telemetry_SharePublicStats']))
 			{
 				useLib('depo');
 				$stats = PublicStats::fromDepositStats(depoGetStat(), $_currs);
@@ -107,17 +107,33 @@ $formatDate = static function ($timestamp) use ($telemetryTranslate): string {
 		: $telemetryTranslate('common.no_data', 'Нет данных');
 };
 
+$lastAttempt = (int)($_cfg['Telemetry_LastAttemptAt'] ?? 0);
+$lastSuccess = (int)($_cfg['Telemetry_LastSuccessAt'] ?? 0);
+$lastError = (string)($_cfg['Telemetry_LastError'] ?? '');
+$connectionState = empty($_cfg['Telemetry_Registered'])
+	? 'waiting'
+	: ($lastError !== '' && $lastAttempt > $lastSuccess ? 'error' : 'connected');
+
 View::setPage('telemetry', array(
 	'share_public_stats' => !empty($_cfg['Telemetry_SharePublicStats']),
+	'demo_stats_isolated' => !empty($_GS['demo']),
 	'registered' => !empty($_cfg['Telemetry_Registered']),
 	'installation_id' => (string)($_cfg['Telemetry_InstallationID'] ?? ''),
 	'domain' => (string)($_cfg['Telemetry_Domain'] ?: ($_GS['domain'] ?? '')),
 	'version' => Application::version(),
 	'installed_at' => $formatDate($_cfg['Telemetry_InstalledAt'] ?? 0),
-	'last_attempt_at' => $formatDate($_cfg['Telemetry_LastAttemptAt'] ?? 0),
-	'last_success_at' => $formatDate($_cfg['Telemetry_LastSuccessAt'] ?? 0),
+	'connection_state' => $connectionState,
+	'last_attempt_at' => $formatDate($lastAttempt),
+	'last_success_at' => $formatDate($lastSuccess),
+	'next_attempt_at' => $formatDate($_cfg['Telemetry_NextAttemptAt'] ?? 0),
 	'last_status' => (int)($_cfg['Telemetry_LastStatus'] ?? 0),
-	'last_error' => (string)($_cfg['Telemetry_LastError'] ?? ''),
+	'last_error' => $lastError,
+	'dns_status' => (string)($_cfg['Telemetry_DnsStatus'] ?? 'unresolved'),
+	'domain_verified' => (int)($_cfg['Telemetry_DomainVerifiedUntil'] ?? 0) > time(),
+	'domain_verified_until' => $formatDate($_cfg['Telemetry_DomainVerifiedUntil'] ?? 0),
+	'domain_proof_error' => (string)($_cfg['Telemetry_DomainProofError'] ?? ''),
+	'dns_checked_at' => $formatDate($_cfg['Telemetry_DnsCheckedAt'] ?? 0),
+	'dns_error_code' => (string)($_cfg['Telemetry_DnsErrorCode'] ?? ''),
 	'endpoint' => (string)($_cfg['telemetry_endpoint'] ?? 'https://h-script.com/api/v1/installations'),
 ));
 View::setPage('telemetry_flash', $flash);

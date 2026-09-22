@@ -2,6 +2,8 @@
 
 namespace HScript\Http;
 
+use HScript\Observability\CorrelationContext;
+
 /**
  * Emits the versioned JSON response envelope used by REST API v1.
  *
@@ -71,6 +73,7 @@ final class ApiResponse
 		return array(
 			'timestamp' => time(),
 			'version' => self::VERSION,
+			'correlation_id' => CorrelationContext::current(),
 		);
 	}
 

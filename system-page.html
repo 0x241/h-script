@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="{{html_lang}}">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex, nofollow">
+	<meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)">
+	<meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)">
+	<title>{{document_title}}</title>
+	<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+	<link rel="stylesheet" href="/static/css/system-page.css">
+</head>
+<body class="system-page system-page--{{body_class}}">
+	<main class="system-shell">
+		<header class="system-header">
+			<a class="system-brand" href="/" aria-label="{{logo_label}}">
+				<span class="system-brand__mark" aria-hidden="true">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v18"/><path d="M18 3v18"/><path d="M6 12h12"/></svg>
+				</span>
+				<span>Script</span>
+			</a>
+			<nav class="system-language" aria-label="{{language_label}}">
+				<a href="{{language_ru_url}}" lang="ru" hreflang="ru"{{language_ru_current}}>RU</a>
+				<a href="{{language_en_url}}" lang="en" hreflang="en"{{language_en_current}}>EN</a>
+			</nav>
+		</header>
+
+		<section class="system-card" aria-labelledby="system-title">
+			<div class="system-card__content">
+				<p class="system-kicker"><span class="system-kicker__dot{{pulse_class}}" aria-hidden="true"></span>{{eyebrow}}</p>
+				<p class="system-code" aria-hidden="true">{{status_code}}</p>
+				<h1 id="system-title">{{title}}</h1>
+				<p class="system-description">{{description}}</p>
+				<div class="system-actions">{{actions}}</div>
+				<p class="system-note">{{note}}</p>
+			</div>
+
+			<div class="system-visual" aria-hidden="true">
+				<div class="system-orbit system-orbit--outer"></div>
+				<div class="system-orbit system-orbit--inner"></div>
+				<div class="system-visual__badge">{{status_code}}</div>
+				<span class="system-spark system-spark--one"></span>
+				<span class="system-spark system-spark--two"></span>
+				<span class="system-spark system-spark--three"></span>
+			</div>
+		</section>
+
+		<p class="system-footer">{{copyright}}</p>
+	</main>
+</body>
+</html>

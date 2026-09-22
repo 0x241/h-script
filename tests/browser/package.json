@@ -1,0 +1,6 @@
+{
+  "name": "hscript-release-browser-tests",
+  "private": true,
+  "version": "1.0.0",
+  "devDependencies": {"@playwright/test": "1.63.0"}
+}

@@ -26,7 +26,7 @@
 		<div class="flex items-center justify-between gap-4 border-b border-gray-100 p-5 sm:col-span-2 lg:col-span-1 lg:border-b-0 lg:border-r dark:border-gray-800">
 			<div>
 				<p class="text-xs font-extrabold uppercase tracking-wider text-gray-400">{{ _t({"key": 'admin.telemetry.state', "default": 'Состояние'}) }}</p>
-				<p class="mt-1 font-extrabold {% if telemetry.registered %}text-emerald-600 dark:text-emerald-400{% else %}text-gray-500 dark:text-gray-400{% endif %}">{% if telemetry.registered %}{{ _t({"key": 'admin.telemetry.registered', "default": 'Зарегистрировано'}) }}{% else %}{{ _t({"key": 'admin.telemetry.waiting', "default": 'Ожидает связи'}) }}{% endif %}</p>
+				<p class="mt-1 font-extrabold {% if telemetry.connection_state == 'connected' %}text-emerald-600 dark:text-emerald-400{% elseif telemetry.connection_state == 'error' %}text-red-600 dark:text-red-300{% else %}text-gray-500 dark:text-gray-400{% endif %}">{% if telemetry.connection_state == 'connected' %}{{ _t({"key": 'admin.telemetry.connected', "default": 'Подключено'}) }}{% elseif telemetry.connection_state == 'error' %}{{ _t({"key": 'admin.telemetry.error', "default": 'Ошибка'}) }}{% else %}{{ _t({"key": 'admin.telemetry.waiting', "default": 'Ожидает связи'}) }}{% endif %}</p>
 			</div>
 			<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {% if telemetry.registered %}bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300{% else %}bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400{% endif %}"><i class="fa-solid {% if telemetry.registered %}fa-link{% else %}fa-link-slash{% endif %}" aria-hidden="true"></i></span>
 		</div>
@@ -51,15 +51,33 @@
 				<p class="mt-1 text-sm leading-relaxed text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.telemetry.public_stats_text', "default": 'Раз в сутки отправляются только числовые показатели из статистики вкладов.'}) }}</p>
 			</div>
 		</div>
-		<label class="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
-			<input type="checkbox" name="share_public_stats" value="1" class="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 text-emerald-600" {% if telemetry.share_public_stats %}checked{% endif %}>
+		<label class="flex {% if telemetry.demo_stats_isolated %}cursor-not-allowed opacity-70{% else %}cursor-pointer{% endif %} items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
+			<input type="checkbox" name="share_public_stats" value="1" class="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300 text-emerald-600" {% if telemetry.share_public_stats and not telemetry.demo_stats_isolated %}checked{% endif %} {% if telemetry.demo_stats_isolated %}disabled{% endif %}>
 			<span>
 				<strong class="block text-sm font-extrabold text-brand dark:text-white">{{ _t({"key": 'admin.telemetry.share_stats', "default": 'Передавать агрегаты'}) }}</strong>
-				<small class="mt-1 block text-gray-500 dark:text-gray-400">{{ _t({"key": 'admin.telemetry.enabled_default', "default": 'Включено по умолчанию.'}) }}</small>
+				<small class="mt-1 block text-gray-500 dark:text-gray-400">{% if telemetry.demo_stats_isolated %}Демонстрационные показатели остаются только в локальном demo-источнике и не смешиваются с внешними отчётами.{% else %}{{ _t({"key": 'admin.telemetry.enabled_default', "default": 'Включено по умолчанию.'}) }}{% endif %}</small>
 			</span>
 		</label>
 		<button type="submit" name="telemetry_settings_btnsave" value="1" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-extrabold text-white transition hover:bg-black lg:self-stretch dark:bg-white dark:text-brand dark:hover:bg-gray-100"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>{{ _t({"key": 'common.save', "default": 'Сохранить'}) }}</button>
 	</form>
+
+	<div class="grid gap-4 border-b border-gray-100 p-6 md:grid-cols-3 dark:border-gray-800">
+		<div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
+			<span class="text-xs font-extrabold uppercase tracking-wider text-gray-400">{{ _t({"key": 'admin.telemetry.dns_status', "default": 'Пассивная DNS-проверка'}) }}</span>
+			<strong class="mt-2 block font-mono text-sm {% if telemetry.dns_status == 'matched' %}text-emerald-600 dark:text-emerald-300{% elseif telemetry.dns_status == 'mismatch' %}text-amber-600 dark:text-amber-300{% else %}text-gray-600 dark:text-gray-300{% endif %}">{{ telemetry.dns_status }}</strong>
+			<small class="mt-1 block text-gray-500 dark:text-gray-400">{{ telemetry.dns_checked_at }}{% if telemetry.dns_error_code %} · {{ telemetry.dns_error_code }}{% endif %}</small>
+			<strong class="mt-3 block text-sm">{{ _t({"key": 'admin.telemetry.domain_proof'}) }}: {{ _t({"key": telemetry.domain_verified ? 'admin.telemetry.proof_verified' : 'admin.telemetry.proof_pending'}) }}</strong>
+			<small class="mt-1 block text-gray-500 dark:text-gray-400">{% if telemetry.domain_verified %}{{ telemetry.domain_verified_until }}{% elseif telemetry.domain_proof_error %}{{ telemetry.domain_proof_error }}{% endif %}</small>
+		</div>
+		<div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]">
+			<span class="text-xs font-extrabold uppercase tracking-wider text-gray-400">{{ _t({"key": 'admin.telemetry.next_attempt', "default": 'Следующая попытка'}) }}</span>
+			<strong class="mt-2 block text-sm text-brand dark:text-white">{{ telemetry.next_attempt_at }}</strong>
+		</div>
+		<div class="rounded-xl border border-blue-200 bg-blue-50 p-4 text-xs leading-relaxed text-blue-800 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+			{{ _t({"key": 'admin.telemetry.dns_hint', "default": 'Проверка только сравнивает A/AAAA после CNAME с исходящим IP. При mismatch проверьте DNS, CDN, reverse proxy и NAT; это не подтверждение владения доменом.'}) }}
+			<p class="mt-2">{{ _t({"key": 'admin.telemetry.proof_hint'}) }}</p>
+		</div>
+	</div>
 
 	<details class="group bg-gray-50/70 dark:bg-black/20">
 		<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-6 py-4 [&::-webkit-details-marker]:hidden">

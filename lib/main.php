@@ -2,6 +2,8 @@
 
 use HScript\Util\StringHelper;
 use HScript\Http\ClientIp;
+use HScript\Observability\MetricRegistry;
+use HScript\Observability\StructuredLogger;
 use HScript\Security\SecretCipher;
 
 final class FormAbortException extends RuntimeException
@@ -309,7 +311,10 @@ function startSessionSafely($regenerate = false)
     }
     restore_error_handler();
     if (!$started) {
-        xAddToLog($error ?: 'Unable to start session', 'system');
+		$stage = $regenerate ? 'regenerate' : 'start';
+		MetricRegistry::increment('session_failures_total', array('stage' => $stage));
+		StructuredLogger::event('error', 'session', 'session_start_failed', 'failure', 0, '', array('state' => $stage));
+		xAddToLog('Unable to start session', 'system');
     }
     return $started;
 }

@@ -11,7 +11,7 @@ $installDatabasePopulated = count($installObjects) > 0;
 
 if ($installDatabasePopulated)
 {
-	addMsg(cfg_t('База уже инициализирована. Для изменения версии используйте раздел «Обновление».', 'The database is already initialized. Use Update to change versions.'));
+	addMsg(cfg_t('configurator.install.the_database_is_already_initialized_use_update_to_change_versions'));
 	goToURL($_cfg['cfg_link'] . '?modules');
 }
 
@@ -84,7 +84,7 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' && isse
 		),
 		'Telemetry' => array(
 			'Enabled' => 1,
-			'SharePublicStats' => 0 + isset_IN('telemetryStats'),
+			'SharePublicStats' => 0 + (empty($_cfg['demo_mode']) && isset_IN('telemetryStats')),
 			'InstalledAt' => time()
 		)
 	);
@@ -156,7 +156,7 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' && isse
 	faqSeedDefaultRows($db);
 	$telemetryConfig = $_cfg;
 	$telemetryConfig['Telemetry_Enabled'] = 1;
-	$telemetryConfig['Telemetry_SharePublicStats'] = 0 + isset_IN('telemetryStats');
+	$telemetryConfig['Telemetry_SharePublicStats'] = 0 + (empty($_cfg['demo_mode']) && isset_IN('telemetryStats'));
 	$telemetryConfig['Telemetry_InstalledAt'] = $cfg['Telemetry']['InstalledAt'];
 	(new TelemetryReporter(
 		$db,
@@ -166,14 +166,14 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' && isse
 	$cfgSecurity->audit('initial_setup', 'success', $cfgClientIp);
 	
 	
-	addMsg(cfg_t('Установка успешно завершена!', 'Installation complete!'));
+	addMsg(cfg_t('configurator.install.installation_complete'));
 	goToURL($_cfg['cfg_link'] . '?modules');
 	}
 	catch (Throwable $exception)
 	{
 		$cfgSecurity->audit('initial_setup', 'failed', $cfgClientIp, array('reason' => 'operation'));
 		error_log('Web installation stopped: ' . $exception->getMessage());
-		addMsg(cfg_t('Установка остановлена: ', 'Installation stopped: ') . $exception->getMessage());
+		addMsg(cfg_t('configurator.install.installation_stopped') . cfg_t('configurator.common.technical_error'), true);
 	}
 }
 
@@ -183,55 +183,55 @@ include('module/_config/_header.php');
 
 <section class="space-y-8">
 	<header>
-		<span class="mb-3 inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><?php echo cfg_t('Инициализация', 'Bootstrap'); ?></span>
-		<h1 class="text-3xl font-black text-brand dark:text-white sm:text-4xl"><?php echo cfg_t('Установка системы', 'System installation'); ?></h1>
-		<p class="mt-2 max-w-3xl text-sm font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Создание структуры базы данных и первой учетной записи администратора.', 'Create the database structure and the first administrator account.'); ?></p>
+		<span class="mb-3 inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-amber-600 dark:text-amber-400"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i><?php echo cfg_t('configurator.install.bootstrap'); ?></span>
+		<h1 class="text-3xl font-black text-brand dark:text-white sm:text-4xl"><?php echo cfg_t('configurator.install.system_installation'); ?></h1>
+		<p class="mt-2 max-w-3xl text-sm font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.install.create_the_database_structure_and_the_first_administrator_account'); ?></p>
 	</header>
 
 	<aside class="flex items-start gap-4 rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100">
 		<span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-300"><i class="fa-solid fa-database" aria-hidden="true"></i></span>
-		<div><strong class="block text-base font-extrabold"><?php echo cfg_t('База готова к первичной настройке', 'Database is ready for initial setup'); ?></strong><p class="mt-1 text-sm font-medium opacity-80"><?php echo cfg_t('Будет создана начальная структура H-Script. Этот шаг доступен только для пустой базы и исчезнет после завершения.', 'The initial H-Script structure will be created. This step is available only for an empty database and disappears after completion.'); ?></p></div>
+		<div><strong class="block text-base font-extrabold"><?php echo cfg_t('configurator.install.database_is_ready_for_initial_setup'); ?></strong><p class="mt-1 text-sm font-medium opacity-80"><?php echo cfg_t('configurator.install.the_initial_h_script_structure_will_be_created_this_step_is_available_only_for_a'); ?></p></div>
 	</aside>
 
 	<form method="post" class="space-y-6">
 		<input type="hidden" name="csrf" value="<?php echo htmlspecialchars(ConfiguratorCsrf::token(), ENT_QUOTES, 'UTF-8'); ?>">
 		<section class="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
-			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span><div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('Первичная настройка', 'Initial setup'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Создание новой базы без удаления данных', 'Create a new database without deleting data'); ?></p></div></header>
-			<div class="p-6"><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('Создать и заполнить базу данных', 'Create and populate database'); ?></strong><small class="mt-1 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Перед запуском будет повторно проверено, что база полностью пустая.', 'The database will be checked again to ensure it is completely empty before setup starts.'); ?></small></div>
+			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span><div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.install.initial_setup'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.install.create_a_new_database_without_deleting_data'); ?></p></div></header>
+			<div class="p-6"><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.install.create_and_populate_database'); ?></strong><small class="mt-1 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.install.the_database_will_be_checked_again_to_ensure_it_is_completely_empty_before_setup'); ?></small></div>
 		</section>
 
 		<section class="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
-			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-sliders" aria-hidden="true"></i></span><div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('Начальные параметры', 'Initial parameters'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Режим авторизации и валюта', 'Authentication mode and currency'); ?></p></div></header>
+			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-sliders" aria-hidden="true"></i></span><div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.install.initial_parameters'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.install.authentication_mode_and_currency'); ?></p></div></header>
 			<div class="divide-y divide-gray-100 dark:divide-gray-800">
-				<label class="flex cursor-pointer items-center justify-between gap-5 px-6 py-5"><span><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('Использовать e-mail вместо логина', 'Use e-mail instead of login'); ?></strong><small class="mt-1 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Авторизация пользователей по адресу электронной почты.', 'Authenticate users with their e-mail address.'); ?></small></span><span class="relative inline-flex shrink-0 items-center"><input name="noLogins" value="1" type="checkbox" class="peer sr-only"><span class="h-6 w-11 rounded-full bg-gray-200 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-emerald-500 peer-checked:after:translate-x-5 dark:bg-gray-700"></span></span></label>
-				<label class="flex cursor-pointer items-center justify-between gap-5 px-6 py-5"><span><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('Только внутренняя валюта', 'Internal currency only'); ?></strong><small class="mt-1 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Отключить механизм мультивалютных счетов.', 'Disable multi-currency accounts.'); ?></small></span><span class="relative inline-flex shrink-0 items-center"><input name="intCurr" value="1" type="checkbox" class="peer sr-only"><span class="h-6 w-11 rounded-full bg-gray-200 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-emerald-500 peer-checked:after:translate-x-5 dark:bg-gray-700"></span></span></label>
-				<label class="grid gap-3 px-6 py-5 md:grid-cols-[minmax(0,1fr)_minmax(240px,360px)] md:items-center"><span><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('Внутренняя валюта', 'Internal currency'); ?></strong><small class="mt-1 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Базовая расчетная единица.', 'Base accounting unit.'); ?></small></span><select name="intCurrID" class="<?php echo $cfgInputClass; ?>"><option value="USD">USD</option><option value="EUR">EUR</option><option value="RUB">RUB</option><option value="BTC">BTC</option><option value="ETH">ETH</option><option value="XRP">XRP</option></select></label>
+				<label class="flex cursor-pointer items-center justify-between gap-5 px-6 py-5"><span><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.install.use_e_mail_instead_of_login'); ?></strong><small class="mt-1 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.install.authenticate_users_with_their_e_mail_address'); ?></small></span><span class="relative inline-flex shrink-0 items-center"><input name="noLogins" value="1" type="checkbox" class="peer sr-only"><span class="h-6 w-11 rounded-full bg-gray-200 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-emerald-500 peer-checked:after:translate-x-5 dark:bg-gray-700"></span></span></label>
+				<label class="flex cursor-pointer items-center justify-between gap-5 px-6 py-5"><span><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.install.internal_currency_only'); ?></strong><small class="mt-1 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.install.disable_multi_currency_accounts'); ?></small></span><span class="relative inline-flex shrink-0 items-center"><input name="intCurr" value="1" type="checkbox" class="peer sr-only"><span class="h-6 w-11 rounded-full bg-gray-200 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:bg-emerald-500 peer-checked:after:translate-x-5 dark:bg-gray-700"></span></span></label>
+				<label class="grid gap-3 px-6 py-5 md:grid-cols-[minmax(0,1fr)_minmax(240px,360px)] md:items-center"><span><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.install.internal_currency'); ?></strong><small class="mt-1 block text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.install.base_accounting_unit'); ?></small></span><select name="intCurrID" class="<?php echo $cfgInputClass; ?>"><option value="USD">USD</option><option value="EUR">EUR</option><option value="RUB">RUB</option><option value="BTC">BTC</option><option value="ETH">ETH</option><option value="XRP">XRP</option></select></label>
 			</div>
 		</section>
 
 		<section class="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
-			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></span><div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('Администратор', 'Administrator'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Первая учетная запись с полным доступом', 'First account with full access'); ?></p></div></header>
+			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></span><div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.install.administrator'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.install.first_account_with_full_access'); ?></p></div></header>
 			<div class="grid gap-6 p-6 md:grid-cols-2">
-				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('Имя', 'Name'); ?></span><input name="aName" value="Administrator" type="text" class="<?php echo $cfgInputClass; ?>"></label>
-				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('Логин', 'Login'); ?></span><input name="aLogin" value="admin" type="text" autocomplete="username" class="<?php echo $cfgInputClass; ?>"></label>
-				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('Пароль', 'Password'); ?></span><input name="aPass" value="admin" type="password" autocomplete="new-password" class="<?php echo $cfgInputClass; ?>"></label>
+				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.install.name'); ?></span><input name="aName" value="Administrator" type="text" class="<?php echo $cfgInputClass; ?>"></label>
+				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.install.login'); ?></span><input name="aLogin" value="admin" type="text" autocomplete="username" class="<?php echo $cfgInputClass; ?>"></label>
+				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.common.password'); ?></span><input name="aPass" value="admin" type="password" autocomplete="new-password" class="<?php echo $cfgInputClass; ?>"></label>
 				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200">E-mail</span><input name="aMail" value="<?php echo htmlspecialchars(isset($_cfg['sys_mail']) ? $_cfg['sys_mail'] : ''); ?>" type="email" class="<?php echo $cfgInputClass; ?>"></label>
-				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('Секретный вопрос', 'Secret question'); ?></span><input name="aSQuest" value="That is your name" type="text" class="<?php echo $cfgInputClass; ?>"></label>
-				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('Секретный ответ', 'Secret answer'); ?></span><input name="aSAnsw" value="John" type="text" class="<?php echo $cfgInputClass; ?>"></label>
-				<label class="block md:col-span-2"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('PIN-код', 'PIN code'); ?></span><input name="aPIN" value="1234" type="text" inputmode="numeric" class="<?php echo $cfgInputClass; ?>"></label>
+				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.install.secret_question'); ?></span><input name="aSQuest" value="That is your name" type="text" class="<?php echo $cfgInputClass; ?>"></label>
+				<label class="block"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.install.secret_answer'); ?></span><input name="aSAnsw" value="John" type="text" class="<?php echo $cfgInputClass; ?>"></label>
+				<label class="block md:col-span-2"><span class="mb-2 block text-sm font-extrabold text-brand dark:text-gray-200"><?php echo cfg_t('configurator.install.pin_code'); ?></span><input name="aPIN" value="1234" type="text" inputmode="numeric" class="<?php echo $cfgInputClass; ?>"></label>
 			</div>
 		</section>
 
 		<section class="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
-			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i></span><div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('Телеметрия', 'Telemetry'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('Регистрация установки обязательна; публичные агрегаты включены по умолчанию и могут быть отключены позже.', 'Installation registration is required; public aggregates are enabled by default and can be disabled later.'); ?></p></div></header>
+			<header class="flex items-center gap-3 border-b border-gray-100 bg-gray-50/70 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]"><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i></span><div><h2 class="text-base font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.install.telemetry'); ?></h2><p class="text-xs font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.install.installation_registration_is_required_public_aggregates_are_enabled_by_default_a'); ?></p></div></header>
 			<div class="divide-y divide-gray-100 dark:divide-gray-800">
-				<div class="flex items-start justify-between gap-5 px-6 py-5"><span><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('Регистрация установки и heartbeat', 'Installation registration and heartbeat'); ?></strong><small class="mt-1 block text-xs font-medium leading-relaxed text-gray-500 dark:text-gray-400"><?php echo cfg_t('Передаются домен, версия H-Script, дата установки и случайный ID. Эта системная регистрация не отключается.', 'The domain, H-Script version, installation date, and a random ID are sent. This system registration cannot be disabled.'); ?></small></span><span class="shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700 dark:bg-blue-500/10 dark:text-blue-200"><?php echo cfg_t('Обязательно', 'Required'); ?></span></div>
-				<label class="flex cursor-pointer items-start justify-between gap-5 px-6 py-5"><span><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('Передавать публичные агрегаты раз в сутки', 'Share public aggregates daily'); ?></strong><small class="mt-1 block text-xs font-medium leading-relaxed text-gray-500 dark:text-gray-400"><?php echo cfg_t('Число пользователей и вкладов, онлайн и суммарные показатели без логинов и отдельных операций.', 'User/deposit counts, online count, and totals without logins or individual operations.'); ?></small></span><input name="telemetryStats" value="1" type="checkbox" checked class="mt-1 h-5 w-5 shrink-0 rounded border-gray-300 text-emerald-600"></label>
+				<div class="flex items-start justify-between gap-5 px-6 py-5"><span><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.install.installation_registration_and_heartbeat'); ?></strong><small class="mt-1 block text-xs font-medium leading-relaxed text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.install.the_domain_h_script_version_installation_date_and_a_random_id_are_sent_this_syst'); ?></small></span><span class="shrink-0 rounded-full bg-blue-50 px-3 py-1 text-xs font-extrabold text-blue-700 dark:bg-blue-500/10 dark:text-blue-200"><?php echo cfg_t('configurator.install.required'); ?></span></div>
+				<label class="flex cursor-pointer items-start justify-between gap-5 px-6 py-5"><span><strong class="block text-sm font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.install.share_public_aggregates_daily'); ?></strong><small class="mt-1 block text-xs font-medium leading-relaxed text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.install.user_deposit_counts_online_count_and_totals_without_logins_or_individual_operati'); ?></small></span><input name="telemetryStats" value="1" type="checkbox" checked class="mt-1 h-5 w-5 shrink-0 rounded border-gray-300 text-emerald-600"></label>
 			</div>
 		</section>
 
 		<div class="flex justify-center rounded-lg border border-emerald-100 bg-white p-5 shadow-sm dark:border-emerald-500/20 dark:bg-[#151515]">
-			<button name="bStart" value="1" type="submit" class="<?php echo $cfgButtonClass; ?>"><i class="fa-solid fa-check" aria-hidden="true"></i><?php echo cfg_t('Завершить первичную настройку', 'Complete initial setup'); ?></button>
+			<button name="bStart" value="1" type="submit" class="<?php echo $cfgButtonClass; ?>"><i class="fa-solid fa-check" aria-hidden="true"></i><?php echo cfg_t('configurator.install.complete_initial_setup'); ?></button>
 		</div>
 	</form>
 </section>

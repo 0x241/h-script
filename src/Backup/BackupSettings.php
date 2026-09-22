@@ -55,19 +55,26 @@ final class BackupSettings
 				$directory = $projectRoot . '/backup';
 			}
 		}
-		if (!is_dir($directory) && !mkdir($directory, 0750, true) && !is_dir($directory))
+		if (!is_dir($directory) && !mkdir($directory, 0700, true) && !is_dir($directory))
 			throw new RuntimeException('Backup directory could not be created');
 		if (!is_writable($directory))
 			throw new RuntimeException('Backup directory is not writable');
-		chmod($directory, 0750);
 		$resolvedDirectory = realpath($directory);
 		if ($resolvedDirectory === false)
 			throw new RuntimeException('Backup directory could not be resolved');
 		$directory = rtrim($resolvedDirectory, '/');
+		if ($directory === '' || $directory === $projectRoot || $directory === dirname($projectRoot))
+			throw new RuntimeException('Backup storage must use a dedicated directory');
 		$insideProject = $directory === $projectRoot || str_starts_with($directory . '/', $projectRoot . '/');
 		$location = $insideProject ? 'document-root-protected' : 'external';
-		if ($location === 'document-root-protected' && !is_file($directory . '/.htaccess'))
-			throw new RuntimeException('Document-root backup directory is not protected');
+		if ($location === 'document-root-protected')
+		{
+			$denyFile = $directory . '/.htaccess';
+			if (!is_file($denyFile) || is_link($denyFile) || filesize($denyFile) > 16384
+				|| !preg_match('/^\s*Require\s+all\s+denied\s*$/mi', (string)file_get_contents($denyFile)))
+				throw new RuntimeException('Document-root backup directory is not protected');
+		}
+		if (!chmod($directory, 0700)) throw new RuntimeException('Backup directory permissions could not be restricted');
 
 		return new self(
 			$directory,

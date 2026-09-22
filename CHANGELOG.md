@@ -5,6 +5,134 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Separate installed CMS/database versions from deployed update targets in the
+  Configurator; a historical successful update no longer masks pending migration.
+  Identify expired, future-dated or invalid recovery evidence separately.
+- Continue integrity scans automatically in bounded authenticated browser batches,
+  serialize them with cron and restart stale cursors after a verified baseline
+  change. Stop automatic retries on authentication/network errors.
+
+- Harden SQL backup creation against existing-file truncation and symlink writes,
+  including gzip output. Restrict directories to `0700`, new files to `0600`,
+  and tighten existing Docker backup permissions at startup. Deny both backup
+  URLs and their resolved volume in Apache. Atomically publish recovery JSON
+  through exclusive private temporary files; reject linked metadata.
+
+- Staging now waits at a blocking manual `verify-staging` stage for the operator
+  to complete any Configurator update before read-only reconciliation. Older
+  pipeline image mismatches report why retrying the obsolete job is rejected.
+
+- Fixed native MySQL JSON values in the PHP streaming backup fallback: decode
+  their binary SQL literals as UTF-8 without changing BLOB data. Added a forced
+  PHP backup/PDO restore regression for JSON, Unicode, binary, NULL and decimals.
+
+- Share non-secret recovery policy between the Docker web updater and recovery
+  worker without exposing drill credentials. Run the recovery scheduler as the
+  application user so private backup/drill evidence remains readable by preflight.
+- Explain recovery-policy, backup/drill, freshness and queue blockers in the
+  Configurator. Reconciliation now reports failed check IDs safely in CI.
+
+### Added
+
+- Automatic HTTPS domain-control confirmation for nginx/CDN installations with
+  different inbound/outbound IPs: authenticated one-use challenges, 7-day expiry,
+  renewal and domain-change invalidation. Checks pin public DNS addresses, verify
+  TLS, forbid redirects/proxies, and bound response sizes/timeouts. DNS remains
+  diagnostic; fresh HTTPS proof is an alternative public-metric eligibility path,
+  not a financial-data trust label. CMS `1.0.5` requires the backup-protected
+  schema migration `1.0.1` → `1.0.2`.
+- Add domain-proof/SSRF regressions, real-database pagination/verification tests
+  on the supported engines, and browser checks for private backup URLs/downloads.
+
+- Added operator incident/rotation/recovery runbooks and scoped collector consumer
+  emergency stop in the existing token CLI, with isolated rotation/revocation and
+  HTTP ingestion-stop tests. Disabled consumers cannot authenticate surviving tokens.
+
+- Started the operations release contract: explicit application/schema downgrade
+  rejection in the existing update path and a blocking CI component suite that
+  runs installed application code at the exact candidate image digest.
+- Extended compatibility to a strict format-2 runtime/browser and rollback
+  contract; added queue/secrets and production schema-update recovery preflight,
+  backup/drill freshness and verification of the local recovery bundle.
+- Added isolated exact-image updater/migration CI tests on MySQL 8.4 and MariaDB
+  10.11/11.4, digest-pinned staging and a read-only pre-promotion image guard.
+- Added a read-only post-upgrade reconciliation CLI and staging promotion gate,
+  reusing recovery invariants and checking migration metadata, queue and cron/
+  telemetry freshness. Added separate pinned Chromium/Firefox/WebKit CI scenarios
+  and integrated production preflight tests with real Redis, local SQL/runtime
+  restore drills against disposable databases.
+
+- Added fail-closed Composer/npm and source/shared/image supply-chain gates,
+  reviewed expiring exceptions, immutable SemVer digest preflight, synthetic
+  secret boundary tests and permanently retained signed release evidence.
+- Added bounded structured NDJSON logs, low-cardinality metrics, trusted-proxy
+  correlation propagation across HTTP/HTMX/API, queue, cron, telemetry and
+  gateways, operator-only health/readiness checks, and suppressed runbook-linked
+  fail-open alerts.
+- Added scheduled disaster-recovery bundles on top of the existing verified SQL
+  backup/restore services: strict runtime allowlists and checksums, local
+  retention in backup/, isolated restore drills,
+  environment-owned RPO/RTO policies and restricted fail-open alert evidence.
+- Added strict authenticated installation registration and idempotent daily
+  reports with server-observed IP history, bounded passive DNS states, rejection
+  counters, and demo aggregate isolation on the central collector.
+- Added independent bounded pagination and validated filters for installations
+  and collector service tokens, SQL aggregate summaries, stable ordering, and
+  permission-gated IP/DNS details without exposing token hashes or raw reports.
+- Added million-row query/memory regression coverage plus isolated database
+  backup/restore, schema-migration, interrupted-update, Authelia bypass, and
+  manual/scheduled integrity integration checks.
+
+### Changed
+
+- Removed built-in remote backup transport, restic dependency and storage/key
+  settings. External operator tools own replication; local backups and drills remain.
+- Unified Configurator text under configurator.* keys in the shared JSON language
+  catalogs, including update messages and language selection before DB installation.
+
+- Bound recovery notification delivery to five seconds, preserve scheduler
+  retries after failed cycles, and return nonzero for failed one-shot jobs.
+- Run restore drills with prefix-scoped database accounts without access to the
+  system database; reject failed database creation/cleanup explicitly. Default
+  recovery scheduling is hourly, below the default collector/token RPO.
+- Add recovery notification, one-shot/scheduler and limited-account restore
+  regressions to the release gates.
+
+- Accept the existing paused service-token state during restore/reconciliation.
+
+- Reject code-only recovery after entering a schema-changing migration, including
+  partially committed DDL that has not advanced the recorded schema version.
+- Record the installed source application version in SQL backup manifests under
+  the update lock, instead of the version of the new running updater/image.
+- Fail reconciliation with nonzero exit and bounded JSON on DB connection errors;
+  do not interpret unavailable financial/queue queries as zero violations.
+- Added an explicit external-engine target to the existing shared-hosting CLI,
+  allowing a separately verified target release to upgrade a strict format-1
+  installation without replacing its old parser manually or bypassing lifecycle.
+- Publication retries preserve original signed release bytes after scan expiry
+  and rescan the original source, archive and image digest when needed. Recovery
+  validates public-branch ancestry explicitly, including shallow runner clones.
+
+- Fixed mixed root/PHP-FPM ownership and concurrent NDJSON rotation, made failed
+  readiness queries explicitly unknown, measured cron freshness from successful
+  completion only, and bounded readiness notifier execution with a timeout.
+- Documented the schema `1.0.0` to `1.0.1` telemetry migration, verified backup
+  and isolated restore workflow, Docker/shared-hosting update recovery, central
+  ingestion flags, collector API routes, and machine-route Authelia bypasses.
+- Kept public traffic online after a compatible code-only Docker image change;
+  the Configurator still exposes the pending lifecycle health check and records
+  the new CMS version after it succeeds.
+- Made the Docker “Update and complete” action resume its compatible unfinished
+  run instead of failing while trying to create a duplicate run.
+- Allowed the central collector to complete an update while the public
+  `h-script.com` installation is in demo mode; malformed and unauthorized
+  telemetry remains an ingestion concern rather than a lifecycle gate.
+- Added responsive, dependency-free H-Script pages for unknown routes, active
+  maintenance, and update states that genuinely require a traffic gate, with
+  Russian/English switching and the shared product logo and copyright.
+
 ## [1.0.3] - 2026-09-10
 
 ### Added

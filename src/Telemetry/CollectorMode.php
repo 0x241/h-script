@@ -23,6 +23,20 @@ final class CollectorMode
 		return $expectedDomain !== '' && $actualDomain === $expectedDomain;
 	}
 
+	/** Write access additionally requires an independent ingestion flag and ready schema. */
+	public static function ingestionEnabled(array $config, string $requestDomain, bool $schemaReady): bool
+	{
+		return $schemaReady
+			&& self::ingestionFlagEnabled($config)
+			&& self::enabled($config, $requestDomain);
+	}
+
+	public static function ingestionFlagEnabled(array $config): bool
+	{
+		$flag = strtolower(trim((string)($config['telemetry_ingestion_enabled'] ?? '0')));
+		return in_array($flag, array('1', 'true', 'yes', 'on'), true);
+	}
+
 	public static function expectedDomain(array $config): string
 	{
 		return self::normalizeDomain(

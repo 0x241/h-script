@@ -3,6 +3,8 @@
 namespace HScript\Database;
 
 use InvalidArgumentException;
+use HScript\Observability\MetricRegistry;
+use HScript\Observability\StructuredLogger;
 use PDO;
 use PDOStatement;
 use Throwable;
@@ -116,7 +118,7 @@ class Connection
 	{
 		$this->last_query = $query;
 		$this->last_exception = null;
-		$t = time();
+		$startedAt = microtime(true);
 		try
 		{
 			$stmt = $this->pdo->prepare($query);
@@ -128,10 +130,19 @@ class Connection
 		catch (Throwable $e)
 		{
 			$this->last_exception = $e;
+			$duration = max(0, (int)round((microtime(true) - $startedAt) * 1000));
+			MetricRegistry::increment('db_queries_total', array('outcome' => 'failure'));
+			MetricRegistry::observe('db_query_duration_ms', (float)$duration, array('outcome' => 'failure'));
+			StructuredLogger::event('error', 'database', 'database_query_failed', 'failure', $duration, '', array('error_class' => $e::class));
 			return false;
 		}
-		if (($t = abs(time() - $t)) >= 3)
-			xAddToLog("$t: $query", 'db');
+		$duration = max(0, (int)round((microtime(true) - $startedAt) * 1000));
+		MetricRegistry::increment('db_queries_total', array('outcome' => 'success'));
+		MetricRegistry::observe('db_query_duration_ms', (float)$duration, array('outcome' => 'success'));
+		$slowThreshold = filter_var(getenv('OBSERVABILITY_DB_SLOW_MS'), FILTER_VALIDATE_INT);
+		$slowThreshold = $slowThreshold === false ? 3000 : max(100, min((int)$slowThreshold, 60000));
+		if ($duration >= $slowThreshold)
+			StructuredLogger::event('warning', 'database', 'database_query_slow', 'degraded', $duration);
 		$this->last_statement = $stmt;
 		return $stmt;
 	}

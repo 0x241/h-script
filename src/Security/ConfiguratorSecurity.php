@@ -3,6 +3,7 @@
 namespace HScript\Security;
 
 use HScript\Http\ClientIp;
+use HScript\Observability\StructuredLogger;
 use JsonException;
 use RuntimeException;
 
@@ -86,6 +87,11 @@ final class ConfiguratorSecurity
 
 	public function audit(string $event, string $outcome, string $ip, array $context = array()): void
 	{
+		StructuredLogger::event(
+			$outcome === 'failed' || $outcome === 'blocked' || $outcome === 'error' ? 'warning' : 'info',
+			'configurator', 'configurator_' . $this->safeToken($event),
+			$outcome === 'success' || $outcome === 'completed' ? 'success' : ($outcome === 'blocked' ? 'blocked' : 'failure')
+		);
 		try
 		{
 			$this->ensureDirectory();

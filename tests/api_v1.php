@@ -83,6 +83,20 @@ apiAssert(
 );
 $_SERVER = $oldServer;
 
+$_SERVER['CONTENT_TYPE'] = 'application/json';
+$_SERVER['CONTENT_LENGTH'] = '65537';
+$largeJsonRejected = false;
+try { ApiRequest::json(65536, true); }
+catch (InvalidArgumentException $exception) { $largeJsonRejected = $exception->getMessage() === 'request_too_large'; }
+apiAssert($largeJsonRejected, 'Oversized telemetry JSON body was accepted');
+$_SERVER['CONTENT_TYPE'] = 'application/merge-patch+json';
+$_SERVER['CONTENT_LENGTH'] = '0';
+$nonExactJsonRejected = false;
+try { ApiRequest::json(65536, true); }
+catch (InvalidArgumentException $exception) { $nonExactJsonRejected = $exception->getMessage() === 'content_type_invalid'; }
+apiAssert($nonExactJsonRejected, 'Non-exact telemetry JSON content type was accepted');
+$_SERVER = $oldServer;
+
 $token = 'hs_' . str_repeat('c', 64);
 apiAssert(
 	ApiTokenRepository::hash($token) === hash('sha256', $token),

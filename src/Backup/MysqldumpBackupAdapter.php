@@ -33,6 +33,7 @@ final class MysqldumpBackupAdapter implements DatabaseBackupAdapter
 			'--single-transaction',
 			'--quick',
 			'--skip-lock-tables',
+			'--skip-extended-insert',
 			'--routines',
 			'--events',
 			'--triggers',

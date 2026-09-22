@@ -3,6 +3,8 @@
 namespace HScript\Payment;
 
 use HScript\Database\Connection;
+use HScript\Observability\MetricRegistry;
+use HScript\Observability\StructuredLogger;
 use HScript\Payment\Gateways\AdvCash;
 use HScript\Payment\Gateways\BankWire;
 use HScript\Payment\Gateways\BnbApi;
@@ -16,6 +18,7 @@ use HScript\Payment\Gateways\WebMoney;
 use HScript\Payment\Gateways\XrpApi;
 use HScript\Payment\Gateways\YooMoney;
 use RuntimeException;
+use Throwable;
 
 /**
  * Registers active payment gateways and dispatches normalized operations.
@@ -80,23 +83,62 @@ class PaymentManager
 
 	public function processDeposit(string $gatewayId, array $params): array
 	{
-		return $this->gateway($gatewayId)->processDeposit($params);
+		return $this->execute('deposit', $gatewayId, fn(): array => $this->gateway($gatewayId)->processDeposit($params));
 	}
 
 	public function processWithdrawal(string $gatewayId, array $params): array
 	{
-		return $this->gateway($gatewayId)->processWithdrawal($params);
+		return $this->execute('withdrawal', $gatewayId, fn(): array => $this->gateway($gatewayId)->processWithdrawal($params));
 	}
 
 	public function handleCallback(string $gatewayId, array $request, array $config = array()): array
 	{
 		$request['_config'] = $config;
-		return $this->gateway($gatewayId)->handleCallback($request);
+		return $this->execute('callback', $gatewayId, fn(): array => $this->gateway($gatewayId)->handleCallback($request));
 	}
 
 	public function getBalance(string $gatewayId, array $config): array
 	{
-		return $this->gatewayObject($gatewayId)->getBalance($config);
+		return $this->execute('balance', $gatewayId, fn(): array => $this->gatewayObject($gatewayId)->getBalance($config));
+	}
+
+	private function execute(string $operation, string $gatewayId, callable $callback): array
+	{
+		$startedAt = microtime(true);
+		try
+		{
+			$result = $callback();
+			$outcome = $this->operationSucceeded($operation, $result) ? 'success' : 'failure';
+			$this->observeGateway($operation, $gatewayId, $outcome, $startedAt);
+			return $result;
+		}
+		catch (Throwable $exception)
+		{
+			$this->observeGateway($operation, $gatewayId, 'failure', $startedAt, $exception);
+			throw $exception;
+		}
+	}
+
+	private function operationSucceeded(string $operation, array $result): bool
+	{
+		if ($operation === 'callback' && array_key_exists('correct', $result)) return !empty($result['correct']);
+		if (array_key_exists('result', $result))
+			return in_array((string)$result['result'], array('', 'OK', 'success'), true);
+		return $result !== array();
+	}
+
+	private function observeGateway(string $operation, string $gatewayId, string $outcome, float $startedAt, ?Throwable $exception = null): void
+	{
+		$duration = max(0, (int)round((microtime(true) - $startedAt) * 1000));
+		MetricRegistry::increment('gateway_attempts_total', array('operation' => $operation, 'outcome' => $outcome));
+		StructuredLogger::event(
+			$outcome === 'success' ? 'info' : 'error', 'payment', 'gateway_attempt', $outcome, $duration,
+			StructuredLogger::resourceId('gateway', $gatewayId), array(
+				'gateway' => strtolower($gatewayId),
+				'gateway_operation' => $operation,
+				'error_class' => $exception instanceof Throwable ? $exception::class : '',
+			)
+		);
 	}
 
 	public function detectCallback(array $request, array $query = array()): string

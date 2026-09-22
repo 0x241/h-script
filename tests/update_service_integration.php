@@ -23,6 +23,7 @@ $_SERVER += array(
 );
 chdir($root);
 require $root . '/vendor/autoload.php';
+require_once __DIR__ . '/fixtures/update_contract.php';
 global $_cfg;
 $_cfg = array();
 if (is_file($root . '/_config.php')) require $root . '/_config.php';
@@ -78,11 +79,7 @@ function updateServiceArchive(string $directory, string $name, string $sourceVer
 	$releaseFiles = array(
 		'VERSION' => $version . "\n",
 		'SCHEMA_VERSION' => $schema . "\n",
-		'resources/update-compatibility.json' => json_encode(array(
-		'format' => 1,
-		'application' => array('minimum' => $sourceVersion, 'maximum' => $version),
-		'schema' => array('minimum' => $sourceSchema, 'maximum' => $sourceSchema),
-	), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n",
+		'resources/update-compatibility.json' => json_encode(updateTestCompatibility($sourceVersion, $version, $sourceSchema, $sourceSchema), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n",
 	);
 	if (!array_key_exists('module/_config.php', $files))
 		$files['module/_config.php'] = (string)file_get_contents(dirname(__DIR__) . '/module/_config.php');
@@ -131,7 +128,7 @@ try
 	$state = new SchemaStateRepository($db);
 	$sourceSchema = $state->currentVersion();
 	$sourceApplication = $state->installedApplicationVersion();
-	if ($sourceSchema !== '1.0.0') throw new RuntimeException('Integration test requires schema baseline 1.0.0');
+	if ($sourceSchema !== '1.0.2') throw new RuntimeException('Integration test requires schema baseline 1.0.2');
 	$state->setInstalledApplicationVersion(trim((string)file_get_contents($versionFilePath)));
 	$provider = new ServiceReleaseProvider();
 	$settings = new UpdateSettings($root, $temporaryRoot . '/work', 10485760, 20971520, 300, 10485760, 5);
@@ -144,10 +141,10 @@ try
 		array('path' => 'module/_config.php', 'sha256' => hash_file('sha256', $routesPath), 'size' => filesize($routesPath), 'class' => 'core_strict'),
 	));
 
-	$codeArchive = updateServiceArchive($temporaryRoot, 'code-only', $initialVersion, '1.0.3', $sourceSchema, $sourceSchema, array(
+	$codeArchive = updateServiceArchive($temporaryRoot, 'code-only', $initialVersion, '1.0.6', $sourceSchema, $sourceSchema, array(
 		'static/update-service-probe.txt' => "phase3-code-only\n",
 	));
-	$provider->add('1.0.3', $codeArchive);
+	$provider->add('1.0.6', $codeArchive);
 	$codeOnly = $service->prepareManual($codeArchive);
 	$preparedIds[] = $codeOnly['id'];
 	$codeResult = $service->apply($codeOnly['id'], array());
@@ -158,11 +155,11 @@ try
 	updateServiceAssert(!is_file($root . '/.cfg/maintenance.json'), 'Maintenance mode remained active after code-only update');
 
 	$brokenRoutes = "<?php\n\$_rwlinks = array();\n\$_oncron = array();\n";
-	$healthArchive = updateServiceArchive($temporaryRoot, 'health-failure', '1.0.3', '1.0.4', $sourceSchema, $sourceSchema, array(
+	$healthArchive = updateServiceArchive($temporaryRoot, 'health-failure', '1.0.6', '1.0.7', $sourceSchema, $sourceSchema, array(
 		'module/_config.php' => $brokenRoutes,
 		'static/update-service-probe.txt' => "phase3-code-only\n",
 	));
-	$provider->add('1.0.4', $healthArchive);
+	$provider->add('1.0.7', $healthArchive);
 	$healthFailure = $service->prepareManual($healthArchive);
 	$preparedIds[] = $healthFailure['id'];
 	$healthRoutePlan = array_values(array_filter($healthFailure['activation_plan'], static fn(array $entry): bool => $entry['path'] === 'module/_config.php'));
@@ -186,7 +183,7 @@ try
 	$rollback = $service->rollbackCode($healthRunId);
 	updateServiceAssert($rollback['run']['urState'] === 'failed', 'Code rollback did not terminate the failed update');
 	updateServiceAssert((string)file_get_contents($routesPath) === $routesBefore, 'Code rollback did not restore application routes');
-	updateServiceAssert($state->installedApplicationVersion() === '1.0.3', 'Code rollback did not restore the recorded source CMS version');
+	updateServiceAssert($state->installedApplicationVersion() === '1.0.6', 'Code rollback did not restore the recorded source CMS version');
 	updateServiceAssert(!is_file($root . '/.cfg/maintenance.json'), 'Maintenance mode remained active after code rollback');
 
 	$migrationContents = <<<'PHP'
@@ -196,19 +193,25 @@ use HScript\Database\Connection;
 
 return array(
 	'id' => '202609081000_phase3_service_probe',
-	'from' => '1.0.0',
-	'to' => '1.0.1',
+	'from' => '1.0.2',
+	'to' => '1.0.3',
 	'classification' => 'backup-required',
 	'up' => static function (Connection $database): void {
 		$database->query('CREATE TABLE IF NOT EXISTS Phase3UpdateProbe (probeID int not null, PRIMARY KEY (probeID)) ENGINE=InnoDB');
+		$marker = __DIR__ . '/.phase4-fail-once';
+		if (is_file($marker))
+		{
+			unlink($marker);
+			throw new RuntimeException('Synthetic interruption after DDL');
+		}
 	},
 );
 PHP;
-	$cancelArchive = updateServiceArchive($temporaryRoot, 'cancel', '1.0.3', '1.0.4-cancel', $sourceSchema, '1.0.1', array(
+	$cancelArchive = updateServiceArchive($temporaryRoot, 'cancel', '1.0.6', '1.0.7-cancel', $sourceSchema, '1.0.3', array(
 		'migrations/versioned/' . $migrationId . '.php' => $migrationContents,
 		'static/update-service-probe.txt' => "phase3-code-only\n",
 	));
-	$provider->add('1.0.4-cancel', $cancelArchive);
+	$provider->add('1.0.7-cancel', $cancelArchive);
 	$cancelPrepared = $service->prepareManual($cancelArchive);
 	$preparedIds[] = $cancelPrepared['id'];
 	$db->query('CREATE OR REPLACE VIEW Phase3BackupUnsupportedView AS SELECT 1 AS probeID');
@@ -223,21 +226,33 @@ PHP;
 	updateServiceAssert($cancelled['urState'] === 'failed' && $cancelled['urMessageCode'] === 'update_cancelled', 'Safe pre-activation cancellation failed');
 	$db->query('DROP VIEW IF EXISTS Phase3BackupUnsupportedView');
 
-	$databaseArchive = updateServiceArchive($temporaryRoot, 'database', '1.0.3', '1.0.5', $sourceSchema, '1.0.1', array(
+	$databaseArchive = updateServiceArchive($temporaryRoot, 'database', '1.0.6', '1.0.8', $sourceSchema, '1.0.3', array(
 		'migrations/versioned/' . $migrationId . '.php' => $migrationContents,
 		'static/update-service-probe.txt' => "phase3-code-only\n",
 	));
-	$provider->add('1.0.5', $databaseArchive);
+	$provider->add('1.0.8', $databaseArchive);
 	$databasePrepared = $service->prepareManual($databaseArchive);
 	$preparedIds[] = $databasePrepared['id'];
 	updateServiceAssert($databasePrepared['manifest']['classification'] === 'backup-required', 'Migration classification was not derived from the bundled migration');
-	$databaseResult = $service->apply($databasePrepared['id'], array());
-	$runIds[] = $databaseResult['run']['urID'];
+	file_put_contents($root . '/migrations/versioned/.phase4-fail-once', 'fixture');
+	$interrupted = false;
+	try { $service->apply($databasePrepared['id'], array()); }
+	catch (RuntimeException $exception) { $interrupted = str_contains($exception->getMessage(), 'Migration failed'); }
+	updateServiceAssert($interrupted, 'Migration interruption was not reported');
+	$databaseRunId = (string)$service->prepared($databasePrepared['id'])['run_id'];
+	$runIds[] = $databaseRunId;
+	updateServiceAssert($state->currentVersion() === $sourceSchema, 'Interrupted migration unexpectedly advanced schema');
+	updateServiceAssert((bool)$db->fetch1($db->query("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='Phase3UpdateProbe'")), 'DDL interruption probe was not created');
+	$unsafeRollbackRejected = false;
+	try { $service->rollbackCode($databaseRunId); }
+	catch (RuntimeException $exception) { $unsafeRollbackRejected = str_contains($exception->getMessage(), 'Code rollback is unsafe'); }
+	updateServiceAssert($unsafeRollbackRejected && is_file($root . '/.cfg/maintenance.json'), 'Code rollback bypassed a partially committed migration');
+	$databaseResult = $service->resume($databaseRunId, array());
 	updateServiceAssert($databaseResult['run']['urState'] === 'completed', 'Database update did not complete');
 	updateServiceAssert($databaseResult['prepared']['backup_id'] !== '', 'Database update has no attached verified SQL backup');
 	$sqlBackups = glob($backupRoot . '/*.sql');
 	updateServiceAssert(is_array($sqlBackups) && count($sqlBackups) === 1, 'Update backup is not a plain SQL file');
-	updateServiceAssert($state->currentVersion() === '1.0.1', 'Database migration did not advance schema version');
+	updateServiceAssert($state->currentVersion() === '1.0.3', 'Database migration did not advance schema version');
 	updateServiceAssert((bool)$db->fetch1($db->query("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='Phase3UpdateProbe'")), 'Database migration probe table is missing');
 	updateServiceAssert(!is_file($root . '/.cfg/maintenance.json'), 'Maintenance mode remained active after database update');
 
@@ -262,6 +277,7 @@ finally
 	}
 	if (is_file($probePath)) unlink($probePath);
 	if (is_file($migrationPath)) unlink($migrationPath);
+	if (is_file($root . '/migrations/versioned/.phase4-fail-once')) unlink($root . '/migrations/versioned/.phase4-fail-once');
 	if ((string)file_get_contents($routesPath) !== $routesBefore) file_put_contents($routesPath, $routesBefore);
 	file_put_contents($schemaFilePath, $schemaFileBefore);
 	file_put_contents($versionFilePath, $versionFileBefore);

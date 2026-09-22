@@ -23,7 +23,7 @@ final class BackupManifest
 
 	public static function fromFile(string $path): self
 	{
-		if (!is_file($path) || !is_readable($path))
+		if (!is_file($path) || is_link($path) || !is_readable($path) || filesize($path) > 1048576)
 			throw new InvalidArgumentException('Backup manifest is not readable');
 		try
 		{

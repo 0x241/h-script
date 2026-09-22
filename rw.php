@@ -3,6 +3,9 @@
 use HScript\Util\StringHelper;
 use HScript\Template\View;
 use HScript\Http\ApiResponse;
+use HScript\Http\SystemPageRenderer;
+use HScript\Observability\HttpRequestObserver;
+use HScript\Observability\StructuredLogger;
 use HScript\Update\SchemaUpdateGate;
 
 // Rewrite module
@@ -10,6 +13,7 @@ use HScript\Update\SchemaUpdateGate;
 require_once __DIR__ . '/vendor/autoload.php';
 
 hsConfigureErrorHandling();
+HttpRequestObserver::begin($_SERVER);
 
 if (!headers_sent()) {
 	header('X-Frame-Options: DENY');
@@ -96,6 +100,32 @@ if (is_file('_config.local.php'))
 if (empty($_cfg['cfg_link']))
 	$_cfg['cfg_link'] = '_cfg';
 
+function hsRenderSystemPage(string $page, string $configuratorUrl = ''): void
+{
+	$requestedLanguage = $_GET['system_lang'] ?? null;
+	$language = SystemPageRenderer::selectLanguage(
+		$requestedLanguage,
+		$_COOKIE['lang'] ?? null,
+		(string)($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '')
+	);
+	if (SystemPageRenderer::normalizeLanguage($requestedLanguage) !== null)
+	{
+		setcookie('lang', $language, array(
+			'expires' => time() + 30 * HS2_UNIX_DAY,
+			'path' => '/',
+			'secure' => hsUseSecureCookies(),
+			'httponly' => false,
+			'samesite' => 'Lax',
+		));
+	}
+	echo SystemPageRenderer::render(
+		$page,
+		$language,
+		(string)($_SERVER['REQUEST_URI'] ?? '/'),
+		$configuratorUrl
+	);
+}
+
 // Process URI
 
 $p = $_GS['uri'];
@@ -104,17 +134,21 @@ $is_api_v1 = ($f === 'api/v1') || str_starts_with($f, 'api/v1/');
 $_GS['is_api'] = $is_api_v1;
 if ($is_api_v1)
 	ini_set('display_errors', '0');
-$schemaUpdateRequired = SchemaUpdateGate::requiresTrafficGate(__DIR__);
-if ($f !== $_cfg['cfg_link'] && (is_file('.cfg/maintenance.json') || $schemaUpdateRequired))
+$updateTrafficBlocked = SchemaUpdateGate::requiresTrafficGate(__DIR__);
+$maintenanceActive = is_file(__DIR__ . '/.cfg/maintenance.json');
+if ($f !== $_cfg['cfg_link'] && ($maintenanceActive || $updateTrafficBlocked))
 {
 	header('Retry-After: 60');
+	header('Cache-Control: no-store, max-age=0');
+	header('X-Robots-Tag: noindex, nofollow');
 	if ($is_api_v1)
 		ApiResponse::error('maintenance', 'H-Script update is in progress', 503);
 	http_response_code(503);
 	header('Content-Type: text/html; charset=UTF-8');
-	echo $schemaUpdateRequired
-		? '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Update completion required | H-Script</title><body><main><h1>CMS update completion required</h1><p>Open the Configurator to verify the image and, when required, back up and update the database.</p></main></body></html>'
-		: '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Maintenance | H-Script</title><body><main><h1>H-Script is being updated</h1><p>Please retry in one minute.</p></main></body></html>';
+	hsRenderSystemPage(
+		$maintenanceActive ? 'maintenance' : 'update_required',
+		'/' . ltrim((string)$_cfg['cfg_link'], '/') . '?update'
+	);
 	exit;
 }
 if (!hsHasDatabaseConfiguration($_cfg) && ($f != $_cfg['cfg_link']))
@@ -140,7 +174,9 @@ elseif ($l = moduleToLink('index'))
 		xAddToLog($_GS['uri'], 'ul');
 		header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
 		header('Status: 404 Not Found');
-		readfile('404.html');
+		header('Content-Type: text/html; charset=UTF-8');
+		header('X-Robots-Tag: noindex, nofollow');
+		hsRenderSystemPage('not_found');
 /*		$sapi_name = php_sapi_name();
 		if ($sapi_name == 'cgi' || $sapi_name == 'cgi-fcgi')
 			header('Status: 404 Not Found');
@@ -192,7 +228,7 @@ if ($is_api_v1)
 	}
 	catch (Throwable $e)
 	{
-		error_log('API request failed: ' . $e->getMessage());
+		StructuredLogger::event('error', 'api', 'api_request_failed', 'failure', 0, '', array('error_class' => $e::class));
 		ApiResponse::error('internal_error', 'An internal API error occurred', 500);
 	}
 }

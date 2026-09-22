@@ -4,24 +4,24 @@ use HScript\Http\ApiRequest;
 use HScript\Http\ApiResponse;
 
 require dirname(__DIR__) . '/bootstrap.php';
-telemetryApiRequireMethod(array('POST'));
-$input = telemetryApiInput();
+telemetryApiRequireIngestion();
+telemetryApiRequireMethod(array('POST'), true);
+telemetryApiApplyRateLimit('telemetry-ip', ApiRequest::clientIp());
 $token = telemetryApiBearer();
-$installationId = telemetryApiInstallationId($input);
+$input = telemetryApiInput();
+$payload = telemetryApiValidate([$telemetryValidator, 'registration'], $input);
 
-$state = $telemetryRepository->register(array(
-	'installation_id' => $installationId,
-	'domain' => telemetryApiDomain($input),
-	'version' => telemetryApiVersion($input),
-	'installed_at' => telemetryApiInstalledAt($input),
-	'stats_consent' => telemetryApiBool($input, 'stats_consent'),
-), $token, ApiRequest::clientIp());
-if ($state === 'identity_conflict')
-	ApiResponse::error('identity_conflict', 'Installation identity is already registered', 409);
+$result = $telemetryRepository->register($payload, $token, ApiRequest::clientIp());
+if (in_array($result['state'], array('identity_conflict', 'token_conflict'), true))
+	telemetryApiReject($result['state'], 'Installation identity or token is already registered', 409);
 
 $cache->delete('telemetry:public-metrics');
 ApiResponse::success(array(
-	'installation_id' => $installationId,
-	'state' => $state,
+	'installation_id' => $payload['installation_id'],
+	'state' => $result['state'],
+	'dns_status' => $result['dns_status'],
+	'dns_checked_at' => $result['dns_checked_at'],
+	'dns_error_code' => $result['dns_error_code'],
+	'data_classification' => 'self-reported',
 	'public_metrics' => $telemetryRepository->publicMetrics(),
-), $state === 'created' ? 201 : 200);
+), $result['state'] === 'created' ? 201 : 200);

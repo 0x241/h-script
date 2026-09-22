@@ -29,6 +29,24 @@ final class IntegrityStateRepository
 		return $state;
 	}
 
+	/** Serialize browser/cron batches, including their read-modify-write cycle. */
+	public function locked(callable $operation): array
+	{
+		$this->ensureDirectory();
+		$path = $this->directory . '/integrity.lock';
+		if (is_link($path)) throw new RuntimeException('Integrity lock is unsafe');
+		$mask = umask(0077);
+		try { $lock = fopen($path, 'c+b'); }
+		finally { umask($mask); }
+		if ($lock === false) throw new RuntimeException('Integrity lock is unavailable');
+		try
+		{
+			if (!flock($lock, LOCK_EX | LOCK_NB)) throw new RuntimeException('Integrity scan is busy');
+			return $operation();
+		}
+		finally { flock($lock, LOCK_UN); fclose($lock); }
+	}
+
 	public function save(array $state): void
 	{
 		$this->ensureDirectory();

@@ -3,43 +3,55 @@
 use HScript\Http\ApiRateLimiter;
 use HScript\Http\ApiRequest;
 use HScript\Http\ApiResponse;
+use HScript\Observability\CorrelationContext;
 use HScript\Telemetry\CollectorMode;
+use HScript\Telemetry\CollectorSchema;
 use HScript\Telemetry\InstallationRepository;
+use HScript\Telemetry\TelemetryIngestionCounterRepository;
+use HScript\Telemetry\TelemetryPayloadValidator;
+use HScript\Telemetry\TelemetryValidationException;
 
 $_smode = 2;
 $_auth = 0;
 require_once('module/auth.php');
 
-if (!CollectorMode::enabled($_cfg, (string)($_GS['domain'] ?? '')))
+$telemetryDomain = (string)($_GS['domain'] ?? '');
+if (!CollectorMode::enabled($_cfg, $telemetryDomain))
 	ApiResponse::error('route_not_found', 'API route not found', 404);
 
-$telemetryRateLimiter = new ApiRateLimiter(
-	$db,
-	max(1, (int)($_cfg['telemetry_rate_limit'] ?? 30))
-);
-$telemetryRate = $telemetryRateLimiter->consume('telemetry-ip', ApiRequest::clientIp());
-ApiResponse::setRateLimitHeaders(
-	$telemetryRate['limit'],
-	$telemetryRate['remaining'],
-	$telemetryRate['reset']
-);
-if (!$telemetryRate['allowed'])
+$telemetrySchemaReady = CollectorSchema::ready($db);
+$telemetryRepository = new InstallationRepository($db);
+$telemetryValidator = new TelemetryPayloadValidator();
+$telemetryRejections = $telemetrySchemaReady ? new TelemetryIngestionCounterRepository($db) : null;
+$telemetryRateLimiter = null;
+
+function telemetryApiRequireSchema(): void
 {
-	if (!headers_sent())
-		header('Retry-After: ' . $telemetryRate['retry_after']);
-	ApiResponse::error('rate_limit_exceeded', 'Too many requests', 429);
+	global $telemetrySchemaReady;
+	if (!$telemetrySchemaReady)
+		ApiResponse::error('collector_schema_unavailable', 'Collector schema is not ready', 503);
 }
 
-$telemetryRepository = new InstallationRepository($db);
+function telemetryApiRequireIngestion(): void
+{
+	global $_cfg, $telemetryDomain, $telemetrySchemaReady;
+	if (!CollectorMode::ingestionFlagEnabled($_cfg))
+		ApiResponse::error('ingestion_disabled', 'Telemetry ingestion is disabled', 503);
+	if (CollectorMode::ingestionEnabled($_cfg, $telemetryDomain, $telemetrySchemaReady))
+		return;
+	if (!$telemetrySchemaReady)
+		ApiResponse::error('collector_schema_unavailable', 'Collector schema is not ready', 503);
+	ApiResponse::error('ingestion_disabled', 'Telemetry ingestion is disabled', 503);
+}
 
-function telemetryApiRequireMethod(array $methods): string
+function telemetryApiRequireMethod(array $methods, bool $recordRejection = false): string
 {
 	$method = ApiRequest::method();
 	if (!in_array($method, $methods, true))
 	{
 		if (!headers_sent())
 			header('Allow: ' . implode(', ', $methods));
-		ApiResponse::error('method_not_allowed', 'Method not allowed', 405);
+		telemetryApiReject('method_not_allowed', 'Method not allowed', 405, array(), $recordRejection);
 	}
 	return $method;
 }
@@ -48,14 +60,14 @@ function telemetryApiInput(): array
 {
 	try
 	{
-		return ApiRequest::json();
+		return ApiRequest::json(TelemetryPayloadValidator::MAX_BODY_BYTES, true);
 	}
 	catch (InvalidArgumentException $exception)
 	{
-		$status = $exception->getMessage() === 'request_too_large' ? 413 : 400;
-		ApiResponse::error($exception->getMessage(), 'Invalid request body', $status);
+		$code = $exception->getMessage();
+		$status = $code === 'request_too_large' ? 413 : ($code === 'content_type_invalid' ? 415 : 400);
+		telemetryApiReject($code, 'Invalid request body', $status);
 	}
-	return array();
 }
 
 function telemetryApiBearer(): string
@@ -65,97 +77,49 @@ function telemetryApiBearer(): string
 	{
 		if (!headers_sent())
 			header('WWW-Authenticate: Bearer realm="H-Script installation registry"');
-		ApiResponse::error('invalid_token', 'A valid installation token is required', 401);
+		telemetryApiReject('invalid_token', 'A valid installation token is required', 401);
 	}
+	CorrelationContext::setActorClass('service');
 	return $token;
 }
 
-function telemetryApiInstallationId(array $input): string
+function telemetryApiValidate(callable $validator, array $input): array
 {
-	$id = strtolower(trim((string)($input['installation_id'] ?? '')));
-	if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $id))
-		ApiResponse::error('validation_error', 'Invalid installation id', 422);
-	return $id;
-}
-
-function telemetryApiDomain(array $input): string
-{
-	$domain = strtolower(rtrim(trim((string)($input['domain'] ?? '')), '.'));
-	if (
-		$domain === ''
-		|| strlen($domain) > 253
-		|| !preg_match('/^[a-z0-9.-]+(?::[0-9]{1,5})?$/', $domain)
-	)
-		ApiResponse::error('validation_error', 'Invalid installation domain', 422);
-	return $domain;
-}
-
-function telemetryApiVersion(array $input): string
-{
-	$version = trim((string)($input['version'] ?? ''));
-	if (!preg_match('/^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$/', $version) || strlen($version) > 32)
-		ApiResponse::error('validation_error', 'Invalid application version', 422);
-	return $version;
-}
-
-function telemetryApiInstalledAt(array $input): int
-{
-	$value = filter_var($input['installed_at'] ?? null, FILTER_VALIDATE_INT);
-	if ($value === false || $value < 946684800 || $value > time() + 86400)
-		ApiResponse::error('validation_error', 'Invalid installation date', 422);
-	return (int)$value;
-}
-
-function telemetryApiBool(array $input, string $field): bool
-{
-	$value = $input[$field] ?? false;
-	if (!is_bool($value))
-		ApiResponse::error('validation_error', 'Invalid boolean field', 422, array('field' => $field));
-	return $value;
-}
-
-function telemetryApiPublicStats(array $input, bool $consent): ?array
-{
-	if (!$consent || !array_key_exists('public_stats', $input))
-		return null;
-	$stats = $input['public_stats'];
-	if (!is_array($stats) || array_is_list($stats))
-		ApiResponse::error('validation_error', 'Invalid public statistics', 422);
-
-	foreach (array('worked_days', 'users_total', 'users_online', 'active_deposits', 'closed_deposits') as $field)
+	try
 	{
-		$value = filter_var($stats[$field] ?? 0, FILTER_VALIDATE_INT);
-		if ($value === false || $value < 0)
-			ApiResponse::error('validation_error', 'Invalid public statistics', 422, array('field' => $field));
-		$stats[$field] = (int)$value;
+		$result = $validator($input);
+		return is_array($result) ? $result : array();
 	}
-	foreach (array('cash_in_base', 'cash_out_base', 'referral_paid_base', 'reinvested_base') as $field)
+	catch (TelemetryValidationException $exception)
 	{
-		$value = $stats[$field] ?? 0;
-		if (!is_numeric($value) || (float)$value < 0)
-			ApiResponse::error('validation_error', 'Invalid public statistics', 422, array('field' => $field));
-		$stats[$field] = (float)$value;
+		$details = $exception->field() !== '' ? array('field' => $exception->field()) : array();
+		telemetryApiReject($exception->errorCode(), $exception->getMessage(), 422, $details);
 	}
+}
 
-	$baseCurrency = strtoupper(trim((string)($stats['base_currency'] ?? '')));
-	if ($baseCurrency !== '' && !preg_match('/^[A-Z0-9]{2,10}$/', $baseCurrency))
-		ApiResponse::error('validation_error', 'Invalid base currency', 422);
-	$stats['base_currency'] = $baseCurrency;
-
-	foreach (array('cash_in_by_currency', 'cash_out_by_currency') as $field)
+function telemetryApiApplyRateLimit(string $dimension, string $identifier): void
+{
+	global $db, $_cfg, $telemetryRateLimiter;
+	$telemetryRateLimiter ??= new ApiRateLimiter($db, max(1, min(10000, (int)($_cfg['telemetry_rate_limit'] ?? 30))));
+	$rate = $telemetryRateLimiter->consume($dimension, $identifier);
+	ApiResponse::setRateLimitHeaders($rate['limit'], $rate['remaining'], $rate['reset']);
+	if (!$rate['allowed'])
 	{
-		$values = $stats[$field] ?? array();
-		if (!is_array($values) || count($values) > 20)
-			ApiResponse::error('validation_error', 'Invalid currency statistics', 422, array('field' => $field));
-		$normalized = array();
-		foreach ($values as $currency => $amount)
-		{
-			$currency = strtoupper(trim((string)$currency));
-			if (!preg_match('/^[A-Z0-9]{2,10}$/', $currency) || !is_numeric($amount) || (float)$amount < 0)
-				ApiResponse::error('validation_error', 'Invalid currency statistics', 422, array('field' => $field));
-			$normalized[$currency] = (float)$amount;
-		}
-		$stats[$field] = $normalized;
+		if (!headers_sent())
+			header('Retry-After: ' . $rate['retry_after']);
+		telemetryApiReject('rate_limit_exceeded', 'Too many requests', 429);
 	}
-	return $stats;
+}
+
+function telemetryApiReject(
+	string $code,
+	string $message,
+	int $status,
+	array $details = array(),
+	bool $record = true
+): never {
+	global $telemetryRejections;
+	if ($record && $telemetryRejections instanceof TelemetryIngestionCounterRepository)
+		$telemetryRejections->record($code);
+	ApiResponse::error($code, $message, $status, $details);
 }

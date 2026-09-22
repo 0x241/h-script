@@ -121,6 +121,12 @@ showcase/
 ui-preview.html
 dist/
 
+# Keep the empty recovery-secret mount contract, never its local contents.
+!/docker/recovery/secrets/
+/docker/recovery/secrets/*
+!/docker/recovery/secrets/.gitignore
+!/docker/recovery/secrets/README.md
+
 # User uploads, backups and caches
 upload/*
 !upload/.htaccess

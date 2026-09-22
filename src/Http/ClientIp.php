@@ -84,7 +84,13 @@ final class ClientIp
 		if (!is_scalar($value))
 			return null;
 		$value = trim((string)$value);
-		return filter_var($value, FILTER_VALIDATE_IP) !== false ? $value : null;
+		if (filter_var($value, FILTER_VALIDATE_IP) === false)
+			return null;
+		$packed = inet_pton($value);
+		if ($packed === false)
+			return null;
+		$normalized = inet_ntop($packed);
+		return is_string($normalized) ? strtolower($normalized) : null;
 	}
 
 	public static function isValidCidr(string $cidr): bool

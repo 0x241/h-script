@@ -71,6 +71,13 @@ final class PhpStreamingBackupAdapter implements DatabaseBackupAdapter
 			throw new RuntimeException('Could not read table definition for ' . $table);
 		$write("\nDROP TABLE IF EXISTS " . $quotedTable . ";\n" . $create . ";\n");
 
+		// MySQL native JSON rejects binary FROM_BASE64 results (error 3144).
+		// Convert only JSON values; binary/blob columns must retain their bytes.
+		$columns = $database->query('SHOW COLUMNS FROM ' . $quotedTable);
+		$jsonFields = array();
+		foreach ($columns->fetchAll() as $column)
+			if (strtolower((string)$column['Type']) === 'json') $jsonFields[$column['Field']] = true;
+		$columns->closeCursor();
 		$query = $database->query('SELECT * FROM ' . $quotedTable);
 		$prefix = '';
 		$statement = '';
@@ -78,7 +85,10 @@ final class PhpStreamingBackupAdapter implements DatabaseBackupAdapter
 		{
 			if ($prefix === '')
 				$prefix = 'INSERT INTO ' . $quotedTable . ' (' . $this->fieldList(array_keys($row)) . ') VALUES ';
-			$values = '(' . implode(',', array_map(array($this, 'literal'), array_values($row))) . ')';
+			$literals = array();
+			foreach ($row as $field => $value)
+				$literals[] = $this->literal($value, isset($jsonFields[$field]));
+			$values = '(' . implode(',', $literals) . ')';
 			if ($statement !== '' && strlen($prefix) + strlen($statement) + strlen($values) + 3 > $this->maximumStatementBytes)
 			{
 				$write($prefix . $statement . ";\n");
@@ -99,10 +109,11 @@ final class PhpStreamingBackupAdapter implements DatabaseBackupAdapter
 		return implode(',', array_map(static fn(string $field): string => '`' . $field . '`', $fields));
 	}
 
-	private function literal(mixed $value): string
+	private function literal(mixed $value, bool $json = false): string
 	{
 		if ($value === null)
 			return 'NULL';
-		return "FROM_BASE64('" . base64_encode((string)$value) . "')";
+		$literal = "FROM_BASE64('" . base64_encode((string)$value) . "')";
+		return $json ? 'CONVERT(' . $literal . ' USING utf8mb4)' : $literal;
 	}
 }

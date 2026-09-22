@@ -19,6 +19,7 @@ CLAUDE.md
 .cursor/
 showcase/
 tests/
+ci/
 dist/
 coverage/
 docker/release/

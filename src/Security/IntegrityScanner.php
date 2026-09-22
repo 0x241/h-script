@@ -76,6 +76,11 @@ final class IntegrityScanner
 
 	public function start(): array
 	{
+		return $this->states->locked(fn(): array => $this->startUnlocked());
+	}
+
+	private function startUnlocked(): array
+	{
 		$previous = $this->states->get();
 		$state = array(
 			'format' => 1,
@@ -103,10 +108,28 @@ final class IntegrityScanner
 			'notified_at' => (int)($previous['notified_at'] ?? 0),
 		);
 		$this->states->save($state);
-		return $this->advance();
+		return $this->advanceUnlocked();
 	}
 
 	public function advance(): array
+	{
+		return $this->states->locked(function (): array {
+			$state = $this->states->get();
+			// A cursor belongs to one verified release; never mix two inventories.
+			if ($state !== null && !$this->matchesBaseline($state)) return $this->startUnlocked();
+			// Another browser or cron may have finished the last batch already.
+			if (($state['status'] ?? '') === 'completed') return $state;
+			return $this->advanceUnlocked();
+		});
+	}
+
+	public function matchesBaseline(array $state): bool
+	{
+		return ($state['baseline_version'] ?? '') === Application::version()
+			&& hash_equals((string)($state['baseline_checksum'] ?? ''), $this->baselineChecksum);
+	}
+
+	private function advanceUnlocked(): array
 	{
 		$state = $this->states->get();
 		if ($state === null || ($state['status'] ?? '') !== 'running')

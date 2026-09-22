@@ -79,13 +79,17 @@ final class TelemetryServiceTokenRepository
 		$now = time();
 		$row = $this->db->fetch1Row($this->db->select(
 			'TelemetryServiceTokens',
-			'tstID, tstName, tstTokenHash, tstScope, tstExpiresAt',
+			'tstID, tstuID, tstName, tstTokenHash, tstScope, tstExpiresAt',
 			'tstTokenHash=? and tstState=1 and (tstExpiresAt=0 or tstExpiresAt>?)',
 			array($tokenHash, $now),
 			'',
 			1
 		));
 		if (!$row || !hash_equals((string)$row['tstTokenHash'], $tokenHash))
+			return null;
+		// A disabled/removed consumer must not authenticate with a surviving token,
+		// including an issuance already in flight when emergency stop committed.
+		if (!$this->db->count('Users', 'uID=?d and uLevel=?d and uState=1', array((int)$row['tstuID'], self::ISSUER_LEVEL)))
 			return null;
 
 		$this->db->update('TelemetryServiceTokens', array(
@@ -112,6 +116,67 @@ final class TelemetryServiceTokenRepository
 			'tstID DESC'
 		));
 		return is_array($rows) ? $rows : array();
+	}
+
+	/** Returns one bounded token page and unfiltered effective-status totals. */
+	public function listPage(ServiceTokenListQuery|array|null $query = null): array
+	{
+		if (!$query instanceof ServiceTokenListQuery)
+			$query = ServiceTokenListQuery::fromArray(is_array($query) ? $query : array());
+
+		$now = time();
+		$filter = $this->listFilter($query, $now);
+		$total = (int)$this->db->fetch1($this->db->query(
+			'SELECT COUNT(*) FROM TelemetryServiceTokens t LEFT JOIN Users u ON u.uID=t.tstuID WHERE ' . $filter['where'],
+			$filter['parameters']
+		));
+		$totalPages = $total > 0 ? (int)ceil($total / $query->perPage()) : 0;
+		$page = $totalPages > 0 ? min($query->page(), $totalPages) : 1;
+		$offset = ($page - 1) * $query->perPage();
+		$rows = $this->db->fetchRows($this->db->query(
+			'SELECT t.tstID, t.tstuID, t.tstName, t.tstTokenPrefix, t.tstScope, t.tstState,
+			 t.tstCreatedAt, t.tstExpiresAt, t.tstLastUsedAt, t.tstLastIP, u.uLogin
+			 FROM TelemetryServiceTokens t LEFT JOIN Users u ON u.uID=t.tstuID
+			 WHERE ' . $filter['where'] . '
+			 ORDER BY t.tstID DESC
+			 LIMIT ' . $offset . ', ' . $query->perPage(),
+			$filter['parameters']
+		));
+
+		return array(
+			'summary' => $this->summary($now),
+			'filters' => $query->filters(),
+			'pagination' => array(
+				'page' => $page,
+				'per_page' => $query->perPage(),
+				'total' => $total,
+				'total_pages' => $totalPages,
+				'has_previous' => $page > 1,
+				'has_next' => $page < $totalPages,
+			),
+			'tokens' => is_array($rows) ? $rows : array(),
+		);
+	}
+
+	/** Aggregates token state per collector account without loading token rows. */
+	public function ownerSummaries(int $now = 0): array
+	{
+		$now = $now > 0 ? $now : time();
+		$rows = $this->db->fetchRows($this->db->query(
+			'SELECT tstuID,
+			 COUNT(*) AS token_total,
+			 SUM(CASE WHEN tstState=1 AND (tstExpiresAt=0 OR tstExpiresAt>?d) THEN 1 ELSE 0 END) AS token_active,
+			 SUM(CASE WHEN tstState=2 THEN 1 ELSE 0 END) AS token_paused,
+			 SUM(CASE WHEN tstState=0 OR (tstState=1 AND tstExpiresAt>0 AND tstExpiresAt<=?d) THEN 1 ELSE 0 END) AS token_revoked,
+			 MAX(tstCreatedAt) AS last_created_at,
+			 MAX(tstLastUsedAt) AS last_used_at
+			 FROM TelemetryServiceTokens GROUP BY tstuID',
+			array($now, $now)
+		));
+		$summary = array();
+		foreach (is_array($rows) ? $rows : array() as $row)
+			$summary[(int)$row['tstuID']] = $row;
+		return $summary;
 	}
 
 	public function listForUser(int $userId): array
@@ -195,6 +260,76 @@ final class TelemetryServiceTokenRepository
 	public static function hash(string $token): string
 	{
 		return hash('sha256', $token);
+	}
+
+	/** Operator emergency stop; no token plaintext/hash leaves the repository. */
+	public function stopConsumer(int $userId): void
+	{
+		if ($userId <= 0) throw new InvalidArgumentException('A positive collector consumer ID is required');
+		if ($this->db->beginJob() === false) throw new \RuntimeException('Consumer stop transaction unavailable');
+		try
+		{
+			$row = $this->db->fetch1Row($this->db->query('SELECT uID FROM Users WHERE uID=?d AND uLevel=?d FOR UPDATE', array($userId, self::ISSUER_LEVEL)));
+			if (!$row) throw new InvalidArgumentException('Collector consumer not found');
+			if ($this->db->update('Users', array('uState'=>3), '', 'uID=?d', array($userId)) === false
+				|| $this->db->update('TelemetryServiceTokens', array('tstState'=>0), '', 'tstuID=?d AND tstState<>0', array($userId)) === false)
+				throw new \RuntimeException('Collector consumer stop failed');
+			if ($this->db->endJob() === false) throw new \RuntimeException('Collector consumer stop commit failed');
+		}
+		catch (\Throwable $error) { $this->db->cancelJob(); throw $error; }
+	}
+
+	private function listFilter(ServiceTokenListQuery $query, int $now): array
+	{
+		$clauses = array('1=1');
+		$parameters = array();
+		if ($query->search() !== '')
+		{
+			$pattern = '%' . self::escapeLike($query->search()) . '%';
+			$clauses[] = "(LOWER(t.tstName) LIKE ? ESCAPE '=' OR LOWER(COALESCE(u.uLogin, '')) LIKE ? ESCAPE '=')";
+			$parameters[] = $pattern;
+			$parameters[] = $pattern;
+		}
+		if ($query->status() === 'active')
+		{
+			$clauses[] = 't.tstState=1 AND (t.tstExpiresAt=0 OR t.tstExpiresAt>?d)';
+			$parameters[] = $now;
+		}
+		elseif ($query->status() === 'paused')
+			$clauses[] = 't.tstState=2';
+		elseif ($query->status() === 'expired')
+		{
+			$clauses[] = 't.tstState=1 AND t.tstExpiresAt>0 AND t.tstExpiresAt<=?d';
+			$parameters[] = $now;
+		}
+		elseif ($query->status() === 'revoked')
+			$clauses[] = 't.tstState=0';
+		return array('where' => implode(' AND ', $clauses), 'parameters' => $parameters);
+	}
+
+	private function summary(int $now): array
+	{
+		$row = $this->db->fetch1Row($this->db->query(
+			'SELECT COUNT(*) AS total,
+			 SUM(CASE WHEN tstState=1 AND (tstExpiresAt=0 OR tstExpiresAt>?d) THEN 1 ELSE 0 END) AS active,
+			 SUM(CASE WHEN tstState=2 THEN 1 ELSE 0 END) AS paused,
+			 SUM(CASE WHEN tstState=1 AND tstExpiresAt>0 AND tstExpiresAt<=?d THEN 1 ELSE 0 END) AS expired,
+			 SUM(CASE WHEN tstState=0 THEN 1 ELSE 0 END) AS revoked
+			 FROM TelemetryServiceTokens',
+			array($now, $now)
+		));
+		return array(
+			'total' => (int)($row['total'] ?? 0),
+			'active' => (int)($row['active'] ?? 0),
+			'paused' => (int)($row['paused'] ?? 0),
+			'expired' => (int)($row['expired'] ?? 0),
+			'revoked' => (int)($row['revoked'] ?? 0),
+		);
+	}
+
+	private static function escapeLike(string $value): string
+	{
+		return str_replace(array('=', '%', '_'), array('==', '=%', '=_'), $value);
 	}
 
 	private static function normalizeName(string $name): string

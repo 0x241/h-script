@@ -182,7 +182,7 @@ $demoAdminPin = hs_install_env('INSTALL_DEMO_ADMIN_PIN', $adminPin);
 $intCurrId = hs_install_env('INSTALL_INT_CURR_ID', 'USD');
 $noLogins = hs_install_bool('INSTALL_NO_LOGINS');
 $intCurr = hs_install_bool('INSTALL_INT_CURR');
-$telemetryShareStats = hs_install_bool('INSTALL_TELEMETRY_STATS', true);
+$telemetryShareStats = !$demoMode && hs_install_bool('INSTALL_TELEMETRY_STATS', true);
 $telemetryInstalledAt = time();
 
 $psalt = substr(md5(uniqid((string)rand(), true) . time()), 0, rand(6, 10));

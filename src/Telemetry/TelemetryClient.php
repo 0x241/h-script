@@ -3,6 +3,9 @@
 namespace HScript\Telemetry;
 
 use HScript\Application;
+use HScript\Observability\CorrelationContext;
+use HScript\Observability\MetricRegistry;
+use HScript\Observability\StructuredLogger;
 use JsonException;
 use Throwable;
 
@@ -12,7 +15,7 @@ use Throwable;
  * Production endpoints must use HTTPS; local HTTP endpoints are accepted only
  * in development and test environments.
  */
-final class TelemetryClient
+final class TelemetryClient implements TelemetryClientInterface
 {
 	private string $endpoint;
 
@@ -23,20 +26,22 @@ final class TelemetryClient
 
 	public function request(string $method, string $path, array $payload, string $token): array
 	{
+		$startedAt = microtime(true);
+		$operation = str_contains(strtolower($path), 'register') ? 'register' : 'report';
 		if (!function_exists('curl_init'))
-			return $this->failure('curl_unavailable');
+			return $this->observedFailure($operation, 'curl_unavailable', $startedAt);
 		if (!$this->endpointAllowed())
-			return $this->failure('endpoint_invalid');
+			return $this->observedFailure($operation, 'endpoint_invalid', $startedAt);
 
 		$handle = curl_init($this->endpoint . '/' . ltrim($path, '/'));
 		if ($handle === false)
-			return $this->failure('curl_init_failed');
+			return $this->observedFailure($operation, 'curl_init_failed', $startedAt);
 
 		try
 		{
 			$body = json_encode(
 				$payload,
-				JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+				JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION
 			);
 			curl_setopt_array($handle, array(
 				CURLOPT_CUSTOMREQUEST => strtoupper($method),
@@ -45,6 +50,7 @@ final class TelemetryClient
 					'Accept: application/json',
 					'Authorization: Bearer ' . $token,
 					'Content-Type: application/json',
+					'X-Request-ID: ' . CorrelationContext::current(),
 				),
 				CURLOPT_CONNECTTIMEOUT => 5,
 				CURLOPT_TIMEOUT => 15,
@@ -60,24 +66,26 @@ final class TelemetryClient
 			$responseBody = curl_exec($handle);
 			$status = (int)curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
 			if ($responseBody === false)
-				return $this->failure('network_error', $status);
+				return $this->observedFailure($operation, 'network_error', $startedAt, $status);
 
 			$response = json_decode((string)$responseBody, true, 32, JSON_THROW_ON_ERROR);
 			$ok = $status >= 200 && $status < 300 && is_array($response) && !empty($response['success']);
-			return array(
+			$result = array(
 				'ok' => $ok,
 				'status' => $status,
 				'error' => $ok ? '' : (string)($response['error']['code'] ?? 'remote_error'),
 				'data' => is_array($response['data'] ?? null) ? $response['data'] : array(),
 			);
+			$this->observe($operation, $result, $startedAt);
+			return $result;
 		}
 		catch (JsonException)
 		{
-			return $this->failure('response_invalid');
+			return $this->observedFailure($operation, 'response_invalid', $startedAt);
 		}
 		catch (Throwable)
 		{
-			return $this->failure('request_failed');
+			return $this->observedFailure($operation, 'request_failed', $startedAt);
 		}
 		finally
 		{
@@ -109,6 +117,24 @@ final class TelemetryClient
 			'status' => $status,
 			'error' => $error,
 			'data' => array(),
+		);
+	}
+
+	private function observedFailure(string $operation, string $error, float $startedAt, int $status = 0): array
+	{
+		$result = $this->failure($error, $status);
+		$this->observe($operation, $result, $startedAt);
+		return $result;
+	}
+
+	private function observe(string $operation, array $result, float $startedAt): void
+	{
+		$outcome = !empty($result['ok']) ? 'success' : 'failure';
+		$duration = max(0, (int)round((microtime(true) - $startedAt) * 1000));
+		MetricRegistry::increment('telemetry_requests_total', array('operation' => $operation, 'outcome' => $outcome));
+		StructuredLogger::event(
+			$outcome === 'success' ? 'info' : 'warning', 'telemetry', 'telemetry_' . $operation . '_request',
+			$outcome, $duration, '', array('transport_status' => (int)($result['status'] ?? 0))
 		);
 	}
 }

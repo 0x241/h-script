@@ -1,6 +1,6 @@
 # H-Script
 
-H-Script 1.0.3 is a PHP CMS for financial projects. It includes user accounts,
+H-Script 1.0.4 is a PHP CMS for financial projects. It includes user accounts,
 deposits, payment gateways, a referral system, administration tools, installation
 telemetry, and a versioned REST API.
 
@@ -24,7 +24,7 @@ telemetry, and a versioned REST API.
 
 For most installations, use the published image. It is reproducible and already
 contains Composer dependencies and compiled CSS. Pin an exact version such as
-`1.0.3`; do not use a floating `latest` tag in production.
+`1.0.4`; do not use a floating `latest` tag in production.
 
 ## Docker with a published image
 
@@ -52,7 +52,7 @@ Select the published image in `.env`:
 
 ```env
 APP_IMAGE=docker.io/0x241/h-script
-APP_IMAGE_TAG=1.0.3
+APP_IMAGE_TAG=1.0.4
 APP_PULL_POLICY=always
 
 APP_ENV=production
@@ -71,7 +71,7 @@ TURNSTILE_SITE_KEY=change-me-site-key
 TURNSTILE_SECRET_KEY=change-me-secret-key
 ```
 
-The same digest is also published as `ghcr.io/0x241/h-script:1.0.3`. Both public
+The same digest is also published as `ghcr.io/0x241/h-script:1.0.4`. Both public
 packages should allow end users to pull without `docker login`. A private GHCR
 package requires a token with `read:packages` permission.
 
@@ -122,8 +122,9 @@ database and never recreates existing tables.
 
 ### Image upgrades and rollback
 
-Back up MySQL and runtime volumes before an upgrade. Change `APP_IMAGE_TAG` to a
-new exact version, then run:
+Back up MySQL and runtime volumes before an upgrade. Set `APP_IMAGE_REF` to the
+verified `repository@sha256:...` (or clear it and set `APP_IMAGE_TAG` to the exact
+version), pause cron/queue workers and drain processing jobs, then run:
 
 ```bash
 docker compose pull app cron
@@ -132,25 +133,74 @@ docker compose ps
 docker compose logs --tail=200 app
 ```
 
-The new container gates normal routes before Apache starts serving them when its
-CMS or schema version differs from the recorded installed versions; the
-Configurator stays available. Open its update page and complete the common
-update run. A schema update creates a verified SQL backup and runs bundled
-migrations; a code-only update skips both and records the new CMS version only
-after its health check. Then start `cron` with
+The new container records lifecycle drift before Apache starts serving traffic.
+When the schema is unchanged and the installed CMS version is a supported source,
+normal routes stay available while the Configurator offers a one-click health
+check that records the new CMS version. A confirmed schema mismatch, unsupported
+source version, invalid lifecycle marker, or active update still gates normal
+routes with HTTP 503 while the Configurator remains available. A schema update
+creates a verified SQL backup and runs bundled migrations; a code-only update
+skips both. Then start `cron` with
 `docker compose up -d --no-build cron`. The Configurator never replaces Docker
 image files or accesses the Docker socket. Changes made directly inside the old
 container are not preserved; keep custom code in a derived image, local module,
 custom theme, or an explicit volume.
 
-To roll back, restore the previous image tag and repeat `pull` and `up`. If a
-release contains an irreversible database migration, restore a compatible
-database backup as part of the rollback.
+Restore the previous image only if the schema/runtime state is still compatible.
+After a schema migration has started, even an unchanged schema version is not
+proof that DDL did not commit. Use the verified full-backup recovery procedure
+or resume the idempotent migration; there is no automatic schema downgrade.
 
 The Configurator and CLI can create a streamed, checksum-verified SQL backup.
 Use `php bin/backup.php` without arguments to display the create, verify, list,
 delete, and CLI-only restore commands. Docker updates use an exact image tag;
 shared hosting uses the official release archive through `php bin/update.php`.
+
+Before a schema-changing Docker update, create and independently verify a
+backup. Keep the returned `id` outside the container logs:
+
+```bash
+docker compose exec -T app php bin/backup.php create
+docker compose exec -T app php bin/backup.php verify <backup-id>
+```
+
+The common update service also creates and verifies a backup automatically
+before its first database-changing migration. A `code-only` update intentionally
+creates no SQL backup and runs no migration. If an update stops, inspect
+`/_cfg?update` or `php bin/update.php status`, then resume the recorded run; do
+not start a second update or enable auto-install.
+
+Test recovery in a separate empty database before an emergency restore. The
+target name must be repeated explicitly and restoring into the configured live
+database is rejected unless the separate `--allow-current-database` safeguard is
+also supplied:
+
+```bash
+docker compose exec -T app php bin/backup.php restore <backup-id> \
+  --target-host=database:3306 \
+  --target-database=hscript_restore_test \
+  --target-user=hscript_restore \
+  --confirm-target=hscript_restore_test
+```
+
+Provide the target password through `RESTORE_DB_PASSWORD_FILE` (preferred) or
+`RESTORE_DB_PASSWORD`. The target is required to be empty unless the operator
+adds `--allow-non-empty-target` explicitly.
+
+Automated disaster recovery is provided by the separate `recovery` service. It
+still invokes `bin/backup.php`, creates a checksum/allowlist runtime archive,
+keeps SQL and runtime bundles in `backup/`, applies local retention, and restores
+the latest local bundle into a random isolated database for read-only verification.
+It remains disabled until row bounds, RPO/RTO and drill database are configured.
+Copying, encryption and retention on another server are managed by external
+operator tools, not by H-Script. Operator runbooks are maintained locally and
+are not included in the source repository or release archives.
+
+Application, API, HTMX, queue, cron, telemetry, database, payment and recovery
+events use one bounded NDJSON schema and correlation ID. Low-cardinality metrics
+are written separately for an operator-managed collector; process/readiness
+checks remain CLI-only. Alert `runbook` fields identify sections in the local
+operator documentation; they are not public application URLs or bundled files.
 
 ## Docker build from source
 
@@ -229,13 +279,8 @@ location / {
     try_files $uri $uri/ /rw.php?$query_string;
 }
 
-location ~ \.php$ {
-    include fastcgi_params;
-    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-    fastcgi_pass unix:/run/php/php8.4-fpm.sock;
-}
-
-location ~ ^/(?:\.git|\.agents|\.codex|\.cfg|backup|compile|docker|lib|logs|module|tpl|tpl_c|vendor)(?:/|$) {
+# Deny regexes must precede the generic PHP handler (first matching regex wins).
+location ~* ^/(?:\.git|\.agents|\.codex|\.cfg|backup|compile|docker|lib|logs|module|tpl|tpl_c|vendor)(?:/|$) {
     deny all;
 }
 
@@ -245,6 +290,12 @@ location ~ ^/upload/.*\.(?:php|phtml|php[0-9]?|phps|cgi|pl|fcgi)$ {
 
 location ~ ^/(?:_config\.php|composer\.(?:json|lock)|memory\.md|tasks\.md)$ {
     deny all;
+}
+
+location ~ \.php$ {
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_pass unix:/run/php/php8.4-fpm.sock;
 }
 ```
 
@@ -281,7 +332,7 @@ checksum:
 ```bash
 docker buildx build \
   --target shared-release \
-  --build-arg APP_VERSION=1.0.3 \
+  --build-arg APP_VERSION=1.0.4 \
   --output type=local,dest=dist \
   .
 (cd dist && sha256sum -c SHA256SUMS)
@@ -302,8 +353,13 @@ Installation procedure:
 10. Test registration, login, mail delivery, and Turnstile over HTTPS.
 
 Before an upgrade, back up MySQL, `upload/`, `_config.php`, and
-`module/_config/pass`. Replace only application files and never delete runtime
-data. Apply schema changes through an explicit documented migration.
+`module/_config/pass`. Prefer the authenticated Configurator update page and an
+official shared-hosting release archive: it verifies the archive, preserves
+declared runtime paths, creates a verified backup before database changes, and
+leaves a stopped run resumable. Never delete runtime data or use auto-install as
+an updater. For CLI diagnosis use `php bin/update.php status`; test SQL recovery
+against a separate empty database with `php bin/backup.php restore` before any
+live restore.
 
 ## Docker environment variables
 
@@ -315,7 +371,8 @@ The complete reference is `docker/env.example`.
 | --- | --- |
 | `APP_ENV`, `APP_DEBUG` | Environment and diagnostic output; use `production` and `0` in production. |
 | `APP_IMAGE` | Local image name, Docker Hub repository, or GHCR package. |
-| `APP_IMAGE_TAG` | Exact release tag, for example `1.0.3`. |
+| `APP_IMAGE_TAG` | Exact release tag, for example `1.0.4`. |
+| `APP_IMAGE_REF` | Optional `repository@sha256:...`; overrides the image/tag pair. Staging always sets it. |
 | `APP_PULL_POLICY` | `build` for source builds or `always` for registry images. |
 | `APP_DOMAIN` | Public domain without a scheme; keep it stable after installation. |
 | `APP_SYS_ID` | Stable system secret/identifier; keep it stable after installation. |
@@ -327,9 +384,19 @@ The complete reference is `docker/env.example`.
 | `APP_EXTERNAL_NETWORK` | Existing external reverse-proxy network. |
 | `APP_NETWORK_ALIAS` | Application alias on the external proxy network. |
 | `TRUSTED_PROXY_CIDRS` | Exact trusted reverse-proxy CIDRs allowed to supply forwarded headers; defaults to loopback only. |
+| `OBSERVABILITY_LOG_PATH`, `OBSERVABILITY_METRICS_PATH` | Absolute operator-only NDJSON paths consumed by the external logs/metrics collector. |
+| `OBSERVABILITY_LOG_MAX_BYTES`, `OBSERVABILITY_METRICS_MAX_BYTES` | Per-file bounds before one local rotated generation is retained. |
+| `OBSERVABILITY_CRON_MAX_AGE_SECONDS` | Maximum age of the last application cron heartbeat. |
+| `OBSERVABILITY_QUEUE_MAX_DEPTH`, `OBSERVABILITY_QUEUE_MAX_AGE_SECONDS`, `OBSERVABILITY_QUEUE_MAX_FAILED` | Queue readiness and alert thresholds. |
+| `OBSERVABILITY_DNS_BACKLOG_MAX` | Maximum collector DNS verification backlog. |
+| `OBSERVABILITY_DB_SLOW_MS` | Slow-query event threshold; query text and parameters are never logged. |
+| `OBSERVABILITY_ALERT_WINDOW_SECONDS`, `OBSERVABILITY_HTTP_ERROR_THRESHOLD`, `OBSERVABILITY_SESSION_FAILURE_THRESHOLD` | External-collector evaluation window and request/session thresholds. |
+| `OBSERVABILITY_TELEMETRY_FAILURE_THRESHOLD`, `OBSERVABILITY_GATEWAY_FAILURE_THRESHOLD` | External-collector failure thresholds for telemetry and gateway attempts. |
+| `OBSERVABILITY_ALERT_COMMAND` | Optional absolute fail-open notifier executable receiving a restricted alert JSON path. |
 | `TELEMETRY_ENDPOINT` | Installation collector; defaults to `https://h-script.com/api/v1/installations`. |
 | `INSTALL_TELEMETRY_STATS` | `1` sends public aggregates; `0` sends mandatory installation data only. |
 | `TELEMETRY_COLLECTOR_ENABLED` | Enables incoming collector APIs on the central instance only. |
+| `TELEMETRY_INGESTION_ENABLED` | Independently enables authenticated registration/report ingestion on the central collector only. |
 | `TELEMETRY_COLLECTOR_DOMAIN` | Domain allowed to host collector APIs and administration. |
 | `TELEMETRY_RATE_LIMIT` | Collector requests per IP per minute; defaults to `30`. |
 
@@ -371,6 +438,44 @@ machine-route exclusions have complete copy-ready examples in
 | `CRON_URL`, `CRON_HOST_HEADER` | Internal scheduler URL and optional Host header. |
 | `CRON_TIMEOUT_SECONDS`, `CRON_START_DELAY_SECONDS` | Per-call timeout and initial delay. |
 
+### Backup and update
+
+| Variable | Purpose |
+| --- | --- |
+| `BACKUP_STORAGE_PATH` | Absolute backup directory outside the document root when possible; an in-root directory must have effective web access denial. |
+| `BACKUP_MAX_BYTES`, `BACKUP_MIN_FREE_BYTES` | Hard archive-size and remaining-free-space limits checked before publication. |
+| `BACKUP_RETENTION_COUNT`, `BACKUP_RETENTION_DAYS` | Local retention limits; an unfinished update protects its attached backup. |
+| `BACKUP_MYSQLDUMP_PATH`, `BACKUP_MYSQL_PATH` | Optional absolute paths to dump and restore clients. |
+| `RESTORE_MAX_STATEMENT_BYTES` | Maximum statement size for the bounded PDO streaming fallback when the system MySQL client cannot authenticate to MySQL 8.4. |
+| `RECOVERY_ENABLED`, `RECOVERY_BACKUP_INTERVAL_SECONDS` | Enables the recovery scheduler and sets its interval; keep it within the strictest configured RPO. |
+| `RECOVERY_RUNTIME_ROOT`, `RECOVERY_RUNTIME_PATHS` | Runtime source and exact supported allowlist (`upload` plus custom themes by default). |
+| `RECOVERY_INCLUDE_PROTECTED_CONFIG` | Explicit opt-in for exact configuration/hash paths; `.env` remains forbidden. |
+| `RECOVERY_*_RPO_SECONDS`, `RECOVERY_*_RTO_SECONDS`, `RECOVERY_DRILL_MAX_AGE_SECONDS` | Environment-owned objectives for CMS, collector and service-token registry plus maximum drill age. |
+| `RECOVERY_ROW_BOUNDS_FILE`, `RECOVERY_DRILL_DB_*` | Environment row-count policy and credentials for randomly named disposable drill databases. |
+| `RECOVERY_ALERT_COMMAND` | Optional absolute fail-open notifier executable receiving only the restricted alert-file path. |
+| `UPDATE_WORK_PATH` | Protected work directory for packages, journals, baselines, and resumable run state. |
+| `UPDATE_MAX_PACKAGE_BYTES`, `UPDATE_MAX_UNPACKED_BYTES`, `UPDATE_MAX_FILES` | Package and extraction limits. |
+| `UPDATE_MIN_FREE_BYTES`, `UPDATE_RETENTION_COUNT` | Update free-space and prepared-package retention limits. |
+
+Backup manifests contain the SHA-256 checksum, exact schema/application
+versions, table inventory, adapter, and verification status. Partial archives
+are never published. `RESTORE_DB_PASSWORD` and `RESTORE_DB_PASSWORD_FILE` apply
+only to the explicitly named restore target and are not application settings.
+
+Backup storage contains sensitive SQL and may contain protected configuration.
+The `1.0.5` runtime uses owner-only directories (`0700`) and files (`0600`);
+Docker startup tightens existing files in `/var/www/shared/backup`. Run manual
+backup/recovery commands as the application user (`--user www-data` in Docker),
+not root, so the web updater can read its private archives. Apache denies both
+`/backup/` and the resolved volume. An external nginx serving these files itself
+must also deny that location; `.htaccess` alone does not protect nginx.
+Never mount backup storage into a public file server. Configurator downloads
+require its separate authenticated session and a valid CSRF token.
+
+These restrictions do not protect against a compromised root/application account
+or loss of the host. Keep independent copies with the external backup tools you
+operate; H-Script does not copy backups to another server or encrypt archives.
+
 ### Security and initial installation
 
 | Variable | Purpose |
@@ -406,7 +511,20 @@ public-key, or signature variables are not read by the updater.
 The authenticated Configurator **Security** page shows production preflight,
 official-release file integrity and a redacted action audit. All Twig templates
 are customizable and do not trigger a critical alert by themselves. Unexpected
-executable files in writable or template directories remain critical.
+executable files in writable or template directories remain critical. An
+operator can start a scan there; the open page continues bounded, CSRF-protected
+batches automatically without repeated Resume clicks. Closing the page leaves
+the saved cursor for cron, which checks daily and resumes unfinished work after
+five minutes. A changed verified release baseline starts a fresh scan rather
+than reusing the old cursor. Cron is unavailable while a required schema update
+blocks public traffic, but the authenticated Security page can still scan files.
+Network/authentication errors stop automatic requests and leave a manual retry.
+Every finding
+includes the relative file path, modification time and check time. Critical
+changes remain visible in both the Configurator and the main administration
+header until the files are restored, even after acknowledgement. The installed
+integrity baseline changes only after a verified official update is activated
+successfully.
 
 Sensitive values support Docker-style `*_FILE` variants, including
 `APP_DATA_KEY_FILE`, `DB_PASSWORD_FILE`, `MYSQL_ROOT_PASSWORD_FILE`,
@@ -477,9 +595,10 @@ secret file is mounted inside the application container.
 Telemetry has two layers:
 
 1. Mandatory system registration sends the domain, H-Script version,
-   installation date, and a random installation ID. A daily heartbeat then
-   reports the current version. This layer cannot be disabled in the installer
-   or administration interface.
+   installation date, and a random installation ID. A daily authenticated
+   heartbeat repeats the installation identity, current version and report
+   sequence. This layer cannot be disabled in the installer or administration
+   interface.
 2. Public statistics are enabled by default and send numeric aggregates such as
    user counts, online users, incoming funds, payouts, and other totals grouped
    by currency. They can be disabled independently in
@@ -487,9 +606,13 @@ Telemetry has two layers:
 
 Logins, email addresses, user IPs, individual operations, payout destinations,
 passwords, gateway keys, settings, and database content are not transmitted.
-The collector sees the source server IP like any HTTPS service and uses it for
-rate limiting and diagnostics. Installation owners should disclose mandatory
-registration in their own documentation and privacy policy.
+The collector derives the source server IP from the request; clients cannot
+submit an `ip` field. It retains at most 20 unique addresses per installation
+and removes observations older than 90 days. Passive DNS follows bounded
+A/AAAA/CNAME lookups and records `matched`, `mismatch`, `unresolved`, or
+`invalid` with a cached snapshot. A DNS match controls aggregate eligibility;
+it is not proof of domain ownership. Installation owners should disclose
+mandatory registration in their own documentation and privacy policy.
 
 Docker installation defaults:
 
@@ -501,7 +624,8 @@ TELEMETRY_ENDPOINT=https://h-script.com/api/v1/installations
 Set `INSTALL_TELEMETRY_STATS=0` to transmit mandatory installation information
 without public aggregates. Collector downtime does not block login, financial
 operations, or scheduler execution; reporting is fail-open and records the last
-status for diagnostics.
+status and next attempt for diagnostics. The daily cron task retries the same
+persisted payload and sequence, so an interrupted delivery is idempotent.
 
 ### Central collector on h-script.com
 
@@ -509,6 +633,7 @@ Only the central instance should enable collector mode:
 
 ```env
 TELEMETRY_COLLECTOR_ENABLED=1
+TELEMETRY_INGESTION_ENABLED=1
 TELEMETRY_COLLECTOR_DOMAIN=h-script.com
 TELEMETRY_RATE_LIMIT=30
 ```
@@ -518,9 +643,13 @@ secrets, so they do not need masking. Do not restore the removed shared
 `TELEMETRY_READ_TOKEN` design.
 
 Collector mode additionally requires the request host to match
-`TELEMETRY_COLLECTOR_DOMAIN`. This prevents a normal installed copy from
-exposing the central registry merely because a local administrator has
-`uLevel=99`.
+`TELEMETRY_COLLECTOR_DOMAIN`, the explicit ingestion flag, and schema `1.0.1`.
+This prevents a normal installed copy from exposing the central registry merely
+because a local administrator has `uLevel=99`. Registration and daily reports
+accept only exact JSON fields and types, enforce bounded values, require the
+installation Bearer token, reject replay/conflicting sequences, and record the
+server-observed source IP. Demo users never authorize these endpoints; demo mode
+only forces optional business aggregates off for the installation-side sender.
 
 Roles are intentionally separate:
 
@@ -545,15 +674,24 @@ token so it can be revoked and audited independently.
 Public aggregate endpoint:
 
 ```text
-GET /api/v1/installations/stats
+GET /api/v1/installations/public-stats
 ```
 
 Protected service endpoint:
 
 ```text
-GET /api/v1/installations
+GET /api/v1/installations/stats?page=1&per_page=25
 Authorization: Bearer hst_<secret>
 ```
+
+The protected list accepts `per_page=25|50|100` and filters `q`, `version`,
+`connection`, `sharing`, `dns_status`, and exact normalized `ip`. The web
+collector uses an independent `token_page`/`token_per_page` namespace for the
+service-token list. Pages are stably ordered and capped at 100 rows; overall
+summaries are separate aggregate queries. Token hashes and raw report bodies
+are never selected. Full source IP, bounded IP history, and DNS snapshots are
+shown only to a collector administrator with `telemetry_sensitive`; the service
+API omits them.
 
 Installation-side `hsi_` tokens authenticate only registration and heartbeat;
 they cannot read collector data. Service `hst_` tokens cannot submit installation
@@ -562,10 +700,11 @@ reports.
 The landing-page counters use collector `processed` and `platforms` values.
 Public financial totals are self-reported and therefore are not independently
 verified. The collector canonicalizes domains and counts only one active
-installation per canonical domain to limit simple duplication, but this does not
-prevent an owner from reporting false values. Future verified metrics require a
-separate HTTP or DNS domain-ownership challenge and an anti-fraud policy. Until
-that exists, label public totals as reported aggregates rather than audited data.
+installation with `dns_status=matched` per canonical domain to limit simple
+duplication, but this passive DNS observation does not prevent an owner from
+reporting false values. Future verified metrics require a separate ownership
+challenge and an anti-fraud policy. Until that exists, label public totals as
+reported aggregates rather than audited data.
 
 After deploying collector tables for the first time, back up the database and
 run the explicit configurator schema update once. Do not use auto-install or
@@ -730,10 +869,10 @@ Published references:
 
 ```text
 registry.gitlab.com/0x241/h-script:tree-<tree-sha>
-docker.io/0x241/h-script:1.0.3
+docker.io/0x241/h-script:1.0.4
 docker.io/0x241/h-script:1.0
 docker.io/0x241/h-script:1
-ghcr.io/0x241/h-script:1.0.3
+ghcr.io/0x241/h-script:1.0.4
 ghcr.io/0x241/h-script:1.0
 ghcr.io/0x241/h-script:1
 ```
@@ -743,6 +882,10 @@ attestations, a generated CycloneDX SBOM, and keyless Cosign signatures. Full
 SemVer tags are immutable and there is no floating `latest` tag. Release
 credentials are stored only as protected CI/CD variables; build and promotion
 utilities are never included in runtime images or shared-hosting archives.
+
+The pipeline enforces blocking Composer/npm audits, source/shared/image scans,
+time-limited exceptions, immutable tag preflight and permanent signed release
+evidence. Pinned-tool refreshes must pass the same gates.
 
 The dedicated staging runner reuses the `hscript-release` BuildKit builder and
 its local cache between pipelines; the GitLab registry cache remains the
@@ -775,10 +918,46 @@ GitHub Container Registry creates the first personal-account package as private
 even when its source repository is public. After the first successful image
 promotion, open the `h-script` package on GitHub, select **Package settings**, and
 under **Danger Zone** change its visibility to **Public**. This one-time change
-enables anonymous `docker pull ghcr.io/0x241/h-script:1.0.3`; GitHub does not
+enables anonymous `docker pull ghcr.io/0x241/h-script:1.0.4`; GitHub does not
 allow a public package to be made private again.
 
 ## GitLab staging and GitHub promotion
+
+Maintain local operator procedures for incident handling, scoped consumer
+emergency stop, secret rotation and scheduled drill acceptance.
+Assign actual owners and verify external services before treating local test
+results as operational acceptance.
+
+Before packaging/deployment, `test:release-components` runs application/update,
+API, queue, telemetry, gateway and redaction component tests inside the exact
+candidate image digest with networking disabled. Only the tests are mounted;
+the application and dependencies come from the image. `test:release-migrations`
+uses that digest against disposable, digest-pinned MySQL 8.4 and MariaDB
+10.11/11.4 databases, including partial DDL failure/resume and rollback rejection.
+`test:release-browser` uses the same candidate with a separate pinned
+Chromium/Firefox/WebKit runner to check rendering, CSS/HTMX, login/session and API
+authentication; browser dependencies never enter the application image. All three
+suites block packaging. Staging deploy and manual promotion share a resource
+group and verify the running app/cron image identities against the candidate.
+After deployment, the pipeline pauses (blocked/manual) at the explicit
+`verify-staging` stage. Complete any required update at the staging Configurator
+(`/_cfg?update`, unless `APP_CFG_LINK` is customized), then manually run
+`test:staging-reconciliation` **in the pipeline of the currently deployed image**.
+If no update is required, simply run this verification job. The confirmation
+button does not run migrations or backups; it acknowledges operator readiness.
+The job is blocking (`allow_failure: false`): pending confirmation is not a failed
+deployment, but a real failed check still blocks promotion. Retrying a job from
+an older pipeline is rejected if staging now runs a different candidate.
+`test:staging-reconciliation` runs `php bin/update.php reconcile` in the staging
+app, checking versions/migrations, basic financial invariants, queue, cron and
+telemetry freshness in a read-only DB transaction. Manual promotion requires and
+repeats that gate. It does not repair data or automatically complete an upgrade.
+The legacy shared-hosting format-2 handoff is locally tested through
+the same CLI with an explicit `--project-root`; protected live pipeline acceptance
+remains pending, so phase 4 is not yet accepted for production.
+The updater explicitly rejects application and schema downgrades independently
+of the supported source range. Code rollback remains a separate recovery action
+and is not permission to downgrade a database schema.
 
 GitLab keeps the permanent `main`, `stage/docker-release`, and `release/public`
 branches. The protected `release/public` branch is the only source for GitHub;
@@ -789,6 +968,8 @@ GitHub `main` mirrors it one way and must resolve to the same commit SHA.
 2. Let the staging pipeline build, scan, sign and deploy one exact GitLab
    Container Registry candidate. Test its migrations, API, queue, payment,
    telemetry, authentication, and UI.
+   Complete any required Configurator update and manually run
+   `test:staging-reconciliation` in `verify-staging`; proceed only after it passes.
 3. Run the optional manual `release:promote-public` job in the successful staging
    pipeline. It audits the tested tree and creates one release commit whose
    parent is the previous `release/public` commit. It never merges staging
@@ -820,12 +1001,11 @@ also rejected.
 
 If the GitHub release job fails after an immutable tag has already been created,
 run `publish:recover-shared-github-release` from the current protected staging
-pipeline and set its manual job variable `RELEASE_RECOVERY_TAG` to the affected
-tag, for example `v1.0.0`. The recovery job exports that exact immutable source
-tree, reproducibly rebuilds and signs the shared-hosting archive, verifies the
-checksum and both GitLab/GitHub tag targets, and resumes idempotent publication
-without moving the tag. This path does not require the cross-pipeline artifacts
-API available only on higher GitLab tiers.
+pipeline with `RELEASE_RECOVERY_TAG` and `RELEASE_EVIDENCE_JOB_ID` pointing to
+the original tag job's retained evidence. It verifies and reuses the original
+signed bytes; it never rebuilds a published version. This optional shortcut
+requires permitted cross-pipeline artifact downloads. Otherwise retry the
+publication job in the original tag pipeline; see the supply-chain policy.
 
 `release/public` is permanent and is updated for every release; do not create a
 new temporary transfer branch each time. Only release maintainers should be able
@@ -904,6 +1084,13 @@ Translations > Emails**. Overrides are stored in the `Cfg` table, so they
 survive container and image replacement. The rendered H-Script email can be
 checked without sending anything under **Admin > Settings > Mail > Email
 preview**.
+
+The Configurator also uses `lang/en.json` and `lang/ru.json`: its keys start
+with `configurator.` (for example `cfg_t('configurator.login.sign_in')`). Add
+matching keys to another language catalog to translate its interface. The
+language selector lists installed catalogs; missing keys fall back to English.
+It works before database setup and respects shared translation overrides once
+configuration is loaded. Do not add inline Russian/English pairs to PHP.
 
 Email is queued in the `Jobs` table and delivered by the scheduler. For Docker,
 keep both `CRON_ENABLED=1` and the database setting **Scheduler > Enabled** on.

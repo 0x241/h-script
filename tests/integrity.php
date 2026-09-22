@@ -52,6 +52,13 @@ function integrityFinding(array $state, string $path, string $status): bool
 	return false;
 }
 
+function integrityFindingRow(array $state, string $path, string $status): array
+{
+	foreach ((array)($state['findings'] ?? array()) as $finding)
+		if (($finding['path'] ?? '') === $path && ($finding['status'] ?? '') === $status) return $finding;
+	return array();
+}
+
 $root = sys_get_temp_dir() . '/hscript-integrity-' . bin2hex(random_bytes(8));
 if (!mkdir($root . '/tpl/themes/default', 0700, true) || !mkdir($root . '/upload', 0700, true)
 	|| !mkdir($root . '/cache', 0700, true) || !mkdir($root . '/logs', 0700, true)
@@ -98,9 +105,26 @@ try
 	$scanner = new IntegrityScanner($root, $baseline, $states, 1, 10);
 	$initial = $scanner->start();
 	integrityAssert($initial['status'] === 'running' && $initial['checked'] === 1, 'Bounded scan did not persist a resumable cursor');
+	$states->locked(function () use ($scanner): array {
+		integrityRejects(fn() => $scanner->advance(), 'Concurrent batch was not rejected');
+		return array();
+	});
+	integrityAssert($states->get()['checked'] === 1, 'Lock contention changed progress');
 	$initial = integrityComplete($scanner, $initial);
 	integrityAssert($initial['status'] === 'completed' && $initial['counts']['unchanged'] === 4, 'Unchanged release was not accepted');
 	integrityAssert($initial['counts']['critical'] === 0 && !$initial['findings'], 'Allowed runtime data caused an alert');
+	integrityAssert($scanner->advance()['scan_id'] === $initial['scan_id'], 'Late concurrent batch restarted a completed scan');
+	$old = $scanner->start();
+	$old['baseline_version'] = '0.9.0';
+	$states->save($old);
+	$restarted = $scanner->advance();
+	integrityAssert($restarted['scan_id'] !== $old['scan_id'] && $restarted['checked'] === 1, 'Image change reused a stale scan cursor');
+	$old = $restarted;
+	$old['baseline_checksum'] = str_repeat('0', 64);
+	$states->save($old);
+	$restarted = $scanner->advance();
+	integrityAssert($restarted['scan_id'] !== $old['scan_id'] && $restarted['checked'] === 1, 'Verified baseline change reused a stale cursor');
+	integrityComplete($scanner, $restarted);
 
 	$mtime = filemtime($root . '/core.php');
 	touch($root . '/core.php', $mtime + 3600);
@@ -117,6 +141,8 @@ try
 	chmod($root . '/upload/run.sh', 0700);
 	$changed = integrityComplete($scanner);
 	integrityAssert(integrityFinding($changed, 'core.php', 'modified'), 'Modified core file was not reported');
+	$coreFinding = integrityFindingRow($changed, 'core.php', 'modified');
+	integrityAssert((int)($coreFinding['mtime'] ?? 0) > 0 && (int)($coreFinding['checked_at'] ?? 0) > 0, 'Modified file has no date metadata');
 	integrityAssert(integrityFinding($changed, 'tpl/page.twig', 'customized'), 'Customized Twig template was not reported');
 	integrityAssert(integrityFinding($changed, 'tpl/themes/default/theme.css', 'customized'), 'Customized official theme file was not reported');
 	integrityAssert(integrityFinding($changed, 'tpl/themes/local.css', 'customized'), 'Additional user theme file was not reported');
@@ -157,6 +183,15 @@ try
 	$updatedScanner = new IntegrityScanner($root, $updatedBaseline, $states, 10, 10);
 	$updated = integrityComplete($updatedScanner);
 	integrityAssert($updated['counts']['critical'] === 0 && $updated['counts']['customized'] === 0, 'Verified baseline update was not applied');
+
+	$projectRoot = dirname(__DIR__);
+	$manualController = (string)file_get_contents($projectRoot . '/module/_config/security.php');
+	$scheduledController = (string)file_get_contents($projectRoot . '/module/integrity/oncron.php');
+	$adminStart = (string)file_get_contents($projectRoot . '/module/admin/onstart.php');
+	$adminHeader = (string)file_get_contents($projectRoot . '/tpl/admin/header.twig');
+	integrityAssert(str_contains($manualController, "action === 'scan'") && str_contains($manualController, 'new IntegrityScanner'), 'Manual integrity scan is not wired to the Configurator');
+	integrityAssert(str_contains($scheduledController, 'new IntegrityScanner') && str_contains($scheduledController, "opWriteCfg('Cron', 'integrity'"), 'Scheduled integrity scan or bounded retry is not wired');
+	integrityAssert(str_contains($adminStart, "View::setPage('integrityalert'") && str_contains($adminHeader, 'integrityalert'), 'Persistent admin integrity alert is not rendered');
 
 	integrityRejects(
 		fn() => new IntegrityScanner($root, array('../unsafe.php' => integrityEntry('bad')), $states),

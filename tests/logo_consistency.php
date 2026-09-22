@@ -35,6 +35,9 @@ foreach (array('module/_config/_header.php', 'module/_config/login.php') as $rel
 	logoConsistencyAssert(str_contains($content, 'M6 3v18') && str_contains($content, '>Script</span>'), "$relativeFile uses a different logo");
 }
 
+$systemPage = file_get_contents($root . '/system-page.html');
+logoConsistencyAssert(str_contains($systemPage, 'M6 3v18') && str_contains($systemPage, '<span>Script</span>'), 'System pages use a different logo');
+
 $email = file_get_contents($root . '/src/Mail/EmailTemplate.php');
 logoConsistencyAssert(str_contains($email, '>H</td>') && str_contains($email, '>Script</td>'), 'Email template uses a different wordmark');
 logoConsistencyAssert(str_contains($email, 'width:40px;height:40px'), 'Email logo mark does not match the web logo dimensions');

@@ -19,6 +19,8 @@ $_rwlinks = array(
 	'api/v1/user' => array('api/v1/user'),
 	'api/v1/installations/register' => array('api/v1/installations/register'),
 	'api/v1/installations/report' => array('api/v1/installations/report'),
+	'api/v1/installations/domain-verification' => array('api/v1/installations/domain-verification'),
+	'api/v1/installations/domain-proof' => array('api/v1/installations/domain-proof'),
 	'api/v1/installations/public-stats' => array('api/v1/installations/public-stats'),
 	'api/v1/installations/stats' => array('api/v1/installations/stats'),
 

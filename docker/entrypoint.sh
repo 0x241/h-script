@@ -12,6 +12,12 @@ has_value_or_file() {
 
 mkdir -p /run/apache2 /var/log/apache2 logs tpl_c upload compile backup .cfg
 chown -R www-data:www-data logs tpl_c upload compile backup .cfg 2>/dev/null || true
+# Backup files contain credentials and customer data, never group/public data.
+# Do not follow nested symlinks while tightening existing persistent archives.
+if [ -d /var/www/shared/backup ]; then
+    find /var/www/shared/backup -type d -exec chmod 0700 {} +
+    find /var/www/shared/backup -type f -exec chmod 0600 {} +
+fi
 
 if [ "$APP_ENV_VALUE" = "dev" ] || [ "$APP_ENV_VALUE" = "development" ] || [ "$APP_ENV_VALUE" = "local" ] \
     || [ "$APP_DEBUG_VALUE" = "1" ] || [ "$APP_DEBUG_VALUE" = "true" ] || [ "$APP_DEBUG_VALUE" = "yes" ] || [ "$APP_DEBUG_VALUE" = "on" ]; then
@@ -81,5 +87,10 @@ php /usr/local/share/hscript/check-schema.php
 
 if [ "${START_PHP_FPM:-1}" != "0" ]; then
     php-fpm -D
+fi
+# Reports/archives must remain readable by the web updater (private 0600 files).
+# Startup initialization still runs as root; the scheduler does not need it.
+if [ "$#" -eq 1 ] && [ "$1" = "hscript-recovery-scheduler" ] && [ "$(id -u)" = 0 ]; then
+    exec su -p -s /bin/sh www-data -c 'exec hscript-recovery-scheduler'
 fi
 exec "$@"

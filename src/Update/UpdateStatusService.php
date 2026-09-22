@@ -2,17 +2,31 @@
 
 namespace HScript\Update;
 
-use HScript\Application;
 use HScript\Database\Connection;
 use Throwable;
 
 final class UpdateStatusService
 {
-	private Connection $database;
+	/** A deployed image is not an installed release until its lifecycle finishes. */
+	public static function isReconciled(array $status): bool
+	{
+		$run = $status['latest_run'] ?? null;
+		return !empty($status['framework_ready'])
+			&& ($status['installed_application_version'] ?? null) !== null
+			&& ($status['installed_application_version'] ?? null) === ($status['application_version'] ?? null)
+			&& ($status['installed_schema_version'] ?? null) !== null
+			&& ($status['installed_schema_version'] ?? null) === ($status['target_schema_version'] ?? null)
+			&& ($status['schema_gate'] ?? null) === null
+			&& ($run === null || ($run['urState'] ?? '') === UpdateRunState::COMPLETED);
+	}
 
-	public function __construct(Connection $database)
+	private Connection $database;
+	private string $projectRoot;
+
+	public function __construct(Connection $database, ?string $projectRoot = null)
 	{
 		$this->database = $database;
+		$this->projectRoot = $projectRoot ?? dirname(__DIR__, 2);
 	}
 
 	public function snapshot(): array
@@ -35,10 +49,10 @@ final class UpdateStatusService
 			$ready = false;
 		}
 		return array(
-			'application_version' => Application::version(),
+			'application_version' => $this->version('VERSION'),
 			'installed_application_version' => $installedApplication,
 			'installed_schema_version' => $installedSchema,
-			'target_schema_version' => Application::schemaVersion(),
+			'target_schema_version' => $this->version('SCHEMA_VERSION'),
 			'framework_ready' => $ready,
 			'schema_gate' => $this->schemaGate(),
 			'latest_run' => $latestRun,
@@ -47,7 +61,7 @@ final class UpdateStatusService
 
 	private function schemaGate(): ?array
 	{
-		$path = dirname(__DIR__, 2) . '/.cfg/schema-update-required.json';
+		$path = $this->projectRoot . '/.cfg/schema-update-required.json';
 		if (!is_file($path) || is_link($path) || !is_readable($path)) return null;
 		try { $data = json_decode((string)file_get_contents($path), true, 16, JSON_THROW_ON_ERROR); }
 		catch (Throwable) { return array('reason' => 'invalid_marker'); }
@@ -59,5 +73,11 @@ final class UpdateStatusService
 			'installed_schema_version' => $data['installed_schema_version'] ?? null,
 			'image_schema_version' => $data['image_schema_version'] ?? null,
 		);
+	}
+
+	private function version(string $file): string
+	{
+		$path = $this->projectRoot . '/' . $file;
+		return is_readable($path) ? SchemaVersion::requireValid(trim((string)file_get_contents($path))) : '0.0.0';
 	}
 }

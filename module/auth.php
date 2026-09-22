@@ -4,6 +4,7 @@ use HScript\Util\StringHelper;
 
 use HScript\Application;
 use HScript\Cache\CatalogCache;
+use HScript\Observability\CorrelationContext;
 use HScript\Template\View;
 
 hsConfigureErrorHandling();
@@ -194,6 +195,11 @@ function authApplyConfigDefaults(&$cfg)
 		'Telemetry_LastSuccessAt' => 0,
 		'Telemetry_LastStatus' => 0,
 		'Telemetry_LastError' => '',
+		'Telemetry_NextAttemptAt' => 0,
+		'Telemetry_DnsStatus' => 'unresolved',
+		'Telemetry_DnsCheckedAt' => 0,
+		'Telemetry_DnsErrorCode' => '',
+		'Telemetry_ReportPayload' => '',
 		'Telemetry_PublicMetrics' => '',
 		'HTTP_UserAgent' => Application::userAgent(),
 		'Sec_ProxyHost' => '',
@@ -413,6 +419,9 @@ if ($_smode < 2) // user mode
 		else
 			$_GS['TZ'] = $_user['aTZ'] * HS2_UNIX_MINUTE;
 	}
+	CorrelationContext::setActorClass(
+		(int)($_user['uLevel'] ?? 0) >= 90 ? 'administrator' : (_uid() > 0 ? 'authenticated' : 'public')
+	);
 	if ($_auth > $_user['uLevel'])
 		View::showInfo('*Denied', $login_link); // !!!Access denied!!!
 	if ($_cfg['Sys_LockSite'] and ($_user['uLevel'] < 90) and ($_GS['module'] != 'account/login'))

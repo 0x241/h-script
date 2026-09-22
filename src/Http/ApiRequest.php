@@ -24,22 +24,26 @@ final class ApiRequest
 		return $matches[1];
 	}
 
-	public static function json(): array
+	public static function json(int $maximumBytes = self::MAX_BODY_BYTES, bool $exactJsonContentType = false): array
 	{
+		$maximumBytes = max(1, min(self::MAX_BODY_BYTES, $maximumBytes));
 		$contentLength = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
-		if ($contentLength > self::MAX_BODY_BYTES)
-			throw new InvalidArgumentException('request_too_large');
-
-		$raw = file_get_contents('php://input');
-		if ($raw === false || trim($raw) === '')
-			return array();
-		if (strlen($raw) > self::MAX_BODY_BYTES)
+		if ($contentLength > $maximumBytes)
 			throw new InvalidArgumentException('request_too_large');
 
 		$contentType = strtolower(trim((string)self::header('Content-Type')));
 		$contentType = trim(explode(';', $contentType, 2)[0]);
-		if ($contentType !== 'application/json' && !str_ends_with($contentType, '+json'))
+		if (
+			$contentType !== 'application/json'
+			&& ($exactJsonContentType || !str_ends_with($contentType, '+json'))
+		)
 			throw new InvalidArgumentException('content_type_invalid');
+
+		$raw = file_get_contents('php://input');
+		if ($raw === false || trim($raw) === '')
+			throw new InvalidArgumentException('json_object_required');
+		if (strlen($raw) > $maximumBytes)
+			throw new InvalidArgumentException('request_too_large');
 
 		try
 		{

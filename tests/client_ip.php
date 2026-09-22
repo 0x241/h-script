@@ -34,7 +34,7 @@ $assertSame('198.51.100.21', ClientIp::resolve(array(
 
 $assertSame('2001:db8::7', ClientIp::resolve(array(
 	'REMOTE_ADDR' => '172.20.0.5',
-	'HTTP_X_REAL_IP' => '2001:db8::7',
+	'HTTP_X_REAL_IP' => '2001:0DB8:0000:0000:0000:0000:0000:0007',
 ), $trusted), 'trusted real ip fallback');
 
 $assertSame(true, ClientIp::isForwardedHttps(array(

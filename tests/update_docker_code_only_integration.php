@@ -60,7 +60,9 @@ try
 	putenv('APP_RELEASE_VERSION=' . Application::version());
 	$gate = (new SchemaUpdateGate($db, $root))->refresh();
 	if (($gate['reason'] ?? '') !== 'application_update_required')
-		throw new RuntimeException('Code-only Docker update did not enable the traffic gate');
+		throw new RuntimeException('Code-only Docker update did not publish lifecycle drift');
+	if (SchemaUpdateGate::requiresTrafficGate($root))
+		throw new RuntimeException('Code-only Docker update blocked public traffic');
 	$gateMode = fileperms($root . '/.cfg/schema-update-required.json');
 	if ($gateMode === false || (($gateMode & 0004) === 0))
 		throw new RuntimeException('Docker lifecycle marker is not readable by the web process');
@@ -68,15 +70,29 @@ try
 	if (($status['schema_gate']['reason'] ?? '') !== 'application_update_required')
 		throw new RuntimeException('Configurator status did not expose the code-only Docker gate');
 
+	$serviceSettings = new UpdateSettings($root, $temporary . '/work', 10485760, 20971520, 300, 10485760, 2);
+	$packages = new UpdatePackageService($db, $serviceSettings);
+	$prepared = $packages->prepareBundled();
+	$manifest = ReleaseManifest::fromArray($prepared['manifest']);
+	$runs = new UpdateRunRepository($db);
+	$unfinishedRun = $runs->create($manifest, '1.0.1', Application::schemaVersion());
+	$runIds[] = (string)$unfinishedRun['urID'];
+	$packages->attachRun($prepared['id'], (string)$unfinishedRun['urID']);
+
+	$serviceConfig = $_cfg;
+	$serviceConfig['demo_mode'] = '1';
+	$serviceConfig['telemetry_collector_enabled'] = '1';
+	$serviceConfig['telemetry_collector_domain'] = $domain;
 	$service = new UpdateService(
 		$db,
-		$_cfg,
+		$serviceConfig,
 		$domain,
 		$root,
-		new UpdateSettings($root, $temporary . '/work', 10485760, 20971520, 300, 10485760, 2)
+		$serviceSettings
 	);
 	$result = $service->applyBundled();
-	$runIds[] = (string)$result['run']['urID'];
+	if ((string)$result['run']['urID'] !== (string)$unfinishedRun['urID'])
+		throw new RuntimeException('Bundled retry did not resume the unfinished update run');
 	if ($result['run']['urState'] !== 'completed' || $result['prepared']['manifest']['classification'] !== 'code-only')
 		throw new RuntimeException('Code-only Docker update did not complete through the common update run');
 	if ($result['prepared']['backup_id'] !== '')
@@ -84,20 +100,19 @@ try
 	if ($state->installedApplicationVersion() !== Application::version())
 		throw new RuntimeException('Code-only Docker update did not record the healthy image version');
 	if (is_file($root . '/.cfg/schema-update-required.json'))
-		throw new RuntimeException('Code-only Docker traffic gate remained active after health check');
+		throw new RuntimeException('Code-only Docker lifecycle marker remained after health check');
 
-	$serviceSettings = new UpdateSettings($root, $temporary . '/rollback-work', 10485760, 20971520, 300, 10485760, 2);
-	$packages = new UpdatePackageService($db, $serviceSettings);
-	$prepared = $packages->prepareBundled();
-	$manifest = ReleaseManifest::fromArray($prepared['manifest']);
-	$runs = new UpdateRunRepository($db);
-	$rolledBackRun = $runs->create($manifest, Application::version(), Application::schemaVersion());
+	$rollbackSettings = new UpdateSettings($root, $temporary . '/rollback-work', 10485760, 20971520, 300, 10485760, 2);
+	$rollbackPackages = new UpdatePackageService($db, $rollbackSettings);
+	$rollbackPrepared = $rollbackPackages->prepareBundled();
+	$rollbackManifest = ReleaseManifest::fromArray($rollbackPrepared['manifest']);
+	$rolledBackRun = $runs->create($rollbackManifest, Application::version(), Application::schemaVersion());
 	$runIds[] = (string)$rolledBackRun['urID'];
-	$packages->attachRun($prepared['id'], (string)$rolledBackRun['urID']);
+	$rollbackPackages->attachRun($rollbackPrepared['id'], (string)$rolledBackRun['urID']);
 	$runs->transition((string)$rolledBackRun['urID'], UpdateRunState::PACKAGE, 'code_only', 'Code-only image activated');
 	$runs->transition((string)$rolledBackRun['urID'], UpdateRunState::HEALTH, 'retry_health', 'Health check failed before image rollback');
-	(new MaintenanceMode($root))->enable((string)$rolledBackRun['urID'], $manifest->applicationVersion());
-	$rollbackService = new UpdateService($db, $_cfg, $domain, $root, $serviceSettings);
+	(new MaintenanceMode($root))->enable((string)$rolledBackRun['urID'], $rollbackManifest->applicationVersion());
+	$rollbackService = new UpdateService($db, $_cfg, $domain, $root, $rollbackSettings);
 	$cancelled = $rollbackService->cancel((string)$rolledBackRun['urID']);
 	if ($cancelled['urMessageCode'] !== 'docker_image_rolled_back' || is_file($root . '/.cfg/maintenance.json'))
 		throw new RuntimeException('Safe external Docker image rollback was not recorded');

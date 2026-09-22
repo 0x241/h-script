@@ -6,13 +6,14 @@ use HScript\Application;
 use HScript\Database\Connection;
 use RuntimeException;
 
-/** Blocks normal Docker traffic while the image and database schema disagree. */
+/** Records lifecycle drift and blocks traffic only for an unsafe update state. */
 final class SchemaUpdateGate
 {
 	private string $marker;
 	private const NON_BLOCKING_REASONS = array(
 		'schema_metadata_missing',
 		'application_metadata_missing',
+		'application_update_required',
 	);
 
 	public function __construct(private Connection $database, string $projectRoot)
@@ -68,7 +69,7 @@ final class SchemaUpdateGate
 			throw new RuntimeException('Schema update marker could not be removed');
 	}
 
-	/** Missing lifecycle metadata requires onboarding, but does not prove an unsafe schema mismatch. */
+	/** Metadata and code-only drift stay visible without taking public traffic offline. */
 	public static function requiresTrafficGate(string $projectRoot): bool
 	{
 		$marker = rtrim($projectRoot, '/') . '/.cfg/schema-update-required.json';

@@ -90,6 +90,20 @@ class RedisCache
 		return $this->available;
 	}
 
+	/** Operator preflight only; missing INFO permission is an unknown version. */
+	public function serverVersion(): ?string
+	{
+		if (!$this->available) return null;
+		try
+		{
+			$this->redis->setOption(\Redis::OPT_READ_TIMEOUT, 1.0);
+			$info = $this->redis->info('server');
+			$version = is_array($info) ? ($info['redis_version'] ?? null) : null;
+			return is_string($version) && preg_match('/^[0-9]+\.[0-9]+\.[0-9]+$/D', $version) ? $version : null;
+		}
+		catch (Throwable) { return null; }
+	}
+
 	/**
 	 * Reads a JSON value, optionally loading and caching a fallback value.
 	 *

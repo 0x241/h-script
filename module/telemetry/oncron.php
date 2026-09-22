@@ -4,7 +4,7 @@ use HScript\Telemetry\PublicStats;
 use HScript\Telemetry\TelemetryReporter;
 
 $publicStats = null;
-if (!empty($_cfg['Telemetry_SharePublicStats']))
+if (empty($_GS['demo']) && !empty($_cfg['Telemetry_SharePublicStats']))
 {
 	useLib('depo');
 	$publicStats = PublicStats::fromDepositStats(depoGetStat(), $_currs);

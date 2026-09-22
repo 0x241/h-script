@@ -1,0 +1,89 @@
+{
+  "format": 1,
+  "policies": {
+    "http_server_errors": {
+      "severity": "error",
+      "owner": "operations",
+      "suppression_seconds": 900,
+      "threshold_env": "OBSERVABILITY_HTTP_ERROR_THRESHOLD,OBSERVABILITY_ALERT_WINDOW_SECONDS",
+      "runbook": "docs/observability.md#http-server-errors"
+    },
+    "session_failures": {
+      "severity": "error",
+      "owner": "operations",
+      "suppression_seconds": 900,
+      "threshold_env": "OBSERVABILITY_SESSION_FAILURE_THRESHOLD,OBSERVABILITY_ALERT_WINDOW_SECONDS",
+      "runbook": "docs/observability.md#session-failures"
+    },
+    "database_latency": {
+      "severity": "warning",
+      "owner": "operations",
+      "suppression_seconds": 900,
+      "threshold_env": "OBSERVABILITY_DB_SLOW_MS",
+      "runbook": "docs/observability.md#database-latency"
+    },
+    "database_unavailable": {
+      "severity": "critical",
+      "owner": "operations",
+      "suppression_seconds": 300,
+      "threshold_env": "immediate",
+      "runbook": "docs/observability.md#database-unavailable"
+    },
+    "redis_degraded": {
+      "severity": "warning",
+      "owner": "operations",
+      "suppression_seconds": 1800,
+      "threshold_env": "REDIS_ENABLED",
+      "runbook": "docs/observability.md#redis-degraded"
+    },
+    "cron_stale": {
+      "severity": "error",
+      "owner": "operations",
+      "suppression_seconds": 900,
+      "threshold_env": "OBSERVABILITY_CRON_MAX_AGE_SECONDS",
+      "runbook": "docs/observability.md#cron-stale"
+    },
+    "queue_backlog": {
+      "severity": "error",
+      "owner": "operations",
+      "suppression_seconds": 900,
+      "threshold_env": "OBSERVABILITY_QUEUE_MAX_DEPTH,OBSERVABILITY_QUEUE_MAX_AGE_SECONDS,OBSERVABILITY_QUEUE_MAX_FAILED",
+      "runbook": "docs/observability.md#queue-backlog"
+    },
+    "dns_backlog": {
+      "severity": "warning",
+      "owner": "telemetry",
+      "suppression_seconds": 1800,
+      "threshold_env": "OBSERVABILITY_DNS_BACKLOG_MAX",
+      "runbook": "docs/observability.md#dns-backlog"
+    },
+    "migration_required": {
+      "severity": "critical",
+      "owner": "release",
+      "suppression_seconds": 900,
+      "threshold_env": "immediate",
+      "runbook": "docs/observability.md#migration-required"
+    },
+    "telemetry_failures": {
+      "severity": "warning",
+      "owner": "telemetry",
+      "suppression_seconds": 1800,
+      "threshold_env": "OBSERVABILITY_TELEMETRY_FAILURE_THRESHOLD",
+      "runbook": "docs/observability.md#telemetry-failures"
+    },
+    "gateway_failures": {
+      "severity": "critical",
+      "owner": "payments",
+      "suppression_seconds": 300,
+      "threshold_env": "OBSERVABILITY_GATEWAY_FAILURE_THRESHOLD",
+      "runbook": "docs/observability.md#gateway-failures"
+    },
+    "recovery_policy_breached": {
+      "severity": "critical",
+      "owner": "operations",
+      "suppression_seconds": 900,
+      "threshold_env": "RECOVERY_*_RPO_SECONDS,RECOVERY_*_RTO_SECONDS",
+      "runbook": "docs/observability.md#recovery-policy-breached"
+    }
+  }
+}

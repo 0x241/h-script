@@ -56,7 +56,7 @@ try
 	$state = new SchemaStateRepository($db);
 	$sourceSchema = $state->currentVersion();
 	$sourceApplication = $state->installedApplicationVersion();
-	if ($sourceSchema !== '1.0.0') throw new RuntimeException('Docker integration test requires schema baseline 1.0.0');
+	if ($sourceSchema !== '1.0.2') throw new RuntimeException('Docker integration test requires schema baseline 1.0.2');
 	$state->setInstalledApplicationVersion(Application::version());
 	$migration = <<<'PHP'
 <?php
@@ -65,8 +65,8 @@ use HScript\Database\Connection;
 
 return array(
 	'id' => '202609081100_phase3_docker_probe',
-	'from' => '1.0.0',
-	'to' => '1.0.1',
+	'from' => '1.0.2',
+	'to' => '1.0.3',
 	'classification' => 'backup-required',
 	'up' => static function (Connection $database): void {
 		$database->query('CREATE TABLE IF NOT EXISTS Phase3DockerProbe (probeID int not null, PRIMARY KEY (probeID)) ENGINE=InnoDB');
@@ -74,10 +74,10 @@ return array(
 );
 PHP;
 	file_put_contents($migrationPath, $migration);
-	file_put_contents($schemaPath, "1.0.1\n");
+	file_put_contents($schemaPath, "1.0.3\n");
 	file_put_contents($customPath, "custom code remains\n");
 	putenv('BACKUP_STORAGE_PATH=' . $backup);
-	putenv('APP_RELEASE_VERSION=1.0.3');
+	putenv('APP_RELEASE_VERSION=' . Application::version());
 	$state->setInstalledApplicationVersion('0.9.0');
 	$gate = (new SchemaUpdateGate($db, $root))->refresh();
 	if (($gate['reason'] ?? '') !== 'unsupported_source_version' || !is_file($root . '/.cfg/schema-update-required.json')) throw new RuntimeException('Unsupported Docker source did not enable the traffic gate');
@@ -104,7 +104,7 @@ PHP;
 	$runId = (string)$result['run']['urID'];
 	if ($result['run']['urState'] !== 'completed') throw new RuntimeException('Bundled Docker migration did not complete');
 	if ($result['prepared']['source'] !== 'bundled' || $result['prepared']['backup_id'] === '') throw new RuntimeException('Bundled Docker update did not attach its verified backup');
-	if ($state->currentVersion() !== '1.0.1') throw new RuntimeException('Bundled Docker migration did not advance schema');
+	if ($state->currentVersion() !== '1.0.3') throw new RuntimeException('Bundled Docker migration did not advance schema');
 	if ((string)file_get_contents($customPath) !== "custom code remains\n") throw new RuntimeException('Bundled Docker update changed application code');
 	if (is_file($root . '/.cfg/schema-update-required.json')) throw new RuntimeException('Docker schema gate remained active after migration');
 	$sqlBackups = glob($backup . '/*.sql');

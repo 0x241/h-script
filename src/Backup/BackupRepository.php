@@ -17,16 +17,21 @@ final class BackupRepository
 	public function publish(BackupManifest $manifest, string $temporaryArchive): void
 	{
 		$archivePath = $this->settings->directory() . '/' . $manifest->archive();
-		if (!is_file($temporaryArchive) || is_link($temporaryArchive))
-			throw new RuntimeException('Temporary backup archive is invalid');
-		if (file_exists($archivePath) || !rename($temporaryArchive, $archivePath))
-			throw new RuntimeException('Backup archive could not be published');
-		chmod($archivePath, 0640);
-
 		$manifestPath = $this->manifestPath($manifest->id());
+		if (file_exists($manifestPath) || is_link($manifestPath))
+			throw new RuntimeException('Backup manifest already exists');
+		if (!is_file($temporaryArchive) || is_link($temporaryArchive)
+			|| dirname((string)realpath($temporaryArchive)) !== $this->settings->directory())
+			throw new RuntimeException('Temporary backup archive is invalid');
+		if (file_exists($archivePath) || is_link($archivePath) || !rename($temporaryArchive, $archivePath))
+			throw new RuntimeException('Backup archive could not be published');
+		chmod($archivePath, 0600);
+
 		$temporaryManifest = $manifestPath . '.part';
 		$json = json_encode($manifest->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
-		$stream = fopen($temporaryManifest, 'xb');
+		$mask = umask(0077);
+		try { $stream = fopen($temporaryManifest, 'xb'); }
+		finally { umask($mask); }
 		if ($stream === false)
 		{
 			unlink($archivePath);
@@ -54,7 +59,7 @@ final class BackupRepository
 			throw $exception;
 		}
 		fclose($stream);
-		chmod($temporaryManifest, 0640);
+		chmod($temporaryManifest, 0600);
 		if (!rename($temporaryManifest, $manifestPath))
 		{
 			unlink($temporaryManifest);
@@ -66,7 +71,9 @@ final class BackupRepository
 	public function find(string $id): BackupManifest
 	{
 		$this->assertId($id);
-		return BackupManifest::fromFile($this->manifestPath($id));
+		$manifest = BackupManifest::fromFile($this->manifestPath($id));
+		if ($manifest->id() !== $id) throw new RuntimeException('Backup manifest ID does not match its filename');
+		return $manifest;
 	}
 
 	public function list(int $limit = 50): array
@@ -139,7 +146,7 @@ final class BackupRepository
 		{
 			try
 			{
-				$manifest = BackupManifest::fromFile($path);
+				$manifest = $this->find(basename($path, '.manifest.json'));
 				$this->archivePath($manifest);
 				$items[] = $manifest->toArray();
 			}

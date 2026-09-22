@@ -43,7 +43,7 @@ $target = '1.0.1';
 $state = new SchemaStateRepository($db);
 $current = $state->currentVersion();
 $sourceApplication = $state->installedApplicationVersion();
-if (!in_array($current, array($baseline, $target), true))
+if (!in_array($current, array($baseline, $target, HScript\Application::schemaVersion()), true))
 	throw new RuntimeException('Integration test requires schema baseline 1.0.0');
 
 $cleanup = static function () use ($db, $state, $migrationId, $baseline, $sourceApplication): void {
@@ -132,4 +132,5 @@ try
 finally
 {
 	$cleanup();
+	$state->setCurrentVersion($current);
 }
