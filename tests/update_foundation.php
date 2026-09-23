@@ -35,6 +35,16 @@ function updateFoundationRejects(callable $callback, string $message): void
 $root = dirname(__DIR__);
 updateFoundationAssert(Application::version() === trim((string)file_get_contents($root . '/VERSION')), 'Application version is not explicit');
 updateFoundationAssert(Application::schemaVersion() === trim((string)file_get_contents($root . '/SCHEMA_VERSION')), 'Schema version is not explicit');
+// Build metadata exists in a source checkout, but is intentionally absent from runtime images.
+if (is_file($root . '/package.json') || is_file($root . '/package-lock.json'))
+{
+	$package = json_decode((string)file_get_contents($root . '/package.json'), true, 512, JSON_THROW_ON_ERROR);
+	$lock = json_decode((string)file_get_contents($root . '/package-lock.json'), true, 512, JSON_THROW_ON_ERROR);
+	updateFoundationAssert($package['version'] === Application::version()
+		&& $lock['version'] === Application::version()
+		&& $lock['packages']['']['version'] === Application::version(), 'Release package versions disagree');
+}
+UpdateCompatibility::fromRoot($root)->assertSource(Application::version(), Application::schemaVersion());
 updateFoundationAssert(SchemaVersion::compare('1.0.1', '1.0.0') > 0, 'Semantic schema ordering failed');
 
 // A wide source range is not permission to downgrade either code or schema.

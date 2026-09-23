@@ -38,6 +38,12 @@ sudo systemctl enable --now authelia
 curl -I http://127.0.0.1:9091/api/health
 ```
 
+Каталог с файлами секретов должен разрешать проход (`x`) пользователю сервиса.
+Например, для `/etc/authelia/secrets` используйте владельца `authelia:authelia`
+и режим `0700`, а для файлов — `0600`. Не применяйте рекурсивный `chmod 640`
+ко всему дереву: каталог без `x` вызывает `permission denied` даже при правильном
+владельце файла; Authelia не запускается, а Nginx `auth_request` возвращает 500.
+
 SMTP-пароль лучше передавать через файл-секрет
 `AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE`, а строку `password` удалить из YAML.
 

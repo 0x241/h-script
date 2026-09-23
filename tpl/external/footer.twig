@@ -16,7 +16,7 @@
 				<div class="text-sm font-medium text-gray-500 dark:text-gray-600">
 					{% include "external/product-copyright.twig" %}
 				</div>
-				<a href="{{ fullURL() }}#content" hx-boost="false" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-brand dark:text-gray-300 hover:text-blue-500 dark:hover:text-white transition-colors bg-gray-50 dark:bg-[#151515] rounded-full border border-gray-200 dark:border-gray-800">
+				<a href="{{ fullURL() }}#content" data-hx-boost="false" class="flex items-center gap-2 px-4 py-2 text-sm font-bold text-brand dark:text-gray-300 hover:text-blue-500 dark:hover:text-white transition-colors bg-gray-50 dark:bg-[#151515] rounded-full border border-gray-200 dark:border-gray-800">
 					{{ _t({"key": 'site.back_to_top', "default": 'Наверх'}) }} <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
 				</a>
 			</div>

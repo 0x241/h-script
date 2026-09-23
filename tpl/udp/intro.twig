@@ -1,3 +1,5 @@
+{% include "external/header.twig" with {"title": _t({"key": 'intro.title'}), "description": _t({"key": 'intro.text'})} %}
+<main id="content" class="flex-1 px-6 pb-24 pt-40">
 <section class="hs-intro-page">
 	<h1>{{ _t({"key": 'intro.title'}) }}</h1>
 	
@@ -6,3 +8,6 @@
 	<br>
 	<a href="{{ _link('index', false, 0) }}">{{ _t({"key": 'intro.go_main'}) }}</a>
 </section>
+
+</main>
+{% include "external/footer.twig" %}

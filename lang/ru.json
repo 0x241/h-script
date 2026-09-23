@@ -1,4 +1,5 @@
 {
+    "about.title": "О проекте",
 "configurator.update.recovery.kind_backup": "Отчёт резервного копирования",
 "configurator.update.recovery.kind_drill": "Проверка восстановления",
 "configurator.update.recovery.kind_backup_archive": "Резервный архив",

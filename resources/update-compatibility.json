@@ -2,7 +2,7 @@
     "format": 2,
     "application": {
         "minimum": "1.0.0",
-        "maximum": "1.0.5"
+        "maximum": "1.0.6"
     },
     "schema": {
         "minimum": "1.0.0",

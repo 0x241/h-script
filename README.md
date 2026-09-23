@@ -1,6 +1,6 @@
 # H-Script
 
-H-Script 1.0.4 is a PHP CMS for financial projects. It includes user accounts,
+H-Script 1.0.6 is a PHP CMS for financial projects. It includes user accounts,
 deposits, payment gateways, a referral system, administration tools, installation
 telemetry, and a versioned REST API.
 
@@ -24,7 +24,9 @@ telemetry, and a versioned REST API.
 
 For most installations, use the published image. It is reproducible and already
 contains Composer dependencies and compiled CSS. Pin an exact version such as
-`1.0.4`; do not use a floating `latest` tag in production.
+`1.0.6`; do not use a floating `latest` tag in production. This source tree targets
+`1.0.6`; the image examples below require that release to have been published.
+Until then, use an existing published tag or build this source for staging.
 
 ## Docker with a published image
 
@@ -52,7 +54,7 @@ Select the published image in `.env`:
 
 ```env
 APP_IMAGE=docker.io/0x241/h-script
-APP_IMAGE_TAG=1.0.4
+APP_IMAGE_TAG=1.0.6
 APP_PULL_POLICY=always
 
 APP_ENV=production
@@ -71,8 +73,8 @@ TURNSTILE_SITE_KEY=change-me-site-key
 TURNSTILE_SECRET_KEY=change-me-secret-key
 ```
 
-The same digest is also published as `ghcr.io/0x241/h-script:1.0.4`. Both public
-packages should allow end users to pull without `docker login`. A private GHCR
+The release workflow publishes the same digest as `ghcr.io/0x241/h-script:1.0.6`.
+Both public packages should allow end users to pull without `docker login`. A private GHCR
 package requires a token with `read:packages` permission.
 
 Use these variables only for the first bootstrap of an empty database:
@@ -332,7 +334,7 @@ checksum:
 ```bash
 docker buildx build \
   --target shared-release \
-  --build-arg APP_VERSION=1.0.4 \
+  --build-arg APP_VERSION=1.0.6 \
   --output type=local,dest=dist \
   .
 (cd dist && sha256sum -c SHA256SUMS)
@@ -371,7 +373,7 @@ The complete reference is `docker/env.example`.
 | --- | --- |
 | `APP_ENV`, `APP_DEBUG` | Environment and diagnostic output; use `production` and `0` in production. |
 | `APP_IMAGE` | Local image name, Docker Hub repository, or GHCR package. |
-| `APP_IMAGE_TAG` | Exact release tag, for example `1.0.4`. |
+| `APP_IMAGE_TAG` | Exact release tag, for example `1.0.6`. |
 | `APP_IMAGE_REF` | Optional `repository@sha256:...`; overrides the image/tag pair. Staging always sets it. |
 | `APP_PULL_POLICY` | `build` for source builds or `always` for registry images. |
 | `APP_DOMAIN` | Public domain without a scheme; keep it stable after installation. |
@@ -415,6 +417,14 @@ create the environment-scoped GitLab variable `TRUSTED_PROXY_CIDRS` with the
 gateway's exact Tailscale address and `/32` suffix. It is not a secret and does
 not need masking, but it should be protected with the deployment environment.
 Do not use the whole Tailscale or private-network range.
+
+Verify the source IP actually seen by the application. Tailscale forwarding SNAT
+can replace the gateway address with a Docker bridge address; with HTTPS enforced,
+this causes repeated redirects to the same HTTPS URL because forwarded headers
+are correctly rejected. Preserve the gateway source address in the network path
+instead of trusting an entire Docker subnet. On a dedicated application host,
+`tailscale set --snat-subnet-routes=false` can preserve it, but review advertised
+subnet/exit routes and return routing before changing this host-wide setting.
 
 An optional gateway VPS can run both public Nginx and Authelia, require 1FA or
 2FA only for chosen routes, and proxy H-Script to its second VPS over a private
@@ -463,7 +473,7 @@ are never published. `RESTORE_DB_PASSWORD` and `RESTORE_DB_PASSWORD_FILE` apply
 only to the explicitly named restore target and are not application settings.
 
 Backup storage contains sensitive SQL and may contain protected configuration.
-The `1.0.5` runtime uses owner-only directories (`0700`) and files (`0600`);
+The `1.0.6` runtime uses owner-only directories (`0700`) and files (`0600`);
 Docker startup tightens existing files in `/var/www/shared/backup`. Run manual
 backup/recovery commands as the application user (`--user www-data` in Docker),
 not root, so the web updater can read its private archives. Apache denies both
@@ -857,6 +867,152 @@ selected end date, and retain historical rows for disabled currencies. Summary
 cards distinguish registered users, deposit records, deposit volume, payouts,
 and net cash flow.
 
+## Public locale URLs and indexing migration
+
+Indexable public routes use installed, enabled CMS languages in `UI__Langs`.
+The first valid entry is the primary locale; cookie, session, IP and browser
+language do not change a legacy redirect target. Keep that ordering stable
+throughout the indexing migration. Locale URLs override visitor preferences.
+
+| Existing public address | Permanent target (`<primary>` is the configured locale) |
+| --- | --- |
+| `/`, `/home`, `/home/` | `/<primary>/` |
+| `/contacts`, `/contacts/` | `/<primary>/contacts/` |
+| `/news`, `/news/` | `/<primary>/news/` |
+| `/show/<id>/<slug>` | `/<primary>/show/<id>/<slug>/` |
+| `/show?id=<id>` | `/<primary>/show/?id=<id>` |
+| `/faq`, `/reviews`, `/rules`, `/about` (with or without trailing slash) | `/<primary>/<same-alias>/` |
+| `/intro`, `/intro/` | `/<primary>/intro/` (only indexable while intro is enabled) |
+
+GET/HEAD use 301; other methods use 308 to preserve form bodies. Safe functional
+parameters (`page`, item `id`, supported review `sort`) and allowed attribution
+parameters survive the redirect. Canonical removes attribution parameters.
+An installation subdirectory precedes every path in this table. Disabled intro
+retains its existing redirect to home after locale normalization; it is omitted
+from sitemap. Missing/unpublished news ultimately returns 404.
+
+Login, registration, cabinet, administration, Configurator, API, callbacks,
+cron, static assets, `/robots.txt` and `/sitemap.xml` keep their existing URLs.
+The last two endpoints are stateless and independent of language cookies.
+`robots.txt` advertises exactly one HTTPS sitemap at the installation root.
+
+Sitemap includes separate HTTPS URLs and reciprocal `xhtml:link` alternates for
+translated public landing pages and published news, matching HTML metadata.
+Each article URL uses the title translated into that URL's locale. Canonical,
+hreflang, sitemap and language links agree on these locale-specific slugs. The
+article ID remains stable; old, foreign-language or outdated slugs redirect once
+to the current localized title, preserving allowed attribution parameters.
+Its scope remains the existing registered landing pages and news items; it does
+not enumerate pagination or create separate FAQ/review item URLs. Listing
+availability uses the same first-page data as HTML. Disabled intro, closed-site
+content, private/technical routes and noindex variants are excluded.
+
+Every required content field must have a nonempty translation. Unmarked legacy
+editorial text belongs to the configured primary locale; add language markers
+such as `{!ru!}Текст{!en!}Text{!!}` to declare translations. Catalog fallback is
+not proof of translation. Untranslated variants remain readable with noindex
+and are not advertised as alternates. `x-default` is included only when the
+primary translation exists. Sitemap and HTML share `PublicSeo`; do not maintain
+an independent language list in either output.
+
+Before rollout, verify the enabled languages, primary ordering, translated
+content, HTTPS domain and publication settings. Save the old URL inventory
+and a verified backup. Deploy routing, HTML metadata and sitemap together in
+one tested release; no schema migration is needed, and `APP_AUTO_INSTALL=0`
+remains required after initial bootstrap. Clear any old proxy/CDN sitemap and
+redirect cache. Run the HTTP checks against staging before production:
+
+```sh
+php tests/locale_routing.php
+php tests/public_seo.php
+php tests/localized_sitemap.php
+php tests/seo_portability.php
+php tests/seo_acceptance_http.php https://your-domain.example
+```
+
+`seo_acceptance_http.php` discovers the primary locale from the root redirect,
+enabled languages from the private switcher, and article URLs from sitemap.
+It checks every sitemap entry and the URL/cookie/Accept-Language matrix for
+public routes, pagination and one discovered article. It makes no fixture writes
+and assumes a stable, unlocked site during the run. Set `SEO_HTTP_CONCURRENCY=1`
+to check a live installation sequentially; the default is 8 concurrent requests
+(the supported range is 1–8). This limits concurrency without skipping checks.
+For a custom private header, pass an explicit comma-separated enabled language
+list as the third argument:
+
+```sh
+php tests/seo_acceptance_http.php https://tenant.example/cms tenant.example fr,de,en
+```
+
+The base URL may contain an installation subdirectory. The optional second
+argument overrides the HTTP Host for local transport. The local LAMP equivalent,
+from the Compose root, is
+`docker compose exec -T webserver php tests/seo_acceptance_http.php http://127.0.0.1 hs.local`.
+The older `localized_sitemap_http.php` suite remains a shipped RU/EN baseline.
+Local HTTP checks validate HTTPS metadata but do not verify deployed TLS.
+
+No installation domain, article ID or sitemap entry count is fixed in the runtime.
+The component portability suite covers different primary locales, language lists,
+domains, subdirectories and publication counts. Standard routes work after an
+atomic update. Custom routes need explicit `indexable`/`sitemap` registration,
+translation requirements in `PublicSeo` and integration with the shared public
+header. A custom theme or missing translations cannot be made SEO-ready merely
+by installing the routing code. The current sitemap is a single document; sites
+approaching sitemap protocol size/URL limits need sitemap splitting before rollout.
+
+Public page language is determined by the full locale path and does not require
+`Vary: Cookie`. Full HTML still contains session/user interface elements and sends
+`Cache-Control: no-store`. Reverse proxies/CDNs must honor it and `Set-Cookie`;
+do not force-cache these responses. If public HTML caching is introduced later,
+separate personalized fragments first and include scheme, host, full locale path
+and functional query parameters in its cache key. Do not strip the locale prefix.
+Robots and sitemap remain stateless. Verify actual edge settings on staging;
+a local proxy probe does not certify the external CDN.
+
+Browser acceptance uses `tests/browser/seo.config.cjs` with the existing pinned
+Playwright dependency and its Chromium/Firefox/WebKit runtimes:
+
+```sh
+cd tests/browser
+npm ci --ignore-scripts --no-audit --no-fund
+SEO_BASE_URL=https://tenant.example/cms npx --no-install playwright test --config=seo.config.cjs
+```
+
+A separate disposable integration suite checks Apache `.htaccess` routing with
+an empty database, 17 translated articles, a changed primary language, a real
+`/nested/cms/` installation and an Nginx HTTPS proxy. It verifies the fixture
+certificate and hostname using `SEO_TEST_CA_FILE`; TLS verification stays enabled.
+It requires a Debian PHP/Apache image with the application's PHP extensions,
+MySQL, the local Nginx image and OpenSSL. Run from the local LAMP Compose root:
+
+```sh
+sh www/h-script-3/tests/seo_isolated.sh lamp-webserver:latest mysql:8.4
+```
+
+The suite copies an explicit source allowlist, excludes live configuration and
+user data, creates its own internal network/database, and removes its containers
+on exit. It does not use the working site's database. This tests shared-hosting
+rewrite behavior in a container; the actual hosting provider and public edge
+still need deployment acceptance.
+
+The six cases exercise ordinary language links with JavaScript enabled/disabled.
+For HTML5 validation, set `SEO_HTML_DIR` to a private temporary directory during
+the acceptance run, then run [Nu HTML Checker](https://validator.github.io/validator/docs/vnu.1.html)
+against the saved documents (`vnu --errors-only --skip-non-html DIRECTORY`).
+The exported documents cover all tested locale pages and sitemap targets; no
+public HTML is uploaded to a third-party validation service.
+
+After production rollout, submit the stable sitemap URL in Search Console.
+Use URL Inspection for old/new homepage, a static page, a news item and a
+paginated listing in each language; check redirects, crawl access, rendered
+canonical and Google's selected canonical. Monitor indexing reports and server
+404/redirect logs. A same-domain path change does not need Change of Address.
+Retain legacy redirects for at least one year and until the index and inbound
+links have moved; keeping them indefinitely is preferable. Submission or a
+successful live test is not evidence that Google has indexed the new URLs.
+See [Google's migration guidance](https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes)
+and [localized sitemap rules](https://developers.google.com/search/docs/specialty/international/localized-versions#sitemap).
+
 ## Image publication
 
 GitLab is the build authority. Every staging revision produces one candidate in
@@ -869,10 +1025,10 @@ Published references:
 
 ```text
 registry.gitlab.com/0x241/h-script:tree-<tree-sha>
-docker.io/0x241/h-script:1.0.4
+docker.io/0x241/h-script:1.0.6
 docker.io/0x241/h-script:1.0
 docker.io/0x241/h-script:1
-ghcr.io/0x241/h-script:1.0.4
+ghcr.io/0x241/h-script:1.0.6
 ghcr.io/0x241/h-script:1.0
 ghcr.io/0x241/h-script:1
 ```
@@ -918,7 +1074,7 @@ GitHub Container Registry creates the first personal-account package as private
 even when its source repository is public. After the first successful image
 promotion, open the `h-script` package on GitHub, select **Package settings**, and
 under **Danger Zone** change its visibility to **Public**. This one-time change
-enables anonymous `docker pull ghcr.io/0x241/h-script:1.0.4`; GitHub does not
+enables anonymous `docker pull ghcr.io/0x241/h-script:1.0.6`; GitHub does not
 allow a public package to be made private again.
 
 ## GitLab staging and GitHub promotion
@@ -1028,6 +1184,53 @@ mirror; GitLab `stage/docker-release` and `release/public` are the promotion
 gates. Compare SHAs before every mirror push.
 
 ## Operations and diagnostics
+
+### Recurrent gateway 504 and private-route 500
+
+Capture evidence during the failure, before rebooting. On the Nginx gateway,
+inspect the error log for the failing request and note its timestamp and upstream:
+
+```sh
+sudo tail -n 100 /var/log/nginx/error.log
+sudo journalctl -u nginx -u tailscaled --since '20 minutes ago' --no-pager
+```
+
+`while connecting to upstream` points to the backend listener, network path or
+connection backlog. `while reading response header from upstream` means the
+connection was established but a response header did not arrive in time. The
+shipped gateway template uses a 5-second connect timeout and a 60-second read
+timeout; check the deployed values before drawing conclusions from timing alone.
+For a private-route 500 with `auth request unexpected status`, inspect Authelia
+and its upstream as well: the authorization subrequest is separate from H-Script.
+See the [Nginx proxy timeouts](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_connect_timeout)
+and [auth_request status handling](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html).
+
+On the application server, run these from the **deployed Compose directory**
+with the same project name and environment used by deployment:
+
+```sh
+date -Is
+uptime
+free -h
+df -h
+df -i
+docker compose ps
+docker stats --no-stream
+docker compose logs --since 20m --tail 200 app database redis
+sudo journalctl -k --since '20 minutes ago' --no-pager | grep -Ei 'oom|out of memory|killed process'
+docker compose exec -T app curl -sS --connect-timeout 3 --max-time 15 -o /dev/null -w 'HTTP=%{http_code} connect=%{time_connect} start=%{time_starttransfer} total=%{time_total}\n' -H 'Host: YOUR_PUBLIC_HOST' http://127.0.0.1/en/
+```
+
+Replace `YOUR_PUBLIC_HOST` and `/en/` with the actual domain and enabled locale.
+Compare that internal request with a request from the gateway to the configured
+Tailscale backend IP/port using the same Host header. A fast container-local
+response but a failed gateway-to-backend connection points to the inter-server
+path or exposed listener. If the internal PHP request also stalls, compare a
+known static asset and inspect PHP-FPM workers, database locks/connections and
+outbound calls. Check FPM logs for `pm.max_children` exhaustion; use an operator-only
+[FPM slow log](https://www.php.net/manual/en/install.fpm.configuration.php) to
+identify blocked scripts before changing worker limits or timeouts. A host reboot
+clears transient state but does not establish which component failed.
 
 ### Sessions and administrator impersonation
 

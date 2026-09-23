@@ -153,7 +153,7 @@
 	}
 ] %}
 
-{% include "external/header.twig" with {"title": rules_title, "description": _t({"key": 'rules.lead', "default": 'Условия использования официального демо и открытого исходного кода H-Script.'}), "canonical_url": fullURL(_link('udp/rules', false, 0)), "public_active": 'rules'} %}
+{% include "external/header.twig" with {"title": rules_title, "description": _t({"key": 'rules.lead', "default": 'Условия использования официального демо и открытого исходного кода H-Script.'}), "public_active": 'rules'} %}
 
 <main id="content" class="w-full flex-1 px-6 pb-24 pt-36 sm:pt-40">
 	<section class="relative mx-auto mb-10 max-w-7xl overflow-hidden rounded-[2rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-8 shadow-sm dark:border-blue-500/20 dark:from-blue-500/10 dark:via-[#151515] dark:to-emerald-500/10 sm:p-12 lg:p-16">
@@ -179,7 +179,7 @@
 				<p class="px-3 pb-2 pt-1 text-xs font-extrabold uppercase tracking-[0.16em] text-gray-400">{{ _t({"key": 'rules.contents', "default": 'Содержание правил'}) }}</p>
 				<div class="space-y-1">
 					{% for section in rules_sections %}
-						<a href="{{ fullURL() }}#{{ section.anchor }}" hx-boost="false" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-600 transition hover:bg-blue-50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-blue-500/10 dark:hover:text-blue-300"><span class="font-mono text-xs text-gray-400">{{ section.number }}</span><span>{{ section.title }}</span></a>
+						<a href="{{ fullURL() }}#{{ section.anchor }}" data-hx-boost="false" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-600 transition hover:bg-blue-50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-blue-500/10 dark:hover:text-blue-300"><span class="font-mono text-xs text-gray-400">{{ section.number }}</span><span>{{ section.title }}</span></a>
 					{% endfor %}
 				</div>
 			</nav>

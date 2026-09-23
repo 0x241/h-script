@@ -1,4 +1,4 @@
-{% include "external/header.twig" with {"title": el.nTopic, "description": el.nAnnounce|striptags|truncate(160), "canonical_url": fullURL(_link('news/show', [el.nID, el.nTopic], 0)), "og_type": 'article', "public_active": 'news', "include_ckeditor_content": true} %}
+{% include "external/header.twig" with {"title": el.nTopic, "description": el.nAnnounce|striptags|truncate(160), "og_type": 'article', "public_active": 'news', "include_ckeditor_content": true} %}
 
 <main id="content" class="flex-1 pt-40 pb-20 px-6 w-full">
 	<article class="max-w-4xl mx-auto">
@@ -33,7 +33,7 @@
 						'instagram': {'url': _cfg.News_SocialInstagram, 'icon': 'fa-instagram', 'label': 'Instagram'},
 						'youtube': {'url': _cfg.News_SocialYouTube, 'icon': 'fa-youtube', 'label': 'YouTube'}
 					} %}
-					<div class="flex flex-wrap gap-4" aria-label="{{ _t({"key": 'news.social_links', "default": 'Мы в социальных сетях'}) }}">
+					<div class="flex flex-wrap gap-4" role="group" aria-label="{{ _t({"key": 'news.social_links', "default": 'Мы в социальных сетях'}) }}">
 						{% for social in social_links %}
 							{% set social_url = social.url|trim %}
 							{% if textLeft(social_url, 8) == 'https://' or textLeft(social_url, 7) == 'http://' %}

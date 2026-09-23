@@ -5,7 +5,20 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+Current source target: application `1.0.6`, schema `1.0.2` (no new migration).
+
 ### Fixed
+
+- Generate news slugs from each locale's translated title in canonical, hreflang,
+  sitemap and language links; normalize old article URLs with one permanent redirect.
+- Keep release component tests compatible with runtime images without npm source
+  metadata; derive synthetic upgrade versions from the tested application version.
+
+- Make public language selection deterministic from the locale URL, including
+  legacy redirects, pagination and encoded article slugs. Expired cached news
+  and untranslated editorial content no longer advertise invalid SEO alternates.
+- Correct shared public HTML structure and labels validated across the locale
+  acceptance matrix.
 
 - Separate installed CMS/database versions from deployed update targets in the
   Configurator; a historical successful update no longer masks pending migration.
@@ -35,6 +48,14 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Configurator. Reconciliation now reports failed check IDs safely in CI.
 
 ### Added
+
+- Multilingual public URLs with self-canonical HTTPS links, reciprocal hreflang,
+  primary-language x-default and direct language links usable without JavaScript.
+  Private and technical routes retain their existing addresses.
+- A localized XML sitemap generated from installed languages, registered public
+  routes and published translated content, portable across domains and subfolders.
+- HTTP/cache, browser and isolated-installation SEO acceptance tests; configurable
+  HTTP concurrency for sequential staging diagnostics.
 
 - Automatic HTTPS domain-control confirmation for nginx/CDN installations with
   different inbound/outbound IPs: authenticated one-use challenges, 7-day expiry,

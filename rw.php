@@ -3,6 +3,7 @@
 use HScript\Util\StringHelper;
 use HScript\Template\View;
 use HScript\Http\ApiResponse;
+use HScript\Http\LocaleRouter;
 use HScript\Http\SystemPageRenderer;
 use HScript\Observability\HttpRequestObserver;
 use HScript\Observability\StructuredLogger;
@@ -30,42 +31,34 @@ $_GS['module_dir'] = 'module/';
 if (is_file($_GS['module_dir'] . '_config.php'))
 	include_once($_GS['module_dir'] . '_config.php');
 
+$_localeRouter = new LocaleRouter($_rwlinks);
+
 function linkToModule($l)
 {
-	global $_rwlinks;
-	$l = trim($l);
-	$aliases = array(
-		'wallets' => 'balance/wallets',
-		'balance/wallets' => 'balance/wallets',
-		'operation' => 'balance/oper',
-		'operations' => 'balance',
-		'message/show' => 'message/show'
-	);
-	if (isset($aliases[$l]))
-		return $aliases[$l];
-	if ('' === $l)
-		$l = moduleToLink('index');
-	foreach ($_rwlinks as $m => $r)
-		if ($r[0] == $l)
-			return $m;
-	return '';
+	global $_localeRouter;
+	return $_localeRouter->moduleForAlias(trim($l));
 }
 
 // https: 0-default / 1-on / 2-off
 function moduleToLink($m = '', $chpu = false, $https = 0) // chpu - array(id, text[, text2...])
 {
-	global $_GS, $_rwlinks;
+	global $_GS, $_rwlinks, $_localeRouter;
 	if (!$m)
 		$m = $_GS['module'];
 	if (empty($_rwlinks[$m]))
 		return '';
+	$module = $m;
 	$r = $_rwlinks[$m];
-	if (is_array($chpu) and ($chpu[0] > 0) and ($chpu[1]))
-		foreach ($chpu as $i => $m)
-			if ($i == 0)
-				$r[0] .= '/' . (0 + $chpu[0]);
-			else
-				$r[0] .= '/' . StringHelper::toTranslitURL($m);
+    if ($module === 'news/show' && is_array($chpu) && ($chpu[0] ?? 0) > 0) {
+        $r[0] = $_GS['public_news_paths'][(int)$chpu[0]][$_GS['url_locale'] ?? '']
+            ?? HScript\Http\PublicSeo::newsPath($r[0], (int)$chpu[0], (string)($chpu[1] ?? ''));
+    } elseif (is_array($chpu) && ($chpu[0] > 0) && $chpu[1]) {
+        foreach ($chpu as $i => $part) {
+            $r[0] .= '/' . ($i === 0 ? (int)$chpu[0] : StringHelper::toTranslitURL($part));
+        }
+    }
+	if ($_localeRouter->primaryLocale() !== '')
+		$r[0] = $_localeRouter->url($module, $r[0], $_GS['url_locale'] ?? null);
 	if ($https < 1)
 		$https = isset($_GS['https_mode']) ? $_GS['https_mode'] : 0;
 	if ($https >= 1)
@@ -126,6 +119,17 @@ function hsRenderSystemPage(string $page, string $configuratorUrl = ''): void
 	);
 }
 
+function hsRouteNotFound(): never
+{
+	global $_GS;
+	xAddToLog($_GS['uri'], 'ul');
+	http_response_code(404);
+	header('Content-Type: text/html; charset=UTF-8');
+	header('X-Robots-Tag: noindex, nofollow');
+	hsRenderSystemPage('not_found');
+	exit;
+}
+
 // Process URI
 
 $p = $_GS['uri'];
@@ -159,35 +163,19 @@ if (!hsHasDatabaseConfiguration($_cfg) && ($f != $_cfg['cfg_link']))
 }
 if (!$_cfg['cfg_link'] or ($f == $_cfg['cfg_link']))
 	$m = '_config';
-elseif ($l = moduleToLink('index'))
+else
 {
-	if (preg_match('|(.+)\/(\d+)\/|', $f, $m)) // chpu
-	{
-		$f = $m[1];
-		$_GET['id'] = $m[2];
-	}
-	$m = linkToModule($f);
-	if (!$m and ($f != $l))
+	$_GS['locale_route'] = $_localeRouter->parse($f);
+	if ($_GS['locale_route'] === null)
 	{
 		if ($is_api_v1)
 			ApiResponse::error('route_not_found', 'API route not found', 404);
-		xAddToLog($_GS['uri'], 'ul');
-		header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
-		header('Status: 404 Not Found');
-		header('Content-Type: text/html; charset=UTF-8');
-		header('X-Robots-Tag: noindex, nofollow');
-		hsRenderSystemPage('not_found');
-/*		$sapi_name = php_sapi_name();
-		if ($sapi_name == 'cgi' || $sapi_name == 'cgi-fcgi')
-			header('Status: 404 Not Found');
-		else
-			header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');*/
-		exit;
-//		goToURL($l . ($p ? '?' . $p : '')); // on unknown link - go home
+		hsRouteNotFound();
 	}
+	$m = $_GS['locale_route']['module'];
+	if ($_GS['locale_route']['id'] !== null)
+		$_GET['id'] = $_GS['locale_route']['id'];
 }
-else
-	$m = 'index';
 
 if (!file_exists($f = $_GS['module_dir'] . $m . '/index.php'))
 	if (!file_exists($f = $_GS['module_dir'] . $m . '.php'))

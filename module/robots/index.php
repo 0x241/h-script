@@ -1,12 +1,13 @@
 <?php
 
 $_GS['stateless'] = true;
+$_smode = 2;
 require_once('module/auth.php');
 
 header('Content-Type: text/plain; charset=utf-8');
 header('Cache-Control: public, max-age=3600');
 
-$rootURL = rtrim((string)($_GS['root_url'] ?? ''), '/') . '/';
+$rootURL = getRootURL(true);
 $rootPath = '/' . trim((string)parse_url($rootURL, PHP_URL_PATH), '/');
 $rootPath = $rootPath === '/' ? '/' : $rootPath . '/';
 $disallow = array();

@@ -1,4 +1,4 @@
-{% include "external/header.twig" with {"title": _t({"key": 'nav.reviews', "default": 'Отзывы'}), "description": _t({"key": 'reviews.meta.description', "default": 'Отзывы пользователей о возможностях и работе платформы H-Script.'}), "canonical_url": fullURL(_link('review', false, 0)), "public_active": 'review'} %}
+{% include "external/header.twig" with {"title": _t({"key": 'nav.reviews', "default": 'Отзывы'}), "description": _t({"key": 'reviews.meta.description', "default": 'Отзывы пользователей о возможностях и работе платформы H-Script.'}), "public_active": 'review'} %}
 
 <main id="content" class="flex-1 pt-40 pb-20 px-6 max-w-7xl mx-auto w-full">
 	<div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
@@ -33,7 +33,7 @@
 									"avatar_initial_class": "flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xl font-bold text-blue-600 dark:bg-blue-900/30"
 								} %}
 							<div>
-								<h4 class="font-bold text-brand dark:text-white text-lg">{{ l.uLogin }}</h4>
+								<h2 class="font-bold text-brand dark:text-white text-lg">{{ l.uLogin }}</h2>
 								<div class="text-sm font-mono text-gray-500">{{ l.oTS }}</div>
 							</div>
 						</div>
@@ -52,7 +52,7 @@
 				<div class="w-14 h-14 mx-auto mb-5 rounded-full bg-gray-100 dark:bg-[#1A1A1A] flex items-center justify-center text-yellow-500">
 					<i class="fa-solid fa-star text-2xl"></i>
 				</div>
-				<h3 class="text-2xl font-bold text-brand dark:text-white mb-2">{{ _t({"key": 'reviews.empty', "default": 'Нет отзывов'}) }}</h3>
+				<h2 class="text-2xl font-bold text-brand dark:text-white mb-2">{{ _t({"key": 'reviews.empty', "default": 'Нет отзывов'}) }}</h2>
 				<p class="text-textDim dark:text-gray-400">{{ _t({"key": 'reviews.empty_desc', "default": 'Будьте первым, кто оставит отзыв о нашей работе!'}) }}</p>
 			</div>
 		{% endif %}
@@ -63,7 +63,7 @@
 			{% set selected_rating = 5 %}
 			{% if isset_IN('Rating') %}{% set selected_rating = _IN('Rating') %}{% endif %}
 			<div class="bg-cardBlue dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 rounded-3xl p-8 md:p-12 max-w-4xl mx-auto">
-				<h3 class="text-2xl font-bold text-brand dark:text-white mb-2">{{ _t({"key": 'reviews.form.title', "default": 'Оставьте свой отзыв'}) }}</h3>
+				<h2 class="text-2xl font-bold text-brand dark:text-white mb-2">{{ _t({"key": 'reviews.form.title', "default": 'Оставьте свой отзыв'}) }}</h2>
 				<p class="text-textDim dark:text-gray-400 mb-8">{{ _t({"key": 'reviews.form.text', "default": 'Ваше мнение очень важно для нас и других участников платформы.'}) }}</p>
 				<form method="post" action="{{ _selfLink }}" name="{{ review_form_name }}" class="space-y-6">
 					{{ _getFormSecurity({"form": review_form_name}) }}

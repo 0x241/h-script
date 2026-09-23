@@ -16,30 +16,36 @@
 {% set site_name = _cfg.Sys_SiteName|default('H-Script') %}
 {% set document_title = seo_title|default(title ? title ~ ' | ' ~ site_name : site_name) %}
 {% set seo_description = description|default(_t({"key": 'site.meta.description', "default": 'H-Script — открытая финтех CMS для управления финансовыми продуктами, платежами и партнерскими программами.'})) %}
-{% set seo_canonical = canonical_url|default(fullURL()|split('?')|first) %}
+{% set seo_canonical = public_seo.canonical|default('') %}
 {% set seo_image_url = seo_image|default(fullURL('static/images/cabinet-dashboard.jpg')) %}
-{% set seo_robots_value = robots|default('index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1') %}
+{% set seo_indexable = public_seo.indexable|default(false) and 'noindex' not in robots|default('') %}
+{% set seo_robots_value = seo_indexable ? robots|default('index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1') : 'noindex,follow' %}
 <!doctype html>
 <html lang="{% if current_lang %}{{ current_lang }}{% else %}ru{% endif %}" class="{{ current_theme }} overflow-x-hidden" data-theme="{{ current_theme }}">
 	<head>
 		<meta charset="utf-8">
+		<base href="{{ root_url }}">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>{{ document_title }}</title>
 		<meta name="description" content="{{ seo_description }}">
 		<meta name="robots" content="{{ seo_robots_value }}">
-		<link rel="canonical" href="{{ seo_canonical }}">
+		{% if seo_canonical %}<link rel="canonical" href="{{ seo_canonical }}">{% endif %}
+		{% if seo_indexable %}
+			{% for locale, url in public_seo.alternates %}
+				<link rel="alternate" hreflang="{{ locale }}" href="{{ url }}">
+			{% endfor %}
+		{% endif %}
 		<meta property="og:type" content="{{ og_type|default('website') }}">
 		<meta property="og:site_name" content="{{ site_name }}">
 		<meta property="og:title" content="{{ document_title }}">
 		<meta property="og:description" content="{{ seo_description }}">
-		<meta property="og:url" content="{{ seo_canonical }}">
+		{% if seo_canonical %}<meta property="og:url" content="{{ seo_canonical }}">{% endif %}
 		<meta property="og:image" content="{{ seo_image_url }}">
 		<meta property="og:locale" content="{{ current_lang|default('ru') }}">
 		<meta name="twitter:card" content="summary_large_image">
 		<meta name="twitter:title" content="{{ document_title }}">
 		<meta name="twitter:description" content="{{ seo_description }}">
 		<meta name="twitter:image" content="{{ seo_image_url }}">
-		<base href="{{ root_url }}">
 		<link rel="icon" type="image/svg+xml" href="favicon.svg">
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -54,12 +60,12 @@
 			'@context': 'https://schema.org',
 			'@type': 'Organization',
 			'name': site_name,
-			'url': root_url,
-			'logo': fullURL('favicon.svg'),
+			'url': seo_canonical|default(fullURL(_link('index'), true)),
+			'logo': fullURL('favicon.svg', true),
 			'email': 'business@h-script.com',
 			'sameAs': ['https://github.com/0x241/h-script', 'https://t.me/hs_wscc']
-		}|json_encode|raw }}</script>
-		{% if structured_data %}<script type="application/ld+json">{{ structured_data|json_encode|raw }}</script>{% endif %}
+		}|json_encode(15)|raw }}</script>
+		{% if structured_data %}<script type="application/ld+json">{{ structured_data|merge({'url': seo_canonical, 'inLanguage': current_lang})|json_encode(15)|raw }}</script>{% endif %}
 	</head>
 	<body class="relative min-h-screen flex flex-col overflow-x-hidden bg-bgLight text-brand antialiased transition-colors duration-300 dark:bg-[#0A0A0A] dark:text-gray-100 {% if body_class %}{{ body_class }}{% endif %}">
 	<a class="skip-link" href="{{ fullURL()|split('?')|first }}#content">{{ _t({"key": 'site.skip_content', "default": 'Перейти к содержимому'}) }}</a>
@@ -70,13 +76,7 @@
 	{% if user.uID %}
 		{% set public_demo_link = _link('cabinet', false, 0) %}
 	{% endif %}
-	{% set lang_str = "" %}
-	{% if is_array(_cfg.UI__Langs) %}
-		{% set lang_str = "\n"|implode(_cfg.UI__Langs) %}
-	{% else %}
-		{% set lang_str = _cfg.UI__Langs %}
-	{% endif %}
-	{% set hs_clean_langs = "\n"|explode(lang_str) %}
+	{% set public_languages = public_seo.languages|default({}) %}
 
 	<nav class="fixed w-full top-0 z-50 border-b border-gray-200/50 bg-bgLight/70 backdrop-blur-[20px] transition-colors dark:border-white/[0.05] dark:bg-[#0A0A0A]/70">
 		<div class="max-w-7xl mx-auto px-6 h-[88px] flex items-center justify-between">
@@ -93,29 +93,28 @@
 				</div>
 			</div>
 			<div class="flex items-center gap-2">
-				<details class="relative" hx-boost="false">
+				{% if public_languages %}
+				<details class="relative" data-hx-boost="false">
 					<summary class="flex h-10 cursor-pointer list-none items-center justify-center gap-1.5 rounded-full border border-black/5 bg-black/[0.03] px-3 text-sm font-bold tracking-wide text-brand transition-all duration-200 hover:bg-black/[0.06] dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:hover:bg-white/10">
 						<i class="fa-solid fa-globe text-gray-400 dark:text-gray-300" aria-hidden="true"></i>
 						{% if current_lang %}{{ current_lang|upper }}{% else %}RU{% endif %}
 					</summary>
 					<div class="absolute right-0 top-full z-50 mt-2 w-32 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl dark:border-gray-800 dark:bg-[#1A1A1A]">
-						{% for lng in hs_clean_langs %}
-							{% set lng_clean = lng|trim %}
-							{% if lng_clean %}
-								<a href="{% if tpl_module == 'system' %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}{% else %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}&url={{ _link(tpl_module, false, 0) }}{% endif %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-brand transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-black{% if current_lang == lng_clean %} bg-gray-50/50 dark:bg-black/30{% endif %}">
-									<span class="{% if current_lang == lng_clean %}text-blue-500{% else %}text-gray-400{% endif %}">{{ lng_clean|upper }}</span>
-									{{ lng_clean|upper }}
-								</a>
-							{% endif %}
+						{% for lng, language_url in public_languages %}
+							<a href="{{ language_url }}" hreflang="{{ lng }}" lang="{{ lng }}" data-public-language="{{ lng }}"{% if current_lang == lng %} aria-current="page"{% endif %} class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-brand transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-black{% if current_lang == lng %} bg-gray-50/50 dark:bg-black/30{% endif %}">
+								<span class="{% if current_lang == lng %}text-blue-500{% else %}text-gray-400{% endif %}">{{ lng|upper }}</span>
+								{{ lng|upper }}
+							</a>
 						{% endfor %}
 					</div>
 				</details>
-				<a href="{{ theme_toggle_url }}" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5 sm:hidden" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
+				{% endif %}
+				<a href="{{ theme_toggle_url }}" data-hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5 sm:hidden" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
 					<i class="fa-solid fa-moon block dark:!hidden text-lg" aria-hidden="true"></i>
 					<i class="fa-solid fa-sun !hidden dark:!block text-lg text-yellow-400" aria-hidden="true"></i>
 				</a>
 				<div class="hidden items-center gap-4 sm:flex">
-					<a href="{{ theme_toggle_url }}" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
+					<a href="{{ theme_toggle_url }}" data-hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
 						<i class="fa-solid fa-moon block dark:!hidden text-lg" aria-hidden="true"></i>
 						<i class="fa-solid fa-sun !hidden dark:!block text-lg text-yellow-400" aria-hidden="true"></i>
 					</a>
@@ -123,14 +122,14 @@
 					<a href="{{ public_demo_link }}" class="rounded-full bg-brand px-7 py-3 text-[15px] font-bold text-white shadow-sm transition-all duration-[250ms] hover:-translate-y-0.5 hover:bg-[#2D2D2D] hover:shadow-[0_10px_20px_-5px_rgba(26,26,26,0.3)] dark:bg-white dark:text-brand dark:hover:bg-gray-100 dark:hover:shadow-[0_10px_20px_-5px_rgba(255,255,255,0.1)]">{{ _t({"key": 'home.action.demo', "default": 'Демо'}) }}</a>
 				</div>
 				<input id="public-menu-toggle" class="peer sr-only" type="checkbox">
-				<label for="public-menu-toggle" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-transparent text-xl text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5 lg:hidden" title="{{ _t({"key": 'nav.menu', "default": 'Меню'}) }}" aria-label="{{ _t({"key": 'nav.menu', "default": 'Меню'}) }}">
-					<i class="fa-solid fa-bars" aria-hidden="true"></i>
+				<label for="public-menu-toggle" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-transparent text-xl text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5 lg:hidden" title="{{ _t({"key": 'nav.menu', "default": 'Меню'}) }}">
+					<i class="fa-solid fa-bars" aria-hidden="true"></i><span class="sr-only">{{ _t({"key": 'nav.menu', "default": 'Меню'}) }}</span>
 				</label>
 				<div class="fixed inset-0 z-[60] flex h-dvh min-h-dvh w-full translate-x-full flex-col overflow-y-auto overscroll-contain bg-white transition-transform duration-300 peer-checked:translate-x-0 dark:bg-[#0A0A0A] lg:hidden">
 					<div class="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white p-6 dark:border-gray-800 dark:bg-[#0A0A0A]">
 						{% include "external/logo.twig" %}
-						<label for="public-menu-toggle" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-gray-50 text-2xl text-brand dark:bg-[#1A1A1A] dark:text-white" aria-label="{{ _t({"key": 'nav.close', "default": 'Закрыть меню'}) }}">
-							<i class="fa-solid fa-xmark" aria-hidden="true"></i>
+						<label for="public-menu-toggle" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-gray-50 text-2xl text-brand dark:bg-[#1A1A1A] dark:text-white">
+							<i class="fa-solid fa-xmark" aria-hidden="true"></i><span class="sr-only">{{ _t({"key": 'nav.close', "default": 'Закрыть меню'}) }}</span>
 						</label>
 					</div>
 					<div class="flex flex-1 flex-col gap-6 p-6 text-xl font-bold text-brand dark:text-white">

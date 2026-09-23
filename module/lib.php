@@ -81,7 +81,7 @@ function opPageGet($page, $page_size, $table,
 		}
 	}
 	$form = View::getFormName();
-	$pl = isset($_SESSION['_PL'][$form]) ? $_SESSION['_PL'][$form] : array();
+	$pl = !empty($_GS['url_locale']) ? array() : (isset($_SESSION['_PL'][$form]) ? $_SESSION['_PL'][$form] : array());
 	if (!is_array($pl))
 		$pl = array();
 	$params = array('Orders' => $orders, 'Order' => '');
@@ -179,10 +179,11 @@ function opPageGet($page, $page_size, $table,
 
 function opArrayPageGet(int $page, int $page_size, array $rows): array
 {
+	global $_GS;
 	$rows_count = count($rows);
 	$pages_count = (int)ceil($rows_count / $page_size);
 	$form = View::getFormName();
-	$state = isset($_SESSION['_PL'][$form]) && is_array($_SESSION['_PL'][$form])
+	$state = empty($_GS['url_locale']) && isset($_SESSION['_PL'][$form]) && is_array($_SESSION['_PL'][$form])
 		? $_SESSION['_PL'][$form]
 		: array();
 	if ($page <= 0)

@@ -3,6 +3,7 @@
 use HScript\Util\StringHelper;
 
 use HScript\Application;
+use HScript\Http\LocaleRouter;
 use HScript\Cache\CatalogCache;
 use HScript\Observability\CorrelationContext;
 use HScript\Template\View;
@@ -224,6 +225,33 @@ function authApplyConfigDefaults(&$cfg)
 			$cfg['Depo_S' . $i] = 0;
 }
 authApplyConfigDefaults($_cfg);
+// Locale routing is finalized as soon as CMS settings are available, before
+// session preferences, translations, title/content and controller actions.
+if (isset($_localeRouter))
+{
+	$_cfg['UI__Langs'] = LocaleRouter::enabledLocales($_cfg['UI__Langs'], dirname(__DIR__));
+	$_localeRouter->setLocales($_cfg['UI__Langs']);
+	$route = $_GS['locale_route'] ?? null;
+	if ($route !== null && $_localeRouter->isIndexable($route['module']))
+	{
+		$locale = $route['locale'] ?? $_localeRouter->primaryLocale();
+		if (!$_localeRouter->supports($locale))
+			hsRouteNotFound();
+		$_GS['url_locale'] = $_GS['lang'] = $locale;
+		$target = $_localeRouter->url($route['module'], $route['path'], $locale, $_GET, (string)$_cfg['Ref_Word']);
+		$requestedPath = explode('?', $_GS['uri'], 2)[0];
+		$targetPath = explode('?', $target, 2)[0];
+		if ($route['module'] !== 'news/show' && $requestedPath !== $targetPath)
+		{
+			// Merge locale/trailing-slash/HTTPS normalization into one hop.
+			$https = (int)$_cfg['Sec_HTTPSMode'] === 1 || $_GS['https'];
+			$status = in_array($_SERVER['REQUEST_METHOD'] ?? 'GET', array('GET', 'HEAD'), true) ? 301 : 308;
+			header('Location: ' . fullURL($target, $https), true, $status);
+			exit;
+		}
+	}
+	View::setPage('_selfLink', moduleToLink());
+}
 $_GS['site_name'] = $_cfg['Sys_SiteName'];
 if (!$_cfg['UI__Langs'])
 	$_cfg['UI__Langs'] = array($_GS['default_lang']);
@@ -243,7 +271,8 @@ require_once('module/lib.php');
 	
 if ($_smode < 2) // user mode
 {
-	if (($_cfg['Sec_HTTPSMode'] == 1) and !$_GS['https'])
+	// Article normalization needs the translated title; its controller combines redirects.
+	if (($_cfg['Sec_HTTPSMode'] == 1) and !$_GS['https'] and $_GS['module'] !== 'news/show')
 		goToURL(fullURL('*', true));
 
 	$login_link = moduleToLink('account/login');
@@ -458,7 +487,7 @@ if ($_smode < 2) // user mode
 
 	// Main vars
 		
-	$_GS['lang'] = View::getLang($_SESSION['_lang']); // lang
+	$_GS['lang'] = $_GS['url_locale'] ?? View::getLang($_SESSION['_lang'] ?? ''); // lang
 	$_GS['lang_dir'] = View::getLangDir(); // tpl lang dir
 	$_TRANS = View::translationLoad($_GS['lang']);
 	

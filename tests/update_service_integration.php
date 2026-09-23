@@ -134,6 +134,11 @@ try
 	$settings = new UpdateSettings($root, $temporaryRoot . '/work', 10485760, 20971520, 300, 10485760, 5);
 	$service = new UpdateService($db, $_cfg, $domain, $root, $settings, $provider);
 	$initialVersion = trim((string)file_get_contents($versionFilePath));
+    $parts = explode('.', $initialVersion);
+    $codeVersion = $parts[0] . '.' . $parts[1] . '.' . ((int)$parts[2] + 1);
+    $healthVersion = $parts[0] . '.' . $parts[1] . '.' . ((int)$parts[2] + 2);
+    $cancelVersion = $healthVersion . '-cancel';
+    $databaseVersion = $parts[0] . '.' . $parts[1] . '.' . ((int)$parts[2] + 3);
 	(new ReleaseBaselineRepository($settings))->publish($initialVersion, array(
 		array('path' => 'VERSION', 'sha256' => hash_file('sha256', $versionFilePath), 'size' => filesize($versionFilePath), 'class' => 'core_strict'),
 		array('path' => 'SCHEMA_VERSION', 'sha256' => hash_file('sha256', $schemaFilePath), 'size' => filesize($schemaFilePath), 'class' => 'core_strict'),
@@ -141,10 +146,10 @@ try
 		array('path' => 'module/_config.php', 'sha256' => hash_file('sha256', $routesPath), 'size' => filesize($routesPath), 'class' => 'core_strict'),
 	));
 
-	$codeArchive = updateServiceArchive($temporaryRoot, 'code-only', $initialVersion, '1.0.6', $sourceSchema, $sourceSchema, array(
+	$codeArchive = updateServiceArchive($temporaryRoot, 'code-only', $initialVersion, $codeVersion, $sourceSchema, $sourceSchema, array(
 		'static/update-service-probe.txt' => "phase3-code-only\n",
 	));
-	$provider->add('1.0.6', $codeArchive);
+	$provider->add($codeVersion, $codeArchive);
 	$codeOnly = $service->prepareManual($codeArchive);
 	$preparedIds[] = $codeOnly['id'];
 	$codeResult = $service->apply($codeOnly['id'], array());
@@ -155,11 +160,11 @@ try
 	updateServiceAssert(!is_file($root . '/.cfg/maintenance.json'), 'Maintenance mode remained active after code-only update');
 
 	$brokenRoutes = "<?php\n\$_rwlinks = array();\n\$_oncron = array();\n";
-	$healthArchive = updateServiceArchive($temporaryRoot, 'health-failure', '1.0.6', '1.0.7', $sourceSchema, $sourceSchema, array(
+	$healthArchive = updateServiceArchive($temporaryRoot, 'health-failure', $codeVersion, $healthVersion, $sourceSchema, $sourceSchema, array(
 		'module/_config.php' => $brokenRoutes,
 		'static/update-service-probe.txt' => "phase3-code-only\n",
 	));
-	$provider->add('1.0.7', $healthArchive);
+	$provider->add($healthVersion, $healthArchive);
 	$healthFailure = $service->prepareManual($healthArchive);
 	$preparedIds[] = $healthFailure['id'];
 	$healthRoutePlan = array_values(array_filter($healthFailure['activation_plan'], static fn(array $entry): bool => $entry['path'] === 'module/_config.php'));
@@ -183,7 +188,7 @@ try
 	$rollback = $service->rollbackCode($healthRunId);
 	updateServiceAssert($rollback['run']['urState'] === 'failed', 'Code rollback did not terminate the failed update');
 	updateServiceAssert((string)file_get_contents($routesPath) === $routesBefore, 'Code rollback did not restore application routes');
-	updateServiceAssert($state->installedApplicationVersion() === '1.0.6', 'Code rollback did not restore the recorded source CMS version');
+	updateServiceAssert($state->installedApplicationVersion() === $codeVersion, 'Code rollback did not restore the recorded source CMS version');
 	updateServiceAssert(!is_file($root . '/.cfg/maintenance.json'), 'Maintenance mode remained active after code rollback');
 
 	$migrationContents = <<<'PHP'
@@ -207,11 +212,11 @@ return array(
 	},
 );
 PHP;
-	$cancelArchive = updateServiceArchive($temporaryRoot, 'cancel', '1.0.6', '1.0.7-cancel', $sourceSchema, '1.0.3', array(
+	$cancelArchive = updateServiceArchive($temporaryRoot, 'cancel', $codeVersion, $cancelVersion, $sourceSchema, '1.0.3', array(
 		'migrations/versioned/' . $migrationId . '.php' => $migrationContents,
 		'static/update-service-probe.txt' => "phase3-code-only\n",
 	));
-	$provider->add('1.0.7-cancel', $cancelArchive);
+	$provider->add($cancelVersion, $cancelArchive);
 	$cancelPrepared = $service->prepareManual($cancelArchive);
 	$preparedIds[] = $cancelPrepared['id'];
 	$db->query('CREATE OR REPLACE VIEW Phase3BackupUnsupportedView AS SELECT 1 AS probeID');
@@ -226,11 +231,11 @@ PHP;
 	updateServiceAssert($cancelled['urState'] === 'failed' && $cancelled['urMessageCode'] === 'update_cancelled', 'Safe pre-activation cancellation failed');
 	$db->query('DROP VIEW IF EXISTS Phase3BackupUnsupportedView');
 
-	$databaseArchive = updateServiceArchive($temporaryRoot, 'database', '1.0.6', '1.0.8', $sourceSchema, '1.0.3', array(
+	$databaseArchive = updateServiceArchive($temporaryRoot, 'database', $codeVersion, $databaseVersion, $sourceSchema, '1.0.3', array(
 		'migrations/versioned/' . $migrationId . '.php' => $migrationContents,
 		'static/update-service-probe.txt' => "phase3-code-only\n",
 	));
-	$provider->add('1.0.8', $databaseArchive);
+	$provider->add($databaseVersion, $databaseArchive);
 	$databasePrepared = $service->prepareManual($databaseArchive);
 	$preparedIds[] = $databasePrepared['id'];
 	updateServiceAssert($databasePrepared['manifest']['classification'] === 'backup-required', 'Migration classification was not derived from the bundled migration');

@@ -1,6 +1,7 @@
-
-{% include "header.twig" with {"title": 'О проекте'} %}
-
-<h1>О проекте</h1>
-
-{% include "footer.twig" %}
+{% include "external/header.twig" with {"title": _t({"key": 'about.title'}), "description": _t({"key": 'site.meta.description'})} %}
+<main id="content" class="flex-1 px-6 pb-24 pt-40">
+	<div class="mx-auto max-w-6xl">
+		<h1 class="text-4xl font-black tracking-tight text-brand dark:text-white">{{ _t({"key": 'about.title'}) }}</h1>
+	</div>
+</main>
+{% include "external/footer.twig" %}

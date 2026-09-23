@@ -3,6 +3,7 @@
 namespace HScript\Template;
 
 use HScript\Application;
+use HScript\Http\PublicSeo;
 use HScript\Mail\Mailer;
 use HScript\Util\StringHelper;
 use Twig\Environment;
@@ -22,6 +23,7 @@ private static ?FilesystemLoader $loader = null;
 private static array $context = [];
 private static array $errors = [];
 private static array $translationCache = [];
+private static ?array $publicContentLocales = null;
 private static array $dateFormats = [
     ["% H:i", "* j, Y", "MDYHI", "m/d/y h:m", "m/d/y", "m" => ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], "f" => ["yesterday", "today", "tomorrow"]]
 ];
@@ -764,6 +766,24 @@ public static function prepVal(&$vl, $conv)
 }
 public static function setPage($par, $val, $conv = 3)
 {
+    global $_GS, $_cfg, $_localeRouter, $_rwlinks;
+    if (!empty($_GS['url_locale']) && isset($_localeRouter)) {
+        // Keep list/block links aligned even when untranslated content is displayed as a fallback.
+        foreach (is_array($val) ? ($par === 'el' ? [$val] : $val) : [] as $row) {
+            if (is_array($row) && !empty($row['nID']) && isset($row['nTopic'])) {
+                $_GS['public_news_paths'][(int)$row['nID']] = PublicSeo::newsPaths(
+                    $_rwlinks['news/show'][0], $row, $_cfg['UI__Langs'], $_localeRouter->primaryLocale()
+                );
+            }
+        }
+        $fields = PublicSeo::contentFields($_GS['module'], (string)$par);
+        if ($fields !== [] && is_array($val)) {
+            $rows = $par === 'el' ? [$val] : $val;
+            $available = PublicSeo::contentLocales($rows, $fields, $_cfg['UI__Langs'], $_localeRouter->primaryLocale());
+            self::$publicContentLocales = self::$publicContentLocales === null
+                ? $available : array_values(array_intersect(self::$publicContentLocales, $available));
+        }
+    }
     if (0 < $conv) {
         self::prepVal($val, $conv);
     }
@@ -815,6 +835,29 @@ public static function showPage($templ = "", $module = false, $exit_after = true
         'tpl_info' => self::getInfoData("*"),
         'tpl_errors' => self::$errors,
     ]);
+    global $_localeRouter;
+    if (!empty($_GS['url_locale']) && isset($_localeRouter) && $_localeRouter->isIndexable($_GS['module'])) {
+        $catalogs = [];
+        foreach ($_cfg['UI__Langs'] as $locale) {
+            $catalogs[$locale] = self::translationReadFile($locale);
+        }
+        $available = PublicSeo::catalogLocales($_GS['module'], $catalogs, self::translationReadBundledFile('en'));
+        if (self::$publicContentLocales !== null) {
+            $available = array_values(array_intersect($available, self::$publicContentLocales));
+        } elseif (in_array($_GS['module'], ['news', 'news/show', 'faq', 'review'], true)) {
+            $available = []; // No controller content means no proven public variant.
+        }
+        $status = http_response_code();
+        $eligible = ($status === false || $status === 200) && $tpl_module === $_GS['module']
+            && !isset($_GET['awating']) && empty($_cfg['Sys_LockSite']);
+        self::$context['public_seo'] = PublicSeo::metadata(
+            $_localeRouter, getRootURL(true), $_GS['module'], $_GS['locale_route']['path'],
+            $_GS['url_locale'], $available, $_GET, (string)($_cfg['Ref_Word'] ?? ''), $eligible, $_GS['public_paths'] ?? []
+        );
+        if (!self::$context['public_seo']['indexable'] && !headers_sent()) {
+            header('X-Robots-Tag: noindex, follow');
+        }
+    }
     self::tplSetTemplateDir(self::tplTemplatePaths($template));
     if (!empty($_cfg["Sys_ForceCharset"]) && !headers_sent()) {
         header("Content-Type: text/html; charset=utf-8");

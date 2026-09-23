@@ -1,4 +1,5 @@
 {
+    "about.title": "Acerca del proyecto",
     "account.detach.confirm": "Confirm detachment account '{{domain}}'",
     "account.detach.link": "detach",
     "admin.category.default": "Other",

@@ -1,4 +1,5 @@
 {
+    "about.title": "About the project",
 "configurator.update.recovery.kind_backup": "Backup report",
 "configurator.update.recovery.kind_drill": "Restore drill",
 "configurator.update.recovery.kind_backup_archive": "Backup archive",
