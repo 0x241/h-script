@@ -27,13 +27,40 @@ if ($environment->getFunction('_z') === null) {
     throw new RuntimeException('Late-bound _z Twig function was not registered.');
 }
 
-foreach (array('balance/index.twig', 'depo/index.twig', 'depo/admin/stat.twig') as $template) {
+foreach (array(
+    'balance/index.twig', 'balance/oper.twig', 'depo/index.twig', 'depo/admin/stat.twig',
+    'message/show.twig', 'message/admin/message.twig', 'tickets/ticket.twig',
+    'tickets/admin/ticket.twig', 'account/admin/user.twig', '_read_receipt.twig',
+) as $template) {
     $environment->load($template);
 }
 
 $rendered = $environment->createTemplate('{{ _z(12.5, 999, 0) }}')->render();
 if ($rendered !== '12.50') {
     throw new RuntimeException('Late-bound _z Twig function rendered incorrectly.');
+}
+
+$_currs[1] = array('cNumDec' => 2, 'cCurr' => '<img src=x onerror=alert(1)> USD');
+$rendered = $environment->createTemplate('{{ _z(12.5, 1, 1) }}')->render();
+if (str_contains($rendered, '<img') || !str_contains($rendered, '&lt;img src=x onerror=alert(1)&gt; USD')) {
+    throw new RuntimeException('Amount formatter exposed untrusted currency markup.');
+}
+
+$rendered = $environment->createTemplate('{{ content|safe_html }}')->render(array(
+    'content' => '<p class="intro">Привет <strong>мир</strong></p><img src="data:image/svg+xml;base64,AA">{{ 7*7 }}',
+));
+if (!str_contains($rendered, '<strong>мир</strong>') || str_contains($rendered, '<img')
+    || !str_contains($rendered, '{{ 7*7 }}')) {
+    throw new RuntimeException('Twig rich text filter changed content or exposed executable markup.');
+}
+
+$payment = $environment->render('balance/_pform.twig', array(
+    'pform' => array('url' => 'https://example.test/pay', 'memo' => '"><script>alert(1)</script>'),
+    '_GET' => array(),
+    'btn_text' => 'Pay',
+));
+if (str_contains($payment, '<script>') || !str_contains($payment, '&lt;script&gt;')) {
+    throw new RuntimeException('Gateway field value escaped the payment form attribute.');
 }
 
 set_error_handler(static function (int $severity, string $message): never {

@@ -1,28 +1,47 @@
 <?php
 
-use HScript\Http\Client;
 use HScript\Payment\PaymentManager;
 
 use HScript\Util\StringHelper;
 
 use HScript\Template\View;
+use HScript\Security\SessionCsrf;
 
 $_auth = 1;
 require_once('module/auth.php');
 $paymentManager = new PaymentManager($db);
 
-if ($_POST and isset($_GET['resend']))
-{
-	Client::request(fullURL(moduleToLink('balance/status'), false), $_POST);
-}
-
 $table = 'Opers';
 $id_field = 'oID';
 $uid_field = 'ouID';
 $out_link = moduleToLink('balance');
+$pay_requested = false;
 
-try 
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['read_receipt']))
 {
+	if (!SessionCsrf::valid($_POST['session_csrf'] ?? null))
+	{
+		http_response_code(403);
+		exit;
+	}
+	$read_id = filter_var($_POST['read_receipt'], FILTER_VALIDATE_INT);
+	if (!$read_id || !$db->count('Opers', 'oID=?d and ouID=?d', array($read_id, _uid())))
+	{
+		http_response_code(404);
+		exit;
+	}
+	$db->update('Opers', array('oNTS' => ''), '', 'oID=?d and ouID=?d', array($read_id, _uid()));
+	http_response_code(204);
+	exit;
+}
+
+try
+{
+	if (View::sendedForm('pay', 'pay'))
+	{
+		View::checkFormSecurity('pay');
+		$pay_requested = true;
+	}
 
 	if (View::sendedForm('', 'add'))
 	{
@@ -77,7 +96,7 @@ try
 			$a['PSys'] = 1;
 		}
 		View::setError($id = opOperCreate(_uid(), $a['Oper'], $a['PSys'], $a['Sum'], $params, $a['Memo']), 'add');
-		View::showInfo('Saved', moduleToLink() . "?id=$id" . StringHelper::valueIf($a['Oper'] == 'CASHIN', '&pay'));
+		View::showInfo('Saved', moduleToLink() . "?id=$id");
 	}
 
 	if (View::sendedForm('', 'data'))
@@ -198,14 +217,14 @@ if (!isset($_GET['add']))
 	$el['oParams2'] = strToArray($el['oParams2']);
 	View::stampArrayToStr($el['oParams2'], 'date', 1);
 	View::setPage('el', $el);
+	View::setPage('read_receipt_id', $id, 0);
 	if (($el['oOper'] == 'CASHIN') and ($el['oState'] <= 2))
 	{
 		opDecodeCurrParams($el, $p, $p_sci, $p_api);
-		if (in_array($el['cCASHINMode'], array(2, 3)))
+		if ($pay_requested and in_array($el['cCASHINMode'], array(2, 3)))
 		{
 			$up = opDecodeUserCurrParams($_currs[$el['cID']]);
 			$up['psysorder'] = $el['oParams']['psysorder'];
-			$up['html'] = $el['oParams']['html'];
 			$pf = $paymentManager->processDeposit($el['cCID'], array(
 				'pay' => $p,
 				'sci' => $p_sci,
@@ -218,16 +237,15 @@ if (!isset($_GET['add']))
 				'user' => $up,
 				'force_payer' => $_cfg['Bal_ForcePayer'],
 			));
-			if (isset($pf['psysorder']) or isset($pf['html']))
+			if (isset($pf['psysorder']))
 			{
 				$el['oParams']['psysorder'] = $pf['psysorder'];
-				$el['oParams']['html'] = $pf['html'];
-				$db->update('Opers', array('oParams' => arrayToStr($el['oParams'])), '', 'oID=?d', array($id));
+				$db->update('Opers', array('oParams' => arrayToStr($el['oParams'])), '', 'oID=?d and ouID=?d and oState<=2', array($id, _uid()));
 				unset($pf['psysorder']);
 			}
 			View::setPage('pform', $pf, 0);
-			if (isset($_GET['pay']))
-				View::showPage('_pform');
+			if (!empty($pf['url']))
+				View::setPage('pay_auto_submit', true, 0);
 		}
 		if (in_array($el['cCASHINMode'], array(1, 3)))
 		{
@@ -240,8 +258,6 @@ if (!isset($_GET['add']))
 				View::setPage('defaultbatch', 'IN' . str_pad($el['oID'], 6, '0', STR_PAD_LEFT));
 		}
 	}
-	$db->update('Opers', array('oNTS' => ''), '', "$id_field=?d", array($id));
-	updateUserCounters();
 }
 else
 {

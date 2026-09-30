@@ -25,7 +25,7 @@
 									<span>{{ l.fQuestion }}</span>
 									<i class="fa-solid fa-chevron-down text-gray-400 transition-transform group-open:rotate-180 group-open:text-blue-500" aria-hidden="true"></i>
 								</summary>
-								<div class="p-6 pt-0 text-lg leading-relaxed text-textDim dark:text-gray-400">{{ l.fAnswer|raw }}</div>
+								<div class="p-6 pt-0 text-lg leading-relaxed text-textDim dark:text-gray-400">{{ l.fAnswer|safe_html }}</div>
 							</details>
 						{% endfor %}
 					</div>

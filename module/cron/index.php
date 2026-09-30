@@ -3,6 +3,13 @@
 use HScript\Observability\CorrelationContext;
 use HScript\Observability\OperationalStateRepository;
 use HScript\Observability\StructuredLogger;
+use HScript\Security\CronAuthentication;
+
+if (!CronAuthentication::authorized($_SERVER, getenv('CRON_TOKEN')))
+{
+	http_response_code(403);
+	exit;
+}
 
 ignore_user_abort(true);
 if (function_exists('set_time_limit')) {

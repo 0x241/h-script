@@ -83,9 +83,10 @@
 					{% include "external/auth.captcha.twig" with {"auth_form_name": confirm_form_name, "auth_captcha": _cfg.Confirm_Captcha} %}
 					<button name="{{ confirm_form_name }}_btn" value="{{ _t({"key": 'confirm.submit', "default": 'Выполнить'}) }}" type="submit" class="w-full rounded-2xl bg-amber-500 p-4 text-lg font-bold text-white shadow-lg shadow-amber-500/30 transition hover:-translate-y-0.5 hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:bg-amber-500 dark:text-white dark:hover:bg-amber-600">{{ _t({"key": 'confirm.submit', "default": 'Подтвердить'}) }}</button>
 			</form>
-			<p class="mt-8 text-center text-sm text-textDim dark:text-gray-400">
-				{{ _t({"key": 'confirm.no_code', "default": 'Не пришел код?'}) }} <a href="{{ _link('confirm', false, 0) }}?resend" class="font-bold text-brand transition-colors hover:text-amber-600 dark:text-white dark:hover:text-amber-400">{{ _t({"key": 'confirm.resend', "default": 'Отправить заново'}) }}</a>
-			</p>
+			<form method="post" action="{{ _link('confirm', false, 0) }}" class="mt-8 text-center text-sm text-textDim dark:text-gray-400">
+				{{ _getFormSecurity({"form": "resend"}) }}
+				{{ _t({"key": 'confirm.no_code', "default": 'Не пришел код?'}) }} <button name="resend_btnresend" value="1" type="submit" class="font-bold text-brand transition-colors hover:text-amber-600 dark:text-white dark:hover:text-amber-400">{{ _t({"key": 'confirm.resend', "default": 'Отправить заново'}) }}</button>
+			</form>
 		{% endif %}
 	</div>
 </main>

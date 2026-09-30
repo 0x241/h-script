@@ -1,13 +1,72 @@
 const { test, expect } = require('@playwright/test');
 
+async function chooseConfiguratorLanguage(page, language) {
+  const form = page.locator(`form:has(input[name="cfg_preference"][value="lang"]):has(input[name="value"][value="${language}"])`);
+  await form.locator('xpath=ancestor::details/summary').click();
+  await form.locator('button').click();
+}
+
+test('configurator password change verifies the current password and confirmation', async ({ page }) => {
+  test.skip(test.info().project.name !== 'chromium', 'Password change uses the shared disposable configurator fixture');
+  const original = 'synthetic-isolated-configurator';
+  const replacement = 'synthetic-phase4-configurator-replacement';
+  await page.goto('/_cfg?login');
+  const login = page.locator('form:has(input[name="pass"]):has(button[name="bLogin"])');
+  await login.locator('[name="pass"]').fill(original);
+  await login.locator('[name="bLogin"]').click();
+  try { await page.waitForURL(url => !url.search.includes('login'), { timeout: 5000 }); }
+  catch { throw new Error(`Configurator login failed: ${(await page.locator('body').innerText()).slice(-500)}`); }
+
+  const attempt = async (currentPass, newPass, confirmPass) => {
+    await page.goto('/_cfg?pass');
+    const form = page.locator('form:has(input[name="newPass"]):has(button[name="bSave"])');
+    const csrf = await form.locator('[name="csrf"]').inputValue();
+    return page.request.post('/_cfg?pass', {
+      form: { csrf, currentPass, newPass, confirmPass, bSave: '1' }, maxRedirects: 0,
+    });
+  };
+
+  await page.goto('/_cfg?pass');
+  const form = page.locator('form:has(input[name="newPass"]):has(button[name="bSave"])');
+  await expect(form.locator('input[name="currentPass"][required][autocomplete="current-password"]')).toBeVisible();
+  await expect(form.locator('input[name="confirmPass"][required][autocomplete="new-password"]')).toBeVisible();
+
+  expect((await attempt('wrong-current', replacement, replacement)).status()).toBe(302);
+  await page.goto('/_cfg?pass');
+  await expect(page.getByRole('alert').filter({ hasText: 'Current password is incorrect.' })).toBeVisible();
+
+  expect((await attempt(original, replacement, 'mismatched-confirmation')).status()).toBe(302);
+  await page.goto('/_cfg?pass');
+  await expect(page.getByRole('alert').filter({ hasText: 'New passwords do not match.' })).toBeVisible();
+
+  expect((await attempt(original, replacement, '')).status()).toBe(302);
+  await page.goto('/_cfg?pass');
+  await expect(page.getByRole('alert').filter({ hasText: 'New passwords do not match.' })).toBeVisible();
+
+  const valid = page.locator('form:has(input[name="newPass"]):has(button[name="bSave"])');
+  await valid.locator('[name="currentPass"]').fill(original);
+  await valid.locator('[name="newPass"]').fill(replacement);
+  await valid.locator('[name="confirmPass"]').fill(replacement);
+  await valid.locator('[name="bSave"]').click();
+  await expect(page).toHaveURL(/\?setup$/);
+
+  expect((await attempt(original, original, original)).status()).toBe(302);
+  await page.goto('/_cfg?pass');
+  await expect(page.getByRole('alert').filter({ hasText: 'Current password is incorrect.' })).toBeVisible();
+  expect((await attempt(replacement, original, original)).status()).toBe(302);
+  await page.goto('/_cfg?pass');
+  await expect(page.getByRole('status').filter({ hasText: 'Password saved!' })).toBeVisible();
+});
+
 test('configurator shares translations across login and authenticated sections', async ({ page }) => {
-  await page.goto('/_cfg?login&lang=ru');
+  await page.goto('/_cfg?login');
+  await chooseConfiguratorLanguage(page, 'ru');
   await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
   await expect(page.locator('h1')).toHaveText('Вход в конфигуратор');
   await page.locator('input[name="pass"]').fill('synthetic-wrong-password');
   await page.locator('[name="bLogin"]').click();
   await expect(page.getByText('Неверный пароль', { exact: true })).toBeVisible();
-  await page.goto('/_cfg?login&lang=en');
+  await chooseConfiguratorLanguage(page, 'en');
   await expect(page.locator('h1')).toHaveText('Configurator sign in');
   await page.locator('input[name="pass"]').fill('synthetic-isolated-configurator');
   await Promise.all([
@@ -22,7 +81,8 @@ test('configurator shares translations across login and authenticated sections',
     expect(await page.locator('body').innerText()).not.toMatch(/configurator\.|[А-Яа-яЁё]/);
   }
   await verifyIntegrity(page);
-  await page.goto('/_cfg?backup&lang=ru');
+  await page.goto('/_cfg?backup');
+  await chooseConfiguratorLanguage(page, 'ru');
   await expect(page.locator('html')).toHaveAttribute('lang', 'ru');
   await expect(page.locator('body')).not.toContainText('configurator.');
 });

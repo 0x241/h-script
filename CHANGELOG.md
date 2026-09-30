@@ -5,7 +5,21 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-Current source target: application `1.0.6`, schema `1.0.2` (no new migration).
+Current source target: application `1.0.7`, schema `1.0.2` (no new migration).
+
+### Security (1.0.7 staging candidate)
+
+- Inventory and CI gate for browser output bypasses; sanitize rich text, URLs,
+  email HTML, and gateway-controlled output at their rendering boundaries.
+- Add per-response CSP nonces and a surface-specific Report-Only policy with a
+  bounded, privacy-reduced violation collector. The legacy policy remains
+  enforced until staging observation and integration checks are complete.
+- Add a CI-checked route matrix and harden CSRF and authorization for session
+  mutations, account ownership, administrator role changes, cron, OAuth state,
+  and signed payment callbacks. The full negative route and gateway sandbox
+  matrix remains a staging acceptance task.
+- Require the current configurator password for password changes and confirm
+  the new password before saving. Initial password setup remains supported.
 
 ### Fixed
 

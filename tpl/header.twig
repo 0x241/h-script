@@ -12,7 +12,6 @@
 {% if current_lang %}
 	{% set theme_lang = current_lang %}
 {% endif %}
-{% set theme_toggle_url = _link('system', false, 0) ~ '?lang=' ~ theme_lang ~ '&theme=' ~ theme_next ~ '&url=' ~ (fullURL()|url_encode) %}
 {% set lang_str = "" %}
 {% if is_array(_cfg.UI__Langs) %}
 	{% set lang_str = "\n"|implode(_cfg.UI__Langs) %}
@@ -33,9 +32,11 @@
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 		<link rel="stylesheet" type="text/css" href="static/css/app.css?v=tailwind-20260813-ui-15">
-		<meta name="htmx-config" content='{"allowEval":false}'>
+		<link rel="stylesheet" href="static/css/htmx-indicator.css?v=20260929-csp1">
+		{% if depo_css|default('') in ['top', 'lastin', 'lastout', 'topin'] %}<link rel="stylesheet" href="static/css/depo-{{ depo_css }}.css?v=20260929-csp1">{% endif %}
+		<meta name="htmx-config" content='{"allowEval":false,"allowScriptTags":false,"includeIndicatorStyles":false}'>
 		<script src="static/js/htmx.min.js"></script>
-		<script src="static/js/app.js?v=20260825-1" defer></script>
+		<script src="static/js/app.js?v=20260929-security4" defer></script>
 	</head>
 	<body class="min-h-screen bg-bgLight text-brand antialiased dark:bg-[#0A0A0A] dark:text-gray-100 lg:flex {% if body_class %}{{ body_class }}{% endif %}">
 	<a class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-brand focus:px-5 focus:py-3 focus:text-sm focus:font-bold focus:text-white dark:focus:bg-white dark:focus:text-brand" href="{{ fullURL() }}#content" hx-boost="false">{{ _t({"key": 'site.skip_content', "default": 'Перейти к содержимому'}) }}</a>
@@ -77,18 +78,18 @@
 							{% for lng in hs_clean_langs %}
 								{% set lng_clean = lng|trim %}
 								{% if lng_clean %}
-									<a href="{% if tpl_module == 'system' %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}{% else %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}&url={{ _link(tpl_module, false, 0) }}{% endif %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-brand transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-black{% if current_lang == lng_clean %} bg-gray-50/70 dark:bg-black/30{% endif %}">
+									<form method="post" action="{{ _link('system', false, 0) }}" hx-boost="false"><input type="hidden" name="session_csrf" value="{{ session_csrf }}"><input type="hidden" name="lang" value="{{ lng_clean }}"><input type="hidden" name="url" value="{% if tpl_module == 'system' %}{{ _link('index', false, 0) }}{% else %}{{ _link(tpl_module, false, 0) }}{% endif %}"><button type="submit" class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-brand transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-black{% if current_lang == lng_clean %} bg-gray-50/70 dark:bg-black/30{% endif %}">
 										<span class="{% if current_lang == lng_clean %}text-blue-500{% else %}text-gray-400{% endif %}">{{ lng_clean|upper }}</span>
 										{{ lng_clean|upper }}
-									</a>
+									</button></form>
 								{% endif %}
 							{% endfor %}
 						</div>
 					</details>
-					<a href="{{ theme_toggle_url }}" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
+					<form method="post" action="{{ _link('system', false, 0) }}" hx-boost="false"><input type="hidden" name="session_csrf" value="{{ session_csrf }}"><input type="hidden" name="lang" value="{{ theme_lang }}"><input type="hidden" name="theme" value="{{ theme_next }}"><input type="hidden" name="url" value="{{ fullURL() }}"><button type="submit" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
 						<i class="fa-solid fa-moon block text-lg dark:!hidden" aria-hidden="true"></i>
 						<i class="fa-solid fa-sun !hidden text-lg text-yellow-400 dark:!block" aria-hidden="true"></i>
-					</a>
+					</button></form>
 					<a href="{{ _link('message', false, 0) }}" class="relative flex h-10 w-10 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-[#202020]" aria-label="{{ _t({"key": 'nav.messages', "default": 'Сообщения'}) }}">
 						<i class="fa-solid fa-bell" aria-hidden="true"></i>
 						{% if count_msg > 0 %}

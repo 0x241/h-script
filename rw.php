@@ -3,6 +3,8 @@
 use HScript\Util\StringHelper;
 use HScript\Template\View;
 use HScript\Http\ApiResponse;
+use HScript\Http\ContentSecurityPolicy;
+use HScript\Http\CspReportCollector;
 use HScript\Http\LocaleRouter;
 use HScript\Http\SystemPageRenderer;
 use HScript\Observability\HttpRequestObserver;
@@ -23,6 +25,19 @@ if (!headers_sent()) {
 	header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
 	header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; media-src 'self' blob:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://challenges.cloudflare.com;");
 }
+
+if (parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) === '/csp-report')
+{
+	header('Cache-Control: no-store');
+	$body = file_get_contents('php://input', false, null, 0, 8193);
+	$status = CspReportCollector::handle($_SERVER, $body === false ? '' : $body, __DIR__ . '/logs');
+	http_response_code($status);
+	exit;
+}
+
+$_GS['csp_nonce'] = ContentSecurityPolicy::beginRequest();
+if (!headers_sent())
+	header('Content-Security-Policy-Report-Only: ' . ContentSecurityPolicy::reportOnly('error'));
 
 $_GS['https'] = hsIsHttpsRequest();
 $_GS['root_url'] = getRootURL($_GS['https']);
@@ -186,6 +201,10 @@ if (!file_exists($f = $_GS['module_dir'] . $m . '/index.php'))
 	}
 
 $_GS['module'] = $m; // account/login
+if (!headers_sent())
+	header('Content-Security-Policy-Report-Only: ' . ContentSecurityPolicy::reportOnly(
+		ContentSecurityPolicy::surface($m, $_rwlinks[$m] ?? array())
+	));
 $_GS['vmodule'] = (!empty($_rwlinks[$m]['admin']) ? 'admin' : $m);
 $_GS['script'] = $f; // module/account/login/*.php
 
@@ -194,6 +213,7 @@ if ($m != '_config')
 	// Twig init
 
 	View::initialize();
+	View::setPage('csp_nonce', $_GS['csp_nonce'], 0);
 	View::setPage('_selfLink', moduleToLink());
 
 	$_GS['demo'] = file_exists('tpl_c/demo') || !empty($_cfg['demo_mode']);

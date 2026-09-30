@@ -617,6 +617,9 @@ function fullURL($url = "*", $as_HTTPS = -1)
 function goToURL($url = "*", $work_after = 0)
 {
     $url = fullurl($url);
+    if (!\HScript\Security\SafeUrl::redirect($url)) {
+        $url = fullurl(moduleToLink('index'));
+    }
     $isHtmxRequest = isset($_SERVER["HTTP_HX_REQUEST"])
         && strtolower((string)$_SERVER["HTTP_HX_REQUEST"]) === "true";
     if (session_status() === PHP_SESSION_ACTIVE) {
@@ -634,7 +637,6 @@ function goToURL($url = "*", $work_after = 0)
             header("Location: " . $url);
         }
     } else {
-        echo '<script>window.location.href="' . htmlspecialchars($url, ENT_QUOTES) . '";</script>';
         echo '<meta http-equiv="refresh" content="0;url=' . htmlspecialchars($url, ENT_QUOTES) . '">';
     }
     $work_after = intval($work_after);
@@ -661,6 +663,9 @@ function refreshToURL($t = 0, $url = "*")
         $t = 1;
     }
     $url = fullurl($url);
+    if (!\HScript\Security\SafeUrl::redirect($url)) {
+        $url = fullurl(moduleToLink('index'));
+    }
     if (session_status() === PHP_SESSION_ACTIVE) {
         session_commit();
     }

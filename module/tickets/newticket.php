@@ -37,25 +37,6 @@ catch (FormAbortException $e)
 {
 }
 
-if (!isset($_GET['add']))
-{
-	if ($id = _GETN('id'))
-		$el = $db->fetch1Row($db->select("$table LEFT JOIN Users ON uID=tuID", 
-			"$table.*, Users.uLogin", "$id_field=?d and tuID=?d", array($id, _uid())));
-	if (!$el)
-		goToURL(moduleToLink() . '?add');
-	View::stampArrayToStr($el, 'tTS, tLTS', 0);
-	View::setPage('el', $el, 2);
-	
-	$list = $db->fetchRows($db->select('TMsg LEFT JOIN Users ON uID=muID', 
-		'TMsg.*, Users.uLogin', 'mtID=?d', array($id)));
-	View::stampTableToStr($list, 'mTS, mRTS');
-	View::setPage('list', $list, 2);
-	
-	$db->update('TMsg', array('mRTS' => timeToStamp()), '', 'mtID=?d and (mRTS IS NULL)', array($id));
-	updateUserCounters();
-}
-	
 View::showPage('ticket');
 
 ?>

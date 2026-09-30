@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__);
-$meta = '<meta name="htmx-config" content=\'{"allowEval":false}\'>';
+$meta = '<meta name="htmx-config" content=\'{"allowEval":false,"allowScriptTags":false,"includeIndicatorStyles":false}\'>';
 $script = '<script src="static/js/htmx.min.js"></script>';
+$indicatorCss = 'static/css/htmx-indicator.css?v=20260929-csp1';
 $shells = array(
 	'tpl/base.twig',
 	'tpl/header.twig',
@@ -20,9 +21,11 @@ foreach ($shells as $relativePath)
 	$metaPosition = strpos($source, $meta);
 	$scriptPosition = strpos($source, $script);
 	if ($metaPosition === false)
-		throw new RuntimeException($relativePath . ' does not disable HTMX eval.');
+		throw new RuntimeException($relativePath . ' does not disable HTMX eval, swap scripts, and inline indicator CSS.');
 	if ($scriptPosition === false || $metaPosition > $scriptPosition)
 		throw new RuntimeException($relativePath . ' must configure HTMX before loading it.');
+	if (!str_contains($source, $indicatorCss))
+		throw new RuntimeException($relativePath . ' lacks local HTMX indicator CSS.');
 }
 
 $directories = array($root . '/tpl', $root . '/module');

@@ -6,15 +6,19 @@ use DOMComment;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
+use HScript\Security\SafeUrl;
 
 /**
  * Sanitizes administrator-authored rich text before persistence.
  */
 final class HtmlSanitizer
 {
+	private const MAX_BYTES = 262144;
+	private const MAX_NODES = 4096;
+	private const MAX_DEPTH = 32;
 	private const ALLOWED_TAGS = array(
-		'a', 'blockquote', 'br', 'code', 'div', 'em', 'figure', 'figcaption', 'h2', 'h3', 'h4',
-		'hr', 'i', 'img', 'li', 'ol', 'p', 'pre', 'span', 'strong', 'table', 'tbody', 'td',
+		'a', 'b', 'blockquote', 'br', 'code', 'div', 'em', 'figure', 'figcaption', 'h2', 'h3', 'h4',
+		'hr', 'i', 'img', 'li', 'ol', 'p', 'pre', 'small', 'span', 'strong', 'table', 'tbody', 'td',
 		'tfoot', 'th', 'thead', 'tr', 'u', 'ul'
 	);
 	private const GLOBAL_ATTRIBUTES = array('class', 'title');
@@ -29,6 +33,8 @@ final class HtmlSanitizer
 	{
 		if ($html === '')
 			return '';
+		if (strlen($html) > self::MAX_BYTES || !preg_match('//u', $html))
+			return self::plainFallback($html);
 		if (!class_exists(DOMDocument::class))
 			throw new \RuntimeException('The PHP DOM extension is required to sanitize rich text safely');
 
@@ -45,12 +51,34 @@ final class HtmlSanitizer
 		$root = $document->getElementById('hs-sanitize-root');
 		if (!$root)
 			return '';
+		if (!self::withinStructureLimits($root))
+			return self::plainFallback($html);
 		self::sanitizeChildren($root);
 
 		$result = '';
 		foreach ($root->childNodes as $child)
 			$result .= $document->saveHTML($child);
 		return self::unwrapLanguageMarkerParagraphs($result);
+	}
+
+	private static function plainFallback(string $html): string
+	{
+		return htmlspecialchars(substr($html, 0, self::MAX_BYTES), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+	}
+
+	private static function withinStructureLimits(DOMNode $root): bool
+	{
+		$stack = array(array($root, 0));
+		$count = 0;
+		while ($stack)
+		{
+			[$node, $depth] = array_pop($stack);
+			if (++$count > self::MAX_NODES || $depth > self::MAX_DEPTH)
+				return false;
+			foreach ($node->childNodes as $child)
+				$stack[] = array($child, $depth + 1);
+		}
+		return true;
 	}
 
 	/**
@@ -96,6 +124,11 @@ final class HtmlSanitizer
 			}
 
 			self::sanitizeAttributes($node, $tag);
+			if ($tag === 'img' && !$node->hasAttribute('src'))
+			{
+				$parent->removeChild($node);
+				continue;
+			}
 			self::sanitizeChildren($node);
 		}
 	}
@@ -111,21 +144,14 @@ final class HtmlSanitizer
 				$element->removeAttribute($attribute->name);
 				continue;
 			}
-			if (in_array($name, array('href', 'src'), true) && !self::safeUrl($attribute->value, $tag === 'img'))
+			if ($name === 'href' && !SafeUrl::href($attribute->value))
+				$element->removeAttribute($attribute->name);
+			if ($name === 'src' && !SafeUrl::image($attribute->value))
 				$element->removeAttribute($attribute->name);
 		}
+		if ($tag === 'a' && !in_array($element->getAttribute('target'), array('', '_blank', '_self'), true))
+			$element->removeAttribute('target');
 		if ($tag === 'a' && $element->getAttribute('target') === '_blank')
 			$element->setAttribute('rel', 'noopener noreferrer');
-	}
-
-	private static function safeUrl(string $url, bool $allowDataImage): bool
-	{
-		$url = trim(html_entity_decode($url, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
-		if ($url === '' || str_starts_with($url, '/') || str_starts_with($url, '#'))
-			return true;
-		if ($allowDataImage && preg_match('#^data:image/(?:png|gif|jpe?g|webp);base64,#i', $url))
-			return true;
-		$scheme = strtolower((string)parse_url($url, PHP_URL_SCHEME));
-		return in_array($scheme, array('http', 'https', 'mailto'), true);
 	}
 }

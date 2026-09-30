@@ -11,8 +11,13 @@ $uid = StringHelper::exValue(_SESSION('nuid'), _uid());
 try 
 {
 
-	if ($uid and isset($_GET['resend']))
+	if (View::sendedForm('resend', 'resend'))
+	{
+		View::checkFormSecurity('resend');
+		if (!$uid)
+			View::showInfo('*Denied');
 		opConfirmResend($uid);
+	}
 
 	if (View::sendedForm())
 	{

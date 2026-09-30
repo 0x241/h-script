@@ -12,7 +12,6 @@
 {% if current_lang %}
 	{% set theme_lang = current_lang %}
 {% endif %}
-{% set theme_toggle_url = _link('system', false, 0) ~ '?lang=' ~ theme_lang ~ '&theme=' ~ theme_next ~ '&url=' ~ (fullURL()|url_encode) %}
 
 <!doctype html>
 <html lang="{% if current_lang %}{{ current_lang }}{% else %}ru{% endif %}" class="{{ current_theme }}" data-theme="{{ current_theme }}">
@@ -28,9 +27,10 @@
 			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 			<link rel="stylesheet" type="text/css" href="static/css/app.css?v=tailwind-20260813-ui-15">
 			{% if tpl_module in ['news/admin/news', 'faq/admin/faq'] %}<link rel="stylesheet" type="text/css" href="static/lib/ckeditor5/48.2.0/ckeditor5/ckeditor5.css">{% endif %}
-			<meta name="htmx-config" content='{"allowEval":false}'>
+			<link rel="stylesheet" href="static/css/htmx-indicator.css?v=20260929-csp1">
+			<meta name="htmx-config" content='{"allowEval":false,"allowScriptTags":false,"includeIndicatorStyles":false}'>
 			<script src="static/js/htmx.min.js"></script>
-			<script src="static/js/app.js?v=20260825-1" defer></script>
+			<script src="static/js/app.js?v=20260929-security4" defer></script>
 	</head>
 		<body class="min-h-screen bg-[#F7F7F5] text-brand antialiased dark:bg-[#0A0A0A] dark:text-gray-100 dark:[--ck-color-base-background:#151515] dark:[--ck-color-base-border:#374151] dark:[--ck-color-base-foreground:#1A1A1A] dark:[--ck-color-text:#F3F4F6] dark:[--ck-color-toolbar-background:#1A1A1A] dark:[--ck-color-button-default-hover-background:#262626] dark:[--ck-color-button-on-background:#303030]">
 	{% if not short %}
@@ -69,17 +69,17 @@
 						{% for lng in hs_clean_langs %}
 							{% set lng_clean = lng|trim %}
 							{% if lng_clean %}
-								<a href="{% if tpl_module == 'system' %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}{% else %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}&url={{ _link(tpl_module, false, 0) }}{% endif %}" hx-boost="false" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-brand transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-black{% if current_lang == lng_clean %} bg-gray-50/70 dark:bg-black/30{% endif %}">
+								<form method="post" action="{{ _link('system', false, 0) }}" hx-boost="false"><input type="hidden" name="session_csrf" value="{{ session_csrf }}"><input type="hidden" name="lang" value="{{ lng_clean }}"><input type="hidden" name="url" value="{% if tpl_module == 'system' %}{{ _link('index', false, 0) }}{% else %}{{ _link(tpl_module, false, 0) }}{% endif %}"><button type="submit" class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-brand transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-black{% if current_lang == lng_clean %} bg-gray-50/70 dark:bg-black/30{% endif %}">
 									<span class="{% if current_lang == lng_clean %}text-blue-500{% else %}text-gray-400{% endif %}">{{ lng_clean|upper }}</span>
 									{{ lng_clean|upper }}
-								</a>
+								</button></form>
 							{% endif %}
 						{% endfor %}
 						</div>
 					</details>
-					<a href="{{ theme_toggle_url }}" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:bg-gray-50 hover:text-brand dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400 dark:hover:bg-[#202020] dark:hover:text-white" aria-label="{{ _t({"key": 'theme.toggle'}) }}" title="{{ _t({"key": 'theme.toggle'}) }}">
+					<form method="post" action="{{ _link('system', false, 0) }}" hx-boost="false"><input type="hidden" name="session_csrf" value="{{ session_csrf }}"><input type="hidden" name="lang" value="{{ theme_lang }}"><input type="hidden" name="theme" value="{{ theme_next }}"><input type="hidden" name="url" value="{{ fullURL() }}"><button type="submit" class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-sm transition hover:bg-gray-50 hover:text-brand dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400 dark:hover:bg-[#202020] dark:hover:text-white" aria-label="{{ _t({"key": 'theme.toggle'}) }}" title="{{ _t({"key": 'theme.toggle'}) }}">
 						<i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i>
-					</a>
+					</button></form>
 					</div>
 				</header>
 				<div class="mx-auto flex w-full max-w-[1600px] flex-1 flex-col px-6 py-8 lg:px-10">

@@ -1,0 +1,296 @@
+[
+    {
+        "path": "module/_config/_header.php",
+        "line": 81,
+        "kind": "php_script_tag",
+        "count": 1,
+        "sha256": "1e9f13863a158aceb5a2a41f2056dce2d799b102f998c627ef79df605f43c7a8"
+    },
+    {
+        "path": "module/_config/_header.php",
+        "line": 82,
+        "kind": "php_script_tag",
+        "count": 1,
+        "sha256": "1bd642326e4997a8d6be1ed1b8cd574e71537577684d6397b7cfffbd3765e7b6"
+    },
+    {
+        "path": "module/_config/security.php",
+        "line": 201,
+        "kind": "php_script_tag",
+        "count": 1,
+        "sha256": "93649a78cae78c7f18a839c1f92a08abfe67f578adecf300bbd9d0fbbfb6f262"
+    },
+    {
+        "path": "module/captcha/turnstile/onstart.php",
+        "line": 14,
+        "kind": "php_script_tag",
+        "count": 1,
+        "sha256": "96b5173e3bcf778b6b50cf4b7d224862a8d72e3302ada30f11f68402b1161425"
+    },
+    {
+        "path": "src/Template/View.php",
+        "line": 319,
+        "kind": "twig_safe_html_registration",
+        "count": 1,
+        "sha256": "8eb7ba4e4778c315543b8258dc3dcbddf0bf7a3efeedecef83773ee14cd8ab58"
+    },
+    {
+        "path": "src/Template/View.php",
+        "line": 320,
+        "kind": "twig_safe_html_registration",
+        "count": 1,
+        "sha256": "bb0c6b456679ebe2dde9001f7212e98e0da5caf5934750483f79369f100a83ff"
+    },
+    {
+        "path": "src/Template/View.php",
+        "line": 322,
+        "kind": "twig_safe_html_registration",
+        "count": 1,
+        "sha256": "21e9913b957311289c415f23d2441b9becb88ea40bb547798465e89d7b065245"
+    },
+    {
+        "path": "src/Template/View.php",
+        "line": 415,
+        "kind": "twig_safe_html_registration",
+        "count": 1,
+        "sha256": "721846372521b973f1e1467f1151e3dcba1e6efeb61af4f1624a935e23a5b261"
+    },
+    {
+        "path": "src/Template/View.php",
+        "line": 433,
+        "kind": "twig_safe_html_registration",
+        "count": 1,
+        "sha256": "0779499e68a21fb3f702aa5e604c6d124a804fa90e01351e0b2f2b5e87ca29de"
+    },
+    {
+        "path": "src/Template/View.php",
+        "line": 441,
+        "kind": "twig_safe_html_registration",
+        "count": 1,
+        "sha256": "721846372521b973f1e1467f1151e3dcba1e6efeb61af4f1624a935e23a5b261"
+    },
+    {
+        "path": "tpl/admin/edit.block.twig",
+        "line": 34,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "06885254f5727e73e42d78b8526ca31ea87605cfb5bfa93b00f2b250f60a1a61"
+    },
+    {
+        "path": "tpl/admin/edit.block.twig",
+        "line": 36,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "bc61c7dfee3aa023db03c1b79ba110aacfc7b038d7bd11c5737ecea50556b9c0"
+    },
+    {
+        "path": "tpl/admin/edit.block.twig",
+        "line": 79,
+        "kind": "twig_sanitized_html",
+        "count": 2,
+        "sha256": "db3f493ad71394da93e0dc4545182c22b54a5f3a83a4fe3433144cfbfb2ec22c"
+    },
+    {
+        "path": "tpl/admin/footer.twig",
+        "line": 20,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "044f055bd67e0df256c901aab1b9d0c91ba386c31d24880421284f243a6da8fc"
+    },
+    {
+        "path": "tpl/admin/header.twig",
+        "line": 32,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "1e9f13863a158aceb5a2a41f2056dce2d799b102f998c627ef79df605f43c7a8"
+    },
+    {
+        "path": "tpl/admin/header.twig",
+        "line": 33,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "824a8436a52e210a02eb4cb709532119bc98b3cbb60593a983fc3295463ae28b"
+    },
+    {
+        "path": "tpl/admin/list.block.twig",
+        "line": 20,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "454e10fc9112e027c9a36a522babc105733d589deda3222cf117be49270e0dbe"
+    },
+    {
+        "path": "tpl/admin/list.block.twig",
+        "line": 65,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "84190724efd523918db572df93abe6c45cd580a2f3a966fbb425e4b8e9da7ac6"
+    },
+    {
+        "path": "tpl/admin/list.block.twig",
+        "line": 68,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "0a7255b00a352ca7703be2540830954f21f9393e36e0b487ef22eaedf37c134c"
+    },
+    {
+        "path": "tpl/base.twig",
+        "line": 22,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "1e9f13863a158aceb5a2a41f2056dce2d799b102f998c627ef79df605f43c7a8"
+    },
+    {
+        "path": "tpl/base.twig",
+        "line": 23,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "824a8436a52e210a02eb4cb709532119bc98b3cbb60593a983fc3295463ae28b"
+    },
+    {
+        "path": "tpl/edit.field.twig",
+        "line": 74,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "c924769ff84628a088ecc383b6433c8b4d687184fd646605668a95d266365985"
+    },
+    {
+        "path": "tpl/edit.field.twig",
+        "line": 76,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "48fa1a635338a887c56879675d7d10159b9fc3f273315b1baf268d8eda4849ee"
+    },
+    {
+        "path": "tpl/edit.field.twig",
+        "line": 80,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "e1ab69e26a5240dfaac05a5eb4b9dad5cb3e5151cfefbd02047530535e441557"
+    },
+    {
+        "path": "tpl/edit.field.twig",
+        "line": 115,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "f57f00e1ffa3eeda5bc94f41b8fa58ca697962b1b5e7dd7a131c1854a48dfeef"
+    },
+    {
+        "path": "tpl/edit.field.twig",
+        "line": 121,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "4e47b520486bffa4e2c68c8f238fc14ecdfed2f5be414b72ef6d8e8a6b0982a3"
+    },
+    {
+        "path": "tpl/edit.field.twig",
+        "line": 123,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "23252221e91558c08880ca4e85c99cb664e198fc22bc916bd947462b4a42532a"
+    },
+    {
+        "path": "tpl/edit.field.twig",
+        "line": 125,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "f5a30303a993015e9084e8b529af0e899031ca13f2eeacdd7153743b80eba3f0"
+    },
+    {
+        "path": "tpl/external/auth.captcha.twig",
+        "line": 12,
+        "kind": "twig_raw",
+        "count": 1,
+        "sha256": "07d639cf89cd2b698ef1f6fb9a3c392d5239faf3754457e96210f09d878159d2"
+    },
+    {
+        "path": "tpl/external/auth.captcha.twig",
+        "line": 16,
+        "kind": "twig_raw",
+        "count": 1,
+        "sha256": "7023138336da22f7f37085fe77319217c37b8048180e372f655e7c3383737d98"
+    },
+    {
+        "path": "tpl/external/auth.header.twig",
+        "line": 22,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "1e9f13863a158aceb5a2a41f2056dce2d799b102f998c627ef79df605f43c7a8"
+    },
+    {
+        "path": "tpl/external/auth.header.twig",
+        "line": 23,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "824a8436a52e210a02eb4cb709532119bc98b3cbb60593a983fc3295463ae28b"
+    },
+    {
+        "path": "tpl/external/header.twig",
+        "line": 57,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "1e9f13863a158aceb5a2a41f2056dce2d799b102f998c627ef79df605f43c7a8"
+    },
+    {
+        "path": "tpl/external/header.twig",
+        "line": 58,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "824a8436a52e210a02eb4cb709532119bc98b3cbb60593a983fc3295463ae28b"
+    },
+    {
+        "path": "tpl/external/header.twig",
+        "line": 59,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "a494dd166d1c8e68cff0d6abd1a0bdf31df1d09899230b566b9938cf459e0462"
+    },
+    {
+        "path": "tpl/external/header.twig",
+        "line": 67,
+        "kind": "twig_raw",
+        "count": 1,
+        "sha256": "0114e3438f3ac920a6afa30b29acfd19a4b6fdfc225a5ec664c4246230ae0c42"
+    },
+    {
+        "path": "tpl/external/header.twig",
+        "line": 68,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "ffd7c001c4015727705b74d00a7314cfae1801ac58ce38cf6a87b0deec194d3f"
+    },
+    {
+        "path": "tpl/external/header.twig",
+        "line": 68,
+        "kind": "twig_raw",
+        "count": 1,
+        "sha256": "ffd7c001c4015727705b74d00a7314cfae1801ac58ce38cf6a87b0deec194d3f"
+    },
+    {
+        "path": "tpl/faq/index.twig",
+        "line": 28,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "695d7cc177afbc6743f7d8d6bf4519b398e3f8de0419fa452abe3dd05d40685d"
+    },
+    {
+        "path": "tpl/header.twig",
+        "line": 38,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "1e9f13863a158aceb5a2a41f2056dce2d799b102f998c627ef79df605f43c7a8"
+    },
+    {
+        "path": "tpl/header.twig",
+        "line": 39,
+        "kind": "script_tag",
+        "count": 1,
+        "sha256": "824a8436a52e210a02eb4cb709532119bc98b3cbb60593a983fc3295463ae28b"
+    },
+    {
+        "path": "tpl/news/show.twig",
+        "line": 20,
+        "kind": "twig_sanitized_html",
+        "count": 1,
+        "sha256": "73287c351038b29395037f2af34b10c9da23353f430dfb5d5bc6946d65745d20"
+    }
+]

@@ -54,6 +54,10 @@ function opLogin($uid, $url, $set_new_ip = false, $from_admin = false, $remember
 		$impersonator_id = _uid();
 		if (($impersonator_id < 1) or (intval($_user['uLevel'] ?? 0) < 90))
 			return 'access_denied';
+		if ((int)($usr['uState'] ?? 0) !== 1)
+			return 'not_active';
+		if ((int)($usr['uLevel'] ?? 0) >= (int)$_user['uLevel'])
+			return 'access_denied';
 		$impersonator = array(
 			'uID' => $impersonator_id,
 			'uLogin' => (string)($_user['uLogin'] ?? '')

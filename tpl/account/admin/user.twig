@@ -33,7 +33,13 @@
 	<div class="mt-6 flex flex-wrap justify-center gap-3">
 		<a href="{{ _link('balance/admin/opers', false, 0) }}?user={{ el.uLogin }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-extrabold text-brand transition hover:bg-gray-50 dark:border-gray-800 dark:bg-[#151515] dark:text-white dark:hover:bg-[#202020]"><i class="fa-solid fa-list-check" aria-hidden="true"></i><span>Все операции пользователя</span></a>
 		<a href="{{ _link('message/admin/message', false, 0) }}?add&to={{ el.uLogin }}" class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-extrabold text-brand transition hover:bg-gray-50 dark:border-gray-800 dark:bg-[#151515] dark:text-white dark:hover:bg-[#202020]"><i class="fa-solid fa-envelope" aria-hidden="true"></i><span>Написать сообщение пользователю</span></a>
-		<a href="{{ _link('account/admin/user', false, 0) }}?id={{ el.uID }}&login" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i><span>Войти как пользователь</span></a>
+		{% if el.uState == 1 and el.uLevel < user.uLevel and (not demo or user.uLevel == 99) %}
+			<form method="post" action="{{ _link('account/admin/user', false, 0) }}?id={{ el.uID }}" hx-boost="false">
+				{{ _getFormSecurity({"form": "impersonate"}) }}
+				<input type="hidden" name="uID" value="{{ el.uID }}">
+				<button name="impersonate_btnlogin" value="1" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i><span>Войти как пользователь</span></button>
+			</form>
+		{% endif %}
 	</div>
 {% endif %}
 {% include "admin/footer.twig" %}

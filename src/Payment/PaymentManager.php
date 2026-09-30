@@ -17,6 +17,7 @@ use HScript\Payment\Gateways\TronApi;
 use HScript\Payment\Gateways\WebMoney;
 use HScript\Payment\Gateways\XrpApi;
 use HScript\Payment\Gateways\YooMoney;
+use HScript\Security\SafeUrl;
 use RuntimeException;
 use Throwable;
 
@@ -83,7 +84,26 @@ class PaymentManager
 
 	public function processDeposit(string $gatewayId, array $params): array
 	{
-		return $this->execute('deposit', $gatewayId, fn(): array => $this->gateway($gatewayId)->processDeposit($params));
+		$result = $this->execute('deposit', $gatewayId, fn(): array => $this->gateway($gatewayId)->processDeposit($params));
+		if (array_key_exists('html', $result))
+			return $this->rejectDepositForm($gatewayId);
+		if (!array_key_exists('url', $result))
+			return $result;
+		if (!is_string($result['url']) || !SafeUrl::paymentAction($result['url']))
+			return $this->rejectDepositForm($gatewayId);
+		foreach ($result as $name => $value)
+		{
+			if (!is_string($name) || !preg_match('/^[A-Za-z][A-Za-z0-9_-]*$/D', $name)
+				|| (!is_scalar($value) && $value !== null))
+				return $this->rejectDepositForm($gatewayId);
+		}
+		return $result;
+	}
+
+	private function rejectDepositForm(string $gatewayId): array
+	{
+		error_log('[payment] unsafe deposit form rejected for gateway ' . $gatewayId);
+		return array('error' => 'payment_form_unavailable');
 	}
 
 	public function processWithdrawal(string $gatewayId, array $params): array

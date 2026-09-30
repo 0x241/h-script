@@ -71,13 +71,13 @@
 	<div class="{% if edit_is_filter %}grid min-w-0 gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-[#1A1A1A]/50{% elseif edit_is_settings_grid %}grid min-w-0 gap-4 px-6 py-5 md:grid-cols-[minmax(220px,320px)_minmax(0,1fr)] md:items-center md:gap-8{% else %}grid gap-3 border-b border-gray-100 px-6 py-5 last:border-b-0 dark:border-gray-800 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)] md:items-center md:gap-8{% endif %}{% if v.row_class %} {{ v.row_class }}{% endif %}">
 		<div>
 			{% if field_type != 'CC' %}
-					<label for="{{ field_id }}" class="block text-sm font-extrabold text-brand dark:text-gray-200">{{ field_caption|raw }}</label>
+					<label for="{{ field_id }}" class="block text-sm font-extrabold text-brand dark:text-gray-200">{{ field_caption|safe_html }}</label>
 				{% else %}
-					<strong class="block text-sm font-extrabold text-brand dark:text-gray-200">{{ field_caption|raw }}</strong>
+					<strong class="block text-sm font-extrabold text-brand dark:text-gray-200">{{ field_caption|safe_html }}</strong>
 				{% endif %}
 				{% if field_required %}<span class="mt-2 inline-flex rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-red-600 dark:bg-red-500/10 dark:text-red-300">{{ _t({"key": 'form.required', "default": 'Обязательное поле'}) }}</span>{% endif %}
 			{% if field_help %}
-				<small class="mt-2 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ field_help|raw }}</small>
+				<small class="mt-2 block text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ field_help|safe_html }}</small>
 			{% endif %}
 		</div>
 		<div class="min-w-0">
@@ -112,17 +112,17 @@
 						<span class="text-sm font-bold text-gray-500 peer-checked:hidden dark:text-gray-400">{{ _t({"key": "common.disabled", "default": "Выключено"}) }}</span>
 						<span class="hidden text-sm font-bold text-brand peer-checked:inline dark:text-white">{{ _t({"key": "common.enabled", "default": "Включено"}) }}</span>
 					{% else %}
-						<span class="text-sm font-bold text-brand dark:text-white">{{ checkbox_label|raw }}</span>
+						<span class="text-sm font-bold text-brand dark:text-white">{{ checkbox_label|safe_html }}</span>
 					{% endif %}
 				</label>
 			{% elseif field_type == 'X' %}
 				<div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 font-semibold text-brand dark:border-gray-800 dark:bg-[#1A1A1A] dark:text-white">
 					{% if is_array(v[3]) and isset(v[3][cv]) %}
-						{{ v[3][cv]|raw }}
+						{{ v[3][cv]|safe_html }}
 					{% elseif v[3] %}
-						{{ v[3]|raw }}
+						{{ v[3]|safe_html }}
 					{% elseif v.default %}
-						{{ v.default|raw }}
+						{{ v.default|safe_html }}
 					{% else %}
 						{{ cv }}
 					{% endif %}

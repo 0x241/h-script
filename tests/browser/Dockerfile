@@ -2,6 +2,6 @@ FROM mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b7
 WORKDIR /tests
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts --no-audit --no-fund
-COPY playwright.config.cjs release.spec.cjs ./
+COPY playwright.config.cjs release.spec.cjs csp.config.cjs csp.spec.cjs security-phase4.config.cjs security-phase4.spec.cjs run.sh ./
 USER pwuser
-CMD ["npx", "--no-install", "playwright", "test"]
+CMD ["sh", "run.sh"]

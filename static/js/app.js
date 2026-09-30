@@ -7,6 +7,23 @@ const submitMarkedPaymentForm = (root = document) => {
   form.requestSubmit();
 };
 
+const markReadReceipts = (root = document) => {
+  const forms = [
+    ...(root instanceof HTMLFormElement && root.matches('[data-hs-read-receipt]') ? [root] : []),
+    ...(root.querySelectorAll?.('form[data-hs-read-receipt]') ?? []),
+  ];
+  forms.forEach((form) => {
+    if (form.dataset.hsSubmitted === '1' || new URL(form.action).origin !== window.location.origin) return;
+    form.dataset.hsSubmitted = '1';
+    void fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      credentials: 'same-origin',
+      redirect: 'error',
+    }).catch(() => {});
+  });
+};
+
 const startClock = () => {
   const clock = document.querySelector('[data-hs-clock]');
   if (!(clock instanceof HTMLElement)) return;
@@ -62,12 +79,39 @@ const togglePasswordVisibility = (button) => {
   }
 };
 
+const copyMarkedField = async (element) => {
+  const target = document.getElementById(element.dataset.copyTarget ?? '');
+  if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)) return;
+  target.focus();
+  target.select();
+  target.setSelectionRange(0, target.value.length);
+  if (window.isSecureContext && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(target.value);
+      return;
+    } catch {
+      // Keep the selection for the manual copy fallback.
+    }
+  }
+  document.execCommand('copy');
+};
+
 document.addEventListener('click', (event) => {
   const target = event.target;
   if (!(target instanceof Element)) return;
   const button = target.closest('[data-hs-password-toggle]');
   if (button instanceof HTMLButtonElement) togglePasswordVisibility(button);
+  const copy = target.closest('[data-copy-target]');
+  if (copy instanceof HTMLElement) void copyMarkedField(copy);
 });
+
+document.addEventListener('submit', (event) => {
+  const form = event.target;
+  if (form instanceof HTMLFormElement && form.dataset.confirm && !window.confirm(form.dataset.confirm)) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }
+}, true);
 
 document.addEventListener('change', (event) => {
   const target = event.target;
@@ -88,10 +132,12 @@ document.addEventListener('change', (event) => {
 
 document.addEventListener('DOMContentLoaded', () => {
   submitMarkedPaymentForm();
+  markReadReceipts();
   startClock();
   initializeBulkSelection();
 });
 document.addEventListener('htmx:afterSwap', (event) => {
   submitMarkedPaymentForm(event.target);
+  markReadReceipts(event.target);
   initializeBulkSelection(event.target);
 });

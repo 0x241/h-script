@@ -76,8 +76,10 @@ if ($cfgMessage = getMsg())
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 		<link rel="stylesheet" type="text/css" href="static/css/app.css?v=tailwind-20260813-ui-15">
-		<meta name="htmx-config" content='{"allowEval":false}'>
+		<link rel="stylesheet" href="static/css/htmx-indicator.css?v=20260929-csp1">
+		<meta name="htmx-config" content='{"allowEval":false,"allowScriptTags":false,"includeIndicatorStyles":false}'>
 		<script src="static/js/htmx.min.js"></script>
+		<script src="static/js/app.js?v=20260929-csp1" defer></script>
 	</head>
 	<body class="min-h-screen bg-none bg-[#F7F7F5] text-brand antialiased dark:bg-[#0A0A0A] dark:text-gray-100" hx-boost="true">
 		<?php if ($cfgLogged) { ?>
@@ -155,17 +157,17 @@ if ($cfgMessage = getMsg())
 								</summary>
 								<div class="absolute right-0 top-full z-50 mt-2 min-w-32 overflow-hidden rounded-lg border border-gray-100 bg-white p-1 shadow-xl dark:border-gray-800 dark:bg-[#1A1A1A]">
 									<?php foreach ($cfgLanguages as $lang) { ?>
-										<a href="<?php echo cfg_url($cfgActive, array('lang' => $lang)); ?>" class="flex items-center justify-between gap-4 rounded-md px-3 py-2 text-sm font-bold text-brand transition hover:bg-gray-50 dark:text-white dark:hover:bg-[#202020]">
+										<form method="post" action="?<?php echo htmlspecialchars($cfgActive, ENT_QUOTES, 'UTF-8'); ?>" hx-boost="false"><input type="hidden" name="cfg_preference" value="lang"><input type="hidden" name="value" value="<?php echo htmlspecialchars($lang, ENT_QUOTES, 'UTF-8'); ?>"><input type="hidden" name="return_section" value="<?php echo htmlspecialchars($cfgActive, ENT_QUOTES, 'UTF-8'); ?>"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars(ConfiguratorCsrf::token(), ENT_QUOTES, 'UTF-8'); ?>"><button type="submit" class="flex w-full items-center justify-between gap-4 rounded-md px-3 py-2 text-left text-sm font-bold text-brand transition hover:bg-gray-50 dark:text-white dark:hover:bg-[#202020]">
 											<span><?php echo strtoupper($lang); ?></span>
 											<?php if ($_SESSION['cfg_lang'] === $lang) { ?><i class="fa-solid fa-check text-emerald-500" aria-hidden="true"></i><?php } ?>
-										</a>
+										</button></form>
 									<?php } ?>
 								</div>
 							</details>
-								<a href="<?php echo cfg_url($cfgActive, array('theme' => $cfgNextTheme)); ?>" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="<?php echo cfg_t('configurator.common.toggle_theme'); ?>" aria-label="<?php echo cfg_t('configurator.common.toggle_theme'); ?>">
+								<form method="post" action="?<?php echo htmlspecialchars($cfgActive, ENT_QUOTES, 'UTF-8'); ?>" hx-boost="false"><input type="hidden" name="cfg_preference" value="theme"><input type="hidden" name="value" value="<?php echo $cfgNextTheme; ?>"><input type="hidden" name="return_section" value="<?php echo htmlspecialchars($cfgActive, ENT_QUOTES, 'UTF-8'); ?>"><input type="hidden" name="csrf" value="<?php echo htmlspecialchars(ConfiguratorCsrf::token(), ENT_QUOTES, 'UTF-8'); ?>"><button type="submit" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="<?php echo cfg_t('configurator.common.toggle_theme'); ?>" aria-label="<?php echo cfg_t('configurator.common.toggle_theme'); ?>">
 									<i class="fa-solid fa-moon block text-lg dark:!hidden" aria-hidden="true"></i>
 									<i class="fa-solid fa-sun !hidden text-lg text-yellow-400 dark:!block" aria-hidden="true"></i>
-								</a>
+								</button></form>
 						</div>
 					</header>
 

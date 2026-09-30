@@ -1,6 +1,7 @@
 <?php
 
 use HScript\Template\View;
+use HScript\Security\SessionCsrf;
 
 $_auth = 50;
 require_once('module/auth.php');
@@ -10,6 +11,25 @@ $id_field = 'tID';
 $out_link = moduleToLink('tickets/admin');
 $ticket_link = moduleToLink('tickets/admin/ticket');
 $is_hx = isset($_SERVER['HTTP_HX_REQUEST']) && ($_SERVER['HTTP_HX_REQUEST'] == 'true');
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['read_receipt']))
+{
+	if (!SessionCsrf::valid($_POST['session_csrf'] ?? null))
+	{
+		http_response_code(403);
+		exit;
+	}
+	$read_id = filter_var($_POST['read_receipt'], FILTER_VALIDATE_INT);
+	$ticket = $read_id ? $db->fetch1Row($db->select('Tickets', 'tuID', 'tID=?d', array($read_id))) : array();
+	if (!$ticket)
+	{
+		http_response_code(404);
+		exit;
+	}
+	$db->update('TMsg', array('mRTS' => timeToStamp()), '', 'mtID=?d and muID=?d and mRTS IS NULL', array($read_id, (int)$ticket['tuID']));
+	http_response_code(204);
+	exit;
+}
 
 try 
 {
@@ -72,7 +92,7 @@ if (!isset($_GET['add']))
 		'TMsg.*, Users.uID, Users.uLogin, Users.uMail, Users.uLevel, AddInfo.aName, AddInfo.aAvatar', 'mtID=?d', array($id)));
 	View::stampTableToStr($list, 'mTS, mRTS');
 	View::setPage('list', $list, 2);
-	$db->update('TMsg', array('mRTS' => timeToStamp()), '', 'mtID=?d and muID=?d and (mRTS IS NULL)', array($id, $el['tuID']));
+	View::setPage('read_receipt_id', $id, 0);
 }
 	
 View::showPage();

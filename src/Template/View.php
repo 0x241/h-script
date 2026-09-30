@@ -3,6 +3,7 @@
 namespace HScript\Template;
 
 use HScript\Application;
+use HScript\Content\HtmlSanitizer;
 use HScript\Http\PublicSeo;
 use HScript\Mail\Mailer;
 use HScript\Util\StringHelper;
@@ -425,10 +426,12 @@ public static function tplRegisterLegacyPlugins()
         'explode' => [self::class, 'tplExplode'],
         'tpl_name' => [self::class, 'tplTemplateName'],
         '_arr_val' => [self::class, 'tplArrayValue'],
+		'safe_html' => [HtmlSanitizer::class, 'sanitize'],
     ];
     foreach ($customFilters as $name => $callback) {
         if (empty($registered['filter:' . $name])) {
-            self::$environment->addFilter(new TwigFilter($name, $callback));
+			$options = ($name === 'safe_html') ? ['is_safe' => ['html']] : [];
+			self::$environment->addFilter(new TwigFilter($name, $callback, $options));
             $registered['filter:' . $name] = true;
         }
     }
@@ -909,6 +912,9 @@ public static function getFormName($form = "")
 public static function sendedForm($btn = "", $form = "")
 {
     global $_IN;
+    if (strtoupper((string)($_SERVER["REQUEST_METHOD"] ?? "GET")) !== "POST") {
+        return false;
+    }
     $form = self::getFormName($form) . "_btn" . $btn;
     $res = isset_IN($form);
     unset($_IN[$form]);
@@ -1236,8 +1242,13 @@ public static function chkFormCert($s, $form = "")
 }
 public static function checkFormSecurity($form = "")
 {
+    if (strtoupper((string)($_SERVER["REQUEST_METHOD"] ?? "GET")) !== "POST") {
+        http_response_code(405);
+        xSysStop("Security: Form submission requires POST", true);
+    }
     $form = self::getFormName($form);
     if (!self::chkFormCert(_IN("__Cert"), $form)) {
+        http_response_code(403);
         xSysStop("Security: Wrong form certificate", true);
     }
     global $_IN;

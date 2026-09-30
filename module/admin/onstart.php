@@ -4,6 +4,7 @@ use HScript\Template\View;
 use HScript\Telemetry\CollectorMode;
 use HScript\Application;
 use HScript\Security\IntegrityStateRepository;
+use HScript\Security\SessionCsrf;
 use HScript\Update\SchemaVersion;
 
 global $self_category, $admin_modules;
@@ -55,16 +56,22 @@ foreach ($admin_modules as $category => $modules)
 $admin_pinned_ids = isset($_SESSION['_admin_pins']) && is_array($_SESSION['_admin_pins'])
 	? $_SESSION['_admin_pins']
 	: array();
-$pin_module = (string)_GET('admin_pin');
-$unpin_module = (string)_GET('admin_unpin');
+$pin_action = $_GS['module'] === 'admin' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST'
+	? (string)($_POST['pin_action'] ?? '') : '';
+$pin_module = (string)($_POST['pin_item'] ?? '');
 
-if ($pin_module && isset($admin_module_lookup[$pin_module]))
+if (in_array($pin_action, array('pin', 'unpin'), true) && !SessionCsrf::valid($_POST['session_csrf'] ?? null))
+{
+	http_response_code(403);
+	exit;
+}
+if ($pin_action === 'pin' && isset($admin_module_lookup[$pin_module]))
 {
 	$admin_pinned_ids = array_values(array_diff($admin_pinned_ids, array($pin_module)));
 	array_unshift($admin_pinned_ids, $pin_module);
 }
-elseif ($unpin_module)
-	$admin_pinned_ids = array_values(array_diff($admin_pinned_ids, array($unpin_module)));
+elseif ($pin_action === 'unpin')
+	$admin_pinned_ids = array_values(array_diff($admin_pinned_ids, array($pin_module)));
 
 $admin_pinned_modules = array();
 foreach ($admin_pinned_ids as $module)
@@ -72,7 +79,8 @@ foreach ($admin_pinned_ids as $module)
 		$admin_pinned_modules[] = $admin_module_lookup[$module];
 
 $admin_pinned_ids = array_column($admin_pinned_modules, 'module');
-$_SESSION['_admin_pins'] = $admin_pinned_ids;
+if ($pin_action !== '')
+	$_SESSION['_admin_pins'] = $admin_pinned_ids;
 
 $admin_unpinned_modules = array();
 foreach ($admin_modules as $category => $modules)

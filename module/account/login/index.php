@@ -25,12 +25,11 @@ try
 		View::setError(opLogin($impersonator_id, moduleToLink('admin'), true, false, false, false), 'return_admin');
 	}
 
-	if (isset($_GET['out']))
-		{
-			if (!_uid())
-				goToURL(moduleToLink('index'));
-			opLoginOut(_GET('out'));
-			View::showInfo('LogOut');
+	if (View::sendedForm('logout', 'logout'))
+	{
+		View::checkFormSecurity('logout');
+		opLoginOut('user');
+		View::showInfo('LogOut', moduleToLink('index'));
 	}
 
 	if (_uid())

@@ -3,27 +3,13 @@
 use HScript\Update\ConfiguratorRouteRegistry;
 use HScript\Security\ConfiguratorSecurity;
 use HScript\Observability\CorrelationContext;
+use HScript\Update\ConfiguratorCsrf;
 
 error_reporting(7);
 startSessionSafely();
 require_once __DIR__ . '/translations.php';
 CorrelationContext::setActorClass(!empty($_SESSION['cfg_logged']) ? 'administrator' : 'public');
 
-if (isset($_GET['lang'])) {
-	$_SESSION['cfg_lang'] = cfg_language($_GET['lang']);
-	$cfgQuery = $_GET;
-	unset($cfgQuery['lang']);
-	header('Location: ?' . ($cfgQuery ? http_build_query($cfgQuery, '', '&', PHP_QUERY_RFC3986) : 'modules'));
-	exit;
-}
-if (isset($_GET['theme'])) {
-	$_SESSION['cfg_theme'] = ($_GET['theme'] === 'light') ? 'light' : 'dark';
-	$redir = '?' . $_SERVER['QUERY_STRING'];
-	$redir = preg_replace('/&?theme=(light|dark)/i', '', $redir);
-	$redir = str_replace('?&', '?', $redir);
-	header("Location: " . ($redir === '?' ? '?modules' : $redir));
-	exit;
-}
 $_SESSION['cfg_lang'] = cfg_language();
 
 $cfgSecurity = new ConfiguratorSecurity(dirname(__DIR__, 2));
@@ -38,6 +24,34 @@ catch (Throwable $exception)
 	http_response_code(403);
 	header('Content-Type: text/plain; charset=UTF-8');
 	echo cfg_t('configurator.index.configurator_access_is_denied_for_this_address');
+	exit;
+}
+
+if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' && isset($_POST['cfg_preference']))
+{
+	try { ConfiguratorCsrf::consume($_POST['csrf'] ?? null); }
+	catch (Throwable)
+	{
+		http_response_code(403);
+		exit;
+	}
+	$preference = $_POST['cfg_preference'];
+	$value = $_POST['value'] ?? null;
+	if ($preference === 'lang' && is_string($value) && in_array($value, \HScript\Template\View::translationLanguages(), true))
+		$_SESSION['cfg_lang'] = $value;
+	elseif ($preference === 'theme' && in_array($value, array('light', 'dark'), true))
+		$_SESSION['cfg_theme'] = $value;
+	else
+	{
+		http_response_code(400);
+		exit;
+	}
+	$section = $_POST['return_section'] ?? 'modules';
+	if (!is_string($section) || !in_array($section, ConfiguratorRouteRegistry::keys(), true)
+		|| !in_array('GET', ConfiguratorRouteRegistry::get($section)['methods'], true))
+		$section = 'modules';
+	if (empty($_SESSION['cfg_logged'])) $section = 'login';
+	header('Location: ?' . rawurlencode($section), true, 303);
 	exit;
 }
 

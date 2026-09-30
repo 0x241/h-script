@@ -11,6 +11,15 @@ if (!$db->open(getenv('DB_HOST'), getenv('DB_NAME'), getenv('DB_USER'), getenv('
 foreach (array('Account' => array('LoginCaptcha' => 0), 'Sec' => array('BFC' => 3, 'IP' => 0), 'API' => array('Enabled' => 1), 'Sys' => array('NeedReConfig' => 0)) as $module => $properties)
 	foreach ($properties as $property => $value) $db->replace('Cfg', array('Module' => $module, 'Prop' => $property, 'Val' => $value));
 $db->query("UPDATE AddInfo JOIN Users ON auID=uID SET aIPSec=0 WHERE uLogin='admin'");
+foreach (array('phase4-user' => array(1, 1), 'phase4-peer' => array(1, 1), 'phase4-manager' => array(10, 1), 'phase4-manager-peer' => array(10, 1), 'phase4-admin' => array(90, 1), 'phase4-owner' => array(99, 1), 'phase4-disabled' => array(1, 0)) as $login => $roleAndState)
+	$db->insert('Users', array(
+		'uLogin' => $login,
+		'uMail' => $login . '@fixture.invalid',
+		'uPass' => hashPassword('synthetic-phase4-password'),
+		'uLevel' => $roleAndState[0],
+		'uState' => $roleAndState[1],
+		'uLang' => 'en',
+	));
 // Verify the existing global ingestion switch through the real HTTP endpoints.
 file_put_contents(dirname(__DIR__, 2) . '/_config.local.php', "<?php \$_cfg['telemetry_collector_enabled']='1'; \$_cfg['telemetry_collector_domain']='fixture.invalid'; \$_cfg['telemetry_ingestion_enabled']='0';");
 // Real files prove server denial, not just a missing-file response.

@@ -15,6 +15,7 @@
 	</div>
 
 	{% if el.mID %}
+		{% include "_read_receipt.twig" %}
 		<div id="message-panel" class="flex min-h-[calc(100vh-12rem)] flex-col overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
 			<div class="shrink-0 border-b border-gray-100 bg-white/80 p-5 backdrop-blur-xl dark:border-gray-800 dark:bg-[#151515]/80">
 				<div class="mb-2 flex flex-wrap items-center gap-3">

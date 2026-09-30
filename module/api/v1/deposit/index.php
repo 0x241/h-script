@@ -87,7 +87,6 @@ if (in_array((int)$currency['cCASHINMode'], array(2, 3), true))
 		$operationParams = strToArray($operation['oParams']);
 		$operationData = strToArray($operation['oParams2']);
 		$userPayment['psysorder'] = $operationParams['psysorder'] ?? null;
-		$userPayment['html'] = $operationParams['html'] ?? null;
 
 		$paymentManager = new PaymentManager($db);
 		$form = $paymentManager->processDeposit($currency['cCID'], array(
@@ -104,10 +103,9 @@ if (in_array((int)$currency['cCASHINMode'], array(2, 3), true))
 			'user' => $userPayment,
 			'force_payer' => $_cfg['Bal_ForcePayer'],
 		));
-		if (isset($form['psysorder']) || isset($form['html']))
+		if (isset($form['psysorder']))
 		{
 			$operationParams['psysorder'] = $form['psysorder'] ?? null;
-			$operationParams['html'] = $form['html'] ?? null;
 			$db->update('Opers', array('oParams' => arrayToStr($operationParams)), '', 'oID=?d', array($operationId));
 			unset($form['psysorder']);
 		}

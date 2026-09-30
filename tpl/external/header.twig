@@ -12,7 +12,6 @@
 {% if current_lang %}
 	{% set theme_lang = current_lang %}
 {% endif %}
-{% set theme_toggle_url = _link('system', false, 0) ~ '?lang=' ~ theme_lang ~ '&theme=' ~ theme_next ~ '&url=' ~ (fullURL()|url_encode) %}
 {% set site_name = _cfg.Sys_SiteName|default('H-Script') %}
 {% set document_title = seo_title|default(title ? title ~ ' | ' ~ site_name : site_name) %}
 {% set seo_description = description|default(_t({"key": 'site.meta.description', "default": 'H-Script — открытая финтех CMS для управления финансовыми продуктами, платежами и партнерскими программами.'})) %}
@@ -53,10 +52,11 @@
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 			<link rel="stylesheet" type="text/css" href="static/css/app.css?v=tailwind-20260825-seo-ui-1">
 		{% if include_ckeditor_content|default(false) %}<link rel="stylesheet" type="text/css" href="static/lib/ckeditor5/48.2.0/ckeditor5/ckeditor5-content.css">{% endif %}
-		<meta name="htmx-config" content='{"allowEval":false}'>
+		<link rel="stylesheet" href="static/css/htmx-indicator.css?v=20260929-csp1">
+		<meta name="htmx-config" content='{"allowEval":false,"allowScriptTags":false,"includeIndicatorStyles":false}'>
 		<script src="static/js/htmx.min.js"></script>
-		<script src="static/js/app.js?v=20260825-1" defer></script>
-		<script type="application/ld+json">{{ {
+		<script src="static/js/app.js?v=20260929-security4" defer></script>
+		<script type="application/ld+json" nonce="{{ csp_nonce }}">{{ {
 			'@context': 'https://schema.org',
 			'@type': 'Organization',
 			'name': site_name,
@@ -65,7 +65,7 @@
 			'email': 'business@h-script.com',
 			'sameAs': ['https://github.com/0x241/h-script', 'https://t.me/hs_wscc']
 		}|json_encode(15)|raw }}</script>
-		{% if structured_data %}<script type="application/ld+json">{{ structured_data|merge({'url': seo_canonical, 'inLanguage': current_lang})|json_encode(15)|raw }}</script>{% endif %}
+		{% if structured_data %}<script type="application/ld+json" nonce="{{ csp_nonce }}">{{ structured_data|merge({'url': seo_canonical, 'inLanguage': current_lang})|json_encode(15)|raw }}</script>{% endif %}
 	</head>
 	<body class="relative min-h-screen flex flex-col overflow-x-hidden bg-bgLight text-brand antialiased transition-colors duration-300 dark:bg-[#0A0A0A] dark:text-gray-100 {% if body_class %}{{ body_class }}{% endif %}">
 	<a class="skip-link" href="{{ fullURL()|split('?')|first }}#content">{{ _t({"key": 'site.skip_content', "default": 'Перейти к содержимому'}) }}</a>
@@ -109,15 +109,15 @@
 					</div>
 				</details>
 				{% endif %}
-				<a href="{{ theme_toggle_url }}" data-hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5 sm:hidden" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
+				<form method="post" action="{{ _link('system', false, 0) }}" data-hx-boost="false" class="sm:hidden"><input type="hidden" name="session_csrf" value="{{ session_csrf }}"><input type="hidden" name="lang" value="{{ theme_lang }}"><input type="hidden" name="theme" value="{{ theme_next }}"><input type="hidden" name="url" value="{{ fullURL() }}"><button type="submit" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
 					<i class="fa-solid fa-moon block dark:!hidden text-lg" aria-hidden="true"></i>
 					<i class="fa-solid fa-sun !hidden dark:!block text-lg text-yellow-400" aria-hidden="true"></i>
-				</a>
+				</button></form>
 				<div class="hidden items-center gap-4 sm:flex">
-					<a href="{{ theme_toggle_url }}" data-hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
+					<form method="post" action="{{ _link('system', false, 0) }}" data-hx-boost="false"><input type="hidden" name="session_csrf" value="{{ session_csrf }}"><input type="hidden" name="lang" value="{{ theme_lang }}"><input type="hidden" name="theme" value="{{ theme_next }}"><input type="hidden" name="url" value="{{ fullURL() }}"><button type="submit" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
 						<i class="fa-solid fa-moon block dark:!hidden text-lg" aria-hidden="true"></i>
 						<i class="fa-solid fa-sun !hidden dark:!block text-lg text-yellow-400" aria-hidden="true"></i>
-					</a>
+					</button></form>
 					<span class="mx-1 h-6 shrink-0 border-l border-solid border-gray-300 dark:border-gray-700" aria-hidden="true"></span>
 					<a href="{{ public_demo_link }}" class="rounded-full bg-brand px-7 py-3 text-[15px] font-bold text-white shadow-sm transition-all duration-[250ms] hover:-translate-y-0.5 hover:bg-[#2D2D2D] hover:shadow-[0_10px_20px_-5px_rgba(26,26,26,0.3)] dark:bg-white dark:text-brand dark:hover:bg-gray-100 dark:hover:shadow-[0_10px_20px_-5px_rgba(255,255,255,0.1)]">{{ _t({"key": 'home.action.demo', "default": 'Демо'}) }}</a>
 				</div>

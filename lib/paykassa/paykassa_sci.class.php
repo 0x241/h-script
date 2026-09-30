@@ -65,11 +65,6 @@
             ] + compact($fields));
         }
 
-        public function alert($message) { ?>
-            <script>window.alert("<?php echo $message; ?>");</script>
-        <?php
-        }
-
         public function format_currency($money, $currency) {
             if (strtolower($currency) === "btc") {
                 return format_btc($money);

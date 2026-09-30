@@ -4,12 +4,14 @@ use HScript\Http\Client;
 
 function captchaGetHTML($form)
 {
-	global $_cfg;
+	global $_cfg, $_GS;
 	$sitekey = !empty($_cfg['Turnstile_SiteKey']) ? $_cfg['Turnstile_SiteKey'] : '';
 	if ($sitekey === '')
 		return '';
 	
-	$html = '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>';
+	$nonce = (string)($_GS['csp_nonce'] ?? '');
+	$nonceAttribute = $nonce === '' ? '' : ' nonce="' . htmlspecialchars($nonce, ENT_QUOTES, 'UTF-8') . '"';
+	$html = '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js"' . $nonceAttribute . ' async defer></script>';
 	$html .= '<div class="cf-turnstile" data-sitekey="' . htmlspecialchars($sitekey) . '" data-theme="auto" data-size="flexible"></div>';
 	return $html;
 }

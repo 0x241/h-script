@@ -18,14 +18,16 @@ mkdir -p dist
     docker run --rm --network none --entrypoint /bin/sh \
         --env "EXPECTED_APPLICATION_VERSION=$(tr -d '\r\n' < VERSION)" \
         --env "EXPECTED_SCHEMA_VERSION=$(tr -d '\r\n' < SCHEMA_VERSION)" \
-        -v "$component_root/tests:/var/www/html/tests:ro" "$exact" -eu -c '
+        -v "$component_root/tests:/var/www/html/tests:ro" \
+        -v "$component_root/ci/security:/var/www/html/ci/security:ro" "$exact" -eu -c '
             cd /var/www/html
             test "$(tr -d "\r\n" < VERSION)" = "$EXPECTED_APPLICATION_VERSION"
             test "$(tr -d "\r\n" < SCHEMA_VERSION)" = "$EXPECTED_SCHEMA_VERSION"
-            for suite in update_foundation update_activation update_runtime api_v1 job_queue telemetry domain_proof telemetry_pagination_scale backup payment_gateways security_redaction recovery integrity configurator_lifecycle translations configurator_translations; do
+            for suite in update_foundation update_activation update_runtime api_v1 job_queue telemetry domain_proof telemetry_pagination_scale backup payment_gateways security_redaction recovery integrity configurator_lifecycle translations configurator_translations template_runtime_helpers json_ld_output csp_policy csp_reports csp_turnstile htmx_csp session_csrf cron_authentication; do
                 php "tests/$suite.php"
             done
             sh tests/recovery_scheduler.sh
+            php ci/security/check-route-matrix.php
         '
     echo 'result=passed'
 } > dist/release-components.txt 2>&1

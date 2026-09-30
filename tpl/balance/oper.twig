@@ -32,6 +32,7 @@
 
 <div class="mx-auto w-full max-w-6xl">
 	{% if el %}
+		{% include "_read_receipt.twig" %}
 		{% set view_form_name = getFormName('') %}
 		{% set data_form_name = getFormName('data') %}
 		{% set can_confirm = (el.oState <= 1) and ((el.oOper != 'CASHIN') or dfields or (_cfg.Bal_AFMMode > 0)) %}
@@ -181,11 +182,9 @@
 					{% endif %}
 				</form>
 
-				{% if el.oOper == 'CASHIN' and pform %}
-					{% if pform.html %}
-						<div class="rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">{{ pform.html|raw }}</div>
-					{% elseif pform.url %}
-						<form method="{% if pform.get %}get{% else %}post{% endif %}" action="{{ pform.url }}" name="pay_form" hx-boost="false" class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+				{% if el.oOper == 'CASHIN' and el.oState <= 2 and el.cCASHINMode in [2, 3] %}
+					{% if pform.url %}
+						<form method="{% if pform.get %}get{% else %}post{% endif %}" action="{{ pform.url }}" name="pay_form" hx-boost="false" data-hs-auto-submit="1" class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-500/30 dark:bg-emerald-500/10">
 							{% for f, v in pform %}
 								{% if (f != 'url') and (f != 'get') %}
 									<input name="{{ f }}" value="{{ v }}" type="hidden">
@@ -193,6 +192,11 @@
 							{% endfor %}
 							<button type="submit" class="rounded-2xl bg-emerald-600 px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-700">{{ _t({"key": "payment.goto", "default": "Перейти к оплате"}) }}</button>
 						</form>
+					{% else %}
+					<form method="post" action="{{ _selfLink }}?id={{ el.oID }}" hx-boost="false" class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+						{{ _getFormSecurity({"form": "pay"}) }}
+						<button name="pay_btnpay" value="1" type="submit" class="rounded-2xl bg-emerald-600 px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-700">{{ _t({"key": "payment.goto", "default": "Перейти к оплате"}) }}</button>
+					</form>
 					{% endif %}
 				{% endif %}
 

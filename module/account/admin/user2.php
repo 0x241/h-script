@@ -15,6 +15,16 @@ $out_link = moduleToLink('account/admin/users');
 
 useLib('balance');
 
+$require_editable_user = static function (int $uid) use ($db, $_user): void
+{
+	$target = $uid > 0 ? $db->fetch1Row($db->select('Users', 'uLevel', 'uID=?d', array($uid))) : array();
+	if (!$target || ((int)$_user['uLevel'] < 99 && (int)$target['uLevel'] >= (int)$_user['uLevel']))
+	{
+		http_response_code(403);
+		View::setError('access_denied');
+	}
+};
+
 try 
 {
 
@@ -25,6 +35,7 @@ try
 		$a = $_IN;
 		if (!($id = $a['auID']))
 			View::showInfo('*Error', $out_link);
+		$require_editable_user((int)$id);
 		
 		if ($_GS['demo'] and ($_user['uLevel'] < 99) and ($id <= 3))
 			View::showInfo('*Denied');
@@ -69,6 +80,7 @@ try
 		View::checkFormSecurity('wallets');
 
 		$a = $_IN;
+		$require_editable_user((int)($a['auID'] ?? 0));
 		
 		if ($_cfg['Const_IntCurr'])
 			if ((_INN('DefCurr') <= 1) or !$_currs[_INN('DefCurr')])

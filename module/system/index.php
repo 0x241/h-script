@@ -1,28 +1,43 @@
 <?php
 
 use HScript\Util\StringHelper;
+use HScript\Security\SessionCsrf;
 
 use HScript\Template\View;
 
 require('module/auth.php');
 
-$lang = (string)_RQ('lang');
-$requestedMode = trim((string)_RQ('mode'));
-$mode = View::normalizeTemplateMode($requestedMode);
-$theme = strtolower(trim((string)_RQ('theme')));
-if (!in_array($theme, array('light', 'dark'), true))
-	$theme = '';
-$url = StringHelper::exValue(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '', _RQ('url'));
-if (fullURL(StringHelper::get1ElemL($url, '?')) == fullURL(moduleToLink('system')))
-	$url = moduleToLink('index');
-if (StringHelper::sEmpty($lang))
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST')
 {
-	View::setPage('url', $url);
+	View::setPage('url', (string)($_SERVER['HTTP_REFERER'] ?? moduleToLink('index')));
 	View::setPage('langs', $_cfg['UI__Langs']);
 	View::showPage();
 }
 
-if ($lang)
+if (View::sendedForm())
+	View::checkFormSecurity();
+elseif (!SessionCsrf::valid($_POST['session_csrf'] ?? null))
+{
+	http_response_code(403);
+	exit;
+}
+
+$lang = $_POST['lang'] ?? null;
+if (!is_string($lang) || !in_array($lang, (array)$_cfg['UI__Langs'], true))
+{
+	http_response_code(400);
+	exit;
+}
+$requestedMode = is_string($_POST['mode'] ?? null) ? trim($_POST['mode']) : '';
+$mode = View::normalizeTemplateMode($requestedMode);
+$theme = is_string($_POST['theme'] ?? null) ? strtolower(trim($_POST['theme'])) : '';
+if (!in_array($theme, array('light', 'dark'), true))
+	$theme = '';
+$url = is_string($_POST['url'] ?? null) ? $_POST['url'] : (string)($_SERVER['HTTP_REFERER'] ?? '');
+if (fullURL(StringHelper::get1ElemL($url, '?')) == fullURL(moduleToLink('system')))
+	$url = moduleToLink('index');
+
+if ($lang !== '')
 {
 	$_SESSION['_lang'] = $lang;
 	setcookie('lang', $lang, time() + 30 * HS2_UNIX_DAY, '/');

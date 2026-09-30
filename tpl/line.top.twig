@@ -84,9 +84,10 @@
 									<span class="rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">{{ count_aopers }}</span>
 								{% endif %}
 							</a>
-							<a href="{{ _link('admin', false, 0) }}?admin_unpin={{ pinned.module }}" hx-get="{{ _link('admin', false, 0) }}?admin_unpin={{ pinned.module }}" hx-target="#admin-menu-groups" hx-select="#admin-menu-groups" hx-swap="outerHTML" hx-push-url="false" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-blue-500 transition hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10" aria-label="{{ _t({"key": 'admin.unpin', "default": 'Открепить раздел'}) }}" title="{{ _t({"key": 'admin.unpin', "default": 'Открепить раздел'}) }}">
-								<i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
-							</a>
+							<form method="post" action="{{ _link('admin', false, 0) }}" hx-post="{{ _link('admin', false, 0) }}" hx-target="#admin-menu-groups" hx-select="#admin-menu-groups" hx-swap="outerHTML" hx-push-url="false">
+								<input type="hidden" name="session_csrf" value="{{ session_csrf }}"><input type="hidden" name="pin_action" value="unpin"><input type="hidden" name="pin_item" value="{{ pinned.module }}">
+								<button type="submit" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-blue-500 transition hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10" aria-label="{{ _t({"key": 'admin.unpin', "default": 'Открепить раздел'}) }}" title="{{ _t({"key": 'admin.unpin', "default": 'Открепить раздел'}) }}"><i class="fa-solid fa-thumbtack" aria-hidden="true"></i></button>
+							</form>
 						</div>
 					{% endfor %}
 				{% endif %}
@@ -124,9 +125,10 @@
 								<span class="rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">{{ count_aopers }}</span>
 							{% endif %}
 						</a>
-						<a href="{{ _link('admin', false, 0) }}?admin_pin={{ admin_module }}" hx-get="{{ _link('admin', false, 0) }}?admin_pin={{ admin_module }}" hx-target="#admin-menu-groups" hx-select="#admin-menu-groups" hx-swap="outerHTML" hx-push-url="false" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-300 opacity-100 transition hover:bg-gray-100 hover:text-gray-600 focus:opacity-100 dark:text-gray-700 dark:hover:bg-white/5 dark:hover:text-gray-300 lg:opacity-0 lg:group-hover:opacity-100" aria-label="{{ _t({"key": 'admin.pin', "default": 'Закрепить раздел'}) }}" title="{{ _t({"key": 'admin.pin', "default": 'Закрепить раздел'}) }}">
-							<i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
-						</a>
+						<form method="post" action="{{ _link('admin', false, 0) }}" hx-post="{{ _link('admin', false, 0) }}" hx-target="#admin-menu-groups" hx-select="#admin-menu-groups" hx-swap="outerHTML" hx-push-url="false">
+							<input type="hidden" name="session_csrf" value="{{ session_csrf }}"><input type="hidden" name="pin_action" value="pin"><input type="hidden" name="pin_item" value="{{ admin_module }}">
+							<button type="submit" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-300 opacity-100 transition hover:bg-gray-100 focus:opacity-100 dark:text-gray-700 dark:hover:bg-white/5 dark:hover:text-gray-300 lg:opacity-0 lg:group-hover:opacity-100" aria-label="{{ _t({"key": 'admin.pin', "default": 'Закрепить раздел'}) }}" title="{{ _t({"key": 'admin.pin', "default": 'Закрепить раздел'}) }}"><i class="fa-solid fa-thumbtack" aria-hidden="true"></i></button>
+						</form>
 					</div>
 				{% endfor %}
 			{% endfor %}
@@ -166,7 +168,10 @@
 										<span class="min-w-0 flex-1"><span class="block truncate">{{ item.title }}</span><span class="block truncate text-[10px] font-medium opacity-60">{{ item.category }}</span></span>
 										{% if item.count > 0 %}<span class="rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">{{ item.count }}</span>{% endif %}
 									</a>
-									<a href="{{ _link('cabinet', false, 0) }}?cabinet_unpin={{ item_id }}" hx-get="{{ _link('cabinet', false, 0) }}?cabinet_unpin={{ item_id }}" hx-target="#cabinet-menu-groups" hx-select="#cabinet-menu-groups" hx-swap="outerHTML" hx-push-url="false" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-blue-500 transition hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10" aria-label="{{ _t({"key": 'admin.unpin', "default": 'Открепить раздел'}) }}" title="{{ _t({"key": 'admin.unpin', "default": 'Открепить раздел'}) }}"><i class="fa-solid fa-thumbtack" aria-hidden="true"></i></a>
+									<form method="post" action="{{ _link('cabinet', false, 0) }}" hx-post="{{ _link('cabinet', false, 0) }}" hx-target="#cabinet-menu-groups" hx-select="#cabinet-menu-groups" hx-swap="outerHTML" hx-push-url="false">
+										<input type="hidden" name="session_csrf" value="{{ session_csrf }}"><input type="hidden" name="pin_action" value="unpin"><input type="hidden" name="pin_item" value="{{ item_id }}">
+										<button type="submit" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-blue-500 transition hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10" aria-label="{{ _t({"key": 'admin.unpin', "default": 'Открепить раздел'}) }}" title="{{ _t({"key": 'admin.unpin', "default": 'Открепить раздел'}) }}"><i class="fa-solid fa-thumbtack" aria-hidden="true"></i></button>
+									</form>
 								</div>
 							{% endif %}
 						{% endfor %}
@@ -186,7 +191,10 @@
 										<i class="fa-solid {{ item.icon }} w-5 shrink-0 text-center" aria-hidden="true"></i><span class="min-w-0 flex-1 truncate">{{ item.title }}</span>
 										{% if item.count > 0 %}<span class="rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">{{ item.count }}</span>{% endif %}
 									</a>
-									<a href="{{ _link('cabinet', false, 0) }}?cabinet_pin={{ item_id }}" hx-get="{{ _link('cabinet', false, 0) }}?cabinet_pin={{ item_id }}" hx-target="#cabinet-menu-groups" hx-select="#cabinet-menu-groups" hx-swap="outerHTML" hx-push-url="false" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-300 opacity-100 transition hover:bg-gray-100 hover:text-gray-600 focus:opacity-100 dark:text-gray-700 dark:hover:bg-white/5 dark:hover:text-gray-300 lg:opacity-0 lg:group-hover:opacity-100" aria-label="{{ _t({"key": 'admin.pin', "default": 'Закрепить раздел'}) }}" title="{{ _t({"key": 'admin.pin', "default": 'Закрепить раздел'}) }}"><i class="fa-solid fa-thumbtack" aria-hidden="true"></i></a>
+									<form method="post" action="{{ _link('cabinet', false, 0) }}" hx-post="{{ _link('cabinet', false, 0) }}" hx-target="#cabinet-menu-groups" hx-select="#cabinet-menu-groups" hx-swap="outerHTML" hx-push-url="false">
+										<input type="hidden" name="session_csrf" value="{{ session_csrf }}"><input type="hidden" name="pin_action" value="pin"><input type="hidden" name="pin_item" value="{{ item_id }}">
+										<button type="submit" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-300 opacity-100 transition hover:bg-gray-100 focus:opacity-100 dark:text-gray-700 dark:hover:bg-white/5 dark:hover:text-gray-300 lg:opacity-0 lg:group-hover:opacity-100" aria-label="{{ _t({"key": 'admin.pin', "default": 'Закрепить раздел'}) }}" title="{{ _t({"key": 'admin.pin', "default": 'Закрепить раздел'}) }}"><i class="fa-solid fa-thumbtack" aria-hidden="true"></i></button>
+									</form>
 								</div>
 							{% endif %}
 						{% endfor %}
@@ -209,7 +217,10 @@
 		{% if is_admin_shell %}
 			<a class="{{ nav_link_base }}{{ nav_link_idle }}" href="{{ _link('cabinet', false, 0) }}"><i class="fa-solid fa-arrow-left w-5" aria-hidden="true"></i><span>{{ _t({"key": 'admin.back_to_site', "default": 'Выйти в кабинет'}) }}</span></a>
 		{% elseif user.uID %}
-			<a class="{{ nav_link_base }} text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10" href="{{ _link('account/login', false, 0) }}?out"><i class="fa-solid fa-right-from-bracket w-5" aria-hidden="true"></i><span>{{ nav_logout }}</span></a>
+			<form method="post" action="{{ _link('account/login', false, 0) }}">
+				{{ _getFormSecurity({"form": "logout"}) }}
+				<button class="{{ nav_link_base }} w-full text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10" name="logout_btnlogout" value="1" type="submit"><i class="fa-solid fa-right-from-bracket w-5" aria-hidden="true"></i><span>{{ nav_logout }}</span></button>
+			</form>
 		{% endif %}
 	</div>
 </aside>

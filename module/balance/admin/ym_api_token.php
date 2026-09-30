@@ -25,9 +25,27 @@ require_once("lib/yandexmoney/api.php");
 if (!$code = _GET('code'))
 {
 	$scope = array("account-info operation-history operation-details payment-p2p");
-	GoToURL(YandexMoney\API::buildObtainTokenUrl($el['PAPI']['id'], $uri, $scope));
+	$oauthState = bin2hex(random_bytes(32));
+	$_SESSION['_ym_oauth_state'] = array('token' => $oauthState, 'expires' => time() + 600);
+	GoToURL(YandexMoney\API::buildObtainTokenUrl($el['PAPI']['id'], $uri, $scope) . '&state=' . rawurlencode($oauthState));
 }
 
+$pendingState = $_SESSION['_ym_oauth_state'] ?? null;
+unset($_SESSION['_ym_oauth_state']);
+$returnedState = $_GET['state'] ?? null;
+if (!is_array($pendingState) || !is_string($returnedState)
+	|| (int)($pendingState['expires'] ?? 0) < time()
+	|| !hash_equals((string)($pendingState['token'] ?? ''), $returnedState))
+{
+	http_response_code(403);
+	exit;
+}
+
+if (!is_string($code) || $code === '' || strlen($code) > 2048)
+{
+	http_response_code(400);
+	exit;
+}
 $access_token_response = YandexMoney\API::getAccessToken($el['PAPI']['id'], $code, $uri, $el['PAPI']['secretpass']);
 xaddtolog($access_token_response, 'YD');
 

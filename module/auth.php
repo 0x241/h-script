@@ -6,6 +6,7 @@ use HScript\Application;
 use HScript\Http\LocaleRouter;
 use HScript\Cache\CatalogCache;
 use HScript\Observability\CorrelationContext;
+use HScript\Security\SessionCsrf;
 use HScript\Template\View;
 
 hsConfigureErrorHandling();
@@ -25,6 +26,13 @@ $is_admin_impersonation = false;
 function _uid()
 {
 	return intval(isset($_SESSION['_uid']) ? $_SESSION['_uid'] : 0);
+}
+
+function authExpireSession(string $loginLink, string $reason): never
+{
+	useLib('account/login');
+	opLoginOut($reason);
+	goToURL($loginLink . '?out=' . rawurlencode($reason));
 }
 
 // Connect DB
@@ -366,6 +374,14 @@ if ($_smode < 2) // user mode
 			setcookie('tz', '', time() - HS2_UNIX_DAY, '/');
 		}
 		$_user = $db->fetch1Row($db->select('Users LEFT JOIN AddInfo ON auID=uID', '*', 'uID=?d', array(_uid())));
+		if (empty($_user['uID']))
+		{
+			hsSetCookie('sess', '', time() - HS2_UNIX_DAY);
+			resetSessionSafely();
+			goToURL($login_link);
+		}
+		if ((int)($_user['uState'] ?? 0) !== 1)
+			authExpireSession($login_link, 'inactive');
 		$impersonator_id = intval($_SESSION['_impersonator_uid'] ?? 0);
 		if (($impersonator_id > 0) and ($impersonator_id != _uid()))
 		{
@@ -394,19 +410,17 @@ if ($_smode < 2) // user mode
 			$db->update('Users', array('uLTS' => timeToStamp()), '', 'uID=?d', array(_uid()));
 		if ($_GS['module'] != 'account/login')
 		{
-			if (!$_user)
-				goToURL($login_link . '?out=not_found');
 			if ($_user['aSessIP'] and (_SESSION('_lip') != $_GS['client_ip']))  // !!!IP changed!!!
-				goToURL($login_link . '?out=ip_changed');
+				authExpireSession($login_link, 'ip_changed');
 			if ($_user['aSessUniq'] and !$is_admin_impersonation and (_SESSION('_lsess') != $_user['uLSess'])) // !!!session changed!!!
-				goToURL($login_link . '?out=session_changed');
+				authExpireSession($login_link, 'session_changed');
 			if (($_auth >= 90) and ($_user['uLevel'] >= 90))
 			{
 				$admin_lt = intval(_SESSION('_admin_lts'));
 				if ($admin_lt <= 0)
 					$admin_lt = $lt;
 				if (($admin_lt > 0) and (($now - $admin_lt) > (15 * HS2_UNIX_MINUTE)))
-					goToURL($login_link . '?out=admin_time_out');
+					authExpireSession($login_link, 'admin_time_out');
 				$_SESSION['_admin_lts'] = $now;
 			}
 			$t = StringHelper::exValue($_cfg['Sec_TimeOut'], $_user['aTimeOut']);
@@ -414,7 +428,7 @@ if ($_smode < 2) // user mode
 			{
 				$t = $lt + ($t * HS2_UNIX_MINUTE) - $now;
 				if ($t <= 0)
-					goToURL($login_link . '?out=time_out');
+					authExpireSession($login_link, 'time_out');
 			}
 			if (($_cfg['Sec_PassTime'] > 0) and (subStamps($_user['uPTS']) > (0 + $_cfg['Sec_PassTime']) * HS2_UNIX_DAY))
 			{
@@ -433,10 +447,6 @@ if ($_smode < 2) // user mode
 			}
 		}
 				
-		if (_COOKIE('lang') and _COOKIE('lang') != $_user['uLang']) {
-			$_user['uLang'] = _COOKIE('lang');
-			$db->update('Users', array('uLang' => $_user['uLang']), '', 'uID=?d', array(_uid()));
-		}
 		$_SESSION['_lang'] = $_user['uLang'];
 		if ($_auth >= 50)
 		{
@@ -454,9 +464,13 @@ if ($_smode < 2) // user mode
 	if ($_auth > $_user['uLevel'])
 		View::showInfo('*Denied', $login_link); // !!!Access denied!!!
 	if ($_cfg['Sys_LockSite'] and ($_user['uLevel'] < 90) and ($_GS['module'] != 'account/login'))
-		goToURL($login_link . StringHelper::valueIf(_uid(), '?out=site_locked'));
-		View::setPage('user', $_user);
-		View::setPage('impersonator', $impersonator, 0);
+	{
+		if (_uid()) authExpireSession($login_link, 'site_locked');
+		goToURL($login_link);
+	}
+	View::setPage('user', $_user);
+	View::setPage('impersonator', $impersonator, 0);
+	View::setPage('session_csrf', SessionCsrf::token(), 0);
 
 		$cabinet_menu_allowed = array(
 			'overview', 'cashin', 'operations', 'wallets', 'invest', 'deposits',
@@ -467,15 +481,25 @@ if ($_smode < 2) // user mode
 		$cabinet_pinned_ids = isset($_SESSION['_cabinet_pins']) && is_array($_SESSION['_cabinet_pins'])
 			? array_values(array_intersect($_SESSION['_cabinet_pins'], $cabinet_menu_allowed))
 			: array();
-		$cabinet_pin = (string)_GET('cabinet_pin');
-		$cabinet_unpin = (string)_GET('cabinet_unpin');
-		if ($cabinet_pin && in_array($cabinet_pin, $cabinet_menu_allowed, true))
+		$cabinet_pin_action = $_GS['module'] === 'cabinet' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST'
+			? (string)($_POST['pin_action'] ?? '') : '';
+		$cabinet_pin_item = (string)($_POST['pin_item'] ?? '');
+		if (in_array($cabinet_pin_action, array('pin', 'unpin'), true))
 		{
-			$cabinet_pinned_ids = array_values(array_diff($cabinet_pinned_ids, array($cabinet_pin)));
-			array_unshift($cabinet_pinned_ids, $cabinet_pin);
+			if (!SessionCsrf::valid($_POST['session_csrf'] ?? null))
+			{
+				http_response_code(403);
+				exit;
+			}
 		}
-		elseif ($cabinet_unpin)
-			$cabinet_pinned_ids = array_values(array_diff($cabinet_pinned_ids, array($cabinet_unpin)));
+		if ($cabinet_pin_action === 'pin' && in_array($cabinet_pin_item, $cabinet_menu_allowed, true))
+		{
+			$cabinet_pinned_ids = array_values(array_diff($cabinet_pinned_ids, array($cabinet_pin_item)));
+			array_unshift($cabinet_pinned_ids, $cabinet_pin_item);
+		}
+		elseif ($cabinet_pin_action === 'unpin')
+			$cabinet_pinned_ids = array_values(array_diff($cabinet_pinned_ids, array($cabinet_pin_item)));
+		if ($cabinet_pin_action !== '')
 			$_SESSION['_cabinet_pins'] = $cabinet_pinned_ids;
 			View::setPage('cabinet_pinned_ids', $cabinet_pinned_ids);
 

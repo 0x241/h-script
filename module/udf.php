@@ -20,7 +20,7 @@ function _z($z, $cid, $mode = 0) // 0-only sum / 1-sum and curr / 2-sum (+bold) 
 	if ($mode === 2)
 		$z = "<b>$z</b>";
 	$curr = isset($_currs[$cid]['cCurr']) ? $_currs[$cid]['cCurr'] : '';
-	return $z . ' <small>' . StringHelper::textLangFilter($curr, $_GS['lang']) . '</small>';
+	return $z . ' <small>' . htmlspecialchars((string)StringHelper::textLangFilter($curr, $_GS['lang']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</small>';
 }
 
 function updateUserCounters()

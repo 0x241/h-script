@@ -31,9 +31,9 @@
 							<i class="fa-solid {{ section_icon }}" aria-hidden="true"></i>
 						</span>
 						<div class="min-w-0">
-							<h3 class="text-lg font-extrabold text-brand dark:text-white">{{ section_title|raw }}</h3>
+							<h3 class="text-lg font-extrabold text-brand dark:text-white">{{ section_title|safe_html }}</h3>
 							{% if section_description %}
-								<p class="mt-1 text-sm leading-relaxed text-gray-500 dark:text-gray-400">{{ section_description|raw }}</p>
+								<p class="mt-1 text-sm leading-relaxed text-gray-500 dark:text-gray-400">{{ section_description|safe_html }}</p>
 							{% endif %}
 						</div>
 					</header>
@@ -76,7 +76,7 @@
 		{% for f, v in fields %}
 			{% if is_int(f) %}
 				<div class="{% if edit_is_settings_grid %}bg-gray-50/80 px-6 py-4 dark:bg-[#1A1A1A]{% else %}border-b border-gray-100 bg-gray-50/80 px-6 py-4 dark:border-gray-800 dark:bg-[#1A1A1A]{% if edit_is_filter %} md:col-span-2 xl:col-span-3{% endif %}{% endif %}{% if is_array(v) and isset(v.row_class) %} {{ v.row_class }}{% endif %}">
-					<h3 class="{% if edit_is_settings_grid %}text-lg{% else %}text-base{% endif %} font-extrabold text-brand dark:text-white">{% if is_array(v) %}{{ v[0]|raw }}{% else %}{{ v|raw }}{% endif %}</h3>
+					<h3 class="{% if edit_is_settings_grid %}text-lg{% else %}text-base{% endif %} font-extrabold text-brand dark:text-white">{% if is_array(v) %}{{ v[0]|safe_html }}{% else %}{{ v|safe_html }}{% endif %}</h3>
 				</div>
 			{% elseif not (is_array(v) and isset(v.skip) and v.skip) %}
 				{% set vv = _arr_val(values, f) %}

@@ -1,0 +1,3 @@
+.htmx-indicator { opacity: 0; }
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator { opacity: 1; transition: opacity 200ms ease-in; }

@@ -116,7 +116,7 @@ WORKDIR /var/www/html
 
 # Refresh inherited packages too: `apk add curl` alone keeps a vulnerable copy
 # already present in a pinned base. Stay on the base's stable Alpine repositories.
-RUN apk upgrade --no-cache \
+RUN apk upgrade --no-cache --available \
     && apk add --no-cache \
         apache2 \
         apache2-proxy \

@@ -1,6 +1,7 @@
 {% include "admin/header.twig" with {"title": 'Сообщение'} %}
 
 {% if el.mID %}
+	{% include "_read_receipt.twig" %}
 	{% set message_form_name = getFormName('') %}
 	<div id="admin-message-panel" class="mx-auto flex min-h-[calc(100vh-10rem)] w-full max-w-5xl flex-col overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
 		<div class="shrink-0 border-b border-gray-100 bg-white/80 p-5 backdrop-blur-xl dark:border-gray-800 dark:bg-[#151515]/80">

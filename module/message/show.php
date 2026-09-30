@@ -3,6 +3,7 @@
 use HScript\Util\StringHelper;
 
 use HScript\Template\View;
+use HScript\Security\SessionCsrf;
 
 $_auth = 1;
 require_once('module/auth.php');
@@ -16,12 +17,33 @@ $is_hx = isset($_SERVER['HTTP_HX_REQUEST']) && ($_SERVER['HTTP_HX_REQUEST'] == '
 if (($_cfg['Msg_Mode'] < 1) or (isset($_GET['new']) and ($_cfg['Msg_Mode'] < 2)))
 	goToURL($out_link);
 
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['read_receipt']))
+{
+	if (!SessionCsrf::valid($_POST['session_csrf'] ?? null))
+	{
+		http_response_code(403);
+		exit;
+	}
+	$read_id = filter_var($_POST['read_receipt'], FILTER_VALIDATE_INT);
+	if (!$read_id || !$db->count('MBox LEFT JOIN Msg ON mID=bmID', 'bID=?d and (buID=?d or muID=?d)', array($read_id, _uid(), _uid())))
+	{
+		http_response_code(404);
+		exit;
+	}
+	foreach (messageThreadByBox($read_id) as $thread_item)
+		if ((intval($thread_item['buID'] ?? 0) === _uid()) && empty($thread_item['bRTS']))
+			$db->update('MBox', array('bRTS' => timeToStamp()), '', 'bID=?d and buID=?d and (bRTS IS NULL or bRTS=0)', array($thread_item['bID'], _uid()));
+	http_response_code(204);
+	exit;
+}
+
 try
 {
 	if (View::sendedForm('reply'))
 	{
 		View::checkFormSecurity();
-		$thread = messageThreadByBox(_INN('ThreadBox'));
+		$thread = array_values(array_filter(messageThreadByBox(_INN('ThreadBox')),
+			static fn($item) => intval($item['buID'] ?? 0) === _uid() || intval($item['muID'] ?? 0) === _uid()));
 		if (!$thread)
 			View::setError('message_not_found');
 		if (!messageThreadBelongsToUser($thread, _uid()))
@@ -76,18 +98,12 @@ if (!isset($_GET['new']))
 		"$table.*, Msg.*, Users.uID, Users.uLogin, Users.uMail, Users.uLevel, AddInfo.aName, AddInfo.aAvatar", "$id_field=?d and (buID=?d or muID=?d)", array($id, _uid(), _uid())));
 	if (!$el)
 		goToURL($out_link);
-	$thread = messageThreadByBox($id);
-	$marked_read = false;
-	foreach ($thread as $thread_item)
-		if ((intval($thread_item['buID'] ?? 0) == _uid()) and empty($thread_item['bRTS']))
-			if ($db->update($table, array('bRTS' => timeToStamp()), '', "$id_field=?d and buID=?d", array($thread_item['bID'], _uid())))
-				$marked_read = true;
+	$thread = array_values(array_filter(messageThreadByBox($id),
+		static fn($item) => intval($item['buID'] ?? 0) === _uid() || intval($item['muID'] ?? 0) === _uid()));
 	View::stampArrayToStr($el, 'mTS, bRTS', 0);
 	View::stampTableToStr($thread, 'mTS, bRTS', 0);
 	View::setPage('list', $thread, 2);
-
-	if ($marked_read)
-		updateUserCounters();
+	View::setPage('read_receipt_id', $id, 0);
 }
 elseif ($re = _GETN('re'))
 	if ($rel = $db->fetch1Row($db->select("$table LEFT JOIN Msg ON mID=bmID LEFT JOIN Users ON uID=muID",

@@ -3,6 +3,7 @@
 use HScript\Util\StringHelper;
 
 use HScript\Template\View;
+use HScript\Security\SessionCsrf;
 
 $_auth = 90;
 require_once('module/auth.php');
@@ -13,6 +14,31 @@ $out_link = moduleToLink('message/admin/messages');
 $message_link = moduleToLink('message/admin/message');
 $is_hx = isset($_SERVER['HTTP_HX_REQUEST']) && ($_SERVER['HTTP_HX_REQUEST'] == 'true');
 $el = array();
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['read_receipt']))
+{
+	if (!SessionCsrf::valid($_POST['session_csrf'] ?? null))
+	{
+		http_response_code(403);
+		exit;
+	}
+	$read_id = filter_var($_POST['read_receipt'], FILTER_VALIDATE_INT);
+	if (!$read_id || !$db->count('Msg', 'mID=?d', array($read_id)))
+	{
+		http_response_code(404);
+		exit;
+	}
+	$db->update('Msg', array('mAttn' => 1), '', 'mID=?d and mAttn=9', array($read_id));
+	foreach (messageThreadByMessage($read_id) as $thread_item)
+	{
+		if ((intval($thread_item['buID'] ?? 0) === _uid()) && empty($thread_item['bRTS']))
+			$db->update('MBox', array('bRTS' => timeToStamp()), '', 'bID=?d and buID=?d and (bRTS IS NULL or bRTS=0)', array($thread_item['bID'], _uid()));
+		if (intval($thread_item['mAttn'] ?? 0) === 9)
+			$db->update('Msg', array('mAttn' => 1), '', 'mID=?d and mAttn=9', array($thread_item['mID']));
+	}
+	http_response_code(204);
+	exit;
+}
 
 try 
 {
@@ -79,23 +105,12 @@ if (!isset($_GET['add']))
 			"$table.*, Users.uID, Users.uLogin, Users.uMail, Users.uLevel, AddInfo.aName, AddInfo.aAvatar", "$id_field=?d", array($id)));
 	if (!$el)
 		goToURL(moduleToLink() . '?add');
-	$db->update($table, array('mAttn' => 1), '', "$id_field=?d and mAttn=9", array($id));
 	View::stampArrayToStr($el, 'mTS', 0);
 	$thread = messageThreadByMessage($id);
-	$marked_read = false;
-	foreach ($thread as $thread_item)
-	{
-		if ((intval($thread_item['buID'] ?? 0) == _uid()) and empty($thread_item['bRTS']))
-			if ($db->update('MBox', array('bRTS' => timeToStamp()), '', 'bID=?d and buID=?d', array($thread_item['bID'], _uid())))
-				$marked_read = true;
-		if (intval($thread_item['mAttn'] ?? 0) == 9)
-			$db->update('Msg', array('mAttn' => 1), '', 'mID=?d and mAttn=9', array($thread_item['mID']));
-	}
 	View::setPage('thread_box_id', $thread ? intval($thread[0]['bID']) : 0);
 	View::stampTableToStr($thread, 'mTS, bRTS', 0);
 	View::setPage('list', $thread, 2);
-	if ($marked_read)
-		updateUserCounters();
+	View::setPage('read_receipt_id', $id, 0);
 }
 elseif ($re = _GETN('re'))
 	if ($rel = $db->fetch1Row($db->select("$table LEFT JOIN Users ON uID=muID", 

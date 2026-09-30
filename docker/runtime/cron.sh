@@ -22,13 +22,14 @@ CRON_HOST_HEADER="${CRON_HOST_HEADER:-${APP_DOMAIN:-localhost}}"
 CRON_INTERVAL_SECONDS="${CRON_INTERVAL_SECONDS:-60}"
 CRON_TIMEOUT_SECONDS="${CRON_TIMEOUT_SECONDS:-30}"
 CRON_START_DELAY_SECONDS="${CRON_START_DELAY_SECONDS:-10}"
+: "${CRON_TOKEN:?Set a random CRON_TOKEN shared by the app and cron service}"
 
 echo "H-Script cron started: ${CRON_URL}, Host: ${CRON_HOST_HEADER}, interval: ${CRON_INTERVAL_SECONDS}s"
 sleep "$CRON_START_DELAY_SECONDS"
 
 while true; do
     TS="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-    if curl -fsS --max-time "$CRON_TIMEOUT_SECONDS" -H "Host: ${CRON_HOST_HEADER}" "$CRON_URL" -o /dev/null; then
+    if curl -fsS --max-time "$CRON_TIMEOUT_SECONDS" -X POST -H "Host: ${CRON_HOST_HEADER}" -H "X-HScript-Cron-Token: ${CRON_TOKEN}" "$CRON_URL" -o /dev/null; then
         echo "${TS} cron ok"
     else
         echo "${TS} cron failed" >&2

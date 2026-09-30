@@ -2,6 +2,9 @@
 
 namespace HScript\Mail;
 
+use HScript\Content\HtmlSanitizer;
+use HScript\Security\SafeUrl;
+
 /**
  * Builds the email-safe H-Script frame used by every outbound HTML message.
  */
@@ -16,8 +19,9 @@ final class EmailTemplate
 		$subject = self::escape(trim($subject));
 		$siteName = self::escape(trim($siteName) ?: 'H-Script');
 		$rootUrl = self::normalizeRootUrl($rootUrl);
-		$preview = self::escape(self::previewText($message));
-		$body = nl2br(trim(str_replace(array("\r\n", "\r"), "\n", $message)), false);
+		$safeMessage = HtmlSanitizer::sanitize($message);
+		$preview = self::escape(self::previewText($safeMessage));
+		$body = nl2br(trim(str_replace(array("\r\n", "\r"), "\n", $safeMessage)), false);
 		$siteLabel = $rootUrl !== ''
 			? '<a href="' . self::escape($rootUrl) . '" style="color:#2563eb;text-decoration:none;font-weight:700;">' . $siteName . '</a>'
 			: '<span style="color:#0f172a;font-weight:700;">' . $siteName . '</span>';
@@ -88,11 +92,21 @@ final class EmailTemplate
 </html>';
 	}
 
+	public static function plainText(string $message): string
+	{
+		$safe = HtmlSanitizer::sanitize($message);
+		$safe = (string)preg_replace('~<(?:br|hr)\b[^>]*>~i', "\n", $safe);
+		$safe = (string)preg_replace('~</(?:p|div|h[2-4]|li|tr|blockquote)>~i', "\n", $safe);
+		$text = html_entity_decode(strip_tags($safe), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+		$text = (string)preg_replace('/[ \t]+\n|\n{3,}/', "\n", $text);
+		return trim($text);
+	}
+
 	private static function normalizeRootUrl(string $rootUrl): string
 	{
 		$rootUrl = trim($rootUrl);
 		$parts = $rootUrl !== '' ? parse_url($rootUrl) : false;
-		if (!is_array($parts) || empty($parts['host']))
+		if (!SafeUrl::href($rootUrl) || !is_array($parts) || empty($parts['host']))
 			return '';
 		$scheme = strtolower((string)($parts['scheme'] ?? ''));
 		if (!in_array($scheme, array('http', 'https'), true))

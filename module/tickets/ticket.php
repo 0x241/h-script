@@ -1,6 +1,7 @@
 <?php
 
 use HScript\Template\View;
+use HScript\Security\SessionCsrf;
 
 $_auth = 1;
 require_once('module/auth.php');
@@ -10,6 +11,24 @@ $id_field = 'tID';
 $out_link = moduleToLink('tickets');
 $ticket_link = moduleToLink('tickets/ticket');
 $is_hx = isset($_SERVER['HTTP_HX_REQUEST']) && ($_SERVER['HTTP_HX_REQUEST'] == 'true');
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && isset($_POST['read_receipt']))
+{
+	if (!SessionCsrf::valid($_POST['session_csrf'] ?? null))
+	{
+		http_response_code(403);
+		exit;
+	}
+	$read_id = filter_var($_POST['read_receipt'], FILTER_VALIDATE_INT);
+	if (!$read_id || !$db->count('Tickets', 'tID=?d and tuID=?d', array($read_id, _uid())))
+	{
+		http_response_code(404);
+		exit;
+	}
+	$db->update('TMsg', array('mRTS' => timeToStamp()), '', 'mtID=?d and muID<>?d and mRTS IS NULL', array($read_id, _uid()));
+	http_response_code(204);
+	exit;
+}
 
 try 
 {
@@ -70,9 +89,7 @@ if (!isset($_GET['add']))
 		'TMsg.*, Users.uID, Users.uLogin, Users.uMail, AddInfo.aName, AddInfo.aAvatar', 'mtID=?d', array($id)));
 	View::stampTableToStr($list, 'mTS, mRTS');
 	View::setPage('list', $list, 2);
-	
-	$db->update('TMsg', array('mRTS' => timeToStamp()), '', 'mtID=?d and (mRTS IS NULL)', array($id));
-	updateUserCounters();
+	View::setPage('read_receipt_id', $id, 0);
 }
 	
 View::showPage();

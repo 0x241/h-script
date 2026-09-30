@@ -1,0 +1,6 @@
+{% if read_receipt_id %}
+	<form method="post" action="{{ _selfLink }}?id={{ read_receipt_id }}" data-hs-read-receipt hidden>
+		<input type="hidden" name="read_receipt" value="{{ read_receipt_id }}">
+		<input type="hidden" name="session_csrf" value="{{ session_csrf }}">
+	</form>
+{% endif %}

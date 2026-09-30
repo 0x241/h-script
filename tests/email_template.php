@@ -38,6 +38,21 @@ emailTemplateAssert(!str_contains($html, '<script'), 'Email template contains ex
 $invalidUrlHtml = EmailTemplate::render('Test', 'Message', 'H-Script', 'javascript:alert(1)');
 emailTemplateAssert(!str_contains($invalidUrlHtml, 'javascript:'), 'Unsafe root URL was rendered');
 
+$unsafeMessage = '<p>Здравствуйте, <strong>Alex</strong>.</p>'
+	. '<script>alert(1)</script><a href="javascript:alert(2)">bad</a>'
+	. '<a href="https://example.test/open">Open</a>';
+$safeEmail = EmailTemplate::render('Notice', $unsafeMessage, 'H-Script', 'https://example.test');
+emailTemplateAssert(!str_contains($safeEmail, '<script') && !str_contains($safeEmail, 'javascript:'),
+	'HTML email kept executable markup');
+emailTemplateAssert(str_contains($safeEmail, '<strong>Alex</strong>')
+	&& str_contains($safeEmail, 'href="https://example.test/open"'),
+	'HTML email lost allowed formatting');
+$plainEmail = EmailTemplate::plainText($unsafeMessage);
+emailTemplateAssert(str_contains($plainEmail, 'Здравствуйте, Alex.')
+	&& str_contains($plainEmail, 'Open')
+	&& !str_contains($plainEmail, '<') && !str_contains($plainEmail, 'alert('),
+	'Plain-text email contains markup or active-script text');
+
 $_GS = array(
 	'lang' => 'en',
 	'default_lang' => 'en',

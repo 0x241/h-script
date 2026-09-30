@@ -113,6 +113,17 @@ validate:supply-chain:
     - sh tests/supply_chain_recovery.sh
     - sh tests/staging_image.sh
 
+validate:security-inventory:
+  stage: validate
+  script:
+    - |
+      docker run --rm --network none --entrypoint php -v "${CI_PROJECT_DIR}:/src:ro" \
+        composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 \
+        /src/ci/security/check-inventory.php --self-test
+      docker run --rm --network none --entrypoint php -v "${CI_PROJECT_DIR}:/src:ro" \
+        composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 \
+        /src/ci/security/check-inventory.php --check
+
 validate:secret-boundary:
   stage: validate
   resource_group: staging-image-build
@@ -605,6 +616,7 @@ deploy:staging:
         printf 'INSTALL_INT_CURR_ID=%s\n' "${INSTALL_INT_CURR_ID:-USD}"
         printf 'INSTALL_TELEMETRY_STATS=%s\n' "${INSTALL_TELEMETRY_STATS:-1}"
         printf 'CRON_ENABLED=%s\n' "${CRON_ENABLED:-1}"
+        printf 'CRON_TOKEN=%s\n' "${CRON_TOKEN:?set protected CRON_TOKEN}"
         printf 'CRON_URL=%s\n' "${CRON_URL:-http://app/cron}"
         printf 'CRON_HOST_HEADER=%s\n' "${CRON_HOST_HEADER:-$APP_DOMAIN}"
         printf 'CRON_INTERVAL_SECONDS=%s\n' "${CRON_INTERVAL_SECONDS:-60}"

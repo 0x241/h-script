@@ -37,7 +37,7 @@ function faqDefaultRows()
 		),
 		array(
 			'fQuestion' => 'I want to install this script on your server. What steps should I take?',
-			'fAnswer' => '<ul><li>Upload the script to the home directory on your server.</li><li>Set write permissions for logs, tpl_c and _config.php during setup.</li><li>Create a database.</li><li>Open the configurator and fill database/admin settings.</li><li>Configure an external scheduler to request /cron?auto every minute.</li></ul>'
+			'fAnswer' => '<ul><li>Upload the script to the home directory on your server.</li><li>Set write permissions for logs, tpl_c and _config.php during setup.</li><li>Create a database.</li><li>Open the configurator and fill database/admin settings.</li><li>Configure an external scheduler to POST /cron every minute with the X-HScript-Cron-Token header.</li></ul>'
 		),
 		array(
 			'fQuestion' => 'What a... stupid design?',

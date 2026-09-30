@@ -16,7 +16,6 @@
 	{% set auth_theme_next = 'light' %}
 {% endif %}
 {% set auth_theme_lang = current_lang ?: 'ru' %}
-{% set auth_theme_toggle_url = _link('system', false, 0) ~ '?lang=' ~ auth_theme_lang ~ '&theme=' ~ auth_theme_next ~ '&url=' ~ (fullURL()|url_encode) %}
 
 <div class="flex items-center gap-2 sm:gap-3">
 	<details class="relative" hx-boost="false">
@@ -28,16 +27,16 @@
 			{% for lng in auth_clean_langs %}
 				{% set lng_clean = lng|trim %}
 				{% if lng_clean %}
-					<a href="{% if tpl_module == 'system' %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}{% else %}{{ _link('system', false, 0) }}?lang={{ lng_clean }}&url={{ _link(tpl_module, false, 0) }}{% endif %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-brand transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-black{% if current_lang == lng_clean %} bg-gray-50/50 dark:bg-black/30{% endif %}">
+					<form method="post" action="{{ _link('system', false, 0) }}" hx-boost="false"><input type="hidden" name="session_csrf" value="{{ session_csrf }}"><input type="hidden" name="lang" value="{{ lng_clean }}"><input type="hidden" name="url" value="{% if tpl_module == 'system' %}{{ _link('index', false, 0) }}{% else %}{{ _link(tpl_module, false, 0) }}{% endif %}"><button type="submit" class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-brand transition-colors hover:bg-gray-50 dark:text-white dark:hover:bg-black{% if current_lang == lng_clean %} bg-gray-50/50 dark:bg-black/30{% endif %}">
 						<span class="{% if current_lang == lng_clean %}text-blue-500{% else %}text-gray-400{% endif %}">{{ lng_clean|upper }}</span>
 						{{ lng_clean|upper }}
-					</a>
+					</button></form>
 				{% endif %}
 			{% endfor %}
 		</div>
 	</details>
-	<a href="{{ auth_theme_toggle_url }}" hx-boost="false" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
+	<form method="post" action="{{ _link('system', false, 0) }}" hx-boost="false"><input type="hidden" name="session_csrf" value="{{ session_csrf }}"><input type="hidden" name="lang" value="{{ auth_theme_lang }}"><input type="hidden" name="theme" value="{{ auth_theme_next }}"><input type="hidden" name="url" value="{{ fullURL() }}"><button type="submit" class="flex h-10 w-10 items-center justify-center rounded-full border border-transparent text-brand transition-all duration-200 hover:border-black/10 hover:bg-black/5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/20 dark:text-white dark:hover:border-white/10 dark:hover:bg-white/5" title="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}" aria-label="{{ _t({"key": 'theme.toggle', "default": 'Сменить тему'}) }}">
 		<i class="fa-solid fa-moon block text-lg dark:!hidden" aria-hidden="true"></i>
 		<i class="fa-solid fa-sun !hidden text-lg text-yellow-400 dark:!block" aria-hidden="true"></i>
-	</a>
+	</button></form>
 </div>

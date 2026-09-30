@@ -144,10 +144,12 @@ abstract class AbstractGateway implements PaymentGatewayInterface
 	protected function updateOutbound(array $callback, string $batchPrefix = ''): array
 	{
 		$correct = !empty($callback['correct']);
+		if (!$correct)
+			return array('handled' => true, 'correct' => false) + $callback;
 		$batch = $batchPrefix . (string)($callback['batch'] ?? '');
 		$this->db->update(
 			'Opers',
-			array('oBatch' => ($correct ? '' : '?') . $batch),
+			array('oBatch' => $batch),
 			'',
 			'oID=?d and oOper=? and oState=3 and SUBSTR(oBatch, 1, 1)=?',
 			array((int)($callback['tag'] ?? 0), 'CASHOUT', '?')

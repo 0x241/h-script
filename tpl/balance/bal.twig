@@ -14,7 +14,7 @@
 			<tbody>
 				{% for i, c in currs %}
 				{% if (c.wBal != 0) or (c.wLock != 0) or (c.wOut != 0) %}
-					<tr style="border-bottom: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent); transition: background 0.2s ease;" onmouseover="this.style.background='var(--color-surface-muted)'" onmouseout="this.style.background='transparent'">
+					<tr class="transition-colors hover:bg-gray-50 dark:hover:bg-[#202020]" style="border-bottom: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);">
 						<td style="padding: 14px 20px;">
 							<div style="display: flex; align-items: center; gap: 12px;">
 								<span style="width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--color-accent) 15%, transparent); color: var(--color-accent); font-size: 0.85-rem;">

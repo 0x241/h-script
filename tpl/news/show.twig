@@ -17,7 +17,7 @@
 				{% if el.nAnnounce %}
 					<p class="text-xl md:text-2xl font-medium !text-brand dark:!text-gray-200 !leading-snug mb-10">{{ el.nAnnounce|nl2br }}</p>
 				{% endif %}
-				{{ el.nText|raw }}
+				{{ el.nText|safe_html }}
 			</div>
 
 			<div class="mt-16 flex flex-col items-start gap-6 border-t border-gray-100 pt-8 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">

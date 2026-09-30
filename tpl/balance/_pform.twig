@@ -1,17 +1,10 @@
 
 
-{% if pform.html %}
+{% if pform.url %}
 
 	<br>
 	<div class="hs-payment-form">
-		{{ pform.html }}
-	</div>
-
-{% elseif pform.url %}
-
-	<br>
-	<div class="hs-payment-form">
-	<form method="{% if pform.get %}get{% else %}post{% endif %}" action="{{ pform.url }}" name="pay_form"{% if isset(_GET.pay) %} data-hs-auto-submit="1"{% endif %}>
+	<form method="{% if pform.get %}get{% else %}post{% endif %}" action="{{ pform.url }}" name="pay_form"{% if pay_auto_submit %} data-hs-auto-submit="1"{% endif %}>
 		{% for f, v in pform %}
 			{% if (f != 'url') and (f != 'get') %}
 				<input name="{{ f }}" value="{{ v }}" type="hidden">
@@ -23,4 +16,3 @@
 	
 {% endif %}
 	
-

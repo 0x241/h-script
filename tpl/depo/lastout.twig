@@ -1,5 +1,5 @@
 
-{% include "header.twig" with {"title": 'Последние выплаты'} %}
+{% include "header.twig" with {"depo_css": "lastout", "title": 'Последние выплаты'} %}
 
 <div class="hs-page-title hs-page-title--flex">
 	<div>
@@ -8,71 +8,6 @@
 	</div>
 </div>
 
-<style type="text/css">
-	.hs-stat-card {
-		padding: 32px;
-		background: var(--color-surface);
-		border-radius: var(--radius-lg);
-		border: 1px solid var(--color-border);
-		box-shadow: var(--shadow-card);
-		max-width: 950px;
-		margin: 24px auto 0;
-	}
-	.hs-stat-card .card-head {
-		margin-bottom: 24px;
-		border-bottom: 1px solid var(--color-border);
-		padding-bottom: 16px;
-	}
-	.hs-stat-table {
-		width: 100%;
-		border-collapse: collapse;
-	}
-	.hs-stat-table th {
-		padding: 16px 20px;
-		background: var(--color-surface-muted);
-		border-radius: var(--radius-md);
-		border: 1px solid var(--color-border);
-		font-size: 1.05-rem;
-		font-weight: 800;
-		color: var(--color-primary-ink);
-		text-align: left;
-	}
-	.hs-stat-table td {
-		padding: 18px 20px;
-		border-bottom: 1px solid var(--color-border);
-		font-size: 1rem;
-		color: var(--color-text-soft);
-	}
-	.hs-stat-table tr:last-child td {
-		border-bottom: none;
-	}
-	.hs-user-cell {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		font-weight: 700;
-		color: var(--color-primary-ink);
-	}
-	.hs-stat-val {
-		font-family: var(--font-mono);
-		font-size: 1.15-rem;
-		font-weight: 800;
-		color: var(--color-cyan);
-		display: inline-flex;
-		align-items: center;
-		gap: 8px;
-	}
-	.hs-batch-badge {
-		font-family: var(--font-mono);
-		font-size: 0.88-rem;
-		background: var(--color-surface-muted);
-		border: 1px solid var(--color-border);
-		padding: 6px 12px;
-		border-radius: var(--radius-sm);
-		color: var(--color-text-muted);
-		display: inline-block;
-	}
-</style>
 
 <div class="hs-stat-card">
 	<div class="card-head">

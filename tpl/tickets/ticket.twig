@@ -4,6 +4,7 @@
 
 {% if el.tID %}
 	{% set ticket_form_name = getFormName('') %}
+	{% include "_read_receipt.twig" %}
 	{% set close_form_name = 'ticket' %}
 	{% set ticket_state = _tstates[el.tState]|default(el.tState) %}
 	{% set ticket_state_class = 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400' %}

@@ -94,6 +94,7 @@ final class Mailer
 			$mail->setFrom($from, $fromName);
 			$mail->Subject = $subject;
 			$mail->msgHTML(self::styledMessage($subject, $message));
+			$mail->AltBody = EmailTemplate::plainText($message);
 			$mail->addReplyTo($from, $fromName);
 			$mail->addAddress($to);
 			$mail->isHTML(true);
@@ -133,6 +134,14 @@ final class Mailer
 			return self::fail('Native PHP mail transport is unavailable: ' . $sendmailBinary . ' does not exist; configure SMTP in the mail settings');
 
 		$sender = $fromName !== '' ? self::encodeHeader($fromName) . " <$from>" : $from;
+		$boundary = 'hs-' . bin2hex(random_bytes(12));
+		$mimeBody = '--' . $boundary . "\r\n"
+			. "Content-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
+			. chunk_split(base64_encode(EmailTemplate::plainText($message)), 76, "\r\n")
+			. '--' . $boundary . "\r\n"
+			. "Content-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
+			. chunk_split(base64_encode(self::styledMessage($subject, $message)), 76, "\r\n")
+			. '--' . $boundary . "--\r\n";
 		$nativeError = '';
 		set_error_handler(static function (int $severity, string $error) use (&$nativeError): bool
 		{
@@ -144,8 +153,8 @@ final class Mailer
 			$result = mail(
 				$to,
 				self::encodeHeader($subject),
-				self::styledMessage($subject, $message),
-				'Content-type: text/html; charset="utf-8"' . HS2_NL
+				$mimeBody,
+				'Content-Type: multipart/alternative; boundary="' . $boundary . '"' . HS2_NL
 					. "From: $sender" . HS2_NL
 					. 'MIME-Version: 1.0' . HS2_NL,
 				'-f' . $from

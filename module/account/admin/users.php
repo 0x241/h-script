@@ -35,14 +35,32 @@ try
 
 	if (isset_IN('ids') and (count($ids = (array)_IN('ids')) > 0))
 	{
-		$ids = $db->fetchRows($db->select($table, $id_field, '?# ?i', array($id_field, $ids)), 1);
+		View::checkFormSecurity();
+		$requested_ids = array_values(array_unique(array_map('intval', $ids)));
+		$ids = $db->fetchRows($db->select($table, $id_field, '?# ?i', array($id_field, $requested_ids)), 1);
 		if (count($ids) > 0)
 		{
-			View::checkFormSecurity();
-			
+			if ((int)$_user['uLevel'] < 99 && $db->count($table, '?# ?i and uLevel>=?d', array($id_field, $ids, (int)$_user['uLevel'])) > 0)
+			{
+				http_response_code(403);
+				View::setError('access_denied');
+			}
+
 			if (View::sendedForm('setgroup'))
 			{
-				$db->update('Users', array('uGroup' => _IN('Group')), '', '?# ?i', array($id_field, $ids));
+				if ($_GS['demo'] && (int)$_user['uLevel'] < 99)
+				{
+					http_response_code(403);
+					View::setError('access_denied');
+				}
+				$filter = '?# ?i';
+				$params = array($id_field, $ids);
+				if ((int)$_user['uLevel'] < 99)
+				{
+					$filter .= ' and uLevel<?d';
+					$params[] = (int)$_user['uLevel'];
+				}
+				$db->update('Users', array('uGroup' => _IN('Group')), '', $filter, $params);
 			}
 			
 			if (View::sendedForm('del'))

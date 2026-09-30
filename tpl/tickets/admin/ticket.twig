@@ -3,6 +3,7 @@
 {% include "tickets/_states.twig" %}
 
 {% if el.tID %}
+	{% include "_read_receipt.twig" %}
 	{% set ticket_form_name = getFormName('') %}
 	{% set ticket_state = _tstates[el.tState]|default(el.tState) %}
 	{% set ticket_state_class = 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300' %}

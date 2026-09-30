@@ -11,8 +11,21 @@ $table = 'Users';
 $id_field = 'uID';
 $out_link = moduleToLink('account/admin/users');
 
-try 
+try
 {
+	if (View::sendedForm('login', 'impersonate'))
+	{
+		View::checkFormSecurity('impersonate');
+		if ($_GS['demo'] && (int)$_user['uLevel'] < 99)
+			View::showInfo('*Denied');
+		useLib('account/login');
+		$result = opLogin(_INN('uID'), '', false, true);
+		if (is_string($result))
+		{
+			http_response_code(403);
+			View::setError($result, 'impersonate');
+		}
+	}
 
 	if (View::sendedForm())
 	{
@@ -32,16 +45,28 @@ try
 				View::showInfo('*Denied');
 			$a['uLevel'] = 1;
 		}
+		$actor_level = (int)$_user['uLevel'];
+		$target = $db->fetch1Row($db->select('Users', 'uLevel', 'uID=?d', array($id)));
+		$requested_level = filter_var($a['uLevel'] ?? null, FILTER_VALIDATE_INT);
+		if (!$target || $requested_level === false || $requested_level < 1 || $requested_level > 99
+			|| ($actor_level < 99 && ((int)$target['uLevel'] >= $actor_level || $requested_level >= $actor_level)))
+		{
+			http_response_code(403);
+			View::setError('access_denied');
+		}
 
 		View::setError(opRegisterUserCheck($a, $id, true));
 		$a['uMode'] = View::normalizeTemplateMode($a['uMode'] ?? '');
 		if (!empty($_IN['uMode']) && !View::templateModeExists($a['uMode']))
 			View::setError('mode_wrong');
 		View::strArrayToStamp($a, 'uBTS');
-		if ($id = $db->save($table, $a, 
-			'uGroup, uLogin, uMail, uState, uBTS, uLevel, uLang, uMode, uTheme, uRef, uBFC, uWDDisable' .
-			StringHelper::valueIf($a['uPass'], ', uPass, uPTS') . StringHelper::valueIf($a['uPIN'], ', uPIN'), $id_field)
-		)
+		$fields = 'uGroup, uLogin, uMail, uState, uBTS, uLevel, uLang, uMode, uTheme, uRef, uBFC, uWDDisable' .
+			StringHelper::valueIf($a['uPass'], ', uPass, uPTS') . StringHelper::valueIf($a['uPIN'], ', uPIN');
+		if ($actor_level < 99)
+			$db->update($table, $a, $fields, 'uID=?d and uLevel<?d', array($id, $actor_level));
+		else
+			$db->update($table, $a, $fields, 'uID=?d', array($id));
+		if ($id)
 			View::showInfo('Saved', $out_link . "?id=$id");
 		View::showInfo('*Error');
 	}
@@ -58,11 +83,6 @@ if (!isset($_GET['add']))
 		"$table.*, AddInfo.*, U.uLogin as uRef", "$table.$id_field=?d", array(_GETN('id'))));
 	if (!$el)
 		goToURL(moduleToLink() . '?add');
-	if (isset($_GET['login']) and (!$_GS['demo'] or ($_user['uLevel'] == 99)))
-	{
-		useLib('account/login');
-		opLogin($el['uID'], '', false, true);
-	}
 	View::stampArrayToStr($el, 'uBTS, uLTS');
 	View::setPage('el', $el, 2);
 	$langs = array();

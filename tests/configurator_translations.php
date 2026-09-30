@@ -13,7 +13,11 @@ function cfgAssert(bool $ok, string $message): void { if (!$ok) throw new Runtim
 $en = View::translationReadBundledFile('en');
 $ru = View::translationReadBundledFile('ru');
 $backupUi = file_get_contents($root . '/module/_config/backup.php');
-cfgAssert(str_contains($backupUi, 'return confirm(this.dataset.confirm)'), 'Translated confirmation must not be interpolated into JavaScript');
+$appJs = file_get_contents($root . '/static/js/app.js');
+cfgAssert(str_contains($backupUi, 'data-confirm="<?php echo htmlspecialchars(cfg_t(\'configurator.backup.delete_this_backup\'), ENT_QUOTES, \'UTF-8\'); ?>"')
+	&& !str_contains($backupUi, 'return confirm(')
+	&& str_contains($appJs, 'form.dataset.confirm && !window.confirm(form.dataset.confirm)'),
+	'Translated confirmation must be HTML-escaped and handled outside inline JavaScript');
 foreach (glob($root . '/module/_config/*.php') as $file)
 {
 	$text = file_get_contents($file);
