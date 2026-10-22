@@ -134,7 +134,7 @@ function smsToUser($uid, $to, $section, $consts = array(), $lang = '', $fname = 
 	global $_GS, $_cfg;
 	$lang = View::getLang($lang);
 	$txt = View::loadText($section, $fname, $lang);
-	if (!$txt["$section.message"])
+	if (empty($txt["$section.message"]))
 		return false;
 	$hdr = View::loadText('_header', $fname, $lang);
 	$ftr = View::loadText('_footer', $fname, $lang);

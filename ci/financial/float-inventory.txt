@@ -1,0 +1,88 @@
+module/refsys/onload.php:8:	return opOperCreate($uid, 'REF', $cid, _zr(calcPerc($sum, $perc, 6), $cid),
+src/Payment/Gateways/CoinPayments.php:74:			'sum' => (float)$this->value($request, 'amount1'),
+src/Payment/Gateways/CoinPayments.php:118:				(float)$this->value($params, 'sum'),
+src/Finance/CoinbaseRateProvider.php:61:		if (!is_numeric($value) || (float)$value <= 0)
+src/Finance/CoinbaseRateProvider.php:63:		return (float)$value;
+lib/main.php:51:$_SERVER += array(
+lib/main.php:484:function calcPerc($sum, $perc, $r = 2)
+lib/main.php:486:    return round($sum * $perc / 100, $r);
+lib/main.php:509:        $z += $r[$fld];
+lib/main.php:750:        $i += 1 + $as_hex;
+module/balance/lib.php:61:	return round((float)$z, $r);
+module/balance/lib.php:73:	if (!empty($c[$prfx . 'Int']) and (round($sum) != $sum))
+module/balance/lib.php:81:	$csum = _zr(calcPerc($sum, isset($c[$prfx . 'Comis']) ? $c[$prfx . 'Comis'] : 0, 6), $cid);
+module/balance/lib.php:103:			return _zr($sum * $zc * (1 + (isset($c['cEXOut']) ? $c['cEXOut'] : 0) / 100), $cid);
+module/balance/lib.php:156:		'oComis' => StringHelper::valueIf(isset($params['comis']) && $params['comis'] > 0, _zr(calcPerc($sum, isset($params['comis']) ? $params['comis'] : 0, 6), $cid), 0),
+module/balance/lib.php:213:		$csum += _zr(calcPerc($sum, $params['comis'], 6), $cid);
+module/balance/lib.php:363:			$outsum = (float)$db->fetch1($db->select('Opers', 'SUM(oSum)',
+module/balance/lib.php:522:			if (($sum -= $res) < 0)
+module/balance/lib.php:590:			$n['course'] = $sum > 0 ? round($sum2 / $sum, 4) : 0;
+src/Payment/Gateways/Paykassa.php:49:			(float)$this->value($params, 'sum'),
+src/Payment/Gateways/Paykassa.php:107:			(float)$this->value($params, 'sum'),
+module/api/v1/bootstrap.php:137:	if (!is_numeric($value) || (float)$value <= 0)
+module/api/v1/bootstrap.php:139:	return (float)$value;
+module/api/v1/bootstrap.php:184:	$amount = (float)$row['oSum'];
+module/api/v1/bootstrap.php:185:	$fee = (float)$row['oComis'];
+module/api/v1/bootstrap.php:238:		'minimum' => (float)$row[$prefix . 'Min'],
+module/api/v1/bootstrap.php:239:		'maximum' => (float)$row[$prefix . 'Max'],
+module/api/v1/bootstrap.php:240:		'fee_percent' => (float)$row[$prefix . 'Comis'],
+module/api/v1/bootstrap.php:241:		'fee_minimum' => (float)$row[$prefix . 'ComisMin'],
+module/api/v1/bootstrap.php:242:		'fee_maximum' => (float)$row[$prefix . 'ComisMax'],
+module/depo/lib.php:19:		$bg[$p['pGroup']] += $p['DCNT'];
+module/depo/lib.php:44:	$rate = isset($_cfg["Bal_Rate$curr"]) ? (float)$_cfg["Bal_Rate$curr"] : 1.0;
+module/depo/lib.php:45:	return _zr($sum * $rate, 1);
+module/depo/lib.php:64:	$sum += 0;
+module/depo/lib.php:69:	$compnd = round($compnd, 2);
+module/depo/lib.php:90:	$bsum = _zr(calcPerc($sum, $pl['pBonus'], 6), $cid);
+module/depo/lib.php:295:	$compnd = round($compnd, 2);
+module/depo/lib.php:306://=============Calculate percent from calendar========================================================================
+module/depo/lib.php:313://=====================================================================================================================
+module/depo/lib.php:320:	$perc = round($perc, 2);
+module/depo/lib.php:359:	$psum = _zr(calcPerc($d['dZD'], $perc, 6), $d['dcID']); // percents (profit) + to ZP
+module/depo/lib.php:371:		$rsum = $csum + _zr(calcPerc($dsum, $d['pReturn'], 6), $d['dcID']);
+module/depo/lib.php:384:		$csum = _zr(calcPerc($psum, $d['dCompnd'], 6), $d['dcID']); // compound deposit+
+module/depo/lib.php:454:	return is_numeric($value) ? (float)$value : (float)$default;
+module/depo/lib.php:485:			'min' => (float)$pl['pMin'],
+module/depo/lib.php:486:			'max' => (float)$pl['pMax'],
+module/depo/lib.php:487:			'perc' => (float)$pl['pPerc'],
+module/depo/lib.php:489:			'bonus' => (float)$pl['pBonus'],
+module/depo/lib.php:490:			'return' => (float)$pl['pReturn'],
+module/depo/lib.php:503:	if ($compounds && !in_array($cmpd, array_map('floatval', array_values($compounds))))
+module/depo/lib.php:504:		$cmpd = (float)reset($compounds);
+module/depo/lib.php:510:		$base_sum = round($sum, 2);
+module/depo/lib.php:511:		$bonus_sum = round($base_sum * $plan['bonus'] / 100, 2);
+module/depo/lib.php:512:		$work_sum = round($base_sum + $bonus_sum, 2);
+module/depo/lib.php:517:			$period_profit = round($work_sum * $plan['perc'] / 100, 2);
+module/depo/lib.php:518:			$period_capitalized = round($period_profit * $cmpd / 100, 2);
+module/depo/lib.php:519:			$capitalized = round($capitalized + $period_capitalized, 2);
+module/depo/lib.php:520:			$profit = round($profit + $period_profit - $period_capitalized, 2);
+module/depo/lib.php:521:			$work_sum = round($work_sum + $period_capitalized, 2);
+module/depo/lib.php:523:		$deposit_return = round($plan['return'] * ($work_sum - $capitalized) / 100, 2);
+module/depo/lib.php:524:		$total_profit = round($profit + $capitalized, 2);
+module/depo/lib.php:530:			'total_return_sum' => round($deposit_return + $total_profit, 2)
+module/depo/lib.php:545:	$value = (int)round(max(0, min(100, (float)$value)));
+module/depo/lib.php:599:		$zper = calcPerc($d['dZD'], $perc, 6);
+module/depo/lib.php:611:		$d['CurrentProfit'] = round($zper * $tcalc / $period_seconds, 6);
+module/depo/lib.php:612:		$d['ProfitPerHour'] = _zr($zper / $d['pPer'], $d['dcID']);
+module/depo/lib.php:631:	$stat['zin'] = (float)(isset($_cfg["Depo_S2"]) ? $_cfg["Depo_S2"] : 0);
+module/depo/lib.php:635:			$stat['zin2'][$curr] = (float)$db->fetch1($db->select('Opers', 'SUM(oSum)', "oOper='CASHIN' AND oState=3 and ocID ?i", array($cids))) + (float)(isset($_cfg["Depo_S2$curr"]) ? $_cfg["Depo_S2$curr"] : 0);
+module/depo/lib.php:636:			$stat['zin'] += $stat['zin2'][$curr] * (float)(isset($_cfg['Bal_Rate'.$curr]) ? $_cfg['Bal_Rate'.$curr] : 1);
+module/depo/lib.php:639:	$stat['zout'] = (float)(isset($_cfg["Depo_S3"]) ? $_cfg["Depo_S3"] : 0);
+module/depo/lib.php:642:			$stat['zout2'][$curr] = (float)$db->fetch1($db->select('Opers', 'SUM(oSum-oComis)', "oOper='CASHOUT' AND oState=3 and ocID ?i", array($cids))) + (float)(isset($_cfg["Depo_S3$curr"]) ? $_cfg["Depo_S3$curr"] : 0);
+module/depo/lib.php:643:			$stat['zout'] += $stat['zout2'][$curr] * (float)(isset($_cfg['Bal_Rate'.$curr]) ? $_cfg['Bal_Rate'.$curr] : 1);
+module/depo/lib.php:645:	$stat['zref'] = (float)$db->fetch1($db->select('Opers', 'SUM(oSum)', "oOper='REF' AND oState=3")) + (float)(isset($_cfg['Depo_S4']) ? $_cfg['Depo_S4'] : 0);
+module/depo/lib.php:646:	$stat['zreinv'] = (float)$db->fetch1($db->select('Opers', 'SUM(oSum)', "oOper='GIVE' AND oState=3 AND NOT (oMemo ?%)", array('Auto'))) + (float)(isset($_cfg['Depo_S5']) ? $_cfg['Depo_S5'] : 0);
+src/Payment/Gateways/YooMoney.php:63:		$sum = round((float)$this->value($request, 'amount') * (1 + $commission), 2);
+src/Payment/Gateways/YooMoney.php:126:				'amount_due' => (float)$this->value($params, 'sum'),
+module/api/v1/balance/index.php:11:	$available = (float)($currency['wBal'] ?? 0);
+module/api/v1/balance/index.php:12:	$locked = (float)($currency['wLock'] ?? 0);
+module/api/v1/balance/index.php:13:	$outgoing = (float)($currency['wOut'] ?? 0);
+src/Finance/CentralBankRateProvider.php:70:			$nominal = (float)str_replace(',', '.', trim((string)$valute->Nominal));
+src/Finance/CentralBankRateProvider.php:71:			$value = (float)str_replace(',', '.', trim((string)$valute->Value));
+src/Finance/CentralBankRateProvider.php:74:			$result[$code] = $value / $nominal;
+src/Payment/Gateways/AdvCash.php:99:			'sum2' => (float)$this->value($request, 'ac_amount') - (float)$this->value($request, 'ac_fee'),
+src/Payment/Gateways/AdvCash.php:144:					$result['sum'] = (float)$balance->amount;
+src/Payment/Gateways/AdvCash.php:170:			$payment->amount = (float)$this->value($params, 'sum');
+src/Payment/Gateways/AdvCash.php:208:			(float)$this->value($params, 'sum'),
+src/Payment/Gateways/AdvCash.php:267:			(float)$this->value($params, 'sum'),
+src/Payment/AbstractGateway.php:105:			return number_format((float)$amount, 2, '.', '');

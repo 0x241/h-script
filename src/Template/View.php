@@ -316,6 +316,7 @@ public static function tplRegisterLegacyPlugins()
     static $registered = [];
     $functions = [
         '_t' => [[self::class, 'tplTranslate'], ['is_variadic' => true]],
+        '_financialFormFields' => [[\HScript\Finance\FinancialForm::class, 'fields'], ['is_safe' => ['html']]],
         '_getFormSecurity' => [[self::class, 'tplFormSecurity'], ['is_safe' => ['html']]],
         '_getFormCaptcha' => [[self::class, 'tplFormCaptcha'], ['is_safe' => ['html']]],
         '_link' => [[self::class, 'tplModuleToLink'], []],
@@ -418,6 +419,9 @@ public static function tplRegisterLegacyPlugins()
         }
     }
     $customFilters = [
+        'decimal_format' => [\HScript\Finance\DecimalOutput::class, 'grouped'],
+        'deposit_summary' => [\HScript\Finance\DepositSummary::class, 'project'],
+        'decimal_subtract' => static fn(mixed $a,mixed $b): string => (string)\HScript\Finance\ReadAmount::decimal($a)->minus(\HScript\Finance\ReadAmount::decimal($b)),
         'cat' => [self::class, 'tplCat'],
         'date_format' => [self::class, 'tplDateFormat'],
         'truncate' => [self::class, 'tplTruncate'],

@@ -21,6 +21,7 @@ final class AlertManager
 	{
 		$checks = is_array($readiness['checks'] ?? null) ? $readiness['checks'] : array();
 		$events = array();
+		if (in_array(($checks['log_retention'] ?? ''), array('shortfall', 'unknown'), true)) $events[] = 'log_retention_shortfall';
 		if (($checks['database'] ?? '') === 'failed') $events[] = 'database_unavailable';
 		if (($checks['redis'] ?? '') === 'degraded') $events[] = 'redis_degraded';
 		if (in_array(($checks['cron'] ?? ''), array('missing', 'stale', 'unknown'), true)) $events[] = 'cron_stale';

@@ -24,7 +24,7 @@
 		<div class="mb-1 text-sm font-bold text-gray-500">{{ _t({"key": 'admin.stats.active_deposits', "default": 'Активные депозиты'}) }}</div>
 		<div class="flex items-end justify-between gap-4">
 			<span class="font-mono text-3xl font-black text-emerald-500">{{ admin_stats.active_deposits }}</span>
-			<span class="pb-1 text-right font-mono text-sm font-bold text-gray-500 dark:text-gray-300">{{ admin_stats.active_deposits_sum|number_format(2, '.', ' ') }}</span>
+			<span class="pb-1 text-right font-mono text-sm font-bold text-gray-500 dark:text-gray-300">{{ admin_stats.active_deposits_sum|decimal_format(2, ' ') }}</span>
 		</div>
 	</a>
 

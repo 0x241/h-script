@@ -22,6 +22,7 @@
 
 								{#** CERT & CAPTCHA **#}
 	{{ _getFormSecurity({"form": edit_form_name}) }}
+	{% if financial_form|default(false) %}{{ _financialFormFields() }}{% endif %}
 	{% set form_captcha_html = _getFormCaptcha({"form": edit_form_name, "captcha": captcha}) %}
 	{% if form_captcha_html %}
 		{% include "captcha.twig" with {"form": edit_form_name, "star": edit_descr_star, "layout": form_layout, "__Capt": form_captcha_html} %}

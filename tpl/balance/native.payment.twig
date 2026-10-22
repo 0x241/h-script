@@ -1,0 +1,18 @@
+<section class="hs-native-payment" aria-labelledby="native-payment-title">
+	<div class="hs-native-heading">
+		<div><span class="hs-payment-eyebrow">{{ _t({'key': 'payment.native.details'}) }}</span><h3 id="native-payment-title">{{ _t({'key': 'payment.native.send'}) }} {{ pform.payment_asset }}</h3></div>
+		<span class="hs-native-network">{{ native_details.network|default(pform.payment_asset) }}</span>
+	</div>
+	<div class="hs-native-body">
+		<div class="hs-native-fields">
+			<label for="native-copy-amount">{{ _t({'key': 'balance.field.sum'}) }}</label>
+			<div class="hs-native-amount-row"><strong id="native-payment-amount">{{ pform.payment_amount }} {{ pform.payment_asset }}</strong><input id="native-copy-amount" class="sr-only" readonly value="{{ pform.payment_amount }}" tabindex="-1" aria-hidden="true"><button type="button" data-copy-target="native-copy-amount" aria-label="{{ _t({'key': 'payment.native.copy_amount'}) }}" title="{{ _t({'key': 'payment.native.copy_amount'}) }}"><i class="fa-regular fa-copy" aria-hidden="true"></i></button></div>
+			<label for="native-payment-address">{{ _t({'key': 'payment.native.address'}) }}</label>
+			<div class="hs-native-address-row"><input id="native-payment-address" type="text" readonly value="{{ pform.payment_address }}" autocomplete="off" spellcheck="false"><button type="button" data-copy-target="native-payment-address" aria-label="{{ _t({'key': 'payment.native.copy_address'}) }}" title="{{ _t({'key': 'payment.native.copy_address'}) }}"><i class="fa-regular fa-copy" aria-hidden="true"></i></button></div>
+			{% if native_details.contract|default(false) %}<p class="mt-4 text-sm text-gray-500">{{ _t({'key':'payment.native.contract'}) }}<br><strong class="break-all font-mono" id="native-payment-contract">{{ native_details.contract }}</strong></p>{% endif %}
+			<p class="hs-native-warning"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><span>{{ _t({'key': 'payment.native.network_hint'}) }} <strong>{{ native_details.network|default(pform.payment_asset) }}</strong>.</span></p>
+		</div>
+		{% if native_details.qr %}<figure class="hs-native-qr"><img src="{{ native_details.qr }}" width="240" height="240" alt="{{ _t({'key': 'payment.native.qr_alt'}) }}"><figcaption>{{ _t({'key': 'payment.native.qr_hint'}) }}</figcaption></figure>{% endif %}
+	</div>
+	{% include 'balance/payment.progress.twig' %}
+</section>

@@ -1,12 +1,14 @@
 # syntax=docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e
 
-FROM composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 AS vendor
+FROM composer:2@sha256:da624c2c705d54e2f5a9bb77a5dc6c7d091711433ebefd7035672e84c2010fee AS vendor
 
 WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer validate --no-interaction --strict \
     && composer install \
         --no-dev \
+        --no-scripts \
+        --no-plugins \
         --prefer-dist \
         --no-interaction \
         --no-progress \
@@ -14,7 +16,7 @@ RUN composer validate --no-interaction --strict \
     && rm -f vendor/endroid/qr-code/assets/noto_sans.otf \
     && test ! -e vendor/endroid/qr-code/assets/noto_sans.otf
 
-FROM node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 AS frontend-build
+FROM node:24.22.1-alpine3.24@sha256:06d7adf3e0ef61a13f1d28682726366f97a15aa1888c934d3ecec86c33918b53 AS frontend-build
 
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -53,7 +55,7 @@ RUN rm -f static/css/input.css \
     && mkdir -p backup compile .cfg \
     && chmod 0750 backup compile logs tpl_c upload .cfg
 
-FROM composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 AS shared-hosting-files
+FROM composer:2@sha256:da624c2c705d54e2f5a9bb77a5dc6c7d091711433ebefd7035672e84c2010fee AS shared-hosting-files
 
 ARG APP_VERSION=0.0.0-dev
 ARG VCS_REF=unknown
@@ -110,7 +112,8 @@ RUN case "${APP_VERSION}" in \
 FROM scratch AS shared-release
 COPY --from=shared-archive /out /
 
-FROM php:8.4-fpm-alpine@sha256:49734670eccf414af884c2a0c2e558401e228615f8028f1c9fca30a0d4fb1bc2 AS runtime
+# PHP 8.4.27 fixes CVE-2026-109618 and CVE-2026-109619.
+FROM php:8.4.27-fpm-alpine3.24@sha256:8ce34c869fae0f8da2c82d8aeda222f0782e8e5ae2b370fb43cbad84e9e2ea55 AS runtime
 
 WORKDIR /var/www/html
 
@@ -126,19 +129,22 @@ RUN apk upgrade --no-cache --available \
         libjpeg-turbo \
         libpng \
         mariadb-client \
+        'pcre2>=10.49-r0' \
         tzdata \
     && apk add --no-cache --virtual .build-deps \
         $PHPIZE_DEPS \
         freetype-dev \
         libjpeg-turbo-dev \
         libpng-dev \
+        libxml2-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" \
         gd \
         pdo_mysql \
+        soap \
     && pecl install redis-6.3.0 \
     && docker-php-ext-enable redis \
-    && php -r '$required = ["curl", "dom", "gd", "mbstring", "openssl", "pdo_mysql", "redis", "simplexml", "sodium", "Zend OPcache"]; foreach ($required as $extension) { if (!extension_loaded($extension)) { fwrite(STDERR, "Missing PHP extension: {$extension}\\n"); exit(1); } }' \
+    && php -r '$required = ["curl", "dom", "gd", "mbstring", "openssl", "pdo_mysql", "redis", "simplexml", "soap", "sodium", "Zend OPcache"]; foreach ($required as $extension) { if (!extension_loaded($extension)) { fwrite(STDERR, "Missing PHP extension: {$extension}\\n"); exit(1); } }' \
     && apk del .build-deps \
     && rm -rf /tmp/pear /usr/src/php.tar.xz /usr/src/php.tar.xz.asc \
     && mkdir -p /run/apache2 /var/log/apache2

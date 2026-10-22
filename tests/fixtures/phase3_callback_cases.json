@@ -1,0 +1,1050 @@
+{
+  "version": 1,
+  "origin": "published_example_and_synthetic_protocol",
+  "checked_at": "2026-10-09",
+  "generator": "Independent Python hashlib/hmac and urllib.parse; no application signer used.",
+  "live_credentials": false,
+  "live_provider_capture": false,
+  "sources": {
+    "coinpayments": "https://legacy.coinpayments.net/merchant-tools-ipn",
+    "yoomoney": "https://yoomoney.ru/docs/payment-buttons/using-api/notifications",
+    "webmoney": "https://en.webmoney.wiki/projects/webmoney/wiki/Web_Merchant_Interface",
+    "ccapi": "https://new.cryptocurrencyapi.net/docs/.start"
+  },
+  "cases": [
+    {
+      "name": "cp-success-BTC",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=BTC&status=100",
+      "body_sha256": "62fe40b2f3fe93352ddab39f5998e82ccbec6ee51e01781ddf1d2edc268c0e0f",
+      "headers": {
+        "HMAC": "9d02d36f86f05cced1d122a0826867503250ff47e8b6f3f840f88f4db2475b9ff373ea4313a9b594606f9e7851064ad33ece90f10ab5f23a10f8a785d161b15b"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-success-ETH",
+      "gateway": "CPE",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=ETH&status=100",
+      "body_sha256": "9a16123db663d53022f10e0e5f1d6232bc3af355d245d502a275a5a244e112b6",
+      "headers": {
+        "HMAC": "9d75f6b4170abd5918aec53d48d2364ef19fb992cf416c6232eac1d0be4a18bf7082422a468e8d97943d0bf76a9e4aaadcd9eaccb5e808d634e7f44284f8898f"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-success-LTC",
+      "gateway": "CPL",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=LTC&status=100",
+      "body_sha256": "0f999ccf6c53e6061887d4678d37ce0ec14eef9167b98a151fac24dbd74da385",
+      "headers": {
+        "HMAC": "9ec9da016d251ae2e491536c4ff18ce4b1d4160330eaa35e09680dbdb2761fdca69103110c197ee40b3e9946c2e196deb4d1eacf933a769122ed1d63cbe7ca9b"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-success-XRP",
+      "gateway": "CPR",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=XRP&status=100",
+      "body_sha256": "b6685656b3affbc9bc46e287d8112b157c62430d2433920949821429638c3368",
+      "headers": {
+        "HMAC": "0861075977c2f6a2e779f04d5e6c5d4b00ca6a362a3f3479735d31eb68a4cac23ebcf5f02767dc214b54093bf2e68e5a22bc1c3f106dd485109937b3ee0d0aa9"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-pending",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=BTC&status=0",
+      "body_sha256": "e0eacd769e451420846211b8709df112777c0869e1877924143271ea8df4d1bc",
+      "headers": {
+        "HMAC": "f197a7a97d2fca5ee9dd965d23ca57880297ea0eb3f62a0f07eb704eb1dccc4d5c65b5938268ac5ec7c4eaa855d3392c070265321250c2f2dd0d2d725be1d51f"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "pending",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-nightly-complete",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=BTC&status=2",
+      "body_sha256": "4877a5c0c1fb0f78d898234538e0d799421644d4dc5b142ae3d1f41eb2dd98f0",
+      "headers": {
+        "HMAC": "98b91f77db1d6ec679f1143c911758dabcfab2747e2d47c8fd9256edec2cb3d272bf55c81d917c9ae01284ed019f71a830dd15247dfcc0c138ea3e9701dda89a"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-cancelled",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=BTC&status=-1",
+      "body_sha256": "e7f6096fe45e1a8b5d5abde11e2884d146bf2f8c502eb9885e256d3a201a587b",
+      "headers": {
+        "HMAC": "c4280c0c5df9f0405083be9cf699e73e64d300e744a57436c9545af6dbca4001fdc564310805f5252a3d9cbc419019b55aab6ac213ff8a366b6b504209efc716"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "rejected",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-bad-currency",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=ETH&status=100",
+      "body_sha256": "9a16123db663d53022f10e0e5f1d6232bc3af355d245d502a275a5a244e112b6",
+      "headers": {
+        "HMAC": "9d75f6b4170abd5918aec53d48d2364ef19fb992cf416c6232eac1d0be4a18bf7082422a468e8d97943d0bf76a9e4aaadcd9eaccb5e808d634e7f44284f8898f"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "invalid_payload",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-wrong-merchant",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-other-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=BTC&status=100",
+      "body_sha256": "620dbf98b6d116671191dc88f6acf2dc8a47a2bfba08dcad8aeec7690ff51fe3",
+      "headers": {
+        "HMAC": "e2bf2321117446feda8d4a53534691d3de19ce0b8f4b4cf00ede5ae8982cdb9a9cb9c7967803a19d9283f8ec04ec1d961ecfa9855c7093f567679b05accfb308"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "authentication_failed",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-scientific-amount",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=1e2&currency1=BTC&status=100",
+      "body_sha256": "3ab2da4de3f9b98a7de959f0ed4b729b39eb88061b2ac2c9425f8d4fbc9747a5",
+      "headers": {
+        "HMAC": "2c4be89fa6d47dd90857f146cfdba82058e33fa218544abaa72981e404cb3d9a00f9785f6e14bc6a07d80a0410712b4e3a053196100d0f4b7e2d6871dabde30a"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "invalid_payload",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-outbound-type",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=withdrawal&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=BTC&status=100",
+      "body_sha256": "d163f8c57644d16d0f44987dcf492c65ed0ce220e9277f6f0ca1e91264788946",
+      "headers": {
+        "HMAC": "6b5a741964ff620a6fcbd431961e7969c133decdbb1b5392de7973cb78ad2b042a44b482bf7a1fa56a4df7ae249bd6593ab36dfbfdab495845643d4312de3aea"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-transaction-39",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&amount1=100.00&currency1=BTC&status=100",
+      "body_sha256": "442c3184502429a8985bee061ec9dd6c893db566c89122b97d96f01749c9d08d",
+      "headers": {
+        "HMAC": "642fdaaa2485aeeef1ebe36a63f9a817150cd4f257b0927cba730c37e1f87a3acdc4ce134ea1bdd2f5252c178b964945ae35bd57021cfc5b0404f901ce1c83ba"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-transaction-40",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&amount1=100.00&currency1=BTC&status=100",
+      "body_sha256": "a017ef36fa1be86b9beea4c626b73d73f9dff9f262eb644bb87565726d4bf986",
+      "headers": {
+        "HMAC": "08cd483d8b737132ef71b60e13c85d418d4199ce29c7c74b83c4a22a2399ec4a7b6f2c2cef0b46b5b79dd2eadf30ec223ef9b05877cd1c41ad50110d648fceaa"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-transaction-128",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&amount1=100.00&currency1=BTC&status=100",
+      "body_sha256": "075f6105fe17401b17547c242dc5f77800173948009d7eb2801d4531f6630fd9",
+      "headers": {
+        "HMAC": "6c145e5c759863ba32d8cb87326172476983b0dc32f5abb8019a77eb168e12a5889d3738d5768b09d9ca00865930f940a920aacea8769bacb0d1eb755063bfbc"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-duplicate-amount",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=BTC&status=100&amount1=100.00",
+      "body_sha256": "107859d686253e42943f7cac8164071670cd05a8630d95f1e63853a2f7304b11",
+      "headers": {
+        "HMAC": "561ed0f54cd46b289d72317ca819b50e1f1d2c0fd1fc92f2ac46032c2f7e09e6eb2feea0d392af55776e93dcdfda619ad72d65065de2a0ed9b38c8975ffd8766"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "invalid_payload",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "cp-bad-signature",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=1.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=BTC&status=100",
+      "body_sha256": "62fe40b2f3fe93352ddab39f5998e82ccbec6ee51e01781ddf1d2edc268c0e0f",
+      "headers": {
+        "HMAC": "d8a3949e538598cd398946402d11cd94fd1fced813c0afca265e623bb9bc9a282060c19067a2c54bc88bc01fc5892b4923a1474be49b23d15c6318c17fb9ca0e"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "authentication_failed",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-wallet-success",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=synthetic-policy-yoo&amount=98.00&withdraw_amount=100.00&currency=643&datetime=2026-10-09T10%3A00%3A00Z&sender=synthetic-policy-sender&codepro=false&label=42&unaccepted=false&sign=344d0e0bcaf77252e642cc6b4e9a8eb3bce1c4d16c6b069940d5b639bab7b8ef",
+      "body_sha256": "eabc918c8d5a5956ad9a2825ffa7ddafa5eb9477b5555259354203158a35bb74",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-card-success",
+      "gateway": "YMC",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=card-incoming&operation_id=synthetic-policy-yoo&amount=98.00&withdraw_amount=100.00&currency=643&datetime=2026-10-09T10%3A00%3A00Z&sender=&codepro=false&label=42&unaccepted=false&sign=ec375b34559e53588cf5a998bc0a9924482a5eb2f922a7ca5573951b5f7c5000",
+      "body_sha256": "bf7ceaf709c4c39aa1389dfd0c8f2fe43b63a98f96c551a4234714b69ecae669",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-bad-currency",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=synthetic-policy-yoo&amount=98.00&withdraw_amount=100.00&currency=840&datetime=2026-10-09T10%3A00%3A00Z&sender=synthetic-policy-sender&codepro=false&label=42&unaccepted=false&sign=569c8a0716d35a60cc63342f47ccd94b9397c61cbfb6c3bcb7febf62599a0849",
+      "body_sha256": "ceb5ee8058c8a9bb03e2a005e0cdb8cd739c0c731ddf8eff226617b3c53b17e3",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "invalid_payload",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-held",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=synthetic-policy-yoo&amount=98.00&withdraw_amount=100.00&currency=643&datetime=2026-10-09T10%3A00%3A00Z&sender=synthetic-policy-sender&codepro=false&label=42&unaccepted=true&sign=08c77f45fea9d3dc8d6d8d012a31ee7278ede8f30c31c9ee3f12920c743ab07f",
+      "body_sha256": "a7515ab6f22cce28d48f43d025fd9585894d4777ec0c4d645788e5ad85c2d8e3",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "pending",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-protected",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=synthetic-policy-yoo&amount=98.00&withdraw_amount=100.00&currency=643&datetime=2026-10-09T10%3A00%3A00Z&sender=synthetic-policy-sender&codepro=true&label=42&unaccepted=false&sign=53a2a11681843bb11f7c7465d1c56f897577a66336c25a880c9b19ed8cd668c6",
+      "body_sha256": "aa6c8b366f5f6010cbc708a36eb750cdde77b12ca1ac31950411e55d4ca2cf9f",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "rejected",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-test",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=synthetic-policy-yoo&amount=98.00&withdraw_amount=100.00&currency=643&datetime=2026-10-09T10%3A00%3A00Z&sender=synthetic-policy-sender&codepro=false&label=42&unaccepted=false&test_notification=true&sign=19aaaecb8ba93530e969e96d5d63f523a6320469d52164138dcdbabf20b8d1f2",
+      "body_sha256": "2fb54dd96efc4083e9f3fb51a7db7f38ac17913282c1bd36b4c2d5f57eb1e1bb",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "rejected",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-bad-calendar",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=synthetic-policy-yoo&amount=98.00&withdraw_amount=100.00&currency=643&datetime=2026-02-30T10%3A00%3A00Z&sender=synthetic-policy-sender&codepro=false&label=42&unaccepted=false&sign=e0ea8f3fa6251376fd2c5af793f9d8ac69f5b5210c2bf3d772406bf622a1f1b9",
+      "body_sha256": "91d8d057ff8265468fa1df8fc2db2a1379003694d06129ce6bc39646dc81dc4f",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "invalid_payload",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-bad-amount",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=synthetic-policy-yoo&amount=98.00&withdraw_amount=1e2&currency=643&datetime=2026-10-09T10%3A00%3A00Z&sender=synthetic-policy-sender&codepro=false&label=42&unaccepted=false&sign=af8bece7ac07c30eb34cc5a9d29d1a45d5791f8d7ab578d100ff3ff465e9a1fc",
+      "body_sha256": "2c10044d791003a28cb633c59ce0773fb02c87033da7af310111316ddf7287b3",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "invalid_payload",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-transaction-39",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&amount=98.00&withdraw_amount=100.00&currency=643&datetime=2026-10-09T10%3A00%3A00Z&sender=synthetic-policy-sender&codepro=false&label=42&unaccepted=false&sign=aa266c7ebff6516ffdebec501775b842dd6faed94c686119d7f971df92da651c",
+      "body_sha256": "28b33e62f095a0949b6b1a186cc935d58bc51e13053430570a7126a37dbea752",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-transaction-40",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa&amount=98.00&withdraw_amount=100.00&currency=643&datetime=2026-10-09T10%3A00%3A00Z&sender=synthetic-policy-sender&codepro=false&label=42&unaccepted=false&sign=d8aa5534ff525a4e2ab88ac87e1ed7ccff5f06452a9dab6336e5f903b032e8ca",
+      "body_sha256": "2344c5a15ffe8f39f5869a2e13fec6a5bfd96990577d139e868138c37cfc58aa",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-duplicate-label",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=synthetic-policy-yoo&amount=98.00&withdraw_amount=100.00&currency=643&datetime=2026-10-09T10%3A00%3A00Z&sender=synthetic-policy-sender&codepro=false&label=42&unaccepted=false&sign=344d0e0bcaf77252e642cc6b4e9a8eb3bce1c4d16c6b069940d5b639bab7b8ef&label=42",
+      "body_sha256": "57959cf05b9d199d5c8d680fce3dfe5a4475a5d082fc46279c39349e085b91e8",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "invalid_payload",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-bad-signature",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=synthetic-policy-yoo&amount=98.00&withdraw_amount=100.00&currency=643&datetime=2026-10-09T10%3A00%3A00Z&sender=synthetic-policy-sender&codepro=false&label=42&unaccepted=false&sign=437544d0829b929a6d8b99a39461f3492776d92acce328400b2b2edf5f62ce66",
+      "body_sha256": "7d3d68c42a6530743b266f468e86a48804aa4cfb38b372913f855ea96f2fb0b3",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "authentication_failed",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-utf8-canonical",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=synthetic-policy-yoo&amount=98.00&withdraw_amount=100.00&currency=643&datetime=2026-10-09T10%3A00%3A00Z&sender=synthetic-policy-sender&codepro=false&label=42&unaccepted=false&fixture_note=%20%20UTF-8%20%D1%82%D0%B5%D1%81%D1%82%20%2B%20%26%20%3D%20%21%27%28%29%2A%20%20&sign=957953be825582dbaa61e82da6d1efb39504f6f36bc1cb50373c8cdcb5d897de",
+      "body_sha256": "39f7adb0ec8d10f8490381bd354577de305f506d59086026193c0f5565ad85a3",
+      "headers": {},
+      "config": {
+        "acc": "410111222333444",
+        "key": "synthetic-policy-yoomoney-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "wm-success",
+      "gateway": "WM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "LMI_PAYEE_PURSE=Z123456789012&LMI_PAYMENT_AMOUNT=100.00&LMI_PAYMENT_NO=42&LMI_MODE=0&LMI_SYS_INVS_NO=120&LMI_SYS_TRANS_NO=45678&LMI_SYS_TRANS_DATE=20261009%2010%3A00%3A00&LMI_PAYER_PURSE=Z987654321012&LMI_PAYER_WM=123456789012&LMI_PAYMENT_DESC=Synthetic%20policy%20invoice&LMI_HASH2=534E6DFFE557BA06EF1E6AD57112C6FBD12D0806321D2E8309A0927BC2F683A8",
+      "body_sha256": "53a183263a140694d015323d1427cfc0ab9f7d414a3f32eb999d0221e803300e",
+      "headers": {},
+      "config": {
+        "key": "synthetic-policy-webmoney-key",
+        "timezone": "UTC"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "wm-bad-signature",
+      "gateway": "WM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "LMI_PAYEE_PURSE=Z123456789012&LMI_PAYMENT_AMOUNT=100.00&LMI_PAYMENT_NO=42&LMI_MODE=0&LMI_SYS_INVS_NO=120&LMI_SYS_TRANS_NO=45678&LMI_SYS_TRANS_DATE=20261009%2010%3A00%3A00&LMI_PAYER_PURSE=Z987654321012&LMI_PAYER_WM=123456789012&LMI_PAYMENT_DESC=Synthetic%20policy%20invoice&LMI_HASH2=FD48FFE7FB9E812E791953A1C4A9AF557E86B3B165A25C820E2E62E579ED8296",
+      "body_sha256": "4e41ea2bd245869a72e3711e101e997ae6196578241419665bdf7bb5ed8d42a3",
+      "headers": {},
+      "config": {
+        "key": "synthetic-policy-webmoney-key",
+        "timezone": "UTC"
+      },
+      "expected": {
+        "outcome": "authentication_failed",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "wm-no-timezone",
+      "gateway": "WM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "LMI_PAYEE_PURSE=Z123456789012&LMI_PAYMENT_AMOUNT=100.00&LMI_PAYMENT_NO=42&LMI_MODE=0&LMI_SYS_INVS_NO=120&LMI_SYS_TRANS_NO=45678&LMI_SYS_TRANS_DATE=20261009%2010%3A00%3A00&LMI_PAYER_PURSE=Z987654321012&LMI_PAYER_WM=123456789012&LMI_PAYMENT_DESC=Synthetic%20policy%20invoice&LMI_HASH2=534E6DFFE557BA06EF1E6AD57112C6FBD12D0806321D2E8309A0927BC2F683A8",
+      "body_sha256": "53a183263a140694d015323d1427cfc0ab9f7d414a3f32eb999d0221e803300e",
+      "headers": {},
+      "config": {
+        "key": "synthetic-policy-webmoney-key"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "wm-bad-timezone",
+      "gateway": "WM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "LMI_PAYEE_PURSE=Z123456789012&LMI_PAYMENT_AMOUNT=100.00&LMI_PAYMENT_NO=42&LMI_MODE=0&LMI_SYS_INVS_NO=120&LMI_SYS_TRANS_NO=45678&LMI_SYS_TRANS_DATE=20261009%2010%3A00%3A00&LMI_PAYER_PURSE=Z987654321012&LMI_PAYER_WM=123456789012&LMI_PAYMENT_DESC=Synthetic%20policy%20invoice&LMI_HASH2=534E6DFFE557BA06EF1E6AD57112C6FBD12D0806321D2E8309A0927BC2F683A8",
+      "body_sha256": "53a183263a140694d015323d1427cfc0ab9f7d414a3f32eb999d0221e803300e",
+      "headers": {},
+      "config": {
+        "key": "synthetic-policy-webmoney-key",
+        "timezone": "Synthetic/Invalid"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "wm-dst-gap",
+      "gateway": "WM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "LMI_PAYEE_PURSE=Z123456789012&LMI_PAYMENT_AMOUNT=100.00&LMI_PAYMENT_NO=42&LMI_MODE=0&LMI_SYS_INVS_NO=120&LMI_SYS_TRANS_NO=45678&LMI_SYS_TRANS_DATE=20260329%2002%3A30%3A00&LMI_PAYER_PURSE=Z987654321012&LMI_PAYER_WM=123456789012&LMI_PAYMENT_DESC=Synthetic%20policy%20invoice&LMI_HASH2=844A9C02F0B50B3F97EC252523A3099C0BA3725872BD6C874C6C362E15CB5196",
+      "body_sha256": "e82fa6d57e563258283b3e58622ff203b64cb84474837f6e3434a16c385cd95f",
+      "headers": {},
+      "config": {
+        "key": "synthetic-policy-webmoney-key",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": {
+        "outcome": "invalid_payload"
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "wm-dst-fold",
+      "gateway": "WM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "LMI_PAYEE_PURSE=Z123456789012&LMI_PAYMENT_AMOUNT=100.00&LMI_PAYMENT_NO=42&LMI_MODE=0&LMI_SYS_INVS_NO=120&LMI_SYS_TRANS_NO=45678&LMI_SYS_TRANS_DATE=20261025%2002%3A30%3A00&LMI_PAYER_PURSE=Z987654321012&LMI_PAYER_WM=123456789012&LMI_PAYMENT_DESC=Synthetic%20policy%20invoice&LMI_HASH2=9714E1FB3AA6175AA9149E27E918E4CB6C944D057B8E673B1B50F30B5AF70C2A",
+      "body_sha256": "0529658da5b49df21943dc0126458a848755ba4ecd2a268054b37e35835ed346",
+      "headers": {},
+      "config": {
+        "key": "synthetic-policy-webmoney-key",
+        "timezone": "Europe/Berlin"
+      },
+      "expected": {
+        "outcome": "invalid_payload"
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "wm-invalid-calendar",
+      "gateway": "WM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "LMI_PAYEE_PURSE=Z123456789012&LMI_PAYMENT_AMOUNT=100.00&LMI_PAYMENT_NO=42&LMI_MODE=0&LMI_SYS_INVS_NO=120&LMI_SYS_TRANS_NO=45678&LMI_SYS_TRANS_DATE=20260230%2010%3A00%3A00&LMI_PAYER_PURSE=Z987654321012&LMI_PAYER_WM=123456789012&LMI_PAYMENT_DESC=Synthetic%20policy%20invoice&LMI_HASH2=3CD13EBB01A54CB20C6E51204E4037D1F23956CEA496F0B95A46A876558BDFDA",
+      "body_sha256": "86719a3edc803fd70987e390521d773e03db5b434d4bcbf790ee4e032d754be4",
+      "headers": {},
+      "config": {
+        "key": "synthetic-policy-webmoney-key",
+        "timezone": "UTC"
+      },
+      "expected": {
+        "outcome": "invalid_payload"
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "wm-positive-hold",
+      "gateway": "WM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "LMI_PAYEE_PURSE=Z123456789012&LMI_PAYMENT_AMOUNT=100.00&LMI_PAYMENT_NO=42&LMI_MODE=0&LMI_SYS_INVS_NO=120&LMI_SYS_TRANS_NO=45678&LMI_SYS_TRANS_DATE=20261009%2010%3A00%3A00&LMI_PAYER_PURSE=Z987654321012&LMI_PAYER_WM=123456789012&LMI_PAYMENT_DESC=Synthetic%20policy%20invoice&LMI_HOLD=1&LMI_HASH2=03D5F54BF1326BFA3C9B65B1C5EC81D744C8FB6E350F63620CF82281AB8DB26F",
+      "body_sha256": "cc2e8809081d2dd2a7e3aec79ec05627c1aeb80dfd145f6acc3ced36b3ccca16",
+      "headers": {},
+      "config": {
+        "key": "synthetic-policy-webmoney-key",
+        "timezone": "UTC"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "wm-explicit-zero-hold",
+      "gateway": "WM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "LMI_PAYEE_PURSE=Z123456789012&LMI_PAYMENT_AMOUNT=100.00&LMI_PAYMENT_NO=42&LMI_MODE=0&LMI_SYS_INVS_NO=120&LMI_SYS_TRANS_NO=45678&LMI_SYS_TRANS_DATE=20261009%2010%3A00%3A00&LMI_PAYER_PURSE=Z987654321012&LMI_PAYER_WM=123456789012&LMI_PAYMENT_DESC=Synthetic%20policy%20invoice&LMI_HOLD=0&LMI_HASH2=D7D1D69B46FEEAAF8AD1A2B9FCEAA6C98C281FC57C6798A86F75892FD9CF1434",
+      "body_sha256": "1ed8e9fceda62da61c06ff1fa1cc9a01f5e559f2beafc5f61a3354d41c890518",
+      "headers": {},
+      "config": {
+        "key": "synthetic-policy-webmoney-key",
+        "timezone": "UTC"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "wm-test-mode",
+      "gateway": "WM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "LMI_PAYEE_PURSE=Z123456789012&LMI_PAYMENT_AMOUNT=100.00&LMI_PAYMENT_NO=42&LMI_MODE=1&LMI_SYS_INVS_NO=120&LMI_SYS_TRANS_NO=45678&LMI_SYS_TRANS_DATE=20261009%2010%3A00%3A00&LMI_PAYER_PURSE=Z987654321012&LMI_PAYER_WM=123456789012&LMI_PAYMENT_DESC=Synthetic%20policy%20invoice&LMI_HASH2=4B3112B6BCB26539EFC260A03B0E405A904F66C75F102F29812885588F6E5D48",
+      "body_sha256": "5de1780a00c4d6194855835184dd78812ce00ee56703b8e41216a82751752088",
+      "headers": {},
+      "config": {
+        "key": "synthetic-policy-webmoney-key",
+        "timezone": "UTC"
+      },
+      "expected": {
+        "outcome": "rejected",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "wm-duplicate-order",
+      "gateway": "WM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "LMI_PAYEE_PURSE=Z123456789012&LMI_PAYMENT_AMOUNT=100.00&LMI_PAYMENT_NO=42&LMI_MODE=0&LMI_SYS_INVS_NO=120&LMI_SYS_TRANS_NO=45678&LMI_SYS_TRANS_DATE=20261009%2010%3A00%3A00&LMI_PAYER_PURSE=Z987654321012&LMI_PAYER_WM=123456789012&LMI_PAYMENT_DESC=Synthetic%20policy%20invoice&LMI_HASH2=534E6DFFE557BA06EF1E6AD57112C6FBD12D0806321D2E8309A0927BC2F683A8&LMI_PAYMENT_NO=42",
+      "body_sha256": "e428e6022e46144740b9e6ba444e7c37ff2d3f1fbb688501a5fc6bb8f460c09b",
+      "headers": {},
+      "config": {
+        "key": "synthetic-policy-webmoney-key",
+        "timezone": "UTC"
+      },
+      "expected": {
+        "outcome": "invalid_payload",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-success-BTC",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoin\",\"currency\":\"BTC\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":2,\"label\":\"42\",\"sign\":\"af952c377346e7b8b5bbe38f22594ae37a55fa8c\"}",
+      "body_sha256": "b372ac0072fcd183d03a3912115070f540c521d56f9cf0ffc3d5fabb9565e5b0",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-success-LTC",
+      "gateway": "CCAL",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"litecoin\",\"currency\":\"LTC\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":2,\"label\":\"42\",\"sign\":\"ffdea8bd0fa5f3fe9c1275395a6e8175128d4c20\"}",
+      "body_sha256": "50b123eb25cf954be55345df6e04ae2ce4fd5dcb52a9fa6483f3ab3db3e557da",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-success-DASH",
+      "gateway": "CCAD",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"dash\",\"currency\":\"DASH\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":2,\"label\":\"42\",\"sign\":\"aff3d0c717e96eab44ebfd03c4acb589c0afadaa\"}",
+      "body_sha256": "0f987bf0f021cd5cf00f9f81b6bb408517253f8679a302170c75467338428131",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-success-DOGE",
+      "gateway": "CCAG",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"dogecoin\",\"currency\":\"DOGE\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":2,\"label\":\"42\",\"sign\":\"49f99ccd028141df376bcb73ebfcc258214c646a\"}",
+      "body_sha256": "28e0a4109073d5fd1f97a2581056e8607fa7a88938a6b9dbf0395245b1b236f1",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-success-BCH",
+      "gateway": "CCAH",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoincash\",\"currency\":\"BCH\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":2,\"label\":\"42\",\"sign\":\"88b2abfaa8b40cf9bf9add914d3880f3a56b8146\"}",
+      "body_sha256": "73b8cb6e276d7e77e9ee35021c0e21538b084713aabf8aebe6a0b0ab4858d8a8",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-pending-0",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoin\",\"currency\":\"BTC\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":0,\"label\":\"42\",\"sign\":\"4b7e7809eccc774b7f7995a4fae4a4585c9f178a\"}",
+      "body_sha256": "291b7eb4be4abf244c728e13fa2ee39b06d86991fdff02b27ecb14daa38de402",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "pending",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-pending-1",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoin\",\"currency\":\"BTC\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":1,\"label\":\"42\",\"sign\":\"c7f8bf38ba1bc4c9666ce668f343d18580d86277\"}",
+      "body_sha256": "5245afeeaf040d4e7ac1198d0734d27d677c0ab6a4446efa24bbfd590732e0ef",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "pending",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-manual-100",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoin\",\"currency\":\"BTC\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":100,\"label\":\"42\",\"sign\":\"d253fb5009d56cf40ca2a02fe9e83b8f0f37a6b1\"}",
+      "body_sha256": "703d8edd1705c67999c3cefa4619fa920a7f34dc9d0a6dc424a75a7165f1a34b",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-manual-101",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoin\",\"currency\":\"BTC\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":101,\"label\":\"42\",\"sign\":\"62fe30725e3624dfcc8973d9b4d51a696e89e9e4\"}",
+      "body_sha256": "9a29ae95f89ee79622bf3ab27ebdaaacddc088d3a9bebf65834a3662cd17fa10",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-confirmed-102",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoin\",\"currency\":\"BTC\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":102,\"label\":\"42\",\"sign\":\"a96833ba73d9ed312d0d6fe13d3939177b9808b7\"}",
+      "body_sha256": "26f03575c60e3a2b239e5b274878bc4be616e30d5315323969d6f9761984459b",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-wrong-currency",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoin\",\"currency\":\"DOGE\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":2,\"label\":\"42\",\"sign\":\"ae905fe4784691fc7a5666118cb024871a5553de\"}",
+      "body_sha256": "248d850bb45d39848eed55c15e1308a67bed09b57f929125b678655d7e4e5142",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "invalid_payload",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-token",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoin\",\"currency\":\"BTC\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":\"USDT\",\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":2,\"label\":\"42\",\"sign\":\"8b246db7a46788846b01d05cb71d6f2d69ac31e3\"}",
+      "body_sha256": "10a295d465d46e57b4cd778cfcb28acdf87ce8bf1dd80dbf4a8508192434a0a6",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-outbound",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoin\",\"currency\":\"BTC\",\"type\":\"out\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":2,\"label\":\"42\",\"sign\":\"7e28107ecbaa88ab924fa3b6e6e4e421c6456b32\"}",
+      "body_sha256": "36e5fe9fbbb0a6dc90519f2cdc23cb2ba43c57a21f7a7b84b6b4d72a9a92e257",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-legacy",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":1,\"chain\":\"bitcoin\",\"currency\":\"BTC\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":2,\"label\":\"42\",\"sign\":\"0de8e0e2bac947fc1b0c45b8e1e6565b378b3f1b\"}",
+      "body_sha256": "e7ee0129f0896ee37c61f896e9bfa8e2af2defb5edd1436d8b890cb5a54b7bf7",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-array-label",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoin\",\"currency\":\"BTC\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":2,\"label\":[\"42\"],\"sign\":\"bdc8607b7fca7a05ed82939616d919cde76e7d8b\"}",
+      "body_sha256": "0d7ca8d8825a64a87219fbfae54cda4e8d8b8d4821c01b148ea8901924faf3b1",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "invalid_payload",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-colon-label",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoin\",\"currency\":\"BTC\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":2,\"label\":\"42:other\",\"sign\":\"c664ad570f72b2ff2a72d4f3210df15dd0034f0e\"}",
+      "body_sha256": "b8e32a3d166f27f740595236de2cdec17460aa4d0881660ab3deadc4cb0f972d",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "invalid_payload",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "ccapi-bad-signature",
+      "gateway": "CCAB",
+      "content_type": "application/json",
+      "body": "{\"cryptocurrencyapi.net\":3,\"chain\":\"bitcoin\",\"currency\":\"BTC\",\"type\":\"in\",\"date\":1791540000,\"from\":null,\"to\":\"bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\",\"token\":null,\"tokenContract\":null,\"amount\":\"100.00\",\"fee\":\"0.00000001\",\"txid\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"pos\":0,\"confirmation\":2,\"label\":\"42\",\"sign\":\"afc6df7d8766c9ec9df6112b770dd7c01812cbba\"}",
+      "body_sha256": "dd1836c46ca2e560cd50be74939f72a2ad304b10f66225ba6e601049e37df814",
+      "headers": {},
+      "config": {
+        "protocol": "3",
+        "v3_key": "synthetic-policy-ccapi-key"
+      },
+      "expected": {
+        "outcome": "authentication_failed",
+        "authenticated": false
+      },
+      "origin": "synthetic_protocol"
+    },
+    {
+      "name": "yoo-published-example",
+      "origin": "published_example",
+      "source": "https://yoomoney.ru/docs/payment-buttons/using-api/notifications",
+      "gateway": "YM",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "notification_type=p2p-incoming&operation_id=441361714955017004&amount=98.00&withdraw_amount=100.00&currency=643&datetime=2013-12-26T08%3A28%3A34Z&sender=41000000000&codepro=false&label=ML23045&unaccepted=false&sha1_hash=ac13833bd6ba9eff1fa9e4bed76f3d6ebb57f6c0&sign=a452af731650e2c5b39abcdc7c28dd27db7b3b654c2230ad2c386e64afb98605",
+      "body_sha256": "612904b24de0d8e8ab264a566cc854c118380a89599d26e032d1f98342fcb66a",
+      "headers": {},
+      "config": {
+        "key": "secret123",
+        "acc": "410111222333444"
+      },
+      "expected": {
+        "outcome": "verified",
+        "authenticated": true
+      }
+    },
+    {
+      "name": "cp-future-version",
+      "gateway": "CP",
+      "content_type": "application/x-www-form-urlencoded",
+      "body": "ipn_version=2.0&ipn_id=synthetic-policy-ipn&ipn_mode=hmac&ipn_type=simple&merchant=synthetic-policy-merchant&invoice=42&txn_id=synthetic-policy-cp-transaction&amount1=100.00&currency1=BTC&status=100",
+      "body_sha256": "079304aaa0d7f6cd0592591ad4fcaaefc0878776c89d6afd0ab176c6d1648aa5",
+      "headers": {
+        "HMAC": "9b46602a3257ddb4c313af08440f132227f83a4a6c591bdedc15dfc9aedb557fb1246932c51aa64c90882fca4a30bf8e8d382f70aba3e3f2333458c848969eaa"
+      },
+      "config": {
+        "id": "synthetic-policy-merchant",
+        "key": "synthetic-policy-coinpayments-key"
+      },
+      "expected": {
+        "outcome": "unsupported",
+        "authenticated": true
+      },
+      "origin": "synthetic_protocol"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 <?php
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 use HScript\Http\ContentSecurityPolicy;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -15,7 +17,7 @@ if (!str_contains($html, 'src="https://challenges.cloudflare.com/turnstile/v0/ap
 	|| substr_count($html, '<script') !== 1)
 	throw new RuntimeException('Turnstile markup lacks a per-response nonce or escaped site key');
 
-$policy = ContentSecurityPolicy::reportOnly('authentication');
+$policy = ContentSecurityPolicy::reportOnly('authentication', true);
 if (!str_contains($policy, "'nonce-{$_GS['csp_nonce']}' https://challenges.cloudflare.com"))
 	throw new RuntimeException('Turnstile script and header nonce do not match');
 

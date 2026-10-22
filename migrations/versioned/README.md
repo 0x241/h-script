@@ -70,3 +70,22 @@ HTTPS без Authelia, CAPTCHA, редиректов и кеширования. 
 DNS `mismatch` при отдельном nginx/CDN остаётся диагностикой: для публичных
 self-reported агрегатов достаточно DNS `matched` **или** действующего HTTPS
 подтверждения. Финансовые показатели от этого не становятся проверенными.
+
+## Schema 1.0.3: account login confirmation threshold
+
+`202610031200_account_login_threshold.php` добавляет nullable
+`AddInfo.aFailedLoginThreshold` (NULL наследует Sec_BFC; личный диапазон 1–100),
+не меняя Users.uBFC. Миграция требует проверенную резервную копию и выполняется
+через `bin/update.php migrate-bundled`, с `APP_AUTO_INSTALL=0`.
+Порядок проверки и отката описан в [ci/security/login-threshold.md](../../ci/security/login-threshold.md).
+
+## Schema 1.0.4: финансовая идемпотентность (фаза 2 в работе)
+
+`202610031500_financial_idempotency.php` добавляет InnoDB `IdempotencyKeys`
+с уникальным namespace/key hash, fingerprint, owner, operation ID, state и
+response snapshot. Это `backup-required` миграция из 1.0.3 через существующий
+registry; `APP_AUTO_INSTALL=0`. Повтор проверяет структуру, бинарные collation
+и ограничения. На hs.local/staging/production пока не применялась.
+
+Контракт, тесты и оставшиеся интеграции: [ci/financial/idempotency.md](../../ci/financial/idempotency.md).
+Фаза 2 пока не завершена; реестр ещё не подключён к финансовым HTTP маршрутам.

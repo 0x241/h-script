@@ -18,6 +18,9 @@
 {% if isset_IN('aNoMail') %}{% set no_mail_value = _IN('aNoMail') %}{% endif %}
 {% set timeout_value = user.aTimeOut|default(0) %}
 {% if isset_IN('aTimeOut') %}{% set timeout_value = _IN('aTimeOut') %}{% endif %}
+{% set login_threshold_value = user.aFailedLoginThreshold|default(0) %}
+{% if isset_IN('aFailedLoginThreshold') %}{% set login_threshold_value = _IN('aFailedLoginThreshold') %}{% endif %}
+{% set login_threshold_error = formErrorText(account_form_name, {'login_threshold_wrong': _t({'key': 'account.security.login_threshold_error', 'default': 'Укажите целое число от 1 до 100 или оставьте поле пустым'}), 'login_threshold_save_failed': _t({'key': 'account.security.login_threshold_save_failed', 'default': 'Не удалось сохранить порог подтверждения входа'})}, true) %}
 {% set squestion_value = user.aSQuestion %}
 {% if isset_IN('aSQuestion') %}{% set squestion_value = _IN('aSQuestion') %}{% endif %}
 {% set avatar_form_name = getFormName('avatar') %}
@@ -350,6 +353,16 @@
 								<p class="mt-1 max-w-xl text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ _t({"key": 'account.security.timeout_hint', "default": 'Значение 0 использует общую настройку администратора. Каждый переход по странице считается активностью.'}) }}</p>
 							</div>
 							<input name="aTimeOut" value="{{ timeout_value }}" type="number" min="0" class="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-center font-mono font-medium text-brand outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white sm:w-28">
+						</div>
+						<div class="h-px w-full bg-gray-100 dark:bg-gray-800"></div>
+						<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+							<div>
+							<label for="{{ account_form_name }}_aFailedLoginThreshold" class="block font-bold text-brand dark:text-white">{{ _t({'key': 'account.security.login_threshold', 'default': 'Подтверждение входа после неверных паролей'}) }}</label>
+							<p class="mt-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400">{{ _t({'key': 'account.security.login_threshold_brief', 'default': 'После указанного числа ошибок следующий вход с верным паролем требует подтверждения по e-mail.'}) }}</p>
+							<p class="mt-1 text-xs text-gray-500 dark:text-gray-400" data-login-policy data-global="{{ account_login_policy.global }}" data-effective="{{ account_login_policy.effective }}">{{ _t({'key': 'account.security.login_threshold_global', 'default': 'Общий порог'}) }}: {{ account_login_policy.global }}{% if account_login_policy.global == 0 %} ({{ _t({'key': 'common.disabled', 'default': 'Выключено'}) }}){% endif %}. {{ _t({'key': 'account.security.login_threshold_effective', 'default': 'Действующий порог'}) }}: {{ account_login_policy.effective }}{% if account_login_policy.effective == 0 %} ({{ _t({'key': 'common.disabled', 'default': 'Выключено'}) }}){% endif %}.</p>
+							{% if login_threshold_error %}<p role="alert" class="mt-2 text-sm text-red-500">{{ login_threshold_error }}</p>{% endif %}
+							</div>
+							<input name="aFailedLoginThreshold" id="{{ account_form_name }}_aFailedLoginThreshold" value="{{ login_threshold_value }}" type="number" inputmode="numeric" min="0" max="100" step="1" class="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-center font-mono font-medium text-brand outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-[#151515] dark:text-white sm:w-28 shrink-0">
 						</div>
 						<div class="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm leading-relaxed text-blue-900 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
 							{% if timeout_value > 0 %}

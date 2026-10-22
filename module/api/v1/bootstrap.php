@@ -6,6 +6,8 @@ use HScript\Http\ApiResponse;
 use HScript\Http\ApiTokenRepository;
 use HScript\Observability\CorrelationContext;
 use HScript\Observability\StructuredLogger;
+use HScript\Finance\Decimal;
+use HScript\Finance\DecimalOutput;
 
 $_smode = 2;
 $_auth = 0;
@@ -128,17 +130,6 @@ function apiV1QueryInt(string $name, int $default, int $min, int $max): int
 	return $default;
 }
 
-function apiV1RequirePositiveNumber(array $input, string $field): float
-{
-	$value = $input[$field] ?? null;
-	if (!is_int($value) && !is_float($value) && !is_string($value))
-		ApiResponse::error('validation_error', 'Invalid request data', 422, array('field' => $field));
-	$value = str_replace(',', '.', trim((string)$value));
-	if (!is_numeric($value) || (float)$value <= 0)
-		ApiResponse::error('validation_error', 'Invalid request data', 422, array('field' => $field));
-	return (float)$value;
-}
-
 function apiV1RequirePositiveInt(array $input, string $field): int
 {
 	$value = $input[$field] ?? null;
@@ -181,8 +172,8 @@ function apiV1OperationState(int $state): string
 
 function apiV1Operation(array $row): array
 {
-	$amount = (float)$row['oSum'];
-	$fee = (float)$row['oComis'];
+	$amount = Decimal::of($row['oSum'] ?? 0);
+	$fee = Decimal::of($row['oComis'] ?? 0);
 	return array(
 		'id' => (int)$row['oID'],
 		'type' => (string)$row['oOper'],
@@ -191,9 +182,9 @@ function apiV1Operation(array $row): array
 			'code' => (string)($row['cCurr'] ?? ''),
 			'name' => (string)($row['cName'] ?? ''),
 		),
-		'amount' => $amount,
-		'fee' => $fee,
-		'net_amount' => $amount - $fee,
+		'amount' => DecimalOutput::stored($amount),
+		'fee' => DecimalOutput::stored($fee),
+		'net_amount' => DecimalOutput::stored($amount->minus($fee)),
 		'state' => apiV1OperationState((int)$row['oState']),
 		'batch' => (string)($row['oBatch'] ?? ''),
 		'memo' => (string)($row['oMemo'] ?? ''),
@@ -210,6 +201,14 @@ function apiV1OperationError(string $code, int $status = 422): void
 		'sum_min' => 'The amount is below the allowed minimum',
 		'sum_max' => 'The amount exceeds the allowed maximum',
 		'sum_wrong' => 'The amount is invalid',
+		'sum_precision' => 'The amount or commission has more precision than this installation can store',
+		'sum_overflow' => 'The amount or commission exceeds the supported range',
+		'ex_sum_wrong' => 'The exchange amount rounds to zero or is invalid',
+		'ex_rate_not_set' => 'The exchange rate or adjustment is invalid',
+		'ex_overflow' => 'The exchange result exceeds the supported range',
+		'psys2_wrong' => 'Target currency not found',
+		'bal_precision' => 'The balance change has more precision than this installation can store',
+		'bal_overflow' => 'The resulting balance exceeds the supported range',
 		'low_bal' => 'Insufficient available balance',
 		'low_bal1' => 'Insufficient available balance',
 		'low_bal2' => 'Insufficient locked balance',
@@ -221,6 +220,8 @@ function apiV1OperationError(string $code, int $status = 422): void
 		'limit_exceeded' => 'The withdrawal limit has been exceeded',
 		'oper_not_found' => 'Operation not found',
 		'oper_state_wrong' => 'Operation state does not allow this action',
+		'depo_principal_mismatch' => 'Deposit principal does not match its locked backing; reconciliation is required',
+		'depo_not_saved' => 'The deposit could not be saved',
 		'db_error' => 'The operation could not be saved',
 	);
 	ApiResponse::error($code, $messages[$code] ?? 'The operation could not be completed', $status);
@@ -235,10 +236,49 @@ function apiV1Currency(array $row, string $operation): array
 		'code' => (string)$row['cCurr'],
 		'name' => (string)$row['cName'],
 		'decimals' => (int)$row['cNumDec'],
-		'minimum' => (float)$row[$prefix . 'Min'],
-		'maximum' => (float)$row[$prefix . 'Max'],
-		'fee_percent' => (float)$row[$prefix . 'Comis'],
-		'fee_minimum' => (float)$row[$prefix . 'ComisMin'],
-		'fee_maximum' => (float)$row[$prefix . 'ComisMax'],
+		'minimum' => DecimalOutput::stored($row[$prefix . 'Min'] ?? 0),
+		'maximum' => DecimalOutput::stored($row[$prefix . 'Max'] ?? 0),
+		'fee_percent' => (string)Decimal::of($row[$prefix . 'Comis'] ?? 0),
+		'fee_minimum' => DecimalOutput::stored($row[$prefix . 'ComisMin'] ?? 0),
+		'fee_maximum' => DecimalOutput::stored($row[$prefix . 'ComisMax'] ?? 0),
 	);
+}
+
+/** Emit only after committing the operation and its safe response snapshot. */
+function apiV1FinancialWrite(string $namespace, array $normalized, callable $work): never
+{
+    global $db, $apiAuth;
+    $key = HScript\Http\ApiRequest::header('Idempotency-Key');
+    try {
+        HScript\Finance\IdempotencyRequest::validate($namespace, $key ?? '', (int)$apiAuth['user_id']);
+    } catch (InvalidArgumentException $exception) {
+        HScript\Http\ApiResponse::error('idempotency_key_invalid', 'Idempotency-Key must contain 1–128 ASCII letters, digits or : . _ -', 400);
+    }
+    try {
+        $result = (new HScript\Finance\IdempotencyStore($db))->execute(
+            $namespace, $key, (int)$apiAuth['user_id'],
+            HScript\Finance\IdempotencyRequest::fingerprint($normalized), $work
+        );
+        header('Idempotency-Replayed: ' . ($result->replayed ? 'true' : 'false'));
+        HScript\Http\ApiResponse::success($result->data, $result->status);
+    } catch (HScript\Finance\IdempotencyConflict $exception) {
+        HScript\Http\ApiResponse::error('idempotency_conflict', 'This Idempotency-Key was already used with different input', 409);
+    } catch (HScript\Finance\FinancialOperationException $exception) {
+        apiV1OperationError($exception->getMessage());
+    } catch (Throwable $exception) {
+        HScript\Observability\StructuredLogger::event('error', 'finance', 'financial_request_failed', 'failure', 0, '', ['error_class' => $exception::class]);
+        HScript\Http\ApiResponse::error('financial_unavailable', 'The financial request could not be committed; retry with the same Idempotency-Key', 503);
+    }
+}
+
+function apiV1FinancialDecimal(array $input, string $field, bool $allowZero = false): string
+{
+    try { return HScript\Finance\RequestDecimal::normalize($input[$field] ?? ($allowZero ? 0 : null), $allowZero); }
+    catch (InvalidArgumentException $exception) { HScript\Http\ApiResponse::error('validation_error', 'A bounded positive decimal is required for ' . $field, 422); }
+}
+
+function apiV1FinancialFields(array $input, array $allowed): void
+{
+    if (array_diff(array_keys($input), $allowed))
+        HScript\Http\ApiResponse::error('validation_error', 'Unknown request field', 422);
 }

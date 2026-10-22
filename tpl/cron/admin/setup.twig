@@ -1,7 +1,7 @@
 
 {% include "admin/header.twig" with {"title": 'Настройки'} %}
 
-{% if not isset(cfg.Enabled) %}{% set cfg = array_set_path(cfg|default([]), ["Enabled"], 1) %}{% endif %}
+{% if not isset(cfg.Enabled) %}{% set cfg = array_set_path(cfg|default([]), ["Enabled"], 0) %}{% endif %}
 
 <div class="mb-6 overflow-hidden rounded-[1.5rem] border border-blue-100 bg-blue-50/60 shadow-sm dark:border-blue-500/20 dark:bg-blue-500/5">
 	<div class="flex flex-col gap-5 p-6 lg:flex-row lg:items-start lg:justify-between">
@@ -14,15 +14,23 @@
 				<p class="mt-1 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">В Docker отдельный cron-контейнер уже вызывает планировщик раз в минуту. На shared hosting сначала добавьте команду ниже в раздел Cron/Планировщик панели хостинга с периодом «каждую минуту», а затем включите переключатель «Автономный вызов настроен».</p>
 			</div>
 		</div>
-		<a href="{{ fullURL(moduleToLink('cron')) }}" target="_blank" rel="noopener" class="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-5 py-3 text-sm font-extrabold text-blue-600 transition hover:border-blue-300 hover:bg-blue-50 dark:border-blue-500/30 dark:bg-[#151515] dark:text-blue-400 dark:hover:bg-blue-500/10">
-			<i class="fa-solid fa-play" aria-hidden="true"></i>
-			<span>Вызвать вручную</span>
-		</a>
+		<form method="post" action="{{ _selfLink }}" class="shrink-0" data-cron-run>
+			{{ _getFormSecurity() }}
+			<button name="{{ getFormName() }}_btnrun" value="1" type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-5 py-3 text-sm font-extrabold text-blue-600 transition hover:border-blue-300 hover:bg-blue-50 dark:border-blue-500/30 dark:bg-[#151515] dark:text-blue-400 dark:hover:bg-blue-500/10">
+				<i class="fa-solid fa-play" aria-hidden="true"></i><span>Вызвать вручную</span>
+			</button>
+		</form>
 	</div>
 	<div class="border-t border-blue-100 bg-white/70 px-6 py-4 dark:border-blue-500/20 dark:bg-[#111111]/60">
-		<code class="block overflow-x-auto whitespace-nowrap font-mono text-xs font-semibold text-gray-700 dark:text-gray-300">wget -q -O /dev/null "{{ fullURL(moduleToLink('cron')) }}" &gt; /dev/null 2&gt;&amp;1</code>
+		<code class="block overflow-x-auto whitespace-nowrap font-mono text-xs font-semibold text-gray-700 dark:text-gray-300">curl -fsS --max-time 50 -X POST -H "X-HScript-Cron-Token: $CRON_TOKEN" "{{ fullURL(moduleToLink('cron')) }}" &gt; /dev/null</code>
 	</div>
 </div>
+
+{% if cron_run_status is defined %}
+	<div role="status" class="mb-6 rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 text-sm font-semibold text-brand dark:border-gray-800 dark:bg-[#151515] dark:text-white" data-cron-result="{{ cron_run_status }}">
+		{% if cron_run_status == 'success' %}Планировщик выполнен.{% elseif cron_run_status == 'busy' %}Планировщик уже выполняется. Дождитесь завершения текущего запуска.{% elseif cron_run_status == 'disabled' %}Планировщик выключен. Включите его в настройках перед запуском.{% else %}Не удалось выполнить все задания. Подробности доступны в журнале ошибок cron.{% endif %}
+	</div>
+{% endif %}
 
 {% include "edit.twig" with {"values": cfg, "fields": {
 		'Enabled': ['C', 'Планировщик включен']
@@ -49,7 +57,7 @@
 				<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
 					{% for item in cronlist %}
 						{% set is_overdue = item.has_run and item.minutes > (item.interval * 2) %}
-						<tr>
+						<tr data-cron-module="{{ item.module }}">
 							<td class="px-6 py-4">
 								<span class="inline-flex items-center gap-3 font-bold text-brand dark:text-white"><i class="fa-solid fa-cube text-gray-400" aria-hidden="true"></i>{{ item.module|capitalize }}</span>
 							</td>

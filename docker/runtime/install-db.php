@@ -155,6 +155,14 @@ foreach ($_dbstru as $table => $command) {
     $db->query("CREATE TABLE $table ($command)$engine CHARACTER SET utf8 COLLATE utf8_general_ci");
 }
 
+HScript\Payment\Provider\ProviderConnectionSchema::ensure($db);
+HScript\Payment\Provider\ProviderCatalogSchema::ensure($db);
+    HScript\Payment\Provider\ProviderNetworkSchema::ensure($db);
+    HScript\Navigation\MenuPinsSchema::ensure($db);
+    HScript\Payment\Routing\PaymentRouteSchema::ensure($db);
+    HScript\Payment\Routing\TokenCatalogSchema::ensure($db);
+    HScript\Payment\CheckoutProgressSchema::ensure($db);
+
 $adminMail = hs_install_env('INSTALL_ADMIN_MAIL', hs_install_env('APP_SYS_MAIL', $_cfg['sys_mail']));
 $adminLogin = hs_install_env('INSTALL_ADMIN_LOGIN', 'admin');
 $adminName = hs_install_env('INSTALL_ADMIN_NAME', 'Administrator');

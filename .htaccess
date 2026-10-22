@@ -5,7 +5,7 @@ RewriteEngine On
 
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-RewriteRule ^(?:\.git|\.agents|\.codex|\.cfg|backup|compile|docker|lib|logs|module|tpl|tpl_c|vendor)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:\.git|\.agents|\.codex|\.cfg|backup|bin|ci|compile|coverage|dist|docker|lib|logs|module|node_modules|tests|tpl|tpl_c|vendor)(?:/|$) - [F,L,NC]
 RewriteRule ^(?:_config(?:\.local)?\.php|composer\.(?:json|lock)|memory\.md|tasks\.md|future_work\.md|AGENTS\.md)$ - [F,L,NC]
 RewriteRule ^upload/.*\.(?:php|phtml|php[0-9]?|phps|cgi|pl|asp|aspx|shtml|shtm|fcgi|fpl|jsp|wml)$ - [F,L,NC]
 

@@ -54,6 +54,8 @@ foreach ($configRows as $c)
 		$c['Prop'] = $c['Module'] . '_' . $c['Prop'];
 	$_cfg[$c['Prop']] = $c['Val'];
 }
+HScript\Http\ContentSecurityPolicy::apply(HScript\Http\ContentSecurityPolicy::surface($_GS['module'] ?? '', $_rwlinks[$_GS['module'] ?? ''] ?? []), $_cfg);
+
 function authLoadCurrencies(int $uid = 0): array
 {
 	global $db, $catalogCache;
@@ -478,9 +480,8 @@ if ($_smode < 2) // user mode
 		);
 		if ($_user['uLevel'] >= 90)
 			$cabinet_menu_allowed[] = 'admin';
-		$cabinet_pinned_ids = isset($_SESSION['_cabinet_pins']) && is_array($_SESSION['_cabinet_pins'])
-			? array_values(array_intersect($_SESSION['_cabinet_pins'], $cabinet_menu_allowed))
-			: array();
+		$cabinet_legacy_pins = !$is_admin_impersonation && is_array($_SESSION['_cabinet_pins'] ?? null) ? $_SESSION['_cabinet_pins'] : [];
+		$cabinet_pinned_ids = HScript\Navigation\MenuPins::get($db, _uid(), 'cabinet', $cabinet_menu_allowed, $cabinet_legacy_pins);
 		$cabinet_pin_action = $_GS['module'] === 'cabinet' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST'
 			? (string)($_POST['pin_action'] ?? '') : '';
 		$cabinet_pin_item = (string)($_POST['pin_item'] ?? '');
@@ -492,15 +493,9 @@ if ($_smode < 2) // user mode
 				exit;
 			}
 		}
-		if ($cabinet_pin_action === 'pin' && in_array($cabinet_pin_item, $cabinet_menu_allowed, true))
-		{
-			$cabinet_pinned_ids = array_values(array_diff($cabinet_pinned_ids, array($cabinet_pin_item)));
-			array_unshift($cabinet_pinned_ids, $cabinet_pin_item);
-		}
-		elseif ($cabinet_pin_action === 'unpin')
-			$cabinet_pinned_ids = array_values(array_diff($cabinet_pinned_ids, array($cabinet_pin_item)));
-		if ($cabinet_pin_action !== '')
-			$_SESSION['_cabinet_pins'] = $cabinet_pinned_ids;
+		if (in_array($cabinet_pin_action, ['pin','unpin'], true))
+			$cabinet_pinned_ids = HScript\Navigation\MenuPins::change($db, _uid(), 'cabinet', $cabinet_menu_allowed, $cabinet_pin_action, $cabinet_pin_item, $cabinet_legacy_pins);
+		unset($_SESSION['_cabinet_pins']);
 			View::setPage('cabinet_pinned_ids', $cabinet_pinned_ids);
 
 			$_currs = authLoadCurrencies(_uid());
@@ -575,7 +570,7 @@ $_vcurrs = array(
 	'XRP' => array()
 );
 foreach ($_currs as $cid => $c)
-	$_vcurrs[$c['cCurrID']][] = $cid;
+	$_vcurrs[($c['cCID']??'')==='CCT' ? HScript\Finance\WalletPortfolio::code($c,$cid) : $c['cCurrID']][] = $cid;
 View::SetPage('vcurrs', $_vcurrs);
 
 ?>

@@ -242,10 +242,12 @@ $_dbstru = array(
   aDPerc text,
   aPPerc text,
   aIPSec int(1) default 0,
+  aFailedLoginThreshold smallint unsigned NULL DEFAULT NULL,
   aSessIP int(1) default 0,
   aSessUniq int(1) default 0,
   aTimeOut int(3) default 0,
   aOIDs text,
+  aMenuPins text,
   aTZ int(4) default 0,
   aBD bigint(14) default 0,
   aCountry varchar(40) default '',
@@ -256,6 +258,7 @@ $_dbstru = array(
   aNoMail int(1) default 0,
   aGA varchar(100),
   aNeedReConfig int(1) default 1,
+  CONSTRAINT chk_account_login_threshold CHECK (aFailedLoginThreshold IS NULL OR aFailedLoginThreshold BETWEEN 1 AND 100),
   PRIMARY KEY  (auID)",
 
   'News' =>
@@ -269,17 +272,23 @@ $_dbstru = array(
   nAttn int(1),
   PRIMARY KEY  (nID)",
 
+  'PaymentProviders' => (require __DIR__ . '/resources/payment-provider-schema.php')['PaymentProviders'],
+  'PaymentProviderCredentials' => (require __DIR__ . '/resources/payment-provider-schema.php')['PaymentProviderCredentials'],
+
   'Currs' => // CID - Currency ID (see PaymentManager) -> Name, Curr
   "cID int(2)  auto_increment,
   cDisabled int(1) default 1,
   cHidden int(1) default 0,
   cCID varchar(4) default '',
   cCurrID varchar(10) default '',
+  cProviderID int unsigned NULL DEFAULT NULL,
+  cProviderSelected tinyint unsigned NOT NULL DEFAULT 0,
   cName varchar(120) default '',
   cCurr varchar(60) default '',
   cParams text,
   cParamsSCI text,
   cParamsAPI text,
+  cPaymentRoutes text,
   cNumDec int(1) default 0,
   cCASHINMode int(1) default 1,
   cCASHINMin decimal(13,6) default 0,
@@ -323,7 +332,11 @@ $_dbstru = array(
   cBalMin decimal(13,6) default 0,
   cBal decimal(13,6) default 0,
   cBalTS bigint(14),
-  PRIMARY KEY  (cID)", // cParams - IN (public) wallet, cParams2 - OUT (private) wallet
+  PRIMARY KEY  (cID),
+  UNIQUE KEY uq_currency_provider_fiat (cProviderID,cCurrID),
+  CONSTRAINT fk_currency_provider FOREIGN KEY (cProviderID) REFERENCES PaymentProviders(ppID) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT chk_currency_provider CHECK ((cProviderID IS NULL AND cProviderSelected=0 AND (cCID IS NULL OR cCID<>'PAW')) OR (cProviderID IS NOT NULL AND cCID IS NOT NULL AND cCID='PAW' AND cProviderSelected IN (0,1))),
+  CONSTRAINT chk_paw_configuration_only CHECK (cProviderID IS NULL OR (cDisabled IS NOT NULL AND cDisabled=1 AND cCASHINMode IS NOT NULL AND cCASHINMode=0 AND cCASHOUTMode IS NOT NULL AND cCASHOUTMode=0))", // cParams - IN (public) wallet, cParams2 - OUT (private) wallet
 
  'Wallets' =>
  "wcID int(2) default 0,
@@ -509,6 +522,8 @@ $_dbstru = array(
   PRIMARY KEY  (bID),
   KEY BUID (buID),
   KEY BUID2 (buID2),
-  KEY BMID (bmID)"
+  KEY BMID (bmID)",
+
+    'IdempotencyKeys' => require __DIR__ . '/resources/idempotency-schema.php'
 
 );

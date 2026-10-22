@@ -481,10 +481,6 @@ function numRange($z, $a, $b)
     }
     return $z;
 }
-function calcPerc($sum, $perc, $r = 2)
-{
-    return round($sum * $perc / 100, $r);
-}
 function idArrayCreate($arr, $fld = 0)
 {
     $res = [];
@@ -501,14 +497,6 @@ function idArrayFind($arr, $fld, $value)
         }
     }
     return NULL;
-}
-function idArraySum($arr, $fld)
-{
-    $z = 0;
-    foreach ($arr as $r) {
-        $z += $r[$fld];
-    }
-    return $z;
 }
 function asArray($a, $dlm = ",", $skip_empty = true)
 {

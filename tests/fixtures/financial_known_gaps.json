@@ -1,0 +1,14 @@
+{
+  "F01": "BAL history drops currency, amount and operation ID",
+  "F02": "Transfer source completes after child creation failure",
+  "F03": "Eight-place amount is lost in six-place storage",
+  "F04": "GIVE fee makes deposit principal differ from wallet locked funds",
+  "F05": "Accrual records profit despite failed wallet credit",
+  "F06": "Plan change accepts a nonexistent target plan",
+  "F07": "Referral source-event replay pays sponsors again",
+  "F08": "Stale concurrent confirmation can reserve funds twice (modeled interleaving)",
+  "F09": "Deposit close event reads dState from an array without that key",
+  "F10": "BUY2 has configuration but no confirmation/completion implementation",
+  "F11": "Trusted direct CASHIN core call can replace the amount; authenticated automated gateway settlement verifies the original amount",
+  "F12": "Referral cycles pay the same sponsor at multiple levels"
+}

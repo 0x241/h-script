@@ -13,16 +13,8 @@ if ($action == 'calc')
 	$plans = opDepoGetPlanList(_uid());
 	$plan_id = (int)_RQ('Plan');
 	$plan = isset($plans[$plan_id]) && empty($plans[$plan_id]['Disabled']) ? $plans[$plan_id] : array();
-	$sum = (string)_RQ('Sum');
-	cn($sum);
-	$sum = max(0, (float)$sum);
-	$period_profit = $plan ? $sum * (float)$plan['pPerc'] / 100 : 0;
-	$period_count = $plan && !empty($plan['pNPer']) ? (int)$plan['pNPer'] : 1;
-	$total_profit = $period_profit * $period_count;
-
-	View::setPage('summary_sum', $sum);
-	View::setPage('period_profit', $period_profit);
-	View::setPage('total_profit', $total_profit);
+	foreach (HScript\Finance\DepositSummary::project(_RQ('Sum'),$plan) as $name=>$value)
+		View::setPage($name,$value,0);
 	View::showPage('profit.summary', 'depo');
 	exit;
 }

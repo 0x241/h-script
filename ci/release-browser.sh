@@ -24,8 +24,25 @@ mkdir -p dist
     built=1
     # The separate browser lockfile is dev tooling; high findings/network failure block.
     docker run --rm "$browser_image" npm audit --include=dev --audit-level=high
+    sh tests/browser_fixture_permissions.sh "$browser_image"
     H_SCRIPT_BROWSER_IMAGE="$browser_image" sh tests/update_isolated.sh "$exact" \
         mysql:8.4@sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a
+    H_SCRIPT_LOGIN_BROWSER_IMAGE="$browser_image" sh tests/failed_login_isolated.sh "$exact" \
+        mysql:8.4@sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a
+    H_SCRIPT_FINANCIAL_BROWSER_IMAGE="$browser_image" sh tests/financial_http_isolated.sh "$exact" \
+        'mysql:8.4@sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a'
+    H_SCRIPT_FINANCIAL_BROWSER_IMAGE="$browser_image" sh tests/gateway_policy_http_isolated.sh "$exact" \
+        'mysql:8.4@sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a'
+    H_SCRIPT_FINANCIAL_BROWSER_IMAGE="$browser_image" sh tests/inbound_http_isolated.sh "$exact" \
+        'mysql:8.4@sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a'
+    H_SCRIPT_FINANCIAL_BROWSER_IMAGE="$browser_image" sh tests/ccapi_http_isolated.sh "$exact" \
+        'mysql:8.4@sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a'
+    H_SCRIPT_FINANCIAL_BROWSER_IMAGE="$browser_image" sh tests/paykassa_http_isolated.sh "$exact" \
+        'mysql:8.4@sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a'
+    H_SCRIPT_FINANCIAL_BROWSER_IMAGE="$browser_image" sh tests/paw_http_isolated.sh "$exact" \
+        'mysql:8.4@sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a'
+    H_SCRIPT_FINANCIAL_BROWSER_IMAGE="$browser_image" sh tests/volet_http_isolated.sh "$exact" \
+        'mysql:8.4@sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a'
     echo 'result=passed'
 } > dist/release-browser.txt 2>&1
 cat dist/release-browser.txt

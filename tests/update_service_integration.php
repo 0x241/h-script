@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 use HScript\Update\OfficialReleaseProvider;
 use HScript\Update\ReleaseBaselineRepository;
 use HScript\Update\SchemaStateRepository;
@@ -128,7 +130,9 @@ try
 	$state = new SchemaStateRepository($db);
 	$sourceSchema = $state->currentVersion();
 	$sourceApplication = $state->installedApplicationVersion();
-	if ($sourceSchema !== '1.0.2') throw new RuntimeException('Integration test requires schema baseline 1.0.2');
+	if ($sourceSchema !== trim($schemaFileBefore)) throw new RuntimeException('Integration test requires the installed release schema baseline');
+	$schemaParts = explode('.', $sourceSchema);
+	$targetSchema = $schemaParts[0] . '.' . $schemaParts[1] . '.' . ((int)$schemaParts[2] + 1);
 	$state->setInstalledApplicationVersion(trim((string)file_get_contents($versionFilePath)));
 	$provider = new ServiceReleaseProvider();
 	$settings = new UpdateSettings($root, $temporaryRoot . '/work', 10485760, 20971520, 300, 10485760, 5);
@@ -198,8 +202,8 @@ use HScript\Database\Connection;
 
 return array(
 	'id' => '202609081000_phase3_service_probe',
-	'from' => '1.0.2',
-	'to' => '1.0.3',
+	'from' => '__SOURCE_SCHEMA__',
+	'to' => '__TARGET_SCHEMA__',
 	'classification' => 'backup-required',
 	'up' => static function (Connection $database): void {
 		$database->query('CREATE TABLE IF NOT EXISTS Phase3UpdateProbe (probeID int not null, PRIMARY KEY (probeID)) ENGINE=InnoDB');
@@ -212,7 +216,8 @@ return array(
 	},
 );
 PHP;
-	$cancelArchive = updateServiceArchive($temporaryRoot, 'cancel', $codeVersion, $cancelVersion, $sourceSchema, '1.0.3', array(
+	$migrationContents = str_replace(array('__SOURCE_SCHEMA__', '__TARGET_SCHEMA__'), array($sourceSchema, $targetSchema), $migrationContents);
+	$cancelArchive = updateServiceArchive($temporaryRoot, 'cancel', $codeVersion, $cancelVersion, $sourceSchema, $targetSchema, array(
 		'migrations/versioned/' . $migrationId . '.php' => $migrationContents,
 		'static/update-service-probe.txt' => "phase3-code-only\n",
 	));
@@ -231,7 +236,7 @@ PHP;
 	updateServiceAssert($cancelled['urState'] === 'failed' && $cancelled['urMessageCode'] === 'update_cancelled', 'Safe pre-activation cancellation failed');
 	$db->query('DROP VIEW IF EXISTS Phase3BackupUnsupportedView');
 
-	$databaseArchive = updateServiceArchive($temporaryRoot, 'database', $codeVersion, $databaseVersion, $sourceSchema, '1.0.3', array(
+	$databaseArchive = updateServiceArchive($temporaryRoot, 'database', $codeVersion, $databaseVersion, $sourceSchema, $targetSchema, array(
 		'migrations/versioned/' . $migrationId . '.php' => $migrationContents,
 		'static/update-service-probe.txt' => "phase3-code-only\n",
 	));
@@ -257,7 +262,7 @@ PHP;
 	updateServiceAssert($databaseResult['prepared']['backup_id'] !== '', 'Database update has no attached verified SQL backup');
 	$sqlBackups = glob($backupRoot . '/*.sql');
 	updateServiceAssert(is_array($sqlBackups) && count($sqlBackups) === 1, 'Update backup is not a plain SQL file');
-	updateServiceAssert($state->currentVersion() === '1.0.3', 'Database migration did not advance schema version');
+	updateServiceAssert($state->currentVersion() === $targetSchema, 'Database migration did not advance schema version');
 	updateServiceAssert((bool)$db->fetch1($db->query("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='Phase3UpdateProbe'")), 'Database migration probe table is missing');
 	updateServiceAssert(!is_file($root . '/.cfg/maintenance.json'), 'Maintenance mode remained active after database update');
 

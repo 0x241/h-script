@@ -1,0 +1,1950 @@
+{
+  "provenance": "Synthetic Python Decimal precision110 ROUND_HALF_UP oracle; prior algebra/source intermediate rounding preserved. Not live provider or merchant captures.",
+  "seed": 7402,
+  "cases": [
+    {
+      "id": "ex-0-0-out",
+      "amount": "2.107828",
+      "rate": "55.8704",
+      "adjustment": "-17.43",
+      "out": true,
+      "scale": 0,
+      "expected": "97"
+    },
+    {
+      "id": "ex-0-0-in",
+      "amount": "2.107828",
+      "rate": "55.8704",
+      "adjustment": "-17.43",
+      "out": false,
+      "scale": 0,
+      "expected": "0"
+    },
+    {
+      "id": "ex-0-1-out",
+      "amount": "8.918208",
+      "rate": "6.5367",
+      "adjustment": "-91.37",
+      "out": true,
+      "scale": 0,
+      "expected": "5"
+    },
+    {
+      "id": "ex-0-1-in",
+      "amount": "8.918208",
+      "rate": "6.5367",
+      "adjustment": "-91.37",
+      "out": false,
+      "scale": 0,
+      "expected": "1"
+    },
+    {
+      "id": "ex-0-2-out",
+      "amount": "4.780889",
+      "rate": "3.8661",
+      "adjustment": "-25.44",
+      "out": true,
+      "scale": 0,
+      "expected": "14"
+    },
+    {
+      "id": "ex-0-2-in",
+      "amount": "4.780889",
+      "rate": "3.8661",
+      "adjustment": "-25.44",
+      "out": false,
+      "scale": 0,
+      "expected": "1"
+    },
+    {
+      "id": "ex-0-3-out",
+      "amount": "3.093883",
+      "rate": "88.9687",
+      "adjustment": "37.79",
+      "out": true,
+      "scale": 0,
+      "expected": "379"
+    },
+    {
+      "id": "ex-0-3-in",
+      "amount": "3.093883",
+      "rate": "88.9687",
+      "adjustment": "37.79",
+      "out": false,
+      "scale": 0,
+      "expected": "0"
+    },
+    {
+      "id": "ex-0-4-out",
+      "amount": "8.191462",
+      "rate": "48.4663",
+      "adjustment": "3.79",
+      "out": true,
+      "scale": 0,
+      "expected": "412"
+    },
+    {
+      "id": "ex-0-4-in",
+      "amount": "8.191462",
+      "rate": "48.4663",
+      "adjustment": "3.79",
+      "out": false,
+      "scale": 0,
+      "expected": "0"
+    },
+    {
+      "id": "ex-0-5-out",
+      "amount": "6.63526",
+      "rate": "17.2614",
+      "adjustment": "-71.21",
+      "out": true,
+      "scale": 0,
+      "expected": "33"
+    },
+    {
+      "id": "ex-0-5-in",
+      "amount": "6.63526",
+      "rate": "17.2614",
+      "adjustment": "-71.21",
+      "out": false,
+      "scale": 0,
+      "expected": "0"
+    },
+    {
+      "id": "ex-0-6-out",
+      "amount": "2.736686",
+      "rate": "82.2859",
+      "adjustment": "73.55",
+      "out": true,
+      "scale": 0,
+      "expected": "391"
+    },
+    {
+      "id": "ex-0-6-in",
+      "amount": "2.736686",
+      "rate": "82.2859",
+      "adjustment": "73.55",
+      "out": false,
+      "scale": 0,
+      "expected": "0"
+    },
+    {
+      "id": "ex-0-7-out",
+      "amount": "4.823774",
+      "rate": "55.4178",
+      "adjustment": "-53.43",
+      "out": true,
+      "scale": 0,
+      "expected": "124"
+    },
+    {
+      "id": "ex-0-7-in",
+      "amount": "4.823774",
+      "rate": "55.4178",
+      "adjustment": "-53.43",
+      "out": false,
+      "scale": 0,
+      "expected": "0"
+    },
+    {
+      "id": "ex-0-8-out",
+      "amount": "4.695631",
+      "rate": "73.8325",
+      "adjustment": "-10.33",
+      "out": true,
+      "scale": 0,
+      "expected": "311"
+    },
+    {
+      "id": "ex-0-8-in",
+      "amount": "4.695631",
+      "rate": "73.8325",
+      "adjustment": "-10.33",
+      "out": false,
+      "scale": 0,
+      "expected": "0"
+    },
+    {
+      "id": "ex-0-9-out",
+      "amount": "7.874398",
+      "rate": "27.2062",
+      "adjustment": "95.92",
+      "out": true,
+      "scale": 0,
+      "expected": "420"
+    },
+    {
+      "id": "ex-0-9-in",
+      "amount": "7.874398",
+      "rate": "27.2062",
+      "adjustment": "95.92",
+      "out": false,
+      "scale": 0,
+      "expected": "7"
+    },
+    {
+      "id": "ex-0-10-out",
+      "amount": "6.974006",
+      "rate": "92.4089",
+      "adjustment": "3.89",
+      "out": true,
+      "scale": 0,
+      "expected": "670"
+    },
+    {
+      "id": "ex-0-10-in",
+      "amount": "6.974006",
+      "rate": "92.4089",
+      "adjustment": "3.89",
+      "out": false,
+      "scale": 0,
+      "expected": "0"
+    },
+    {
+      "id": "ex-0-11-out",
+      "amount": "4.350604",
+      "rate": "62.5651",
+      "adjustment": "26.38",
+      "out": true,
+      "scale": 0,
+      "expected": "344"
+    },
+    {
+      "id": "ex-0-11-in",
+      "amount": "4.350604",
+      "rate": "62.5651",
+      "adjustment": "26.38",
+      "out": false,
+      "scale": 0,
+      "expected": "0"
+    },
+    {
+      "id": "ex-1-0-out",
+      "amount": "5.409818",
+      "rate": "75.6319",
+      "adjustment": "6.86",
+      "out": true,
+      "scale": 1,
+      "expected": "437.2"
+    },
+    {
+      "id": "ex-1-0-in",
+      "amount": "5.409818",
+      "rate": "75.6319",
+      "adjustment": "6.86",
+      "out": false,
+      "scale": 1,
+      "expected": "0.1"
+    },
+    {
+      "id": "ex-1-1-out",
+      "amount": "5.736419",
+      "rate": "53.8172",
+      "adjustment": "45.02",
+      "out": true,
+      "scale": 1,
+      "expected": "447.7"
+    },
+    {
+      "id": "ex-1-1-in",
+      "amount": "5.736419",
+      "rate": "53.8172",
+      "adjustment": "45.02",
+      "out": false,
+      "scale": 1,
+      "expected": "0.2"
+    },
+    {
+      "id": "ex-1-2-out",
+      "amount": "3.981908",
+      "rate": "38.947",
+      "adjustment": "42.54",
+      "out": true,
+      "scale": 1,
+      "expected": "221.1"
+    },
+    {
+      "id": "ex-1-2-in",
+      "amount": "3.981908",
+      "rate": "38.947",
+      "adjustment": "42.54",
+      "out": false,
+      "scale": 1,
+      "expected": "0.2"
+    },
+    {
+      "id": "ex-1-3-out",
+      "amount": "9.244624",
+      "rate": "74.1721",
+      "adjustment": "-32.77",
+      "out": true,
+      "scale": 1,
+      "expected": "461.0"
+    },
+    {
+      "id": "ex-1-3-in",
+      "amount": "9.244624",
+      "rate": "74.1721",
+      "adjustment": "-32.77",
+      "out": false,
+      "scale": 1,
+      "expected": "0.1"
+    },
+    {
+      "id": "ex-1-4-out",
+      "amount": "2.271583",
+      "rate": "38.178",
+      "adjustment": "-34.01",
+      "out": true,
+      "scale": 1,
+      "expected": "57.2"
+    },
+    {
+      "id": "ex-1-4-in",
+      "amount": "2.271583",
+      "rate": "38.178",
+      "adjustment": "-34.01",
+      "out": false,
+      "scale": 1,
+      "expected": "0.0"
+    },
+    {
+      "id": "ex-1-5-out",
+      "amount": "4.760381",
+      "rate": "56.2132",
+      "adjustment": "23.24",
+      "out": true,
+      "scale": 1,
+      "expected": "329.8"
+    },
+    {
+      "id": "ex-1-5-in",
+      "amount": "4.760381",
+      "rate": "56.2132",
+      "adjustment": "23.24",
+      "out": false,
+      "scale": 1,
+      "expected": "0.1"
+    },
+    {
+      "id": "ex-1-6-out",
+      "amount": "0.805403",
+      "rate": "41.851",
+      "adjustment": "42.46",
+      "out": true,
+      "scale": 1,
+      "expected": "48.0"
+    },
+    {
+      "id": "ex-1-6-in",
+      "amount": "0.805403",
+      "rate": "41.851",
+      "adjustment": "42.46",
+      "out": false,
+      "scale": 1,
+      "expected": "0.0"
+    },
+    {
+      "id": "ex-1-7-out",
+      "amount": "0.072988",
+      "rate": "11.4792",
+      "adjustment": "83.63",
+      "out": true,
+      "scale": 1,
+      "expected": "1.5"
+    },
+    {
+      "id": "ex-1-7-in",
+      "amount": "0.072988",
+      "rate": "11.4792",
+      "adjustment": "83.63",
+      "out": false,
+      "scale": 1,
+      "expected": "0.0"
+    },
+    {
+      "id": "ex-1-8-out",
+      "amount": "7.008023",
+      "rate": "56.2766",
+      "adjustment": "-8.19",
+      "out": true,
+      "scale": 1,
+      "expected": "362.1"
+    },
+    {
+      "id": "ex-1-8-in",
+      "amount": "7.008023",
+      "rate": "56.2766",
+      "adjustment": "-8.19",
+      "out": false,
+      "scale": 1,
+      "expected": "0.1"
+    },
+    {
+      "id": "ex-1-9-out",
+      "amount": "2.262964",
+      "rate": "86.4498",
+      "adjustment": "-68.65",
+      "out": true,
+      "scale": 1,
+      "expected": "61.3"
+    },
+    {
+      "id": "ex-1-9-in",
+      "amount": "2.262964",
+      "rate": "86.4498",
+      "adjustment": "-68.65",
+      "out": false,
+      "scale": 1,
+      "expected": "0.0"
+    },
+    {
+      "id": "ex-1-10-out",
+      "amount": "4.63427",
+      "rate": "68.0025",
+      "adjustment": "-70.13",
+      "out": true,
+      "scale": 1,
+      "expected": "94.1"
+    },
+    {
+      "id": "ex-1-10-in",
+      "amount": "4.63427",
+      "rate": "68.0025",
+      "adjustment": "-70.13",
+      "out": false,
+      "scale": 1,
+      "expected": "0.0"
+    },
+    {
+      "id": "ex-1-11-out",
+      "amount": "9.78724",
+      "rate": "1.1116",
+      "adjustment": "8.73",
+      "out": true,
+      "scale": 1,
+      "expected": "11.8"
+    },
+    {
+      "id": "ex-1-11-in",
+      "amount": "9.78724",
+      "rate": "1.1116",
+      "adjustment": "8.73",
+      "out": false,
+      "scale": 1,
+      "expected": "9.6"
+    },
+    {
+      "id": "ex-2-0-out",
+      "amount": "1.285054",
+      "rate": "73.1638",
+      "adjustment": "-94.04",
+      "out": true,
+      "scale": 2,
+      "expected": "5.60"
+    },
+    {
+      "id": "ex-2-0-in",
+      "amount": "1.285054",
+      "rate": "73.1638",
+      "adjustment": "-94.04",
+      "out": false,
+      "scale": 2,
+      "expected": "0.01"
+    },
+    {
+      "id": "ex-2-1-out",
+      "amount": "6.414337",
+      "rate": "66.9476",
+      "adjustment": "60.4",
+      "out": true,
+      "scale": 2,
+      "expected": "688.80"
+    },
+    {
+      "id": "ex-2-1-in",
+      "amount": "6.414337",
+      "rate": "66.9476",
+      "adjustment": "60.4",
+      "out": false,
+      "scale": 2,
+      "expected": "0.24"
+    },
+    {
+      "id": "ex-2-2-out",
+      "amount": "1.018397",
+      "rate": "56.8674",
+      "adjustment": "50.37",
+      "out": true,
+      "scale": 2,
+      "expected": "87.08"
+    },
+    {
+      "id": "ex-2-2-in",
+      "amount": "1.018397",
+      "rate": "56.8674",
+      "adjustment": "50.37",
+      "out": false,
+      "scale": 2,
+      "expected": "0.04"
+    },
+    {
+      "id": "ex-2-3-out",
+      "amount": "8.218612",
+      "rate": "23.4013",
+      "adjustment": "89.79",
+      "out": true,
+      "scale": 2,
+      "expected": "365.02"
+    },
+    {
+      "id": "ex-2-3-in",
+      "amount": "8.218612",
+      "rate": "23.4013",
+      "adjustment": "89.79",
+      "out": false,
+      "scale": 2,
+      "expected": "3.44"
+    },
+    {
+      "id": "ex-2-4-out",
+      "amount": "5.271134",
+      "rate": "92.7513",
+      "adjustment": "-70.47",
+      "out": true,
+      "scale": 2,
+      "expected": "144.37"
+    },
+    {
+      "id": "ex-2-4-in",
+      "amount": "5.271134",
+      "rate": "92.7513",
+      "adjustment": "-70.47",
+      "out": false,
+      "scale": 2,
+      "expected": "0.03"
+    },
+    {
+      "id": "ex-2-5-out",
+      "amount": "4.898809",
+      "rate": "97.7658",
+      "adjustment": "-6.41",
+      "out": true,
+      "scale": 2,
+      "expected": "448.24"
+    },
+    {
+      "id": "ex-2-5-in",
+      "amount": "4.898809",
+      "rate": "97.7658",
+      "adjustment": "-6.41",
+      "out": false,
+      "scale": 2,
+      "expected": "0.05"
+    },
+    {
+      "id": "ex-2-6-out",
+      "amount": "6.606761",
+      "rate": "48.1142",
+      "adjustment": "-7.14",
+      "out": true,
+      "scale": 2,
+      "expected": "295.18"
+    },
+    {
+      "id": "ex-2-6-in",
+      "amount": "6.606761",
+      "rate": "48.1142",
+      "adjustment": "-7.14",
+      "out": false,
+      "scale": 2,
+      "expected": "0.13"
+    },
+    {
+      "id": "ex-2-7-out",
+      "amount": "5.092832",
+      "rate": "1.0406",
+      "adjustment": "-55.38",
+      "out": true,
+      "scale": 2,
+      "expected": "2.36"
+    },
+    {
+      "id": "ex-2-7-in",
+      "amount": "5.092832",
+      "rate": "1.0406",
+      "adjustment": "-55.38",
+      "out": false,
+      "scale": 2,
+      "expected": "3.15"
+    },
+    {
+      "id": "ex-2-8-out",
+      "amount": "7.010002",
+      "rate": "67.8689",
+      "adjustment": "-7.64",
+      "out": true,
+      "scale": 2,
+      "expected": "439.41"
+    },
+    {
+      "id": "ex-2-8-in",
+      "amount": "7.010002",
+      "rate": "67.8689",
+      "adjustment": "-7.64",
+      "out": false,
+      "scale": 2,
+      "expected": "0.10"
+    },
+    {
+      "id": "ex-2-9-out",
+      "amount": "7.933177",
+      "rate": "74.3204",
+      "adjustment": "24.74",
+      "out": true,
+      "scale": 2,
+      "expected": "735.46"
+    },
+    {
+      "id": "ex-2-9-in",
+      "amount": "7.933177",
+      "rate": "74.3204",
+      "adjustment": "24.74",
+      "out": false,
+      "scale": 2,
+      "expected": "0.14"
+    },
+    {
+      "id": "ex-2-10-out",
+      "amount": "0.025326",
+      "rate": "31.1832",
+      "adjustment": "-48.11",
+      "out": true,
+      "scale": 2,
+      "expected": "0.41"
+    },
+    {
+      "id": "ex-2-10-in",
+      "amount": "0.025326",
+      "rate": "31.1832",
+      "adjustment": "-48.11",
+      "out": false,
+      "scale": 2,
+      "expected": "0.00"
+    },
+    {
+      "id": "ex-2-11-out",
+      "amount": "1.45121",
+      "rate": "69.204",
+      "adjustment": "-69.79",
+      "out": true,
+      "scale": 2,
+      "expected": "30.34"
+    },
+    {
+      "id": "ex-2-11-in",
+      "amount": "1.45121",
+      "rate": "69.204",
+      "adjustment": "-69.79",
+      "out": false,
+      "scale": 2,
+      "expected": "0.01"
+    },
+    {
+      "id": "ex-3-0-out",
+      "amount": "8.347488",
+      "rate": "95.2944",
+      "adjustment": "31.7",
+      "out": true,
+      "scale": 3,
+      "expected": "1047.632"
+    },
+    {
+      "id": "ex-3-0-in",
+      "amount": "8.347488",
+      "rate": "95.2944",
+      "adjustment": "31.7",
+      "out": false,
+      "scale": 3,
+      "expected": "0.128"
+    },
+    {
+      "id": "ex-3-1-out",
+      "amount": "3.430295",
+      "rate": "30.2977",
+      "adjustment": "26.04",
+      "out": true,
+      "scale": 3,
+      "expected": "130.993"
+    },
+    {
+      "id": "ex-3-1-in",
+      "amount": "3.430295",
+      "rate": "30.2977",
+      "adjustment": "26.04",
+      "out": false,
+      "scale": 3,
+      "expected": "0.153"
+    },
+    {
+      "id": "ex-3-2-out",
+      "amount": "1.118758",
+      "rate": "79.0741",
+      "adjustment": "65.26",
+      "out": true,
+      "scale": 3,
+      "expected": "146.197"
+    },
+    {
+      "id": "ex-3-2-in",
+      "amount": "1.118758",
+      "rate": "79.0741",
+      "adjustment": "65.26",
+      "out": false,
+      "scale": 3,
+      "expected": "0.041"
+    },
+    {
+      "id": "ex-3-3-out",
+      "amount": "0.151259",
+      "rate": "28.8756",
+      "adjustment": "37.42",
+      "out": true,
+      "scale": 3,
+      "expected": "6.002"
+    },
+    {
+      "id": "ex-3-3-in",
+      "amount": "0.151259",
+      "rate": "28.8756",
+      "adjustment": "37.42",
+      "out": false,
+      "scale": 3,
+      "expected": "0.008"
+    },
+    {
+      "id": "ex-3-4-out",
+      "amount": "1.522191",
+      "rate": "64.8381",
+      "adjustment": "-58.08",
+      "out": true,
+      "scale": 3,
+      "expected": "41.373"
+    },
+    {
+      "id": "ex-3-4-in",
+      "amount": "1.522191",
+      "rate": "64.8381",
+      "adjustment": "-58.08",
+      "out": false,
+      "scale": 3,
+      "expected": "0.015"
+    },
+    {
+      "id": "ex-3-5-out",
+      "amount": "1.442072",
+      "rate": "30.5301",
+      "adjustment": "-23.16",
+      "out": true,
+      "scale": 3,
+      "expected": "33.830"
+    },
+    {
+      "id": "ex-3-5-in",
+      "amount": "1.442072",
+      "rate": "30.5301",
+      "adjustment": "-23.16",
+      "out": false,
+      "scale": 3,
+      "expected": "0.038"
+    },
+    {
+      "id": "ex-3-6-out",
+      "amount": "9.740042",
+      "rate": "17.7209",
+      "adjustment": "-41.19",
+      "out": true,
+      "scale": 3,
+      "expected": "101.507"
+    },
+    {
+      "id": "ex-3-6-in",
+      "amount": "9.740042",
+      "rate": "17.7209",
+      "adjustment": "-41.19",
+      "out": false,
+      "scale": 3,
+      "expected": "0.389"
+    },
+    {
+      "id": "ex-3-7-out",
+      "amount": "6.853921",
+      "rate": "68.8544",
+      "adjustment": "39.88",
+      "out": true,
+      "scale": 3,
+      "expected": "660.125"
+    },
+    {
+      "id": "ex-3-7-in",
+      "amount": "6.853921",
+      "rate": "68.8544",
+      "adjustment": "39.88",
+      "out": false,
+      "scale": 3,
+      "expected": "0.166"
+    },
+    {
+      "id": "ex-3-8-out",
+      "amount": "1.577825",
+      "rate": "73.6311",
+      "adjustment": "-55.56",
+      "out": true,
+      "scale": 3,
+      "expected": "51.629"
+    },
+    {
+      "id": "ex-3-8-in",
+      "amount": "1.577825",
+      "rate": "73.6311",
+      "adjustment": "-55.56",
+      "out": false,
+      "scale": 3,
+      "expected": "0.014"
+    },
+    {
+      "id": "ex-3-9-out",
+      "amount": "3.596703",
+      "rate": "52.7597",
+      "adjustment": "-65.28",
+      "out": true,
+      "scale": 3,
+      "expected": "65.885"
+    },
+    {
+      "id": "ex-3-9-in",
+      "amount": "3.596703",
+      "rate": "52.7597",
+      "adjustment": "-65.28",
+      "out": false,
+      "scale": 3,
+      "expected": "0.041"
+    },
+    {
+      "id": "ex-3-10-out",
+      "amount": "0.875918",
+      "rate": "74.45",
+      "adjustment": "38.35",
+      "out": true,
+      "scale": 3,
+      "expected": "90.221"
+    },
+    {
+      "id": "ex-3-10-in",
+      "amount": "0.875918",
+      "rate": "74.45",
+      "adjustment": "38.35",
+      "out": false,
+      "scale": 3,
+      "expected": "0.019"
+    },
+    {
+      "id": "ex-3-11-out",
+      "amount": "0.85554",
+      "rate": "2.6092",
+      "adjustment": "-23.86",
+      "out": true,
+      "scale": 3,
+      "expected": "1.700"
+    },
+    {
+      "id": "ex-3-11-in",
+      "amount": "0.85554",
+      "rate": "2.6092",
+      "adjustment": "-23.86",
+      "out": false,
+      "scale": 3,
+      "expected": "0.265"
+    },
+    {
+      "id": "ex-4-0-out",
+      "amount": "6.672792",
+      "rate": "20.8555",
+      "adjustment": "-97.34",
+      "out": true,
+      "scale": 4,
+      "expected": "3.7018"
+    },
+    {
+      "id": "ex-4-0-in",
+      "amount": "6.672792",
+      "rate": "20.8555",
+      "adjustment": "-97.34",
+      "out": false,
+      "scale": 4,
+      "expected": "0.1621"
+    },
+    {
+      "id": "ex-4-1-out",
+      "amount": "1.559599",
+      "rate": "24.3834",
+      "adjustment": "64.92",
+      "out": true,
+      "scale": 4,
+      "expected": "62.7163"
+    },
+    {
+      "id": "ex-4-1-in",
+      "amount": "1.559599",
+      "rate": "24.3834",
+      "adjustment": "64.92",
+      "out": false,
+      "scale": 4,
+      "expected": "0.1823"
+    },
+    {
+      "id": "ex-4-2-out",
+      "amount": "1.123553",
+      "rate": "82.8593",
+      "adjustment": "86.73",
+      "out": true,
+      "scale": 4,
+      "expected": "173.8397"
+    },
+    {
+      "id": "ex-4-2-in",
+      "amount": "1.123553",
+      "rate": "82.8593",
+      "adjustment": "86.73",
+      "out": false,
+      "scale": 4,
+      "expected": "0.1022"
+    },
+    {
+      "id": "ex-4-3-out",
+      "amount": "9.04639",
+      "rate": "23.5491",
+      "adjustment": "-97.48",
+      "out": true,
+      "scale": 4,
+      "expected": "5.3685"
+    },
+    {
+      "id": "ex-4-3-in",
+      "amount": "9.04639",
+      "rate": "23.5491",
+      "adjustment": "-97.48",
+      "out": false,
+      "scale": 4,
+      "expected": "0.1945"
+    },
+    {
+      "id": "ex-4-4-out",
+      "amount": "4.492499",
+      "rate": "22.7371",
+      "adjustment": "94.44",
+      "out": true,
+      "scale": 4,
+      "expected": "198.6135"
+    },
+    {
+      "id": "ex-4-4-in",
+      "amount": "4.492499",
+      "rate": "22.7371",
+      "adjustment": "94.44",
+      "out": false,
+      "scale": 4,
+      "expected": "3.5537"
+    },
+    {
+      "id": "ex-4-5-out",
+      "amount": "9.893159",
+      "rate": "39.899",
+      "adjustment": "-17.16",
+      "out": true,
+      "scale": 4,
+      "expected": "326.9920"
+    },
+    {
+      "id": "ex-4-5-in",
+      "amount": "9.893159",
+      "rate": "39.899",
+      "adjustment": "-17.16",
+      "out": false,
+      "scale": 4,
+      "expected": "0.2116"
+    },
+    {
+      "id": "ex-4-6-out",
+      "amount": "1.317167",
+      "rate": "78.2316",
+      "adjustment": "-66.93",
+      "out": true,
+      "scale": 4,
+      "expected": "34.0767"
+    },
+    {
+      "id": "ex-4-6-in",
+      "amount": "1.317167",
+      "rate": "78.2316",
+      "adjustment": "-66.93",
+      "out": false,
+      "scale": 4,
+      "expected": "0.0101"
+    },
+    {
+      "id": "ex-4-7-out",
+      "amount": "0.762612",
+      "rate": "58.4245",
+      "adjustment": "90.14",
+      "out": true,
+      "scale": 4,
+      "expected": "84.7173"
+    },
+    {
+      "id": "ex-4-7-in",
+      "amount": "0.762612",
+      "rate": "58.4245",
+      "adjustment": "90.14",
+      "out": false,
+      "scale": 4,
+      "expected": "0.1324"
+    },
+    {
+      "id": "ex-4-8-out",
+      "amount": "9.426416",
+      "rate": "37.9075",
+      "adjustment": "-27.27",
+      "out": true,
+      "scale": 4,
+      "expected": "259.8875"
+    },
+    {
+      "id": "ex-4-8-in",
+      "amount": "9.426416",
+      "rate": "37.9075",
+      "adjustment": "-27.27",
+      "out": false,
+      "scale": 4,
+      "expected": "0.1954"
+    },
+    {
+      "id": "ex-4-9-out",
+      "amount": "4.089045",
+      "rate": "4.3046",
+      "adjustment": "52.59",
+      "out": true,
+      "scale": 4,
+      "expected": "26.8584"
+    },
+    {
+      "id": "ex-4-9-in",
+      "amount": "4.089045",
+      "rate": "4.3046",
+      "adjustment": "52.59",
+      "out": false,
+      "scale": 4,
+      "expected": "2.0036"
+    },
+    {
+      "id": "ex-4-10-out",
+      "amount": "7.574394",
+      "rate": "92.7094",
+      "adjustment": "-98.75",
+      "out": true,
+      "scale": 4,
+      "expected": "8.7777"
+    },
+    {
+      "id": "ex-4-10-in",
+      "amount": "7.574394",
+      "rate": "92.7094",
+      "adjustment": "-98.75",
+      "out": false,
+      "scale": 4,
+      "expected": "0.0411"
+    },
+    {
+      "id": "ex-4-11-out",
+      "amount": "0.764464",
+      "rate": "98.0249",
+      "adjustment": "-3.98",
+      "out": true,
+      "scale": 4,
+      "expected": "71.9540"
+    },
+    {
+      "id": "ex-4-11-in",
+      "amount": "0.764464",
+      "rate": "98.0249",
+      "adjustment": "-3.98",
+      "out": false,
+      "scale": 4,
+      "expected": "0.0075"
+    },
+    {
+      "id": "ex-5-0-out",
+      "amount": "1.633683",
+      "rate": "23.2882",
+      "adjustment": "-41",
+      "out": true,
+      "scale": 5,
+      "expected": "22.44687"
+    },
+    {
+      "id": "ex-5-0-in",
+      "amount": "1.633683",
+      "rate": "23.2882",
+      "adjustment": "-41",
+      "out": false,
+      "scale": 5,
+      "expected": "0.04975"
+    },
+    {
+      "id": "ex-5-1-out",
+      "amount": "9.662083",
+      "rate": "45.6351",
+      "adjustment": "-43.54",
+      "out": true,
+      "scale": 5,
+      "expected": "248.94915"
+    },
+    {
+      "id": "ex-5-1-in",
+      "amount": "9.662083",
+      "rate": "45.6351",
+      "adjustment": "-43.54",
+      "out": false,
+      "scale": 5,
+      "expected": "0.14750"
+    },
+    {
+      "id": "ex-5-2-out",
+      "amount": "3.084653",
+      "rate": "64.7291",
+      "adjustment": "-64.76",
+      "out": true,
+      "scale": 5,
+      "expected": "70.36258"
+    },
+    {
+      "id": "ex-5-2-in",
+      "amount": "3.084653",
+      "rate": "64.7291",
+      "adjustment": "-64.76",
+      "out": false,
+      "scale": 5,
+      "expected": "0.02892"
+    },
+    {
+      "id": "ex-5-3-out",
+      "amount": "3.116484",
+      "rate": "65.3106",
+      "adjustment": "-2.64",
+      "out": true,
+      "scale": 5,
+      "expected": "198.16600"
+    },
+    {
+      "id": "ex-5-3-in",
+      "amount": "3.116484",
+      "rate": "65.3106",
+      "adjustment": "-2.64",
+      "out": false,
+      "scale": 5,
+      "expected": "0.04649"
+    },
+    {
+      "id": "ex-5-4-out",
+      "amount": "6.627249",
+      "rate": "72.9568",
+      "adjustment": "72.05",
+      "out": true,
+      "scale": 5,
+      "expected": "831.86670"
+    },
+    {
+      "id": "ex-5-4-in",
+      "amount": "6.627249",
+      "rate": "72.9568",
+      "adjustment": "72.05",
+      "out": false,
+      "scale": 5,
+      "expected": "0.32500"
+    },
+    {
+      "id": "ex-5-5-out",
+      "amount": "5.241736",
+      "rate": "61.0704",
+      "adjustment": "-97.61",
+      "out": true,
+      "scale": 5,
+      "expected": "7.65075"
+    },
+    {
+      "id": "ex-5-5-in",
+      "amount": "5.241736",
+      "rate": "61.0704",
+      "adjustment": "-97.61",
+      "out": false,
+      "scale": 5,
+      "expected": "0.04343"
+    },
+    {
+      "id": "ex-5-6-out",
+      "amount": "1.985646",
+      "rate": "72.4368",
+      "adjustment": "0.6",
+      "out": true,
+      "scale": 5,
+      "expected": "144.69685"
+    },
+    {
+      "id": "ex-5-6-in",
+      "amount": "1.985646",
+      "rate": "72.4368",
+      "adjustment": "0.6",
+      "out": false,
+      "scale": 5,
+      "expected": "0.02758"
+    },
+    {
+      "id": "ex-5-7-out",
+      "amount": "7.430988",
+      "rate": "32.4603",
+      "adjustment": "-46.31",
+      "out": true,
+      "scale": 5,
+      "expected": "129.50678"
+    },
+    {
+      "id": "ex-5-7-in",
+      "amount": "7.430988",
+      "rate": "32.4603",
+      "adjustment": "-46.31",
+      "out": false,
+      "scale": 5,
+      "expected": "0.15647"
+    },
+    {
+      "id": "ex-5-8-out",
+      "amount": "1.13543",
+      "rate": "59.8931",
+      "adjustment": "-19.27",
+      "out": true,
+      "scale": 5,
+      "expected": "54.89997"
+    },
+    {
+      "id": "ex-5-8-in",
+      "amount": "1.13543",
+      "rate": "59.8931",
+      "adjustment": "-19.27",
+      "out": false,
+      "scale": 5,
+      "expected": "0.01589"
+    },
+    {
+      "id": "ex-5-9-out",
+      "amount": "8.151855",
+      "rate": "46.0263",
+      "adjustment": "62.51",
+      "out": true,
+      "scale": 5,
+      "expected": "609.73707"
+    },
+    {
+      "id": "ex-5-9-in",
+      "amount": "8.151855",
+      "rate": "46.0263",
+      "adjustment": "62.51",
+      "out": false,
+      "scale": 5,
+      "expected": "0.47243"
+    },
+    {
+      "id": "ex-5-10-out",
+      "amount": "6.455845",
+      "rate": "99.6002",
+      "adjustment": "-90",
+      "out": true,
+      "scale": 5,
+      "expected": "64.30035"
+    },
+    {
+      "id": "ex-5-10-in",
+      "amount": "6.455845",
+      "rate": "99.6002",
+      "adjustment": "-90",
+      "out": false,
+      "scale": 5,
+      "expected": "0.03411"
+    },
+    {
+      "id": "ex-5-11-out",
+      "amount": "9.30049",
+      "rate": "95.4687",
+      "adjustment": "-42.86",
+      "out": true,
+      "scale": 5,
+      "expected": "507.34931"
+    },
+    {
+      "id": "ex-5-11-in",
+      "amount": "9.30049",
+      "rate": "95.4687",
+      "adjustment": "-42.86",
+      "out": false,
+      "scale": 5,
+      "expected": "0.06819"
+    },
+    {
+      "id": "ex-6-0-out",
+      "amount": "4.707449",
+      "rate": "2.1539",
+      "adjustment": "-53.79",
+      "out": true,
+      "scale": 6,
+      "expected": "4.685405"
+    },
+    {
+      "id": "ex-6-0-in",
+      "amount": "4.707449",
+      "rate": "2.1539",
+      "adjustment": "-53.79",
+      "out": false,
+      "scale": 6,
+      "expected": "1.421124"
+    },
+    {
+      "id": "ex-6-1-out",
+      "amount": "2.58955",
+      "rate": "82.976",
+      "adjustment": "52.55",
+      "out": true,
+      "scale": 6,
+      "expected": "327.784949"
+    },
+    {
+      "id": "ex-6-1-in",
+      "amount": "2.58955",
+      "rate": "82.976",
+      "adjustment": "52.55",
+      "out": false,
+      "scale": 6,
+      "expected": "0.065771"
+    },
+    {
+      "id": "ex-6-2-out",
+      "amount": "3.248564",
+      "rate": "60.0917",
+      "adjustment": "-85.13",
+      "out": true,
+      "scale": 6,
+      "expected": "29.027985"
+    },
+    {
+      "id": "ex-6-2-in",
+      "amount": "3.248564",
+      "rate": "60.0917",
+      "adjustment": "-85.13",
+      "out": false,
+      "scale": 6,
+      "expected": "0.029201"
+    },
+    {
+      "id": "ex-6-3-out",
+      "amount": "0.091789",
+      "rate": "38.9636",
+      "adjustment": "26",
+      "out": true,
+      "scale": 6,
+      "expected": "4.506302"
+    },
+    {
+      "id": "ex-6-3-in",
+      "amount": "0.091789",
+      "rate": "38.9636",
+      "adjustment": "26",
+      "out": false,
+      "scale": 6,
+      "expected": "0.003183"
+    },
+    {
+      "id": "ex-6-4-out",
+      "amount": "2.477688",
+      "rate": "12.6638",
+      "adjustment": "-28.88",
+      "out": true,
+      "scale": 6,
+      "expected": "22.315283"
+    },
+    {
+      "id": "ex-6-4-in",
+      "amount": "2.477688",
+      "rate": "12.6638",
+      "adjustment": "-28.88",
+      "out": false,
+      "scale": 6,
+      "expected": "0.151809"
+    },
+    {
+      "id": "ex-6-5-out",
+      "amount": "2.534125",
+      "rate": "39.3199",
+      "adjustment": "20.02",
+      "out": true,
+      "scale": 6,
+      "expected": "119.589778"
+    },
+    {
+      "id": "ex-6-5-in",
+      "amount": "2.534125",
+      "rate": "39.3199",
+      "adjustment": "20.02",
+      "out": false,
+      "scale": 6,
+      "expected": "0.080581"
+    },
+    {
+      "id": "ex-6-6-out",
+      "amount": "7.071501",
+      "rate": "65.0022",
+      "adjustment": "27.98",
+      "out": true,
+      "scale": 6,
+      "expected": "588.276864"
+    },
+    {
+      "id": "ex-6-6-in",
+      "amount": "7.071501",
+      "rate": "65.0022",
+      "adjustment": "27.98",
+      "out": false,
+      "scale": 6,
+      "expected": "0.151053"
+    },
+    {
+      "id": "ex-6-7-out",
+      "amount": "3.54077",
+      "rate": "20.2623",
+      "adjustment": "-49.38",
+      "out": true,
+      "scale": 6,
+      "expected": "36.316886"
+    },
+    {
+      "id": "ex-6-7-in",
+      "amount": "3.54077",
+      "rate": "20.2623",
+      "adjustment": "-49.38",
+      "out": false,
+      "scale": 6,
+      "expected": "0.116981"
+    },
+    {
+      "id": "ex-6-8-out",
+      "amount": "2.302222",
+      "rate": "1.5708",
+      "adjustment": "-13.31",
+      "out": true,
+      "scale": 6,
+      "expected": "3.134997"
+    },
+    {
+      "id": "ex-6-8-in",
+      "amount": "2.302222",
+      "rate": "1.5708",
+      "adjustment": "-13.31",
+      "out": false,
+      "scale": 6,
+      "expected": "1.293475"
+    },
+    {
+      "id": "ex-6-9-out",
+      "amount": "8.18624",
+      "rate": "8.2622",
+      "adjustment": "-5.91",
+      "out": true,
+      "scale": 6,
+      "expected": "63.639044"
+    },
+    {
+      "id": "ex-6-9-in",
+      "amount": "8.18624",
+      "rate": "8.2622",
+      "adjustment": "-5.91",
+      "out": false,
+      "scale": 6,
+      "expected": "0.935517"
+    },
+    {
+      "id": "ex-6-10-out",
+      "amount": "9.358717",
+      "rate": "58.3776",
+      "adjustment": "33.5",
+      "out": true,
+      "scale": 6,
+      "expected": "729.363149"
+    },
+    {
+      "id": "ex-6-10-in",
+      "amount": "9.358717",
+      "rate": "58.3776",
+      "adjustment": "33.5",
+      "out": false,
+      "scale": 6,
+      "expected": "0.241073"
+    },
+    {
+      "id": "ex-6-11-out",
+      "amount": "0.537745",
+      "rate": "21.3189",
+      "adjustment": "-12.41",
+      "out": true,
+      "scale": 6,
+      "expected": "10.041433"
+    },
+    {
+      "id": "ex-6-11-in",
+      "amount": "0.537745",
+      "rate": "21.3189",
+      "adjustment": "-12.41",
+      "out": false,
+      "scale": 6,
+      "expected": "0.022439"
+    },
+    {
+      "id": "ex-7-0-out",
+      "amount": "8.993858",
+      "rate": "82.3828",
+      "adjustment": "73.37",
+      "out": true,
+      "scale": 7,
+      "expected": "1284.5662994"
+    },
+    {
+      "id": "ex-7-0-in",
+      "amount": "8.993858",
+      "rate": "82.3828",
+      "adjustment": "73.37",
+      "out": false,
+      "scale": 7,
+      "expected": "0.4099570"
+    },
+    {
+      "id": "ex-7-1-out",
+      "amount": "3.482121",
+      "rate": "69.0098",
+      "adjustment": "63.47",
+      "out": true,
+      "scale": 7,
+      "expected": "392.8191845"
+    },
+    {
+      "id": "ex-7-1-in",
+      "amount": "3.482121",
+      "rate": "69.0098",
+      "adjustment": "63.47",
+      "out": false,
+      "scale": 7,
+      "expected": "0.1381285"
+    },
+    {
+      "id": "ex-7-2-out",
+      "amount": "3.106141",
+      "rate": "35.8015",
+      "adjustment": "17.77",
+      "out": true,
+      "scale": 7,
+      "expected": "130.9655479"
+    },
+    {
+      "id": "ex-7-2-in",
+      "amount": "3.106141",
+      "rate": "35.8015",
+      "adjustment": "17.77",
+      "out": false,
+      "scale": 7,
+      "expected": "0.1055090"
+    },
+    {
+      "id": "ex-7-3-out",
+      "amount": "5.78275",
+      "rate": "74.7981",
+      "adjustment": "59.07",
+      "out": true,
+      "scale": 7,
+      "expected": "688.0393304"
+    },
+    {
+      "id": "ex-7-3-in",
+      "amount": "5.78275",
+      "rate": "74.7981",
+      "adjustment": "59.07",
+      "out": false,
+      "scale": 7,
+      "expected": "0.1888870"
+    },
+    {
+      "id": "ex-7-4-out",
+      "amount": "0.264804",
+      "rate": "29.0621",
+      "adjustment": "-96.69",
+      "out": true,
+      "scale": 7,
+      "expected": "0.2547297"
+    },
+    {
+      "id": "ex-7-4-in",
+      "amount": "0.264804",
+      "rate": "29.0621",
+      "adjustment": "-96.69",
+      "out": false,
+      "scale": 7,
+      "expected": "0.0046325"
+    },
+    {
+      "id": "ex-7-5-out",
+      "amount": "7.981463",
+      "rate": "54.7613",
+      "adjustment": "23.33",
+      "out": true,
+      "scale": 7,
+      "expected": "539.0449549"
+    },
+    {
+      "id": "ex-7-5-in",
+      "amount": "7.981463",
+      "rate": "54.7613",
+      "adjustment": "23.33",
+      "out": false,
+      "scale": 7,
+      "expected": "0.1901005"
+    },
+    {
+      "id": "ex-7-6-out",
+      "amount": "2.134969",
+      "rate": "21.2534",
+      "adjustment": "42.14",
+      "out": true,
+      "scale": 7,
+      "expected": "64.4965227"
+    },
+    {
+      "id": "ex-7-6-in",
+      "amount": "2.134969",
+      "rate": "21.2534",
+      "adjustment": "42.14",
+      "out": false,
+      "scale": 7,
+      "expected": "0.1736140"
+    },
+    {
+      "id": "ex-7-7-out",
+      "amount": "1.960026",
+      "rate": "32.1847",
+      "adjustment": "-59.97",
+      "out": true,
+      "scale": 7,
+      "expected": "25.2520644"
+    },
+    {
+      "id": "ex-7-7-in",
+      "amount": "1.960026",
+      "rate": "32.1847",
+      "adjustment": "-59.97",
+      "out": false,
+      "scale": 7,
+      "expected": "0.0380692"
+    },
+    {
+      "id": "ex-7-8-out",
+      "amount": "1.598108",
+      "rate": "81.8621",
+      "adjustment": "27.76",
+      "out": true,
+      "scale": 7,
+      "expected": "167.1413517"
+    },
+    {
+      "id": "ex-7-8-in",
+      "amount": "1.598108",
+      "rate": "81.8621",
+      "adjustment": "27.76",
+      "out": false,
+      "scale": 7,
+      "expected": "0.0270237"
+    },
+    {
+      "id": "ex-7-9-out",
+      "amount": "8.513723",
+      "rate": "96.3629",
+      "adjustment": "-24.17",
+      "out": true,
+      "scale": 7,
+      "expected": "622.1146570"
+    },
+    {
+      "id": "ex-7-9-in",
+      "amount": "8.513723",
+      "rate": "96.3629",
+      "adjustment": "-24.17",
+      "out": false,
+      "scale": 7,
+      "expected": "0.0711530"
+    },
+    {
+      "id": "ex-7-10-out",
+      "amount": "6.207671",
+      "rate": "83.5896",
+      "adjustment": "-8.6",
+      "out": true,
+      "scale": 7,
+      "expected": "474.2716165"
+    },
+    {
+      "id": "ex-7-10-in",
+      "amount": "6.207671",
+      "rate": "83.5896",
+      "adjustment": "-8.6",
+      "out": false,
+      "scale": 7,
+      "expected": "0.0683828"
+    },
+    {
+      "id": "ex-7-11-out",
+      "amount": "1.273113",
+      "rate": "93.6622",
+      "adjustment": "-34.78",
+      "out": true,
+      "scale": 7,
+      "expected": "77.7700005"
+    },
+    {
+      "id": "ex-7-11-in",
+      "amount": "1.273113",
+      "rate": "93.6622",
+      "adjustment": "-34.78",
+      "out": false,
+      "scale": 7,
+      "expected": "0.0100850"
+    },
+    {
+      "id": "ex-8-0-out",
+      "amount": "2.023566",
+      "rate": "63.9971",
+      "adjustment": "-8.54",
+      "out": true,
+      "scale": 8,
+      "expected": "118.44285449"
+    },
+    {
+      "id": "ex-8-0-in",
+      "amount": "2.023566",
+      "rate": "63.9971",
+      "adjustment": "-8.54",
+      "out": false,
+      "scale": 8,
+      "expected": "0.02913180"
+    },
+    {
+      "id": "ex-8-1-out",
+      "amount": "1.22266",
+      "rate": "16.8303",
+      "adjustment": "65.27",
+      "out": true,
+      "scale": 8,
+      "expected": "34.00882197"
+    },
+    {
+      "id": "ex-8-1-in",
+      "amount": "1.22266",
+      "rate": "16.8303",
+      "adjustment": "65.27",
+      "out": false,
+      "scale": 8,
+      "expected": "0.20917466"
+    },
+    {
+      "id": "ex-8-2-out",
+      "amount": "5.824467",
+      "rate": "53.7846",
+      "adjustment": "60.36",
+      "out": true,
+      "scale": 8,
+      "expected": "502.35436435"
+    },
+    {
+      "id": "ex-8-2-in",
+      "amount": "5.824467",
+      "rate": "53.7846",
+      "adjustment": "60.36",
+      "out": false,
+      "scale": 8,
+      "expected": "0.27318988"
+    },
+    {
+      "id": "ex-8-3-out",
+      "amount": "8.823655",
+      "rate": "73.0283",
+      "adjustment": "-14.92",
+      "out": true,
+      "scale": 8,
+      "expected": "548.23554699"
+    },
+    {
+      "id": "ex-8-3-in",
+      "amount": "8.823655",
+      "rate": "73.0283",
+      "adjustment": "-14.92",
+      "out": false,
+      "scale": 8,
+      "expected": "0.10513848"
+    },
+    {
+      "id": "ex-8-4-out",
+      "amount": "5.501924",
+      "rate": "85.4576",
+      "adjustment": "60.4",
+      "out": true,
+      "scale": 8,
+      "expected": "754.17067756"
+    },
+    {
+      "id": "ex-8-4-in",
+      "amount": "5.501924",
+      "rate": "85.4576",
+      "adjustment": "60.4",
+      "out": false,
+      "scale": 8,
+      "expected": "0.16258060"
+    },
+    {
+      "id": "ex-8-5-out",
+      "amount": "2.215965",
+      "rate": "40.6465",
+      "adjustment": "18.9",
+      "out": true,
+      "scale": 8,
+      "expected": "107.09468221"
+    },
+    {
+      "id": "ex-8-5-in",
+      "amount": "2.215965",
+      "rate": "40.6465",
+      "adjustment": "18.9",
+      "out": false,
+      "scale": 8,
+      "expected": "0.06722315"
+    },
+    {
+      "id": "ex-8-6-out",
+      "amount": "6.851454",
+      "rate": "82.6798",
+      "adjustment": "37.69",
+      "out": true,
+      "scale": 8,
+      "expected": "779.98196985"
+    },
+    {
+      "id": "ex-8-6-in",
+      "amount": "6.851454",
+      "rate": "82.6798",
+      "adjustment": "37.69",
+      "out": false,
+      "scale": 8,
+      "expected": "0.13299202"
+    },
+    {
+      "id": "ex-8-7-out",
+      "amount": "1.253821",
+      "rate": "99.3262",
+      "adjustment": "89.02",
+      "out": true,
+      "scale": 8,
+      "expected": "235.40035798"
+    },
+    {
+      "id": "ex-8-7-in",
+      "amount": "1.253821",
+      "rate": "99.3262",
+      "adjustment": "89.02",
+      "out": false,
+      "scale": 8,
+      "expected": "0.11496599"
+    },
+    {
+      "id": "ex-8-8-out",
+      "amount": "3.94942",
+      "rate": "46.8021",
+      "adjustment": "32.24",
+      "out": true,
+      "scale": 8,
+      "expected": "244.43393647"
+    },
+    {
+      "id": "ex-8-8-in",
+      "amount": "3.94942",
+      "rate": "46.8021",
+      "adjustment": "32.24",
+      "out": false,
+      "scale": 8,
+      "expected": "0.12453591"
+    },
+    {
+      "id": "ex-8-9-out",
+      "amount": "1.272503",
+      "rate": "98.7091",
+      "adjustment": "43.68",
+      "out": true,
+      "scale": 8,
+      "expected": "180.47303686"
+    },
+    {
+      "id": "ex-8-9-in",
+      "amount": "1.272503",
+      "rate": "98.7091",
+      "adjustment": "43.68",
+      "out": false,
+      "scale": 8,
+      "expected": "0.02288964"
+    },
+    {
+      "id": "ex-8-10-out",
+      "amount": "1.974823",
+      "rate": "20.3668",
+      "adjustment": "-50.02",
+      "out": true,
+      "scale": 8,
+      "expected": "20.10236837"
+    },
+    {
+      "id": "ex-8-10-in",
+      "amount": "1.974823",
+      "rate": "20.3668",
+      "adjustment": "-50.02",
+      "out": false,
+      "scale": 8,
+      "expected": "0.06463328"
+    },
+    {
+      "id": "ex-8-11-out",
+      "amount": "9.558277",
+      "rate": "68.9878",
+      "adjustment": "-59.99",
+      "out": true,
+      "scale": 8,
+      "expected": "263.82774126"
+    },
+    {
+      "id": "ex-8-11-in",
+      "amount": "9.558277",
+      "rate": "68.9878",
+      "adjustment": "-59.99",
+      "out": false,
+      "scale": 8,
+      "expected": "0.08659932"
+    }
+  ]
+}

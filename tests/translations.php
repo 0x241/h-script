@@ -1,5 +1,7 @@
 <?php
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 $root = dirname(__DIR__);
 $translations = array();
 foreach (array('en', 'ru') as $language)

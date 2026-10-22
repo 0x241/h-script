@@ -1,5 +1,7 @@
 <?php
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 putenv('SESSION_GC_MAXLIFETIME=7200');
 require dirname(__DIR__) . '/vendor/autoload.php';
 

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 $root = dirname(__DIR__);
 $template = (string)file_get_contents($root . '/tpl/admin/list.block.twig');
 $javascript = (string)file_get_contents($root . '/static/js/app.js');

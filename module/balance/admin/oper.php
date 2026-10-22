@@ -4,6 +4,8 @@ use HScript\Util\StringHelper;
 use HScript\Payment\PaymentManager;
 
 use HScript\Template\View;
+use HScript\Finance\FinancialForm;
+use HScript\Finance\RequestDecimal;
 
 $_auth = 71;
 require_once('module/auth.php');
@@ -20,7 +22,7 @@ try
 
 	if (View::sendedForm('', 'add'))
 	{
-		View::checkFormSecurity('add');
+		FinancialForm::check('admin:balance:add', 'add');
 
 		if (!_IN('Oper'))
 			View::setError('oper_empty', 'add');
@@ -40,10 +42,11 @@ try
 			$d = $db->fetch1Row($db->select('Deps LEFT JOIN Plans ON pID=dpID LEFT JOIN Users ON uID=duID', '*', 
 				'duID=?d and dState=1 and (dNPer<pNPer or pNPer=0)', array($uid)));
 			useLib('depo');
-			View::setError(opDepoCharge($d, -1, false, true));
+			View::setError($did = FinancialForm::execute('admin:balance:charge', ['user_id'=>(int)$uid,'currency_id'=>_INN('PSys')], static function () use ($d) { HScript\Finance\FinancialOperationException::check(opDepoCharge($d)); return (int)$d['dID']; }));
+			View::showInfo('Completed', moduleToLink('depo/admin/depo') . '?id=' . $did);
 		}
 		else
-			View::setError($id = opOperCreate($uid, _IN('Oper'), _INN('PSys'), _IN('Sum'), $a, _IN('Memo'), false, true), 'add');
+			View::setError($id = FinancialForm::execute('admin:balance:add', ['user_id'=>(int)$uid,'operation'=>_IN('Oper'),'currency_id'=>_INN('PSys'),'amount'=>RequestDecimal::normalize(_IN('Sum')),'params'=>$a,'memo'=>_IN('Memo')], static fn()=>opOperCreate($uid,_IN('Oper'),_INN('PSys'),_IN('Sum'),$a,_IN('Memo'),false,true)), 'add');
 		View::showInfo('Added', moduleToLink() . "?id=$id");
 	}
 
@@ -72,31 +75,44 @@ try
 	
 	if ($id = _INN($id_field))
 	{
-		View::checkFormSecurity();
+		$actions=[];foreach(['cancel'=>'cancel','del'=>'delete',''=>'complete'] as $suffix=>$candidate)if(View::sendedForm($suffix))$actions[]=$candidate;
+		if(count($actions)!==1){http_response_code(400);exit('Invalid operation action');}
+		$action=$actions[0];
+		FinancialForm::check('admin:balance:' . $action);
+		$response=FinancialForm::execute('admin:balance:' . $action, ['operation_id'=>$id,'api_fingerprint'=>HScript\Finance\IdempotencyRequest::fingerprint((array)_IN('API'))], function () use ($id,$id_field,$out_link,$action) {
+		global $db;
 		
 		if ($o = $db->fetch1Row($db->select('Opers', '*', "$id_field=?d", array($id))))
 		{
-			if (View::sendedForm('del') and ($o['oState'] >= 4))
+			if ($action === 'delete' and ($o['oState'] >= 4))
 			{
 				$db->delete('Opers', 'oID=?d', array($id));
-				View::showInfo('Deleted', $out_link);
+				return ['info'=>'Deleted','url'=>$out_link];
 			}
-			elseif (View::sendedForm('cancel') and ($o['oState'] <= 2))
+			elseif ($action === 'cancel' and ($o['oState'] <= 2))
 			{
 				if (opOperCancel($o['ouID'], $id, array(), true) === true)
-					View::showInfo('Canceled');
+					return ['info'=>'Canceled','url'=>moduleToLink() . '?id=' . $id];
 			}
-			elseif (View::sendedForm() and ($o['oState'] <= 2))
+			elseif ($action === 'complete' and ($o['oState'] <= 2))
 			{
 				if ($o['oState'] < 2)
 					View::setError(opOperConfirm($o['ouID'], $id, array(), true));
 				View::setError(opOperComplete($o['ouID'], $id, array(), true, (array)_IN('API')));
-				View::showInfo();
+				return ['info'=>'Completed','url'=>moduleToLink() . '?id=' . $id];
 			}
 		}
-		View::showInfo('*Error');
+		return 'oper_state_wrong';
+		});
+		View::setError($response);
+		View::showInfo($response['info'],$response['url']);
 	}
 	
+}
+catch (InvalidArgumentException $e)
+{
+	http_response_code(422);
+	xSysStop('Invalid financial amount', true);
 } 
 catch (FormAbortException $e)
 {
@@ -113,7 +129,15 @@ if (!isset($_GET['add']))
 	$el['oParams2'] = strToArray($el['oParams2']);
 	View::stampArrayToStr($el['oParams2'], 'date', 1);
 	View::setPage('el', $el);
-	if ((($el['oOper'] == 'CASHIN') or ($is_out = ($el['oOper'] == 'CASHOUT'))) and ($el['oState'] <= 2))
+	View::setPage('exchange_quote', opExchangeQuoteDisplay($el), 0);
+	$is_out = $el['oOper'] === 'CASHOUT';
+    if($is_out && $el['oState']<=2 && HScript\Payment\Gateways\CryptoCurrencyApi::supports($el['cCID']) && !empty($el['cProviderID']) && array_key_exists('cAssetKey',$el)){
+        $sources=[];$routes=HScript\Payment\Routing\PaymentRoutes::catalog($el['cCID'],$el);
+        if(!$routes && isset(HScript\Payment\Gateways\CryptoCurrencyApi::NATIVE[$el['cCID']])){[$chain,$asset]=HScript\Payment\Gateways\CryptoCurrencyApi::NATIVE[$el['cCID']];$routes=[['network'=>$chain,'label'=>$asset]];}
+        foreach($routes as $route){$wallet=HScript\Payment\Routing\CcapiWallets::read($db,(int)$el['cProviderID'],$route['network']);$sources[]=['network'=>$route['label'],'address'=>$wallet['pnPayoutFrom']?:'Основной адрес CCAPI'];}
+        View::setPage('ccapi_payout_sources',$sources);
+    }
+	if (($el['oOper'] === 'CASHIN' || $is_out) && $el['oState'] <= 2)
 	{
 		$c = $paymentManager->definitions($el['cCID']);
 		if ($a = opCurrParamsToEdit($paymentManager->fields($el['cCID'])))

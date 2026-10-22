@@ -7,7 +7,10 @@ function cfg_update_error_message(string $message): string
 	if (preg_match('/^Recovery evidence expired: (backup|drill|backup_archive|update_backup); timestamp=(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z); max_age=([1-9][0-9]{0,9})$/D', $message, $match))
 	{
 		$evidenceKey = 'configurator.update.recovery.kind_' . $match[1];
-		return cfg_t('configurator.update.recovery.expired_detail', array('evidence' => cfg_t($evidenceKey), 'timestamp' => $match[2], 'seconds' => $match[3]));
+		$detail = cfg_t('configurator.update.recovery.expired_detail', array('evidence' => cfg_t($evidenceKey), 'timestamp' => $match[2], 'seconds' => $match[3]));
+		if (in_array($match[1], array('backup', 'drill'), true))
+			$detail .= ' ' . cfg_t('configurator.update.recovery.sql_backup_difference');
+		return $detail;
 	}
 	if (preg_match('/^Recovery evidence (invalid|future): (backup|drill|backup_archive|update_backup)$/D', $message, $match))
 	{

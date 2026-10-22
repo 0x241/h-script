@@ -1,0 +1,31 @@
+{
+  "provenance": "synthetic Python-generated protocol vectors; no captured live data",
+  "source": "https://en.webmoney.wiki/projects/webmoney/wiki/Web_Merchant_Interface",
+  "secret": "synthetic-webmoney-hash2-secret",
+  "payload": {
+    "LMI_PAYEE_PURSE": "Z123456789012",
+    "LMI_PAYMENT_AMOUNT": "50.00",
+    "LMI_PAYMENT_NO": "4",
+    "LMI_MODE": "0",
+    "LMI_SYS_INVS_NO": "120",
+    "LMI_SYS_TRANS_NO": "45678",
+    "LMI_SYS_TRANS_DATE": "20261003 12:30:00",
+    "LMI_PAYER_PURSE": "Z987654321012",
+    "LMI_PAYER_WM": "123456789012",
+    "LMI_HASH2": "AC2D4DF164E3B52DD06D3574ADE53D84EB6C87D52E77B6E24C1F737D708048D9",
+    "LMI_PAYMENT_DESC": "  Оплата + & = %20 ' тест  "
+  },
+  "legacy_payload": {
+    "LMI_PAYEE_PURSE": "Z123456789012",
+    "LMI_PAYMENT_AMOUNT": "50.00",
+    "LMI_PAYMENT_NO": "4",
+    "LMI_MODE": "0",
+    "LMI_SYS_INVS_NO": "120",
+    "LMI_SYS_TRANS_NO": "45678",
+    "LMI_SYS_TRANS_DATE": "20261003 12:30:00",
+    "LMI_PAYER_PURSE": "Z987654321012",
+    "LMI_PAYER_WM": "123456789012",
+    "LMI_HASH": "7D832FF9289CE87F2E3F52F33E88FFBAD4CB757D571053AD8EB49A1923BC0AD2",
+    "LMI_PAYMENT_DESC": "  Оплата + & = %20 ' тест  "
+  }
+}

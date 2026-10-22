@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 // Smoke test using only GET/HEAD against existing content; no fixture mutations.
 // php tests/locale_routing_http.php http://127.0.0.1 hs.local
 require __DIR__ . '/helpers/seo_http.php';

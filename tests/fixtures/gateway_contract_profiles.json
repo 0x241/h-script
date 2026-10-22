@@ -1,0 +1,612 @@
+{
+  "version": 1,
+  "checked_at": "2026-10-16",
+  "scope": "Application bounded automatic callback profiles; no live merchant compatibility claim",
+  "source_network_policy": "Source IP allowlisting is optional defense in depth; never replaces cryptographic authentication. No provider IP list is guessed.",
+  "outcomes": [
+    "authentication_failed",
+    "invalid_payload",
+    "pending",
+    "verified",
+    "rejected",
+    "unsupported",
+    "preflight",
+    "settled",
+    "replay",
+    "conflict",
+    "unavailable"
+  ],
+  "audit": "SHA256 raw body fingerprint plus normalized outcome/fixed reason, private bounded NDJSON; unavailable audit does not become money authority",
+  "live_provider_capture": false,
+  "gateways": {
+    "AC": {
+      "profile": "volet_usd_sci",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "VEUR": {
+      "profile": "volet_currency_sci",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "VUST": {
+      "profile": "volet_currency_sci",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "VUSC": {
+      "profile": "volet_currency_sci",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "VBTC": {
+      "profile": "volet_currency_sci",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "VETH": {
+      "profile": "volet_currency_sci",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "VSOL": {
+      "profile": "volet_currency_sci",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "VTRX": {
+      "profile": "volet_currency_sci",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "VXRP": {
+      "profile": "volet_currency_sci",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "VTON": {
+      "profile": "volet_currency_sci",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "VLTC": {
+      "profile": "volet_currency_sci",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "ACR": {
+      "profile": "unsupported_fiat_provider",
+      "automatic_in": false,
+      "automatic_out": false
+    },
+    "PKAU": {
+      "profile": "unsupported_fiat_provider",
+      "automatic_in": false,
+      "automatic_out": false
+    },
+    "PKAR": {
+      "profile": "unsupported_fiat_provider",
+      "automatic_in": false,
+      "automatic_out": false
+    },
+    "WM": {
+      "profile": "webmoney_hash2",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "YM": {
+      "profile": "yoomoney_http",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "YMC": {
+      "profile": "yoomoney_http",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "SB": {
+      "profile": "manual_review",
+      "automatic_in": false,
+      "automatic_out": false
+    },
+    "BW": {
+      "profile": "manual_review",
+      "automatic_in": false,
+      "automatic_out": false
+    },
+    "CP": {
+      "profile": "coinpayments_ipn",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CPE": {
+      "profile": "coinpayments_ipn",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CPL": {
+      "profile": "coinpayments_ipn",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CPR": {
+      "profile": "coinpayments_ipn",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKB": {
+      "profile": "paykassa_sci_order",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKL": {
+      "profile": "paykassa_sci_order",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKE": {
+      "profile": "paykassa_sci_order",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCT": {
+      "profile": "ccapi_v3_token",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCTU": {
+      "profile": "ccapi_v3_token",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCTC": {
+      "profile": "ccapi_v3_token",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKTU": {
+      "profile": "paykassa_token_route",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKTC": {
+      "profile": "paykassa_token_route",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCAB": {
+      "profile": "ccapi_v3_native",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCAL": {
+      "profile": "ccapi_v3_native",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCAD": {
+      "profile": "ccapi_v3_native",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCAG": {
+      "profile": "ccapi_v3_native",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCAH": {
+      "profile": "ccapi_v3_native",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCAE": {
+      "profile": "ccapi_v3_native",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCAM": {
+      "profile": "ccapi_v3_native",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCAN": {
+      "profile": "ccapi_v3_native",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCAT": {
+      "profile": "ccapi_v3_native",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCAX": {
+      "profile": "ccapi_v3_native",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCAO": {
+      "profile": "ccapi_v3_native",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "CCAS": {
+      "profile": "ccapi_v3_native",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PAW": {
+      "profile": "paw_native_off",
+      "automatic_in": false,
+      "automatic_out": false
+    },
+    "ST": {
+      "profile": "stripe_checkout",
+      "automatic_in": true,
+      "automatic_out": false
+    }
+  },
+  "profiles": {
+    "volet_usd_sci": {
+      "ids": [
+        "AC"
+      ],
+      "automatic_in": true,
+      "authentication": "SHA256 SCI plus authenticated order and incoming transaction confirmation",
+      "canonicalization": [
+        "ac_transfer",
+        "ac_start_date",
+        "ac_sci_name",
+        "ac_src_wallet",
+        "ac_dest_wallet",
+        "ac_order_id",
+        "ac_amount",
+        "ac_merchant_currency",
+        "SCI key"
+      ],
+      "transaction": "ac_transfer UUID bound to authenticated transaction",
+      "amount": "Original gross and authenticated amountIncome; full same-asset, provider/local fee zero",
+      "currency": "USD only",
+      "receiver": "Original encrypted invoice receiving wallet, SCI/API credentials and authenticated transaction destination",
+      "timestamp": "Signed UTC ac_start_date plus authenticated transaction times, creation/future tolerance 300 seconds",
+      "status": "Completed incoming SCI_PAYMENT only",
+      "unsupported": [
+        "ACR",
+        "nonzero fee",
+        "conversion",
+        "partial",
+        "missing original invoice proof"
+      ],
+      "sources": [
+        "https://volet.com/files/documents/volet-sci-v1.0-en.pdf",
+        "https://volet.com/files/documents/volet-merchant-api-v1.0-en.pdf",
+        "https://account.volet.com/wsm/apiWebService?wsdl"
+      ]
+    },
+    "coinpayments_ipn": {
+      "ids": [
+        "CP",
+        "CPE",
+        "CPL",
+        "CPR"
+      ],
+      "automatic_in": true,
+      "authentication": "HMAC-SHA512 header over exact raw body and signed merchant; IPN version1.0 required",
+      "canonicalization": [
+        "exact raw HTTP request body"
+      ],
+      "transaction": "txn_id; automatic receipt policy accepts 1..39 ASCII letters/digits/hyphens, longer IDs require reconciliation",
+      "amount": "amount1 equals original gross at configured original currency scale",
+      "currency": "currency1 matches BTC/ETH/LTC/XRP profile",
+      "receiver": "Signed merchant matches original invoice/profile; bounded no-checkout mode freezes configured merchant/key hash at first authenticated acceptance. Current key/merchant drift requires reconciliation.",
+      "timestamp": "No signed timestamp; permanent transaction-ID idempotency",
+      "status": "simple/button/api; status 2 or >=100 complete, other nonnegative pending, negative rejected",
+      "unsupported": [
+        "other ipn_type",
+        "transaction ID longer than 39"
+      ],
+      "sources": [
+        "https://legacy.coinpayments.net/merchant-tools-ipn",
+        "https://legacy.coinpayments.net/merchant-tools-simple"
+      ]
+    },
+    "yoomoney_http": {
+      "ids": [
+        "YM",
+        "YMC"
+      ],
+      "automatic_in": true,
+      "authentication": "HMAC-SHA256 sign; obsolete SHA1 never used",
+      "canonicalization": [
+        "All decoded fields except sign",
+        "Sort keys ascending",
+        "RFC3986 URL encoding",
+        "Join key=value with &"
+      ],
+      "transaction": "operation_id; automatic receipt policy max39 bytes",
+      "amount": "Signed withdraw_amount equals original gross; signed amount is received net",
+      "currency": "Signed 643 maps to RUB",
+      "receiver": "Original encrypted checkout wallet and pre-invoice notification-key hash; no receiver field in provider payload",
+      "timestamp": "Signed ISO datetime with explicit offset; first acceptance creation minus300, future plus300, maxage86400; replay retains original epoch",
+      "status": "p2p-incoming/card-incoming; unaccepted true pending; test/protected rejected",
+      "unsupported": [
+        "missing original encrypted profile",
+        "obsolete SHA1",
+        "transaction ID longer than 39"
+      ],
+      "sources": [
+        "https://yoomoney.ru/docs/payment-buttons/using-api/notifications"
+      ]
+    },
+    "webmoney_hash2": {
+      "ids": [
+        "WM"
+      ],
+      "automatic_in": true,
+      "authentication": "SHA256 LMI_HASH2; all supplied hash variants must match; unsigned prerequest never authenticates",
+      "canonicalization": [
+        "LMI_PAYEE_PURSE",
+        "LMI_PAYMENT_AMOUNT",
+        "LMI_HOLD if present",
+        "LMI_PAYMENT_NO",
+        "LMI_MODE",
+        "LMI_SYS_INVS_NO",
+        "LMI_SYS_TRANS_NO",
+        "LMI_SYS_TRANS_DATE",
+        "Secret Key",
+        "LMI_PAYER_PURSE",
+        "LMI_PAYER_WM"
+      ],
+      "transaction": "LMI_SYS_TRANS_NO, 1..32 numeric digits",
+      "amount": "LMI_PAYMENT_AMOUNT equals original gross at scale2",
+      "currency": "USD / WMZ purse",
+      "receiver": "Signed original receiving purse plus original encrypted invoice description and notification-key/timezone proof",
+      "timestamp": "Signed local calendar date; installation explicitly configures IANA timezone, no inferred provider default; invalid calendar/DST gap/fold reject; first creation minus300/future plus300, replay does not re-age",
+      "status": "LMI_MODE0; positive HOLD unsupported; prerequest only original-order validation",
+      "unsupported": [
+        "timezone unset",
+        "ambiguous local date",
+        "missing original encrypted profile",
+        "HASH-only",
+        "SIGN",
+        "positive HOLD"
+      ],
+      "sources": [
+        "https://en.webmoney.wiki/projects/webmoney/wiki/Web_Merchant_Interface"
+      ]
+    },
+    "paykassa_sci_order": {
+      "ids": [
+        "PKB",
+        "PKL",
+        "PKE"
+      ],
+      "automatic_in": true,
+      "authentication": "Exact private_hash confirmed through authenticated SCI0.4 order API",
+      "canonicalization": [
+        "Exact once-decoded notification token",
+        "Strict provider JSON confirmation envelope"
+      ],
+      "transaction": "Authenticated transaction tied to original merchant/order/invoice",
+      "amount": "Authenticated exact full amount equals original encrypted invoice gross",
+      "currency": "Authenticated system/currency matches BTC/LTC/ETH profile",
+      "receiver": "Original encrypted invoice receiver, destination tag, provider invoice and payment-link hash",
+      "timestamp": "No signed callback timestamp; permanent transaction-ID idempotency",
+      "status": "Confirmed complete order; partial unsupported",
+      "unsupported": [
+        "PKAU",
+        "PKAR",
+        "partial",
+        "old URL-only invoice",
+        "missing original immutable invoice proof"
+      ],
+      "sources": [
+        "https://paykassa.pro/en/developers/",
+        "https://github.com/paykassa-dev/paykassa-modules/blob/v1.0.7/src/PaykassaSCI.php"
+      ],
+      "verification_work": "Original protected invoice/current key/profile preflight before I/O; fixed merchant/key budget default10 per minute (validated env1..1000), per-order cooldown30seconds, verified-token SHA256 cache7days; failed/uncertain work consumes quota; exact cached retry rechecks original proof and performs zero I/O"
+    },
+    "ccapi_v3_native": {
+      "ids": [
+        "CCAB",
+        "CCAL",
+        "CCAD",
+        "CCAG",
+        "CCAH",
+        "CCAE",
+        "CCAM",
+        "CCAN",
+        "CCAT",
+        "CCAX",
+        "CCAO",
+        "CCAS"
+      ],
+      "automatic_in": true,
+      "authentication": "Version3 SHA1 sorted values plus MD5 of dedicated v3_key",
+      "canonicalization": [
+        "Closed scalar fields excluding sign",
+        "Sort field keys ascending",
+        "Join values with colon",
+        "Append colon and md5(key)"
+      ],
+      "transaction": "Full lowercase txid#pos permanent identity/proof; legacy short alias is storage only",
+      "amount": "Signed amount equals original invoice gross at frozen configured scale",
+      "currency": "Original native bitcoin/BTC,litecoin/LTC,dash/DASH,dogecoin/DOGE,bitcoincash/BCH chain/asset",
+      "receiver": "Original encrypted native invoice address and key/request namespace",
+      "timestamp": "Signed Unix seconds; first creation minus300/future plus300, replay retains original epoch",
+      "status": "type=in; confirmation0/1 pending, >1 confirmed except100/101",
+      "unsupported": [
+        "legacy protocol/key",
+        "tokens/contracts",
+        "array labels",
+        "manual confirmation100/101",
+        "outbound",
+        "missing original proof"
+      ],
+      "sources": [
+        "https://new.cryptocurrencyapi.net/docs/.start"
+      ]
+    },
+    "legacy_crypto_unverified": {
+      "ids": [],
+      "automatic_in": false,
+      "reason": "Current official contract unavailable; legacy guessed canonicalization/status/receiver/time does not satisfy reviewed profile",
+      "preservation": "IDs, configured wallets and financial history remain; automated invoice/payout/balance transport disabled; no mapping to CCAPIv3",
+      "sources": []
+    },
+    "unsupported_fiat_provider": {
+      "ids": [
+        "ACR",
+        "PKAU",
+        "PKAR"
+      ],
+      "automatic_in": false,
+      "reason": "No accepted automatic incoming profile for this asset/provider variant",
+      "preservation": "Identity/configuration/history retained",
+      "sources": []
+    },
+    "manual_review": {
+      "ids": [
+        "SB",
+        "BW"
+      ],
+      "automatic_in": false,
+      "reason": "Manual bank operations require authorized human confirmation; webhook cannot settle",
+      "preservation": "Manual operations, review and historical data retained",
+      "sources": []
+    },
+    "paw_native_off": {
+      "ids": [
+        "PAW"
+      ],
+      "automatic_in": false,
+      "reason": "Shared provider administration exists; native monetary profile awaits separate acceptance and enforced schema guard",
+      "preservation": "Common admin connection and informational partner/manual cashback blocks retained",
+      "sources": [
+        "https://docs.pawpayments.com/overview"
+      ]
+    },
+    "stripe_checkout": {
+      "ids": [
+        "ST"
+      ],
+      "automatic_in": true,
+      "signature": "Official Stripe SDK raw-body HMAC-SHA256 v1; 300 second signed delivery tolerance",
+      "identity": "Checkout session ID across completed/async paid events; immutable invoice metadata and exact minor-unit total",
+      "destination": "Original provider public ID/key version and account pinned in encrypted checkout",
+      "sources": [
+        "https://docs.stripe.com/api/checkout/sessions/create",
+        "https://docs.stripe.com/events/manage-webhook-endpoints",
+        "https://docs.stripe.com/currencies"
+      ]
+    },
+    "volet_currency_sci": {
+      "ids": [
+        "VEUR",
+        "VUST",
+        "VUSC",
+        "VBTC",
+        "VETH",
+        "VSOL",
+        "VTRX",
+        "VXRP",
+        "VTON",
+        "VLTC"
+      ],
+      "automatic_in": true,
+      "authentication": "SHA256 SCI plus authenticated order and incoming transaction confirmation",
+      "canonicalization": [
+        "ac_transfer",
+        "ac_start_date",
+        "ac_sci_name",
+        "ac_src_wallet",
+        "ac_dest_wallet",
+        "ac_order_id",
+        "ac_amount",
+        "ac_merchant_currency",
+        "SCI key"
+      ],
+      "transaction": "ac_transfer UUID bound to authenticated transaction",
+      "amount": "Original gross and authenticated amountIncome; full same-asset, provider/local fee zero",
+      "currency": "USD only",
+      "receiver": "Original encrypted invoice receiving wallet, SCI/API credentials and authenticated transaction destination",
+      "timestamp": "Signed UTC ac_start_date plus authenticated transaction times, creation/future tolerance 300 seconds",
+      "status": "Completed incoming SCI_PAYMENT only",
+      "unsupported": [
+        "ACR",
+        "nonzero fee",
+        "conversion",
+        "partial",
+        "missing original invoice proof"
+      ],
+      "sources": [
+        "https://volet.com/files/documents/volet-sci-v1.0-en.pdf",
+        "https://volet.com/files/documents/volet-merchant-api-v1.0-en.pdf",
+        "https://account.volet.com/wsm/apiWebService?wsdl"
+      ],
+      "scope": "Currency-bound full invoice, exact local amounts and zero provider fee; synthetic protocol coverage, no live merchant capture."
+    },
+    "ccapi_v3_token": {
+      "ids": [
+        "CCT",
+        "CCTU",
+        "CCTC"
+      ],
+      "automatic_in": true,
+      "authentication": "Version3 SHA1 sorted values plus MD5 of dedicated v3_key",
+      "canonicalization": [
+        "Closed scalar fields excluding sign",
+        "Sort field keys ascending",
+        "Join values with colon",
+        "Append colon and md5(key)"
+      ],
+      "transaction": "Full lowercase txid#pos permanent identity/proof; legacy short alias is storage only",
+      "amount": "Signed amount equals original invoice gross at frozen configured scale",
+      "currency": "Original token symbol and immutable network/contract from selected provider catalog",
+      "receiver": "Original encrypted native invoice address and key/request namespace",
+      "timestamp": "Signed Unix seconds; first creation minus300/future plus300, replay retains original epoch",
+      "status": "type=in; confirmation0/1 pending, >1 confirmed except100/101",
+      "unsupported": [
+        "legacy protocol/key",
+        "array labels",
+        "manual confirmation100/101",
+        "outbound",
+        "missing original proof"
+      ],
+      "sources": [
+        "https://new.cryptocurrencyapi.net/docs/.start"
+      ],
+      "route_binding": "Immutable invoice route: accounting asset, network and token contract/system. Same-asset only, no automatic token payout."
+    },
+    "paykassa_token_route": {
+      "ids": [
+        "PKTU",
+        "PKTC"
+      ],
+      "automatic_in": true,
+      "authentication": "Exact private_hash confirmed through authenticated SCI0.4 order API",
+      "canonicalization": [
+        "Exact once-decoded notification token",
+        "Strict provider JSON confirmation envelope"
+      ],
+      "transaction": "Authenticated transaction tied to original merchant/order/invoice",
+      "amount": "Authenticated exact full amount equals original encrypted invoice gross",
+      "currency": "Authenticated system/currency matches BTC/LTC/ETH profile",
+      "receiver": "Original encrypted invoice receiver, destination tag, provider invoice and payment-link hash",
+      "timestamp": "No signed callback timestamp; permanent transaction-ID idempotency",
+      "status": "Confirmed complete order; partial unsupported",
+      "unsupported": [
+        "PKAU",
+        "PKAR",
+        "partial",
+        "old URL-only invoice",
+        "missing original immutable invoice proof"
+      ],
+      "sources": [
+        "https://paykassa.pro/en/developers/",
+        "https://github.com/paykassa-dev/paykassa-modules/blob/v1.0.7/src/PaykassaSCI.php"
+      ],
+      "verification_work": "Original protected invoice/current key/profile preflight before I/O; fixed merchant/key budget default10 per minute (validated env1..1000), per-order cooldown30seconds, verified-token SHA256 cache7days; failed/uncertain work consumes quota; exact cached retry rechecks original proof and performs zero I/O",
+      "route_binding": "Immutable invoice route: accounting asset, network and token contract/system. Same-asset only, no automatic token payout."
+    }
+  }
+}

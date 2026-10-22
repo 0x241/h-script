@@ -68,7 +68,7 @@ abstract class AbstractGateway implements PaymentGatewayInterface
 
 	public function handleCallback(array $request): array
 	{
-		return array();
+		return CallbackResult::failure('unsupported','automatic_callback_unsupported');
 	}
 
 	public function validateConfig(array $config): bool
@@ -93,17 +93,12 @@ abstract class AbstractGateway implements PaymentGatewayInterface
 			);
 	}
 
-	protected function validateAmount(float $amount, float $min, float $max): bool
-	{
-		return $amount >= $min && ($max <= 0 || $amount <= $max);
-	}
-
 	protected function normalizedAmount(mixed $amount): string
 	{
 		$currency = (string)($this->definition[4] ?? $this->getCurrencyId());
 		if (in_array($currency, array('USD', 'RUB', 'RUR', 'EUR'), true))
-			return number_format((float)$amount, 2, '.', '');
-		return (string)$amount;
+			return GatewayAmount::checkout($amount,$currency,2);
+		return GatewayAmount::exact($amount,$currency,8);
 	}
 
 	protected function value(array $data, string $key, mixed $default = ''): mixed
@@ -147,14 +142,8 @@ abstract class AbstractGateway implements PaymentGatewayInterface
 		if (!$correct)
 			return array('handled' => true, 'correct' => false) + $callback;
 		$batch = $batchPrefix . (string)($callback['batch'] ?? '');
-		$this->db->update(
-			'Opers',
-			array('oBatch' => $batch),
-			'',
-			'oID=?d and oOper=? and oState=3 and SUBSTR(oBatch, 1, 1)=?',
-			array((int)($callback['tag'] ?? 0), 'CASHOUT', '?')
-		);
-		return array('handled' => true, 'correct' => $correct) + $callback;
+		// Settlement and retry binding belong to the financial transaction layer.
+		return array('outbound' => true, 'correct' => $correct, 'batch' => $batch) + $callback;
 	}
 
 	protected function errorResult(Throwable|string $error): array

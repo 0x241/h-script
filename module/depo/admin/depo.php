@@ -1,6 +1,8 @@
 <?php
 
 use HScript\Template\View;
+use HScript\Finance\FinancialForm;
+use HScript\Finance\RequestDecimal;
 
 $_auth = 90;
 require_once('module/auth.php');
@@ -13,7 +15,7 @@ try
 
 	if (View::sendedForm('', 'new'))
 	{
-		View::checkFormSecurity('new');
+		FinancialForm::check('admin:depo:new', 'new');
 		
 		$uid = $db->fetch1($db->select('Users', 'uID', 'uLogin=? and (uState=1 or uState=2)', array(_IN('Login'))));
 		if (!$uid)
@@ -21,49 +23,59 @@ try
 		if (!isset_IN('PSys'))
 			goToURL(moduleToLink() . '?add&user=' . _IN('Login'));
 		cn($_IN['Sum']);		
-		View::setError($id = opDepoCreate($uid, _INN('PSys'), _IN('Sum'), _IN('Compnd'), _INN('Plan'), true), 'new');
+		View::setError($id = FinancialForm::execute('admin:depo:new', ['user_id'=>(int)$uid,'currency_id'=>_INN('PSys'),'amount'=>RequestDecimal::normalize(_IN('Sum')),'compound'=>RequestDecimal::normalize(_IN('Compnd') ?: 0,true),'plan_id'=>_INN('Plan')], static fn()=>opDepoCreate($uid,_INN('PSys'),_IN('Sum'),_IN('Compnd'),_INN('Plan'),true)), 'new');
 		View::showInfo('Completed', moduleToLink() . "?id=$id");
 	}
 
 	if (View::sendedForm('chg'))
 	{
-		View::checkFormSecurity();
+		FinancialForm::check('admin:depo:chg');
 		
-		View::setError(opDepoChangeCompnd(_INN('duID'), $id = _INN($id_field), _IN('Compnd')));
+		$id=_INN($id_field);
+		View::setError(FinancialForm::execute('admin:depo:chg', ['deposit_id'=>$id,'user_id'=>_INN('duID'),'currency_id'=>_INN('dcID'),'compound'=>RequestDecimal::normalize(_IN('Compnd') ?: 0,true)], static fn()=>opDepoChangeCompnd(_INN('duID'),$id,_IN('Compnd'))));
 		View::showInfo('Completed', moduleToLink() . "?id=$id");
 	}
 	
 	if (View::sendedForm('add'))
 	{
-		View::checkFormSecurity();
+		FinancialForm::check('admin:depo:add');
 		
 		cn($_IN['Sum']);		
-		View::setError(opDepoAdd(_INN('duID'), _INN('dcID'), _IN('Sum'), $id = _INN($id_field)));
+		$id=_INN($id_field);
+		View::setError(FinancialForm::execute('admin:depo:add', ['deposit_id'=>$id,'user_id'=>_INN('duID'),'currency_id'=>_INN('dcID'),'amount'=>RequestDecimal::normalize(_IN('Sum'))], static fn()=>opDepoAdd(_INN('duID'),_INN('dcID'),_IN('Sum'),$id)));
 		View::showInfo('Completed', moduleToLink() . "?id=$id");
 	}
 	if (View::sendedForm('sub'))
 	{
-			View::checkFormSecurity();
+			FinancialForm::check('admin:depo:sub');
 		
 		cn($_IN['Sum']);		
-		View::setError(opDepoSub(_INN('duID'), _INN('dcID'), _IN('Sum'), $id = _INN($id_field)));
+		$id=_INN($id_field);
+		View::setError(FinancialForm::execute('admin:depo:sub', ['deposit_id'=>$id,'user_id'=>_INN('duID'),'currency_id'=>_INN('dcID'),'amount'=>RequestDecimal::normalize(_IN('Sum'))], static fn()=>opDepoSub(_INN('duID'),_INN('dcID'),_IN('Sum'),$id)));
 		View::showInfo('Completed', moduleToLink() . "?id=$id");
 	}
 	if (View::sendedForm('chp'))
 	{
-		View::checkFormSecurity();
+		FinancialForm::check('admin:depo:chp');
 		
-		View::setError(opDepoChangePlan(_INN('duID'), _IN('dpID'), $id = _INN($id_field)));
+		$id=_INN($id_field);
+		View::setError(FinancialForm::execute('admin:depo:chp', ['deposit_id'=>$id,'user_id'=>_INN('duID'),'currency_id'=>_INN('dcID'),'plan_id'=>_INN('dpID')], static fn()=>opDepoChangePlan(_INN('duID'),_INN('dpID'),$id,true)));
 		View::showInfo('Completed', moduleToLink() . "?id=$id");
 	}
 	if (View::sendedForm('cls'))
 	{
-		View::checkFormSecurity();
+		FinancialForm::check('admin:depo:cls');
 		
-		View::setError(opDepoClose(_INN('duID'), _INN('dcID'), $id = _INN($id_field)));
+		$id=_INN($id_field);
+		View::setError(FinancialForm::execute('admin:depo:cls', ['deposit_id'=>$id,'user_id'=>_INN('duID'),'currency_id'=>_INN('dcID')], static fn()=>opDepoClose(_INN('duID'),_INN('dcID'),$id)));
 		View::showInfo('Completed', moduleToLink() . "?id=$id");
 	}
 
+}
+catch (InvalidArgumentException $e)
+{
+	http_response_code(422);
+	xSysStop('Invalid financial amount', true);
 } 
 catch (FormAbortException $e)
 {

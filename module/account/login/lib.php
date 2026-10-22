@@ -1,6 +1,7 @@
 <?php
 
 use HScript\Util\StringHelper;
+use HScript\Security\FailedLoginPolicy;
 
 use HScript\Template\View;
 /* 
@@ -12,9 +13,11 @@ function opLoginPrepare($login, $pass)
 	global $db, $_cfg;
 	if (StringHelper::sEmpty($login) or StringHelper::sEmpty($pass))
 		return 'login_empty';
-	if ($a = $db->fetch1Row($db->select('Users LEFT JOIN AddInfo ON auID=uID', 
-		'uID, uLogin, aGA', 'uLogin=? and aGA<>""', array($login))))
+	$candidate = $db->fetch1Row($db->select('Users LEFT JOIN AddInfo ON auID=uID',
+		'uID, uLogin, uPass, aGA, aFailedLoginThreshold', 'uLogin=?', array($login)));
+	if (!empty($candidate['aGA']))
 	{
+		$a = $candidate;
 		require_once('module/account/ga/class.GoogleAuthenticator.php');
 		$ga = new GoogleAuthenticator();
 		if ($ga->checkCode($a['aGA'], $pass))
@@ -24,7 +27,7 @@ function opLoginPrepare($login, $pass)
 	}
 	else
 	{
-		$usr = $db->fetch1Row($db->select('Users', 'uID, uLogin, uPass', 'uLogin=?', array($login)));
+		$usr = $candidate;
 		if (!empty($usr['uID']) and verifyPasswordWithLegacyDigest($pass, $usr['uPass'], $_cfg['Const_Salt']))
 		{
 			if (!verifyPassword($pass, $usr['uPass']) or passwordHashNeedsRehash($usr['uPass']))
@@ -35,8 +38,8 @@ function opLoginPrepare($login, $pass)
 	}
 	if ((empty($usr['uID'])) or ($usr['uLogin'] != $login))
 	{
-		if ($_cfg['Sec_BFC'] > 0)
-			$db->update('Users', array('uBFC=' => 'uBFC+1'), '', 'uLogin=?', array($login));
+		if (!empty($candidate['uID']) && FailedLoginPolicy::effective($_cfg['Sec_BFC'], $candidate['aFailedLoginThreshold']) > 0)
+			$db->update('Users', array('uBFC=' => 'LEAST(uBFC+1,2147483647)'), '', 'uID=?d', array($candidate['uID']));
 		return 'login_not_found';
 	}
 	return 0 + $usr['uID'];
@@ -84,7 +87,7 @@ function opLogin($uid, $url, $set_new_ip = false, $from_admin = false, $remember
 			View::showInfo('*Denied', moduleToLink('account/login'));
 		if (!$set_new_ip)
 		{
-			if (($_cfg['Sec_BFC'] > 0) and ($usr['uBFC'] >= $_cfg['Sec_BFC']))
+			if (FailedLoginPolicy::needsConfirmation($_cfg['Sec_BFC'], $usr['aFailedLoginThreshold'], (int)$usr['uBFC']))
 			{
 				useLib('confirm');
 				opConfirmPrepare($uid, 'BFLOGIN', array('url' => $url, 'remember' => $remember), 'account/login');

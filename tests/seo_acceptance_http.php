@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 // Read-only acceptance against a running installation. Optional argv[3]: comma-separated enabled locales.
 require __DIR__ . '/helpers/seo_http.php';
 require __DIR__ . '/helpers/seo_document.php';

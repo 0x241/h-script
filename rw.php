@@ -23,7 +23,7 @@ if (!headers_sent()) {
 	header('X-Content-Type-Options: nosniff');
 	header('Referrer-Policy: strict-origin-when-cross-origin');
 	header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
-	header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; media-src 'self' blob:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://challenges.cloudflare.com;");
+	header('Content-Security-Policy: ' . ContentSecurityPolicy::enforced());
 }
 
 if (parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) === '/csp-report')

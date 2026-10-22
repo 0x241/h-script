@@ -1,0 +1,8 @@
+{
+  "provenance": "Synthetic current SCI/SOAP schema fixture; not captured provider wire",
+  "sci": {"name":"merchant@fixture.invalid","sci":"Synthetic Store","key":"synthetic-volet-sci-secret"},
+  "api": {"name":"merchant@fixture.invalid","api":"Synthetic API & <special>","apipass":"synthetic-volet-api-secret","acc":"USD210987654321"},
+  "callback": {"ac_transfer":"235f9d0b-b48f-462c-9949-621c4930490c","ac_start_date":"2026-06-23 12:30:00","ac_sci_name":"Synthetic Store","ac_src_wallet":"USD123456789012","ac_dest_wallet":"USD210987654321","ac_order_id":"42","ac_amount":"1.23","ac_merchant_currency":"USD","ac_transaction_status":"COMPLETED","ac_fee":"0.00","ac_merchant_amount":"1.23","ac_buyer_email":"buyer@fixture.invalid"},
+  "order": {"orderId":"42","sciName":"Synthetic Store","paymentCreated":"2026-06-23T12:29:00.000Z","paymentStatus":"COMPLETED","srcWalletId":"USD123456789012","transactionAmount":"1.23","transactionCompleted":"2026-06-23T12:30:00.999Z","transactionCreated":"2026-06-23T12:30:00.901+00:00","transactionCurrency":"USD","transactionId":"235f9d0b-b48f-462c-9949-621c4930490c","transactionStatus":"COMPLETED"},
+  "transaction": {"id":"235f9d0b-b48f-462c-9949-621c4930490c","amount":"1.23","amountIncome":"1.23","api":"false","currency":"USD","currencyIncome":"USD","direction":"INCOMING","fullCommission":"0.00","orderId":"42","receiverEmail":"merchant@fixture.invalid","sci":"true","startTime":"2026-06-23T12:30:00.901+00:00","status":"COMPLETED","transactionName":"INNER_SYSTEM","transactionType":"SCI_PAYMENT","updatedTime":"2026-06-23T12:30:00.999Z","walletDestId":"USD210987654321","walletSrcId":"USD123456789012"}
+}

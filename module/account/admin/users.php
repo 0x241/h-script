@@ -121,7 +121,7 @@ View::stampTableToStr($list, 'nBTS, nLTS');
 
 $wlist = $db->fetchRows($db->select('Wallets', 'wuID, wcID, wBal', 'wuID ?i and wBal>0', array(array_keys($list))));
 foreach ($wlist as $w) {
-	$currKey = 'Bal' . $_currs[$w['wcID']]['cCurrID'];
+	$currKey = 'Bal' . HScript\Finance\WalletPortfolio::code($_currs[$w['wcID']], $w['wcID']);
 	if (!isset($list[$w['wuID']][$currKey])) {
 		$list[$w['wuID']][$currKey] = 0;
 	}
@@ -139,7 +139,7 @@ $vcurrs = array(
 	'XRP' => array()
 );
 foreach ($_currs as $cid => $c)
-	$vcurrs[$c['cCurrID']][] = $cid;
+	$vcurrs[HScript\Finance\WalletPortfolio::code($c, $cid)][] = $cid;
 View::setPage('vcurrs', $vcurrs);
 
 View::showPage();

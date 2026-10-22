@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 $root = dirname(__DIR__);
 $meta = '<meta name="htmx-config" content=\'{"allowEval":false,"allowScriptTags":false,"includeIndicatorStyles":false}\'>';
 $script = '<script src="static/js/htmx.min.js"></script>';

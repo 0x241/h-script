@@ -329,7 +329,7 @@ final class InstallationRepository
 		$baseUsd = $public['base_totals_by_currency']['USD']['cash_in'] ?? null;
 		$nativeUsd = $public['cash_in_by_currency']['USD'] ?? 0;
 		return array(
-			'processed' => max(0.0, is_numeric($baseUsd) ? (float)$baseUsd : (float)$nativeUsd),
+			'processed' => TelemetryAmount::read(is_numeric($baseUsd) ? $baseUsd : $nativeUsd),
 			'processed_currency' => 'USD',
 			'platforms' => max(0, (int)$summary['platforms_total']),
 			'updated_at' => $now,
@@ -507,10 +507,10 @@ final class InstallationRepository
 		{
 			$currency = (string)$row['base_currency'];
 			$public['base_totals_by_currency'][$currency] = array(
-				'cash_in' => max(0.0, (float)$row['cash_in']),
-				'cash_out' => max(0.0, (float)$row['cash_out']),
-				'referral_paid' => max(0.0, (float)$row['referral_paid']),
-				'reinvested' => max(0.0, (float)$row['reinvested']),
+				'cash_in' => TelemetryAmount::read($row['cash_in']),
+				'cash_out' => TelemetryAmount::read($row['cash_out']),
+				'referral_paid' => TelemetryAmount::read($row['referral_paid']),
+				'reinvested' => TelemetryAmount::read($row['reinvested']),
 			);
 		}
 
@@ -532,8 +532,8 @@ final class InstallationRepository
 		foreach (is_array($currencyRows) ? $currencyRows : array() as $row)
 		{
 			$currency = (string)$row['currency'];
-			$public['cash_in_by_currency'][$currency] = max(0.0, (float)$row['cash_in']);
-			$public['cash_out_by_currency'][$currency] = max(0.0, (float)$row['cash_out']);
+			$public['cash_in_by_currency'][$currency] = TelemetryAmount::read($row['cash_in']);
+			$public['cash_out_by_currency'][$currency] = TelemetryAmount::read($row['cash_out']);
 		}
 		ksort($public['cash_in_by_currency']);
 		ksort($public['cash_out_by_currency']);
@@ -686,10 +686,10 @@ final class InstallationRepository
 			'active_deposits' => max(0, (int)($stats['active_deposits'] ?? 0)),
 			'closed_deposits' => max(0, (int)($stats['closed_deposits'] ?? 0)),
 			'base_currency' => strtoupper((string)($stats['base_currency'] ?? '')),
-			'cash_in_base' => max(0, (float)($stats['cash_in_base'] ?? 0)),
-			'cash_out_base' => max(0, (float)($stats['cash_out_base'] ?? 0)),
-			'referral_paid_base' => max(0, (float)($stats['referral_paid_base'] ?? 0)),
-			'reinvested_base' => max(0, (float)($stats['reinvested_base'] ?? 0)),
+			'cash_in_base' => TelemetryAmount::read($stats['cash_in_base'] ?? null),
+			'cash_out_base' => TelemetryAmount::read($stats['cash_out_base'] ?? null),
+			'referral_paid_base' => TelemetryAmount::read($stats['referral_paid_base'] ?? null),
+			'reinvested_base' => TelemetryAmount::read($stats['reinvested_base'] ?? null),
 			'cash_in_by_currency' => self::amountMap($stats['cash_in_by_currency'] ?? array()),
 			'cash_out_by_currency' => self::amountMap($stats['cash_out_by_currency'] ?? array()),
 		);
@@ -708,7 +708,7 @@ final class InstallationRepository
 		{
 			$currency = strtoupper((string)$currency);
 			if (preg_match('/^[A-Z0-9]{2,10}$/', $currency) && is_numeric($amount))
-				$target[$currency] = ($target[$currency] ?? 0.0) + max(0, (float)$amount);
+				$target[$currency] = (string)\Brick\Math\BigDecimal::of($target[$currency] ?? '0.00000000')->plus(TelemetryAmount::read($amount));
 		}
 	}
 

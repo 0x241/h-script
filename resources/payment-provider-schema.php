@@ -1,0 +1,36 @@
+<?php
+
+/** One encrypted merchant profile, with recoverable immutable credential versions. */
+return [
+    'PaymentProviders' => "ppID int unsigned NOT NULL AUTO_INCREMENT,
+      ppPublicID char(32) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+      ppKind varchar(8) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+      ppSlot varchar(8) CHARACTER SET ascii COLLATE ascii_bin NULL DEFAULT NULL,
+      ppEnvironment varchar(8) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+      ppState varchar(8) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'disabled',
+      ppRevision int unsigned NOT NULL DEFAULT 0,
+      ppCurrentKeyVersion int unsigned NOT NULL DEFAULT 0,
+      ppValidationState varchar(8) CHARACTER SET ascii COLLATE ascii_bin NOT NULL DEFAULT 'none',
+      ppValidatedAt bigint unsigned NULL DEFAULT NULL,
+      ppCreatedAt bigint unsigned NOT NULL,
+      ppUpdatedAt bigint unsigned NOT NULL,
+      PRIMARY KEY (ppID),
+      UNIQUE KEY uq_provider_public (ppPublicID),
+      UNIQUE KEY uq_provider_slot (ppSlot),
+      UNIQUE KEY uq_provider_environment (ppID,ppEnvironment),
+      CONSTRAINT chk_provider_kind CHECK (ppKind='PAW'),
+      CONSTRAINT chk_provider_environment CHECK (ppEnvironment IN ('live','sandbox')),
+      CONSTRAINT chk_provider_state CHECK (ppState IN ('enabled','disabled','retired')),
+      CONSTRAINT chk_provider_slot CHECK ((ppState='retired' AND ppSlot IS NULL) OR (ppState<>'retired' AND ppSlot IS NOT NULL AND ppSlot='PAW')),
+      CONSTRAINT chk_provider_validation CHECK (ppValidationState IN ('none','valid'))",
+    'PaymentProviderCredentials' => "ppcProviderID int unsigned NOT NULL,
+      ppcVersion int unsigned NOT NULL,
+      ppcEnvironment varchar(8) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+      ppcEncryptedKey text CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+      ppcCreatedAt bigint unsigned NOT NULL,
+      ppcRetiredAt bigint unsigned NULL DEFAULT NULL,
+      PRIMARY KEY (ppcProviderID,ppcVersion),
+      KEY ix_credential_environment (ppcProviderID,ppcEnvironment),
+      CONSTRAINT fk_credential_provider FOREIGN KEY (ppcProviderID,ppcEnvironment) REFERENCES PaymentProviders(ppID,ppEnvironment) ON DELETE RESTRICT ON UPDATE RESTRICT,
+      CONSTRAINT chk_credential_version CHECK (ppcVersion>0)"
+];

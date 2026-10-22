@@ -1,0 +1,554 @@
+{
+  "provenance": "Synthetic decimal strings; expected values computed independently with Python decimal ROUND_HALF_UP at precision70. Preserves historical round6, currency round, min-before-max clamp, final currency round.",
+  "cases": [
+    {
+      "id": "scale0-vector0",
+      "amount": "123.499950",
+      "percent": "1",
+      "min": "0",
+      "max": "0",
+      "scale": 0,
+      "expected": "1"
+    },
+    {
+      "id": "scale0-vector1",
+      "amount": "1.005",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 0,
+      "expected": "1"
+    },
+    {
+      "id": "scale0-vector2",
+      "amount": "0.00000001",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 0,
+      "expected": "0"
+    },
+    {
+      "id": "scale0-vector3",
+      "amount": "9999999.999999",
+      "percent": "0.01",
+      "min": "0",
+      "max": "0",
+      "scale": 0,
+      "expected": "1000"
+    },
+    {
+      "id": "scale0-vector4",
+      "amount": "0.01",
+      "percent": "0",
+      "min": "0",
+      "max": "0",
+      "scale": 0,
+      "expected": "0"
+    },
+    {
+      "id": "scale0-vector5",
+      "amount": "10",
+      "percent": "-10",
+      "min": "0",
+      "max": "0",
+      "scale": 0,
+      "expected": "0"
+    },
+    {
+      "id": "scale1-vector0",
+      "amount": "123.499950",
+      "percent": "1",
+      "min": "0",
+      "max": "0",
+      "scale": 1,
+      "expected": "1.2"
+    },
+    {
+      "id": "scale1-vector1",
+      "amount": "1.005",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 1,
+      "expected": "1.0"
+    },
+    {
+      "id": "scale1-vector2",
+      "amount": "0.00000001",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 1,
+      "expected": "0.0"
+    },
+    {
+      "id": "scale1-vector3",
+      "amount": "9999999.999999",
+      "percent": "0.01",
+      "min": "0",
+      "max": "0",
+      "scale": 1,
+      "expected": "1000.0"
+    },
+    {
+      "id": "scale1-vector4",
+      "amount": "0.01",
+      "percent": "0",
+      "min": "0",
+      "max": "0",
+      "scale": 1,
+      "expected": "0.0"
+    },
+    {
+      "id": "scale1-vector5",
+      "amount": "10",
+      "percent": "-10",
+      "min": "0",
+      "max": "0",
+      "scale": 1,
+      "expected": "0.0"
+    },
+    {
+      "id": "scale2-vector0",
+      "amount": "123.499950",
+      "percent": "1",
+      "min": "0",
+      "max": "0",
+      "scale": 2,
+      "expected": "1.24"
+    },
+    {
+      "id": "scale2-vector1",
+      "amount": "1.005",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 2,
+      "expected": "1.01"
+    },
+    {
+      "id": "scale2-vector2",
+      "amount": "0.00000001",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 2,
+      "expected": "0.00"
+    },
+    {
+      "id": "scale2-vector3",
+      "amount": "9999999.999999",
+      "percent": "0.01",
+      "min": "0",
+      "max": "0",
+      "scale": 2,
+      "expected": "1000.00"
+    },
+    {
+      "id": "scale2-vector4",
+      "amount": "0.01",
+      "percent": "0",
+      "min": "0",
+      "max": "0",
+      "scale": 2,
+      "expected": "0.00"
+    },
+    {
+      "id": "scale2-vector5",
+      "amount": "10",
+      "percent": "-10",
+      "min": "0",
+      "max": "0",
+      "scale": 2,
+      "expected": "0.00"
+    },
+    {
+      "id": "scale3-vector0",
+      "amount": "123.499950",
+      "percent": "1",
+      "min": "0",
+      "max": "0",
+      "scale": 3,
+      "expected": "1.235"
+    },
+    {
+      "id": "scale3-vector1",
+      "amount": "1.005",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 3,
+      "expected": "1.005"
+    },
+    {
+      "id": "scale3-vector2",
+      "amount": "0.00000001",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 3,
+      "expected": "0.000"
+    },
+    {
+      "id": "scale3-vector3",
+      "amount": "9999999.999999",
+      "percent": "0.01",
+      "min": "0",
+      "max": "0",
+      "scale": 3,
+      "expected": "1000.000"
+    },
+    {
+      "id": "scale3-vector4",
+      "amount": "0.01",
+      "percent": "0",
+      "min": "0",
+      "max": "0",
+      "scale": 3,
+      "expected": "0.000"
+    },
+    {
+      "id": "scale3-vector5",
+      "amount": "10",
+      "percent": "-10",
+      "min": "0",
+      "max": "0",
+      "scale": 3,
+      "expected": "0.000"
+    },
+    {
+      "id": "scale4-vector0",
+      "amount": "123.499950",
+      "percent": "1",
+      "min": "0",
+      "max": "0",
+      "scale": 4,
+      "expected": "1.2350"
+    },
+    {
+      "id": "scale4-vector1",
+      "amount": "1.005",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 4,
+      "expected": "1.0050"
+    },
+    {
+      "id": "scale4-vector2",
+      "amount": "0.00000001",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 4,
+      "expected": "0.0000"
+    },
+    {
+      "id": "scale4-vector3",
+      "amount": "9999999.999999",
+      "percent": "0.01",
+      "min": "0",
+      "max": "0",
+      "scale": 4,
+      "expected": "1000.0000"
+    },
+    {
+      "id": "scale4-vector4",
+      "amount": "0.01",
+      "percent": "0",
+      "min": "0",
+      "max": "0",
+      "scale": 4,
+      "expected": "0.0000"
+    },
+    {
+      "id": "scale4-vector5",
+      "amount": "10",
+      "percent": "-10",
+      "min": "0",
+      "max": "0",
+      "scale": 4,
+      "expected": "0.0000"
+    },
+    {
+      "id": "scale5-vector0",
+      "amount": "123.499950",
+      "percent": "1",
+      "min": "0",
+      "max": "0",
+      "scale": 5,
+      "expected": "1.23500"
+    },
+    {
+      "id": "scale5-vector1",
+      "amount": "1.005",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 5,
+      "expected": "1.00500"
+    },
+    {
+      "id": "scale5-vector2",
+      "amount": "0.00000001",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 5,
+      "expected": "0.00000"
+    },
+    {
+      "id": "scale5-vector3",
+      "amount": "9999999.999999",
+      "percent": "0.01",
+      "min": "0",
+      "max": "0",
+      "scale": 5,
+      "expected": "1000.00000"
+    },
+    {
+      "id": "scale5-vector4",
+      "amount": "0.01",
+      "percent": "0",
+      "min": "0",
+      "max": "0",
+      "scale": 5,
+      "expected": "0.00000"
+    },
+    {
+      "id": "scale5-vector5",
+      "amount": "10",
+      "percent": "-10",
+      "min": "0",
+      "max": "0",
+      "scale": 5,
+      "expected": "0.00000"
+    },
+    {
+      "id": "scale6-vector0",
+      "amount": "123.499950",
+      "percent": "1",
+      "min": "0",
+      "max": "0",
+      "scale": 6,
+      "expected": "1.235000"
+    },
+    {
+      "id": "scale6-vector1",
+      "amount": "1.005",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 6,
+      "expected": "1.005000"
+    },
+    {
+      "id": "scale6-vector2",
+      "amount": "0.00000001",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 6,
+      "expected": "0.000000"
+    },
+    {
+      "id": "scale6-vector3",
+      "amount": "9999999.999999",
+      "percent": "0.01",
+      "min": "0",
+      "max": "0",
+      "scale": 6,
+      "expected": "1000.000000"
+    },
+    {
+      "id": "scale6-vector4",
+      "amount": "0.01",
+      "percent": "0",
+      "min": "0",
+      "max": "0",
+      "scale": 6,
+      "expected": "0.000000"
+    },
+    {
+      "id": "scale6-vector5",
+      "amount": "10",
+      "percent": "-10",
+      "min": "0",
+      "max": "0",
+      "scale": 6,
+      "expected": "0.000000"
+    },
+    {
+      "id": "scale7-vector0",
+      "amount": "123.499950",
+      "percent": "1",
+      "min": "0",
+      "max": "0",
+      "scale": 7,
+      "expected": "1.2350000"
+    },
+    {
+      "id": "scale7-vector1",
+      "amount": "1.005",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 7,
+      "expected": "1.0050000"
+    },
+    {
+      "id": "scale7-vector2",
+      "amount": "0.00000001",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 7,
+      "expected": "0.0000000"
+    },
+    {
+      "id": "scale7-vector3",
+      "amount": "9999999.999999",
+      "percent": "0.01",
+      "min": "0",
+      "max": "0",
+      "scale": 7,
+      "expected": "1000.0000000"
+    },
+    {
+      "id": "scale7-vector4",
+      "amount": "0.01",
+      "percent": "0",
+      "min": "0",
+      "max": "0",
+      "scale": 7,
+      "expected": "0.0000000"
+    },
+    {
+      "id": "scale7-vector5",
+      "amount": "10",
+      "percent": "-10",
+      "min": "0",
+      "max": "0",
+      "scale": 7,
+      "expected": "0.0000000"
+    },
+    {
+      "id": "scale8-vector0",
+      "amount": "123.499950",
+      "percent": "1",
+      "min": "0",
+      "max": "0",
+      "scale": 8,
+      "expected": "1.23500000"
+    },
+    {
+      "id": "scale8-vector1",
+      "amount": "1.005",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 8,
+      "expected": "1.00500000"
+    },
+    {
+      "id": "scale8-vector2",
+      "amount": "0.00000001",
+      "percent": "100",
+      "min": "0",
+      "max": "0",
+      "scale": 8,
+      "expected": "0.00000000"
+    },
+    {
+      "id": "scale8-vector3",
+      "amount": "9999999.999999",
+      "percent": "0.01",
+      "min": "0",
+      "max": "0",
+      "scale": 8,
+      "expected": "1000.00000000"
+    },
+    {
+      "id": "scale8-vector4",
+      "amount": "0.01",
+      "percent": "0",
+      "min": "0",
+      "max": "0",
+      "scale": 8,
+      "expected": "0.00000000"
+    },
+    {
+      "id": "scale8-vector5",
+      "amount": "10",
+      "percent": "-10",
+      "min": "0",
+      "max": "0",
+      "scale": 8,
+      "expected": "0.00000000"
+    },
+    {
+      "id": "minimum",
+      "amount": "10",
+      "percent": "2",
+      "min": "1",
+      "max": "3",
+      "scale": 2,
+      "expected": "1.00"
+    },
+    {
+      "id": "maximum",
+      "amount": "1000",
+      "percent": "2",
+      "min": "1",
+      "max": "3",
+      "scale": 2,
+      "expected": "3.00"
+    },
+    {
+      "id": "min-before-max",
+      "amount": "10",
+      "percent": "2",
+      "min": "2",
+      "max": "1",
+      "scale": 2,
+      "expected": "2.00"
+    },
+    {
+      "id": "fractional-min",
+      "amount": "1",
+      "percent": "0",
+      "min": "0.0049995",
+      "max": "0",
+      "scale": 2,
+      "expected": "0.00"
+    },
+    {
+      "id": "double-round-up",
+      "amount": "123.499950",
+      "percent": "1",
+      "min": "0",
+      "max": "0",
+      "scale": 2,
+      "expected": "1.24"
+    },
+    {
+      "id": "double-round-below",
+      "amount": "123.499949",
+      "percent": "1",
+      "min": "0",
+      "max": "0",
+      "scale": 2,
+      "expected": "1.23"
+    },
+    {
+      "id": "high-precision-percent",
+      "amount": "1234567.890123",
+      "percent": "0.123456789",
+      "min": "0",
+      "max": "0",
+      "scale": 6,
+      "expected": "1524.157875"
+    }
+  ]
+}

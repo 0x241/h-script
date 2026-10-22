@@ -1,4 +1,6 @@
 <?php
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 // Only the disposable fixture database may configure these browser prerequisites.
 if (getenv('H_SCRIPT_UPDATE_SERVICE_TEST') !== '1' || getenv('DB_NAME') !== 'fixture') exit(2);
 require dirname(__DIR__, 2) . '/vendor/autoload.php';

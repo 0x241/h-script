@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 $root = dirname(__DIR__);
 $auth = (string)file_get_contents($root . '/module/auth.php');
 $loginController = (string)file_get_contents($root . '/module/account/login/index.php');

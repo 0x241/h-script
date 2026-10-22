@@ -1,4 +1,5 @@
 {
+    "calc.limit.text": "Los parámetros superan los límites de la calculadora. Reduzca el importe o el número de abonos.",
     "about.title": "Acerca del proyecto",
     "account.detach.confirm": "Confirm detachment account '{{domain}}'",
     "account.detach.link": "detach",
@@ -398,5 +399,7 @@
     "home.partners.p1": "Advanced Security & CDN",
     "home.partners.p2": "Global Authentication",
     "home.partners.p3": "Payment Integration Gateways",
-    "home.partners.p4": "High Availability Infrastructure"
+    "home.partners.p4": "High Availability Infrastructure",
+    "opers.error.amount_precision": "El importe o la comisión tiene más decimales de los admitidos.",
+    "opers.error.amount_range": "El importe o el saldo resultante supera el límite permitido."
 }

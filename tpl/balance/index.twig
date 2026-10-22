@@ -97,12 +97,12 @@
 
 		<div class="mb-6 flex flex-col items-center justify-between gap-4 md:flex-row">
 			<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'balance.history.title', "default": 'История транзакций'}) }}</h3>
-			<div class="flex flex-wrap gap-2">
-				<span class="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white dark:bg-white dark:text-brand">{{ _t({"key": 'common.all', "default": 'Все'}) }}</span>
-				<span class="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-gray-500 dark:border-white/10 dark:bg-[#151515]">{{ _t({"key": 'balance.filter.in', "default": 'Пополнения'}) }}</span>
-				<span class="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-gray-500 dark:border-white/10 dark:bg-[#151515]">{{ _t({"key": 'balance.filter.out', "default": 'Выплаты'}) }}</span>
-				<span class="rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-semibold text-gray-500 dark:border-white/10 dark:bg-[#151515]">{{ _t({"key": 'balance.filter.calc', "default": 'Начисления'}) }}</span>
-			</div>
+			<nav class="flex flex-wrap gap-2" aria-label="{{ _t({'key': 'balance.history.title', 'default': 'История транзакций'}) }}">
+				{% set operation_tabs = {'all': _t({'key': 'common.all', 'default': 'Все'}), 'in': _t({'key': 'balance.filter.in', 'default': 'Пополнения'}), 'out': _t({'key': 'balance.filter.out', 'default': 'Выплаты'}), 'calc': _t({'key': 'balance.filter.calc', 'default': 'Начисления'})} %}
+				{% for type, caption in operation_tabs %}
+					<a href="{{ _selfLink }}?type={{ type }}&amp;page=1" class="rounded-xl border px-4 py-2 text-sm font-semibold transition-colors {% if operation_filter == type %}border-transparent bg-brand text-white dark:bg-white dark:text-brand{% else %}border-black/10 bg-white text-gray-500 hover:bg-gray-50 dark:border-white/10 dark:bg-[#151515] dark:hover:bg-[#202020]{% endif %}"{% if operation_filter == type %} aria-current="page"{% endif %}>{{ caption }}</a>
+				{% endfor %}
+			</nav>
 		</div>
 
 		<div class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
@@ -123,7 +123,7 @@
 						{% for id, l in list %}
 							{% set is_in = in_array(l.oOper, in_ops) %}
 							{% set is_out = in_array(l.oOper, out_ops) %}
-							<tr class="group transition-colors hover:bg-gray-50/50 dark:hover:bg-[#1A1A1A]/50">
+							<tr data-operation="{{ l.oOper }}" class="group transition-colors hover:bg-gray-50/50 dark:hover:bg-[#1A1A1A]/50">
 								<td class="p-5">
 									<a href="{{ _link('balance/oper', false, 0) }}?id={{ l.oID }}" class="block">
 										<div class="mb-1 font-bold text-brand transition-colors group-hover:text-blue-500 dark:text-white">{{ op_names[l.oOper]|default(l.oOper) }}</div>
@@ -189,11 +189,12 @@
 				</table>
 			</div>
 			{% if pl_params.Pages %}
-				<div class="flex flex-wrap items-center justify-end gap-2 border-t border-gray-100 p-4 dark:border-gray-800">
+				<nav class="flex flex-wrap items-center justify-end gap-2 border-t border-gray-100 p-4 dark:border-gray-800" aria-label="{{ _t({'key': 'form.page', 'default': 'Страница'}) }}">
+					{% set page_symbols = {'&lt;&lt;': '«', '&lt;': '‹', '&gt;': '›', '&gt;&gt;': '»', '<<': '«', '<': '‹', '>': '›', '>>': '»'} %}
 					{% for page_item in pl_params.Pages %}
-						<a href="{{ _selfLink }}?page={{ page_item[1] }}" class="flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-bold transition-colors {% if page_item[1] == pl_params.Page %}bg-brand text-white dark:bg-white dark:text-brand{% else %}bg-gray-50 text-gray-500 hover:bg-gray-100 dark:bg-[#1A1A1A] dark:text-gray-300 dark:hover:bg-[#202020]{% endif %}">{{ page_item[0] }}</a>
+						<a href="{{ _selfLink }}?type={{ operation_filter }}&amp;page={{ page_item[1] }}" aria-label="{{ _t({'key': 'form.page', 'default': 'Страница'}) }} {{ page_item[1] }}"{% if page_item[1] == pl_params.Page and not isset(page_symbols[page_item[0]]) %} aria-current="page"{% endif %} class="flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-bold transition-colors {% if page_item[1] == pl_params.Page and not isset(page_symbols[page_item[0]]) %}bg-brand text-white dark:bg-white dark:text-brand{% else %}bg-gray-50 text-gray-500 hover:bg-gray-100 dark:bg-[#1A1A1A] dark:text-gray-300 dark:hover:bg-[#202020]{% endif %}">{{ page_symbols[page_item[0]]|default(page_item[0]) }}</a>
 					{% endfor %}
-				</div>
+				</nav>
 			{% endif %}
 		</div>
 	{% endif %}

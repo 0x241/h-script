@@ -24,6 +24,12 @@ $jobQueue->registerHandler('sms', static function (array $payload, array $job): 
 	return smsSendJob($payload, (int)$job['jID']);
 });
 
+$jobQueue->registerHandler('financial.withdraw', static function (array $payload) use ($db): array
+{
+    useLib('balance');
+    return HScript\Finance\WithdrawalDispatcher::dispatch($db, (int)($payload['operation_id'] ?? 0));
+});
+
 $jobQueue->recoverStale(10 * HS2_UNIX_MINUTE);
 $jobQueue->retryFailed(10, HS2_UNIX_MINUTE);
 $jobQueue->processBatch(10);

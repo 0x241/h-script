@@ -1,413 +1,468 @@
 <?php
 
 use HScript\Util\StringHelper;
+use HScript\Database\TransactionScope;
+use HScript\Finance\IdempotencyStore;
+use HScript\Finance\IdempotencyRequest;
+use HScript\Finance\IdempotencyResult;
+use HScript\Finance\FinancialOperationException;
+use HScript\Finance\Decimal;
+use HScript\Finance\DecimalInput;
+use HScript\Finance\DepositPolicy;
+use HScript\Finance\DepositForecast;
+use HScript\Finance\ReadAmount;
+use HScript\Finance\CurrencyScale;
+use HScript\Finance\Rate;
+use Brick\Math\RoundingMode;
 
 use HScript\Cache\CatalogCache;
 use HScript\Template\View;
 
-function opDepoGetPlanList($uid, $by_admin = false, $only_ids = false, $cid = 0)
+function opDepoGetPlanList($uid, $by_admin = false, $only_ids = false, $cid = 0, $exclude_did = 0, $current = false)
 {
-	global $db, $_cfg;
-	$plans = $db->fetchIDRows($db->select('Plans P',
-		'P.*,
-		(SELECT COUNT(dID) FROM Deps LEFT JOIN Plans P2 on P2.pID=dpID WHERE P2.pGroup=P.pGroupReq and duID=?d and dState>=2 LIMIT 1) AS DCL,
-		(SELECT COUNT(dID) FROM Deps WHERE duID=?d and dState=1 and dpID=P.pID' . StringHelper::valueIf($cid, ' and dcID=?d') . ') AS DCNT',
-		StringHelper::valueIf(!$by_admin, 'pHidden=0'), array($uid, $uid, $cid), 'pGroup, pID'), false, 'pID');
-	$bg = array();
-	foreach ($plans as $p) {
-		if (!isset($bg[$p['pGroup']])) $bg[$p['pGroup']] = 0;
-		$bg[$p['pGroup']] += $p['DCNT'];
-	}
-	$pids = array();
-	foreach ($plans as $pid => $p)
-		if (
-			(($p['pMaxCount'] > 0) and ($p['DCNT'] >= $p['pMaxCount'])) or
-			(($p['pGroupReq'] > 0) and !$p['DCL']) or
-			(!empty($_cfg['Depo_OneFromGroup']) and !empty($bg[$p['pGroup']]))
-		)
-			$plans[$pid]['Disabled'] = true;
-		else
-			$pids[] = $pid;
-	if ($only_ids)
-		return $pids;
-	return $plans;
+    global $db, $_cfg;
+    // Writers already hold the user's group lock. Each subquery needs its own
+    // current-read clause; locking the outer plan query alone is insufficient.
+    if ($current && !$db->link->inTransaction()) throw new LogicException('Current plan policy requires a transaction');
+    $lock = $current ? ' LOCK IN SHARE MODE' : '';
+    $params = [$uid, $uid];
+    if ($cid) $params[] = $cid;
+    if ($exclude_did) $params[] = $exclude_did;
+    $plans = $db->fetchIDRows($db->query('SELECT P.*,
+        (SELECT COUNT(dID) FROM Deps LEFT JOIN Plans P2 on P2.pID=dpID WHERE P2.pGroup=P.pGroupReq and duID=?d and dState>=2 LIMIT 1' . $lock . ') AS DCL,
+        (SELECT COUNT(dID) FROM Deps WHERE duID=?d and dState=1 and dpID=P.pID'
+        . StringHelper::valueIf($cid, ' and dcID=?d') . StringHelper::valueIf($exclude_did, ' and dID<>?d') . $lock . ') AS DCNT FROM Plans P'
+        . StringHelper::valueIf(!$by_admin, ' WHERE pHidden=0') . ' ORDER BY pGroup, pID' . $lock, $params), false, 'pID');
+    // Visibility controls candidate plans, never occupancy of an existing group.
+    $groupParams = [$uid];
+    $groupFilter = 'duID=?d AND dState=1';
+    if ($cid) { $groupFilter .= ' AND dcID=?d'; $groupParams[] = $cid; }
+    if ($exclude_did) { $groupFilter .= ' AND dID<>?d'; $groupParams[] = $exclude_did; }
+    $bg = [];
+    foreach ($db->fetchRows($db->query('SELECT pGroup,COUNT(dID) AS occupied FROM Deps JOIN Plans ON pID=dpID WHERE '
+        . $groupFilter . ' GROUP BY pGroup' . $lock, $groupParams)) as $group)
+        $bg[$group['pGroup']] = $group['occupied'];
+    $pids = array();
+    foreach ($plans as $pid => $p)
+        if (
+            (($p['pMaxCount'] > 0) and ($p['DCNT'] >= $p['pMaxCount'])) or
+            (($p['pGroupReq'] > 0) and !$p['DCL']) or
+            (!empty($_cfg['Depo_OneFromGroup']) and !empty($bg[$p['pGroup']]))
+        )
+            $plans[$pid]['Disabled'] = true;
+        else
+            $pids[] = $pid;
+    if ($only_ids) return $pids;
+    return $plans;
 }
 
-function opDepoUSD($sum, $curr)
+function opDepoMathError(InvalidArgumentException|OverflowException $error): string
 {
-	global $_cfg, $_currs;
-	$c1 = isset($_currs[1]) ? $_currs[1] : (is_array($_currs) ? reset($_currs) : null);
-	$c1_id = ($c1 && isset($c1['cCurrID'])) ? $c1['cCurrID'] : 'USD';
-	if ($curr == $c1_id)
-		return $sum;
-	useLib('balance');
-	$rate = isset($_cfg["Bal_Rate$curr"]) ? (float)$_cfg["Bal_Rate$curr"] : 1.0;
-	return _zr($sum * $rate, 1);
+    if ($error instanceof OverflowException) return 'sum_overflow';
+    return match ($error->getMessage()) {
+        'amount_storage_precision' => 'sum_precision',
+        'rate_invalid' => 'ex_rate_not_set',
+        'compnd_wrong' => 'compnd_wrong',
+        default => 'sum_wrong',
+    };
+}
+
+/** Error results roll back locally; an outer request retains ownership of its transaction. */
+function opDepoWork(callable $work)
+{
+    global $db;
+    try { return TransactionScope::run($db->link, $work); }
+    catch (FinancialOperationException $error) { return $error->getMessage(); }
+    catch (InvalidArgumentException|OverflowException $error) { return opDepoMathError($error); }
+}
+
+/** Serialize deposit writers and check shared backing before consuming any principal. */
+function opDepoLockGroup($uid, $cid): void
+{
+    global $db;
+    if (!$db->fetch1Row($db->query('SELECT uID FROM Users WHERE uID=?d FOR UPDATE', [$uid])))
+        throw new FinancialOperationException('user_not_found');
+    $wallet = $db->fetch1Row($db->query('SELECT wLock FROM Wallets WHERE wuID=?d AND wcID=?d FOR UPDATE', [$uid, $cid]));
+    $rows = $db->fetchRows($db->query('SELECT dID,dZ0,dZD,dZC,dZP FROM Deps WHERE duID=?d AND dcID=?d AND dState=1 ORDER BY dID FOR UPDATE', [$uid, $cid]));
+    $principal = Decimal::of(0);
+    foreach ($rows as $row) {
+        foreach (['dZ0','dZD','dZC','dZP'] as $field) DepositPolicy::stored(Decimal::of($row[$field]));
+        if (Decimal::of($row['dZC'])->compareTo(Decimal::of($row['dZD'])) > 0)
+            throw new FinancialOperationException('depo_principal_mismatch');
+        $principal = $principal->plus(Decimal::of($row['dZD']));
+    }
+    if ($principal->compareTo(Decimal::of($wallet['wLock'] ?? '0')) !== 0)
+        throw new FinancialOperationException('depo_principal_mismatch');
+}
+
+function opDepoUSD($sum, $curr): Decimal
+{
+    global $_cfg, $_currs;
+    $amount = $sum instanceof Decimal ? $sum : DecimalInput::read($sum);
+    $base = $_currs[1] ?? (is_array($_currs) ? reset($_currs) : null);
+    if ($curr === ($base['cCurrID'] ?? 'USD')) return $amount;
+    // Valuation is not a stored money field: retain wide decimal intermediates.
+    try { $rate = Rate::of((string)($_cfg['Bal_Rate' . $curr] ?? 0)); }
+    catch (InvalidArgumentException $error) { throw new InvalidArgumentException('rate_invalid', 0, $error); }
+    return $rate->multiply($amount,
+        CurrencyScale::resolve($base ?: [], $_cfg), RoundingMode::HalfUp);
+}
+
+function opDepoMinimumNative($minimum, $cid): Decimal
+{
+    global $_cfg, $_currs;
+    $base = $_currs[1] ?? reset($_currs);
+    $amount = Decimal::of($minimum);
+    if ($_currs[$cid]['cCurrID'] === ($base['cCurrID'] ?? 'USD')) return $amount;
+    // Ceiling never leaves the un-compounded principal below the plan minimum.
+    return Rate::of((string)($_cfg['Bal_Rate' . $_currs[$cid]['cCurrID']] ?? 0))->divide($amount,
+        min(6, CurrencyScale::resolve($_currs[$cid], $_cfg)), RoundingMode::Ceiling);
+}
+
+function opDepoPlanContains(array $plan, Decimal $valuation): bool
+{
+    return Decimal::of($plan['pMin'])->compareTo($valuation) <= 0
+        && Decimal::of($plan['pMax'])->compareTo($valuation) > 0;
+}
+
+function opDepoSelectPlan($uid, $cid, Decimal $valuation, $pid = 0, $group = null, $by_admin = false, $exclude_did = 0): array|false
+{
+    global $db;
+    $enabled = opDepoGetPlanList($uid, $by_admin, true, $cid, $exclude_did, true);
+    $params = [$enabled];
+    $filter = '(pID ?i)';
+    if ($pid) { $filter .= ' AND pID=?d'; $params[] = $pid; }
+    if ($group !== null) { $filter .= ' AND pGroup=?d'; $params[] = $group; }
+    foreach ($db->fetchRows($db->query('SELECT * FROM Plans WHERE ' . $filter . ' ORDER BY pMax,pID LOCK IN SHARE MODE', $params)) as $plan)
+        if (opDepoPlanContains($plan, $valuation)) return $plan;
+    return false;
+}
+
+function opDepoValidatePlan(array $plan): void
+{
+    foreach (['pBonus','pPerc','pReturn'] as $field)
+        if (Decimal::of($plan[$field])->isNegative()) throw new FinancialOperationException('plan_wrong');
+    $minimum = DepositPolicy::compound(Decimal::of($plan['pCompndMin']));
+    $maximum = DepositPolicy::compound(Decimal::of($plan['pCompndMax']));
+    if ($minimum->compareTo($maximum) > 0) throw new FinancialOperationException('plan_wrong');
+}
+
+function opDepoCompoundForPlan(Decimal $compound, array $plan): Decimal
+{
+    $compound = DepositPolicy::compound($compound);
+    if ($compound->compareTo(Decimal::of($plan['pCompndMin'])) < 0
+        || $compound->compareTo(Decimal::of($plan['pCompndMax'])) > 0) {
+        View::setPage('cmin', $plan['pCompndMin']);
+        View::setPage('cmax', $plan['pCompndMax']);
+        View::setPage('cplan', $plan['pName']);
+        throw new FinancialOperationException('compnd_wrong');
+    }
+    return $compound;
+}
+
+function opDepoActive($uid, $cid, $did = 0): array|false
+{
+    global $db;
+    $params = [$uid, $cid];
+    if ($did) $params[] = $did;
+    // A caller may have established an older snapshot before the group lock.
+    return $db->fetch1Row($db->query('SELECT Deps.*,Plans.*,Currs.cCurrID FROM Deps JOIN Plans ON pID=dpID JOIN Currs ON cID=dcID WHERE duID=?d AND dcID=?d AND dState=1'
+        . StringHelper::valueIf($did, ' AND dID=?d') . ' ORDER BY dID LIMIT 1 LOCK IN SHARE MODE', $params));
+}
+
+function opDepoNet($oid): Decimal
+{
+    global $db;
+    $operation = $db->fetch1Row($db->select('Opers', 'oSum,oComis', 'oID=?d', [$oid]));
+    if (!$operation) throw new FinancialOperationException('db_error');
+    return Decimal::of($operation['oSum'])->minus(Decimal::of($operation['oComis']));
 }
 
 function opDepoCreate($uid, $cid, $sum, $compnd = 0, $pid = 0, $by_admin = false, $auto = false)
 {
-	global $db, $_cfg;
-	$usr = opReadUser($uid);
-	if (!$usr)
-		return 'user_not_found';
-	if (!$cid)
-		return 'psys_empty';
-	$curr = $db->fetch1Row($db->select('Currs', '*', 'cID=?d', array($cid)));
-	if (!$curr)
-		return 'psys_wrong';
-	if (!is_numeric($sum))
-		return 'sum_wrong';
-	if (!is_numeric($compnd))
-		$compnd = 0;
-	useLib('balance');
-	$sum += 0;
-	$sum = _zr($sum, $cid);
-	$usum = opDepoUSD($sum, $curr['cCurrID']);
-	if ($usum < 0.01)
-		return 'sum_wrong';
-	$compnd = round($compnd, 2);
-	// Plan limits use the base-currency value so every accepted payment currency
-	// is compared against the same pMin/pMax thresholds.
-	$pl = opDepoGetPlanList($uid, $by_admin, true, $cid); // enabled plans
-	$pl = $db->fetch1Row($db->select('Plans', '*', 
-		'(pID ?i) and pMin<=? and pMax>?' . StringHelper::valueIf($pid, ' and pID=?d'),
-		array($pl, $usum, $usum, $pid), 'pMax', 1));
-	if (empty($pl) || !isset($pl['pID']))
-		return 'plan_wrong';
-	if (($pid == 0) and ($compnd == 0))
-		$compnd = $pl['pCompndMin'];
-	if ((($pl['pCompndMin'] > 0) and ($pl['pCompndMin'] > $compnd)) or
-		($pl['pCompndMax'] < $compnd) or ($compnd < 0))
-	{
-		View::setPage('cmin', $pl['pCompndMin']);
-		View::setPage('cmax', $pl['pCompndMax']);
-		View::setPage('cplan', $pl['pName']);
-		return 'compnd_wrong';
-	}
-	if ($auto === 2)
-		return 'passed';
-	$bsum = _zr(calcPerc($sum, $pl['pBonus'], 6), $cid);
-	if (is_string($oid = opOperCreate($uid, 'GIVE', $cid, $sum, array('bonus' => $bsum, 'auto' => $auto), StringHelper::valueIf($auto, 'Auto '), false, true)))
-		return $oid;
-	if (is_string($err = opOperConfirm($uid, $oid, array(), true)))
-		return $err;
-	// The first accrual boundary depends on manual, interval, or immediate mode;
-	// all subsequent boundaries advance by the selected plan period.
-	if ($_cfg['Depo_ChargeMode'] == 2)
-		$t = opDepoLastManualChargeDate();
-	elseif ($_cfg['Depo_Interval'] > 0)
-	{
-		$t = stampToTime($_cfg['Depo_LastTime']) + HS2_UNIX_MINUTE * $_cfg['Depo_Interval'];
-		if ($t < time())
-			$t = time();
-	}
-	else
-		$t = time();
-	$ets = $t + $pl['pNPer'] * $pl['pPer'] * HS2_UNIX_HOUR;
-	$nts = $t + $pl['pPer'] * HS2_UNIX_HOUR;
-	$did = $db->insert('Deps', array(
-		'duID' => $uid,
-		'dState' => 1,
-		'dpID' => $pl['pID'],
-		'dCTS' => timeToStamp($t),
-		'dETS' => timeToStamp($ets),
-		'dcID' => $cid,
-		'dZ0' => $sum,
-		'dZD' => $sum + $bsum,
-		'dCompnd' => $compnd,
-		'dNTS' => timeToStamp($nts),
-		'dLTS' => 0));
-	opOperComplete($uid, $oid, array('tag' => $did), true);
-	$db->replace('Cfg',
-		array(
-			'Module' => 'Depo',
-			'Prop' => 'LastTime',
-			'Val' => timeToStamp($t)
-		),
-		'', 'Module=? and Prop=?', array('Depo', 'LastTime')
-	);
-	$a = array(
-		'did' => $did,
-		'pid' => $pl['pID'],
-		'cid' => $cid,
-		'sum' => $sum,
-		'percs' => asArray($pl['pDPerc'], HS2_NL)
-	);
-	opEvent('DepoCreate', $uid, $a);
-	return $did;
+    return opDepoWork(function () use ($uid, $cid, $sum, $compnd, $pid, $by_admin, $auto) {
+        global $db, $_cfg, $_currs;
+    if(($_currs[$cid]['cCID']??'')==='CCT')return 'oper_disabled';
+        if (!opReadUser($uid)) return 'user_not_found';
+        if (!$cid) return 'psys_empty';
+        if (!isset($_currs[$cid])) return 'psys_wrong';
+        useLib('balance');
+        opDepoLockGroup($uid, $cid);
+        $sum = opMoney($sum, $cid)->decimal();
+        DepositPolicy::stored($sum);
+        $valuation = opDepoUSD($sum, $_currs[$cid]['cCurrID']);
+        if ($valuation->compareTo(Decimal::of('0.01')) < 0) return 'sum_wrong';
+        $compound = DepositPolicy::compound(DecimalInput::read($compnd === '' ? 0 : $compnd));
+        // Plan limits use the base-currency value so every accepted payment currency
+        // is compared against the same pMin/pMax thresholds. Opening eligibility,
+        // bonus and the source event retain their gross amount basis.
+        $plan = opDepoSelectPlan($uid, $cid, $valuation, $pid, null, $by_admin);
+        if (!$plan) return 'plan_wrong';
+        opDepoValidatePlan($plan);
+        if (!$pid && $compound->isZero()) $compound = Decimal::of($plan['pCompndMin']);
+        $compound = opDepoCompoundForPlan($compound, $plan);
+        $bonus = DepositPolicy::percentage($sum, Decimal::of($plan['pBonus']), CurrencyScale::resolve($_currs[$cid], $_cfg));
+        $fee = opCalcComis($cid, 'GIVE', (string)$sum, true);
+        FinancialOperationException::check($fee instanceof HScript\Finance\Money ? true : $fee);
+        $net = $sum->minus($fee->decimal());
+        if ($net->compareTo(Decimal::of(0)) <= 0) return 'sum_wrong';
+        DepositPolicy::stored($net); DepositPolicy::stored($net->plus($bonus));
+        if ($auto === 2) return 'passed';
+        $oid = opOperCreate($uid, 'GIVE', $cid, $sum, ['bonus'=>(string)$bonus, 'auto'=>$auto], StringHelper::valueIf($auto, 'Auto '), false, true);
+        FinancialOperationException::check($oid);
+        FinancialOperationException::check(opOperConfirm($uid, $oid, [], true));
+        $net = opDepoNet($oid);
+        // The first accrual boundary depends on manual, interval, or immediate mode;
+        // all subsequent boundaries advance by the selected plan period.
+        if ($_cfg['Depo_ChargeMode'] == 2) $t = opDepoLastManualChargeDate();
+        elseif ($_cfg['Depo_Interval'] > 0) {
+            $t = stampToTime($_cfg['Depo_LastTime']) + HS2_UNIX_MINUTE * $_cfg['Depo_Interval'];
+            if ($t < time()) $t = time();
+        } else $t = time();
+        $did = $db->insert('Deps', [
+            'duID'=>$uid, 'dState'=>1, 'dpID'=>$plan['pID'], 'dCTS'=>timeToStamp($t),
+            'dETS'=>timeToStamp($t + $plan['pNPer'] * $plan['pPer'] * HS2_UNIX_HOUR), 'dcID'=>$cid,
+            'dZ0'=>DepositPolicy::stored($net), 'dZD'=>DepositPolicy::stored($net->plus($bonus)), 'dCompnd'=>(string)$compound,
+            'dNTS'=>timeToStamp($t + $plan['pPer'] * HS2_UNIX_HOUR), 'dLTS'=>0,
+        ]);
+        if (!$did) return 'depo_not_saved';
+        FinancialOperationException::check(opOperComplete($uid, $oid, ['tag'=>$did], true));
+        if (!$db->replace('Cfg', ['Module'=>'Depo', 'Prop'=>'LastTime', 'Val'=>timeToStamp($t)], '', 'Module=? and Prop=?', ['Depo','LastTime']))
+            return 'depo_not_saved';
+        $event = ['did'=>$did, 'pid'=>$plan['pID'], 'cid'=>$cid, 'sum'=>(string)$sum, 'percs'=>asArray($plan['pDPerc'], HS2_NL)];
+        HScript\Finance\ReferralSourceEvent::dispatch($db->link, 'DepoCreate', (int)$uid, $event,
+            static fn() => opEvent('DepoCreate', $uid, $event));
+        return $did;
+    });
+}
+
+function opDepoTransition(array $deposit, Decimal $principal, Decimal $compounded): array
+{
+    $valuation = opDepoUSD($principal, $deposit['cCurrID']);
+    $change = ['dZD'=>DepositPolicy::stored($principal), 'dZC'=>DepositPolicy::stored($compounded)];
+    if (!opDepoPlanContains($deposit, $valuation)) { // change plan
+        $plan = opDepoSelectPlan($deposit['duID'], $deposit['dcID'], $valuation, 0, $deposit['pGroup'], false, $deposit['dID']);
+        if (!$plan) throw new FinancialOperationException('plan_not_found');
+        opDepoValidatePlan($plan);
+        opDepoCompoundForPlan(Decimal::of($deposit['dCompnd']), $plan);
+        $change['dpID'] = $plan['pID'];
+        $change['dZC'] = DepositPolicy::stored(DepositPolicy::compoundCap($principal, $compounded,
+            opDepoMinimumNative($plan['pMin'], $deposit['dcID'])));
+    }
+    return $change;
 }
 
 function opDepoAdd($uid, $cid, $sum, $did = 0, $is_compnd = false)
 {
-	global $db;
-	$d = $db->fetch1Row($db->select('Deps LEFT JOIN Plans on pID=dpID LEFT JOIN Currs ON cID=dcID', 
-		'Deps.*, Plans.*, Currs.cCurrID', 
-		'duID=?d and dcID=?d and dState=1' . StringHelper::valueIf($did, ' and dID=?d'), array($uid, $cid, $did), 'dID', 1));
-	if (!$d)
-		return 'depo_wrong';
-	useLib('balance');
-	$sum = _zr($sum, $cid);
-	$usum = opDepoUSD($sum, $d['cCurrID']);
-	if ($usum < 0.01)
-		return 'sum_wrong';
-	if (!$is_compnd)
-	{
-		if (!$d['pEnAdd'])
-			return 'cant_add';
-		if (($d['pMinAdd'] > 0) and ($usum < $d['pMinAdd']))
-			return 'sum_wrong';
-	}
-	$dsum = $d['dZD'] + $sum;
-	$csum = $d['dZC'] + StringHelper::valueIf($is_compnd, $sum, 0);
-	$a = array(
-		'dZD' => $dsum,
-		'dZC' => $csum
-	);
-	$udsum = opDepoUSD($dsum, $d['cCurrID']);
-	if (($d['pMin'] > $udsum) or ($d['pMax'] <= $udsum)) // change plan
-	{
-		$pl = opDepoGetPlanList($uid, false, true, $cid); // enabled plans
-		$pl = $db->fetch1Row($db->select('Plans', '*', 
-			'(pID ?i) and pMin<=? and pMax>? and pHidden=0 and pGroup=?d',
-			array($pl, $udsum, $udsum, $d['pGroup']), 'pMax', 1));
-		if (!$pl['pID'])
-			return 'plan_not_found';
-		$a['dpID'] = $pl['pID'];
-		$z = ($udsum - $pl['pMin']); // max compnd
-		if ($csum > $z)
-			$a['dZC'] = $z;
-	}
-	if (is_string($oid = opOperCreate($uid, 'GIVE', $cid, $sum, array('tag' => $d['dID']), '', false, $is_compnd)))
-		return $oid;
-	if (is_string($err = opOperConfirm($uid, $oid, array(), true)))
-		return $err;
-	// Compare the previous principal in the update to prevent concurrent top-ups
-	// from overwriting each other. Cancel the reserved balance operation on loss.
-	if ($db->update('Deps', $a, '', 'dID=?d and dState=1 and dZD=?', array($d['dID'], $d['dZD'])))
-		return opOperComplete($uid, $oid, array(), true);
-	else
-		opOperCancel($uid, $oid);
-	return 'depo_wrong';
+    return opDepoWork(function () use ($uid, $cid, $sum, $did, $is_compnd) {
+        global $db;
+        useLib('balance');
+        opDepoLockGroup($uid, $cid);
+        $d = opDepoActive($uid, $cid, $did);
+        if (!$d) return 'depo_wrong';
+        $sum = opMoney($sum, $cid)->decimal();
+        DepositPolicy::stored($sum);
+        $valuation = opDepoUSD($sum, $d['cCurrID']);
+        if ($valuation->compareTo(Decimal::of('0.01')) < 0) return 'sum_wrong';
+        if (!$is_compnd) {
+            if (!$d['pEnAdd']) return 'cant_add';
+            if ($valuation->compareTo(Decimal::of($d['pMinAdd'])) < 0) return 'sum_wrong';
+        }
+        $oid = opOperCreate($uid, 'GIVE', $cid, $sum, ['tag'=>$d['dID']], '', false, $is_compnd);
+        FinancialOperationException::check($oid);
+        $net = opDepoNet($oid);
+        if ($net->compareTo(Decimal::of(0)) <= 0) return 'sum_wrong';
+        $change = opDepoTransition($d, Decimal::of($d['dZD'])->plus($net),
+            Decimal::of($d['dZC'])->plus($is_compnd ? $net : Decimal::of(0)));
+        FinancialOperationException::check(opOperConfirm($uid, $oid, [], true));
+        // Compare the previous principal in the update to prevent concurrent top-ups
+        // from overwriting each other. The transaction rolls back on loss.
+        if (!$db->update('Deps', $change, '', 'dID=?d and dState=1 and dZD=?', [$d['dID'], $d['dZD']])) return 'depo_wrong';
+        return opOperComplete($uid, $oid, [], true);
+    });
 }
 
 function opDepoSub($uid, $cid, $sum, $did = 0)
 {
-	global $db;
-	$d = $db->fetch1Row($db->select('Deps LEFT JOIN Plans on pID=dpID LEFT JOIN Currs ON cID=dcID', 
-		'Deps.*, Plans.*, Currs.cCurrID', 
-		'duID=?d and dcID=?d and dState=1' . StringHelper::valueIf($did, ' and dID=?d'), array($uid, $cid, $did), 'dID', 1));
-	if (!$d)
-		return 'depo_wrong';
-	useLib('balance');
-	$sum = _zr($sum, $cid);
-	$usum = opDepoUSD($sum, $d['cCurrID']);
-	if ($usum < 0.01)
-		return 'sum_wrong';
-	if (($d['pClComis'] >= 100) or (($d['pMPer'] > 0) and ($d['dNPer'] < $d['pMPer'])))
-		return 'cant_sub';
-	$dsum = $d['dZD'] - $sum;
-	if ($dsum < 0)
-		return 'sum_wrong'; // more than depo
-	if ($dsum == 0) // close
-		$a = array(
-			'dState' => 3,
-			//'dZD' => 0,
-			'dNTS' => timeToStamp(0)
-		);
-	else
-	{
-		$csum = $d['dZC'] - $sum;
-		if ($csum < 0)
-			$csum = 0;
-		$a = array(
-			'dZD' => $dsum,
-			'dZC' => $csum
-		);
-		$udsum = opDepoUSD($dsum, $d['cCurrID']);
-		if (($d['pMin'] > $udsum) or ($d['pMax'] <= $udsum))
-		{
-			$pl = opDepoGetPlanList($uid, false, true, $cid); // enabled plans
-			$pl = $db->fetch1Row($db->select('Plans', '*', 
-				'(pID ?i) and pMin<=? and pMax>? and pHidden=0 and pGroup=?d', 
-				array($pl, $udsum, $udsum, $d['pGroup']), 'pMax', 1));
-			if (!$pl['pID'])
-				return 'plan_not_found';
-			$a['dpID'] = $pl['pID'];
-			$z = ($udsum - $pl['pMin']); // max compnd
-			if ($csum > $z)
-				$a['dZC'] = $z;
-		}
-	}
-	if (is_string($oid = opOperCreate($uid, 'TAKE', $cid, $sum, 
-		array('comis' => StringHelper::valueIf(($d['pClPer'] > 0) and ($d['dNPer'] >= $d['pClPer']), 0, $d['pClComis']), 'tag' => $d['dID']))))
-		return $oid;
-	if (is_string($err = opOperConfirm($uid, $oid, array(), true)))
-		return $err;
-	if ($db->update('Deps', $a, '', 'dID=?d and dState=1 and dZD=?', array($d['dID'], $d['dZD'])))
-	{
-		$err = opOperComplete($uid, $oid, array(), true);
-		if (!is_string($err) and ($a['dState'] >= 2))
-			opEvent('DepoClose', $uid, array('did' => $d['dID'], 'cid' => $cid, 'state' => $a['dState']));
-		return $err;
-	}
-	else
-		opOperCancel($uid, $oid);
-	return 'depo_wrong';
+    return opDepoWork(function () use ($uid, $cid, $sum, $did) {
+        global $db;
+        useLib('balance');
+        opDepoLockGroup($uid, $cid);
+        $d = opDepoActive($uid, $cid, $did);
+        if (!$d) return 'depo_wrong';
+        $requested = $sum instanceof Decimal ? $sum : DecimalInput::read($sum);
+        $full = $requested->compareTo(Decimal::of($d['dZD'])) === 0;
+        // An exact full withdrawal of the locked row returns its stored principal.
+        $sum = $full ? $requested : opMoney($requested, $cid)->decimal();
+        DepositPolicy::stored($sum);
+        if (opDepoUSD($sum, $d['cCurrID'])->compareTo(Decimal::of('0.01')) < 0) return 'sum_wrong';
+        if (Decimal::of($d['pClComis'])->compareTo(Decimal::of(100)) >= 0 || ($d['pMPer'] > 0 && $d['dNPer'] < $d['pMPer'])) return 'cant_sub';
+        $principal = Decimal::of($d['dZD'])->minus($sum);
+        if ($principal->isNegative()) return 'sum_wrong'; // more than depo
+        if ($principal->isZero()) { // close; retain the historical principal
+            $change = ['dState'=>3, 'dNTS'=>timeToStamp(0)];
+        } else {
+            $compounded = Decimal::of($d['dZC'])->minus($sum);
+            if ($compounded->isNegative()) $compounded = Decimal::of(0);
+            $change = opDepoTransition($d, $principal, $compounded);
+        }
+        $oid = opOperCreate($uid, 'TAKE', $cid, $sum, ['comis'=>StringHelper::valueIf($d['pClPer'] > 0 && $d['dNPer'] >= $d['pClPer'], 0, $d['pClComis']), 'tag'=>$d['dID']], '', false, false, $full);
+        FinancialOperationException::check($oid);
+        FinancialOperationException::check(opOperConfirm($uid, $oid, [], true));
+        if (!$db->update('Deps', $change, '', 'dID=?d and dState=1 and dZD=?', [$d['dID'], $d['dZD']])) return 'depo_wrong';
+        $result = opOperComplete($uid, $oid, [], true);
+        if (!is_string($result) && ($change['dState'] ?? 1) >= 2)
+            opEvent('DepoClose', $uid, ['did'=>$d['dID'], 'cid'=>$cid, 'state'=>$change['dState']]);
+        return $result;
+    });
 }
 
 function opDepoClose($uid, $cid, $did = 0)
 {
-	global $db;
-	$d = $db->fetch1Row($db->select('Deps LEFT JOIN Plans on pID=dpID', '*', 
-		'duID=?d and dcID=?d and dState=1' . StringHelper::valueIf($did, ' and dID=?d'), array($uid, $cid, $did), 'dID', 1));
-	if (!$d)
-		return 'depo_wrong';
-	$dsum = $d['dZD'];
-	$a = array(
-		'dState' => 3,
-		'dZD' => 0,
-		'dNTS' => timeToStamp(0)
-	);
-	if (!$db->update('Deps', $a, '', 'dID=?d and dState=1 and dZD=?', array($d['dID'], $d['dZD'])))
-		return 'depo_wrong';
-	useLib('balance');
-	return opOperCreate($uid, 'TAKE', $cid, $dsum, array('tag' => $d['dID']), '', true, true);
+    return opDepoWork(function () use ($uid, $cid, $did) {
+        global $db;
+        useLib('balance');
+        opDepoLockGroup($uid, $cid);
+        $d = opDepoActive($uid, $cid, $did);
+        if (!$d) return 'depo_wrong';
+        $principal = Decimal::of($d['dZD']);
+        if (!$db->update('Deps', ['dState'=>3, 'dZD'=>'0.000000', 'dNTS'=>timeToStamp(0)], '', 'dID=?d and dState=1 and dZD=?', [$d['dID'], $d['dZD']])) return 'depo_wrong';
+        return opOperCreate($uid, 'TAKE', $cid, $principal, ['tag'=>$d['dID']], '', true, true, true);
+    });
 }
 
-function opDepoChangePlan($uid, $pid, $did)
+function opDepoChangePlan($uid, $pid, $did, $by_admin = false)
 {
-	global $db;
-	$d = $db->fetch1Row($db->select('Deps LEFT JOIN Plans on pID=dpID', '*', 
-		'dID=?d and duID=?d and dState=1', array($did, $uid)));
-	if (!$d)
-		return 'depo_wrong';
-	return $db->update('Deps', array('dpID' => $pid), '', 'dID=?d and dState=1', array($did));
+    return opDepoWork(function () use ($uid, $pid, $did, $by_admin) {
+        global $db;
+        $cid = $db->fetch1($db->select('Deps', 'dcID', 'dID=?d AND duID=?d', [$did, $uid]));
+        if (!$cid) return 'depo_wrong';
+        opDepoLockGroup($uid, $cid);
+        $d = opDepoActive($uid, $cid, $did);
+        if (!$d || !$pid) return 'depo_wrong';
+        $principal = Decimal::of($d['dZD']);
+        $plan = opDepoSelectPlan($uid, $cid, opDepoUSD($principal, $d['cCurrID']), $pid, null, $by_admin, $did);
+        if (!$plan) return 'plan_wrong';
+        opDepoValidatePlan($plan);
+        opDepoCompoundForPlan(Decimal::of($d['dCompnd']), $plan);
+        if ((int)$d['dpID'] === (int)$pid) return 0;
+        $compounded = DepositPolicy::compoundCap($principal, Decimal::of($d['dZC']), opDepoMinimumNative($plan['pMin'], $cid));
+        return $db->update('Deps', ['dpID'=>$pid, 'dZC'=>DepositPolicy::stored($compounded)], '', 'dID=?d AND dState=1 AND dpID=?d', [$did, $d['dpID']]) ?: 'depo_not_saved';
+    });
 }
 
 function opDepoChangeCompnd($uid, $did, $compnd)
 {
-	global $db;
-	$d = $db->fetch1Row($db->select('Deps LEFT JOIN Plans on pID=dpID', '*', 
-		'dID=?d and duID=?d and dState=1', array($did, $uid)));
-	if (!$d)
-		return 'depo_wrong';
-	$compnd = round($compnd, 2);
-	if ((($d['pCompndMin'] > 0) and ($d['pCompndMin'] > $compnd)) or
-		($d['pCompndMax'] < $compnd) or ($compnd < 0))
-	{
-		View::setPage('cmin', $d['pCompndMin']);
-		View::setPage('cmax', $d['pCompndMax']);
-		View::setPage('cplan', $d['pName']);
-		return 'compnd_wrong';
-	}
-	return $db->update('Deps', array('dCompnd' => $compnd), '', 'dID=?d and dState=1', array($did));
+    return opDepoWork(function () use ($uid, $did, $compnd) {
+        global $db;
+        $cid = $db->fetch1($db->select('Deps', 'dcID', 'dID=?d AND duID=?d', [$did, $uid]));
+        if (!$cid) return 'depo_wrong';
+        opDepoLockGroup($uid, $cid);
+        $d = opDepoActive($uid, $cid, $did);
+        if (!$d) return 'depo_wrong';
+        $compound = opDepoCompoundForPlan(DecimalInput::read($compnd === '' ? 0 : $compnd), $d);
+        if ($compound->compareTo(Decimal::of($d['dCompnd'])) === 0) return 0;
+        return $db->update('Deps', ['dCompnd'=>(string)$compound], '', 'dID=?d AND dState=1', [$did]) ?: 'depo_not_saved';
+    });
 }
 //=============Calculate percent from calendar========================================================================
 function opDepoGetCalendarPerc()
 {
     useLib('calendar');
-    $perc = getDayPerc(time())+0;
-    return $perc;
+    return (string)DecimalInput::read(getDayPerc(time()));
 }
 //=====================================================================================================================
 function opDepoCharge($d, $perc = -1, $cdate = false) // !!! Deps JOIN Plans, Users
 {
-	if (!$d['dID'])
-		return 'depo_wrong';
-	if ($d['dState'] != 1)
-		return 'depo_wrong_state';
-	$perc = round($perc, 2);
-	if ($perc < 0)
-	{ // auto
-		$perc = $d['pPerc'];
-        //----------Change from calendar----------
-        if ($d['pPClndr'])
-        {
-            if (($pClndr = opDepoGetCalendarPerc())>0)
-             $perc = $pClndr;
-        }
-        //--------------------------------------
-		$t = stampToTime($d['dNTS']);
-		$nts = $t + $d['pPer'] * HS2_UNIX_HOUR;
-		$nc = ($d['pNoCalc'] or ($d['uState'] != 1));
-		if (!$nc and $d['pWDays'] and ($d['pPer'] <= 24))
-		{
-			useLib('calendar');
-			$nc = (getDayType($t) > 1);
-		}
-	}
-	else
-	{ // manual
-		if (!$cdate)
-			return 'date_wrong';
-		$nts = $cdate + $d['pPer'] * HS2_UNIX_HOUR;
-		$nc = ($d['pNoCalc'] or ($d['uState'] != 1) or ($perc == 0));
-	}
-	global $db;
-	$a = array(
-		'dNTS' => timeToStamp($nts),
-		'dLTS' => timeToStamp()
-	);
-	if ($nc) // NO Calc
-	{
-		$db->update('Deps', $a, '', 'dID=?d and dState=1 and dNTS=?', array($d['dID'], $d['dNTS']));
-		return false;
-	}
-	// Calc
-	useLib('balance');
-	$psum = _zr(calcPerc($d['dZD'], $perc, 6), $d['dcID']); // percents (profit) + to ZP
-	$a['dZP='] = "dZP+$psum";
-	$a['dNPer='] = "dNPer+1";
-	$d['dNPer']++;
-	if (($d['pNPer'] > 0) and ($d['dNPer'] >= $d['pNPer'])) // end of depo
-	{
-		$dsum = $d['dZD'] - $d['dZC']; // real deposit sum
-		if ($dsum < 0)
-			$dsum = 0;
-		$csum = $d['dZD'] - $dsum; // compnd sum
-		// On the terminal period return eligible principal plus all compounded
-		// profit; worked principal leaves the deposit bucket exactly once.
-		$rsum = $csum + _zr(calcPerc($dsum, $d['pReturn'], 6), $d['dcID']);
-		$dsum = $d['dZD'];
-		$csum = 0;
-		$a['dState'] = 2; // closed
-		//$a['dZD'] = 0;
-		$a['dNTS'] = timeToStamp(0);
-	}
-	else
-	{
-		$rsum = 0; // +return
-		$dsum = 0; // -worked
-		// During a non-terminal period only the configured fraction of profit is
-		// reinvested; the remainder stays in the available balance.
-		$csum = _zr(calcPerc($psum, $d['dCompnd'], 6), $d['dcID']); // compound deposit+
-	}
-	if (!$db->update('Deps', $a, '', 'dID=?d and dState=1 and dNTS=?', array($d['dID'], $d['dNTS'])))
-		return 'depo_not_saved';
-	// psum+rsum = +return / dsum = -worked // csum = +compaund
-	opChangeBalance($d['duID'], $d['dcID'], $psum + $rsum, -$dsum, 0, false, 0, 'CALCIN');
-	$a = array(
-		'tag' => $d['dID'],
-		'did' => $d['dID'],
-		'pid' => $d['dpID'],
-		'cid' => $d['dcID'],
-		'sum' => $psum,
-		'csum' => $csum,
-		'rsum' => $rsum,
-		'nper' => $d['dNPer']
-	);
-	if ($psum > 0)
-		opOperCreateInfo($d['duID'], 'CALCIN', $d['dcID'], $psum, $a, '#' . $d['dID']);
-	if ($rsum > 0) // depo closed
-		opOperCreateInfo($d['duID'], 'TAKE', $d['dcID'], $rsum, $a);
-	elseif ($csum > 0) // compaund
-		opDepoAdd($d['duID'], $d['dcID'], $csum, $d['dID'], true);
-	$a['percs'] = asArray($d['pPPerc'], HS2_NL);
-	opEvent('DepoCharge', $d['duID'], $a);
-	if ($a['dState'] >= 2)
-		opEvent('DepoClose', $d['duID'], array('did' => $d['dID'], 'cid' => $d['dcID'], 'state' => $a['dState'], 'sum' => $d['dZD'] - $d['dZC']));
-	return true;
+    global $db;
+    if (empty($d['dID']) || empty($d['dNTS'])) return 'depo_wrong';
+    $did = (int)$d['dID'];
+    try {
+        $percent = DecimalInput::read($perc);
+        $manual = !$percent->isNegative();
+        $boundary = $manual ? timeToStamp($cdate ?: 0) : (string)$d['dNTS'];
+        $fingerprint = IdempotencyRequest::fingerprint(['deposit_id'=>$did, 'boundary'=>$boundary,
+            'percent'=>$manual ? HScript\Finance\RequestDecimal::normalize($perc, true) : 'auto']);
+        $method = $db->link->inTransaction() ? 'executeInTransaction' : 'execute';
+        $result = (new IdempotencyStore($db))->$method($manual ? 'accrual:manual' : 'accrual:deposit', $did . ':' . $boundary, 0, $fingerprint,
+            function () use ($db, $did, $boundary, $manual, $percent, $cdate) {
+                $owner = $db->fetch1Row($db->select('Deps', 'duID,dcID', 'dID=?d', [$did]));
+                if (!$owner) throw new FinancialOperationException('depo_wrong');
+                useLib('balance');
+                opDepoLockGroup($owner['duID'], $owner['dcID']);
+                // The owner lookup may have established an older repeatable-read
+                // snapshot. After locking the group, use its current principal
+                // and state, including top-ups/withdrawals committed meanwhile.
+                $d = $db->fetch1Row($db->query('SELECT * FROM Deps JOIN Plans ON pID=dpID JOIN Users ON uID=duID WHERE dID=?d FOR UPDATE', [$did]));
+                if (!$d || (!$manual && (string)$d['dNTS'] !== $boundary)) throw new FinancialOperationException('depo_boundary_changed');
+                if ($d['dState'] != 1) throw new FinancialOperationException('depo_wrong_state');
+                if (!$manual) { // auto
+                    $percent = Decimal::of($d['pPerc']);
+                    //----------Change from calendar----------
+                    if ($d['pPClndr']) {
+                        $calendar = Decimal::of(opDepoGetCalendarPerc());
+                        if ($calendar->compareTo(Decimal::of(0)) > 0) $percent = $calendar;
+                    }
+                    //--------------------------------------
+                    $t = stampToTime($d['dNTS']);
+                    $nts = $t + $d['pPer'] * HS2_UNIX_HOUR;
+                    $nc = $d['pNoCalc'] || $d['uState'] != 1;
+                    if (!$nc && $d['pWDays'] && $d['pPer'] <= 24) {
+                        useLib('calendar');
+                        $nc = getDayType($t) > 1;
+                    }
+                } else { // manual
+                    if (!$cdate) throw new FinancialOperationException('date_wrong');
+                    $percent = $percent->rounded(2, RoundingMode::HalfUp);
+                    $nts = $cdate + $d['pPer'] * HS2_UNIX_HOUR;
+                    $nc = $d['pNoCalc'] || $d['uState'] != 1 || $percent->isZero();
+                }
+                $change = ['dNTS'=>timeToStamp($nts), 'dLTS'=>timeToStamp()];
+                if ($nc) { // NO Calc
+                    if (!$db->update('Deps', $change, '', 'dID=?d AND dState=1 AND dNTS=?', [$did, $d['dNTS']]))
+                        throw new FinancialOperationException('depo_not_saved');
+                    return new IdempotencyResult(['charged'=>false]);
+                }
+                global $_currs, $_cfg;
+                $terminal = $d['pNPer'] > 0 && $d['dNPer'] + 1 >= $d['pNPer'];
+                $amounts = DepositPolicy::accrual(Decimal::of($d['dZD']), Decimal::of($d['dZC']), Decimal::of($d['dZP']),
+                    $percent, Decimal::of($d['pReturn']), Decimal::of($d['dCompnd']), $terminal,
+                    CurrencyScale::resolve($_currs[$d['dcID']], $_cfg));
+                $change['dZP'] = DepositPolicy::stored($amounts['totalProfit']);
+                $change['dNPer'] = $d['dNPer'] + 1;
+                if ($terminal) {
+                    // On the terminal period return eligible principal plus all compounded
+                    // profit; worked principal leaves the deposit bucket exactly once.
+                    $change['dState'] = 2;
+                    //$change['dZD'] = 0;
+                    $change['dNTS'] = timeToStamp(0);
+                }
+                // During a non-terminal period only the configured fraction of profit is
+                // reinvested; the remainder stays in the available balance.
+                if (!$db->update('Deps', $change, '', 'dID=?d AND dState=1 AND dNTS=?', [$did, $d['dNTS']]))
+                    throw new FinancialOperationException('depo_not_saved');
+                FinancialOperationException::check(opChangeStoredBalance($d['duID'], $d['dcID'],
+                    $amounts['profit']->plus($amounts['returned']), $amounts['release']->negated(), 0, false, 0, 'CALCIN'));
+                $event = ['tag'=>$did, 'did'=>$did, 'pid'=>$d['dpID'], 'cid'=>$d['dcID'],
+                    'sum'=>DepositPolicy::stored($amounts['profit']), 'csum'=>DepositPolicy::stored($amounts['reinvest']),
+                    'rsum'=>DepositPolicy::stored($amounts['returned']), 'nper'=>$change['dNPer']];
+                if (!$amounts['profit']->isZero())
+                    FinancialOperationException::check(opOperCreateInfo($d['duID'], 'CALCIN', $d['dcID'], $event['sum'], $event, '#' . $did));
+                if (!$amounts['returned']->isZero())
+                    FinancialOperationException::check(opOperCreateInfo($d['duID'], 'TAKE', $d['dcID'], $event['rsum'], $event));
+                elseif (!$amounts['reinvest']->isZero())
+                    FinancialOperationException::check(opDepoAdd($d['duID'], $d['dcID'], $amounts['reinvest'], $did, true));
+                $event['percs'] = asArray($d['pPPerc'], HS2_NL);
+                HScript\Finance\ReferralSourceEvent::dispatch($db->link, 'DepoCharge', (int)$d['duID'], $event,
+                    static fn() => opEvent('DepoCharge', $d['duID'], $event));
+                if ($terminal)
+                    opEvent('DepoClose', $d['duID'], ['did'=>$did, 'cid'=>$d['dcID'], 'state'=>2, 'sum'=>DepositPolicy::stored($amounts['worked'])]);
+                return new IdempotencyResult(['charged'=>true]);
+            });
+        return $result->data['charged'];
+    } catch (FinancialOperationException $error) { return $error->getMessage(); }
+    catch (HScript\Finance\IdempotencyConflict $error) { return 'accrual_input_conflict'; }
+    catch (InvalidArgumentException|OverflowException $error) { return opDepoMathError($error); }
 }
 
 function opDepoLastManualChargeDate()
@@ -448,19 +503,19 @@ function opDepoLastManualChargeDate()
 	return $cdate;
 }
 
-function depoCalcNumber($value, $default = 0.0)
-{
-	$value = str_replace(',', '.', (string)$value);
-	return is_numeric($value) ? (float)$value : (float)$default;
-}
-
 function depoPrepareCalc()
 {
 	global $_GS, $db, $_cfg, $catalogCache;
 	$compounds = array();
-	if ($_cfg['Depo__Compnd'])
-		foreach ($_cfg['Depo__Compnd'] as $c)
-			$compounds[$c] = $c;
+	$choices = $_cfg['Depo__Compnd'] ?? array();
+	foreach (is_array($choices) ? $choices : array() as $c)
+	{
+		try {
+			$decimal = DepositForecast::input($c);
+			if (!$decimal->isNegative() && $decimal->compareTo(Decimal::of(100)) <= 0)
+				$compounds[(string)$decimal] = (string)$decimal;
+		} catch (InvalidArgumentException|\Brick\Math\Exception\MathException) { /* Invalid configured choice is unavailable. */ }
+	}
 	View::setPage('calc_compnd', $compounds, 0);
 	$plans = $catalogCache->remember(
 		CatalogCache::PLANS,
@@ -472,72 +527,57 @@ function depoPrepareCalc()
 		)
 	);
 	$select_plans = array();
-	$legacy_plans = array();
 	$plan_rows = array();
 	foreach ($plans as $id => $pl)
 	{
-		$name = StringHelper::textLangFilter($pl['pName'], $_GS['lang']);
-		$select_plans[] = $name;
-		$legacy_plans[] = "['" . addslashes($name) . "', {$pl['pMin']}, {$pl['pMax']}, {$pl['pPerc']}, {$pl['pNPer']}, {$pl['pBonus']}, {$pl['pReturn']}, {$pl['pDays']}]";
-		$plan_rows[] = array(
-			'id' => (int)$id,
-			'name' => $name,
-			'min' => (float)$pl['pMin'],
-			'max' => (float)$pl['pMax'],
-			'perc' => (float)$pl['pPerc'],
-			'periods' => (int)$pl['pNPer'],
-			'bonus' => (float)$pl['pBonus'],
-			'return' => (float)$pl['pReturn'],
-			'days' => (int)$pl['pDays']
-		);
+		try {
+			$row = array('id' => (int)$id, 'name' => StringHelper::textLangFilter($pl['pName'], $_GS['lang']),
+				'periods' => max(0, (int)$pl['pNPer']), 'days' => (int)$pl['pDays']);
+			foreach (array('min'=>'pMin', 'max'=>'pMax', 'perc'=>'pPerc', 'bonus'=>'pBonus', 'return'=>'pReturn') as $field=>$column)
+				$row[$field] = (string)DepositForecast::input($pl[$column] ?? 0);
+			$plan_rows[] = $row;
+			$select_plans[] = $row['name'];
+		} catch (InvalidArgumentException|\Brick\Math\Exception\MathException) { /* Malformed historical plan cannot produce a forecast. */ }
 	}
 
 	$selected_plan = isset_RQ('plan') ? (int)_RQ('plan') : 0;
-	if (!isset($plan_rows[$selected_plan]))
-		$selected_plan = 0;
-	$default_sum = isset($plan_rows[$selected_plan]) && ($plan_rows[$selected_plan]['min'] > 0) ? $plan_rows[$selected_plan]['min'] : 10;
-	$sum = isset_RQ('sum') ? depoCalcNumber(_RQ('sum'), $default_sum) : $default_sum;
-	if ($sum <= 0)
-		$sum = $default_sum;
-	$cmpd = isset_RQ('cmpd') ? depoCalcNumber(_RQ('cmpd'), 0) : 0;
-	if ($compounds && !in_array($cmpd, array_map('floatval', array_values($compounds))))
-		$cmpd = (float)reset($compounds);
+	if (!isset($plan_rows[$selected_plan])) $selected_plan = 0;
+	$default_sum = isset($plan_rows[$selected_plan]) ? Decimal::of($plan_rows[$selected_plan]['min']) : Decimal::of(10);
+	if ($default_sum->compareTo(Decimal::of(0)) <= 0) $default_sum = Decimal::of(10);
+	$sum = $default_sum;
+	$cmpd = Decimal::of(0);
+	try { if (isset_RQ('sum')) $sum = DepositForecast::input(_RQ('sum')); }
+	catch (InvalidArgumentException|\Brick\Math\Exception\MathException) { /* Retain invalid request fallback to the plan minimum. */ }
+	if ($sum->compareTo(Decimal::of(0)) <= 0) $sum = $default_sum;
+	try { if (isset_RQ('cmpd')) $cmpd = DepositForecast::input(_RQ('cmpd')); }
+	catch (InvalidArgumentException|\Brick\Math\Exception\MathException) { /* Retain invalid request fallback to zero. */ }
+	if ($cmpd->isNegative() || $cmpd->compareTo(Decimal::of(100)) > 0) $cmpd = Decimal::of(0);
+	if ($compounds)
+	{
+		$choice = reset($compounds);
+		foreach ($compounds as $c)
+			if ($cmpd->compareTo(Decimal::of($c)) === 0) { $choice = $c; break; }
+		$cmpd = Decimal::of($choice);
+	}
 
 	$result = array();
+	$error = false;
 	if ($plan_rows)
 	{
 		$plan = $plan_rows[$selected_plan];
-		$base_sum = round($sum, 2);
-		$bonus_sum = round($base_sum * $plan['bonus'] / 100, 2);
-		$work_sum = round($base_sum + $bonus_sum, 2);
-		$capitalized = 0.0;
-		$profit = 0.0;
-		for ($i = 0; $i < $plan['periods']; $i++)
-		{
-			$period_profit = round($work_sum * $plan['perc'] / 100, 2);
-			$period_capitalized = round($period_profit * $cmpd / 100, 2);
-			$capitalized = round($capitalized + $period_capitalized, 2);
-			$profit = round($profit + $period_profit - $period_capitalized, 2);
-			$work_sum = round($work_sum + $period_capitalized, 2);
-		}
-		$deposit_return = round($plan['return'] * ($work_sum - $capitalized) / 100, 2);
-		$total_profit = round($profit + $capitalized, 2);
-		$result = array(
-			'plan' => $plan,
-			'bonus_sum' => $bonus_sum,
-			'profit_sum' => $total_profit,
-			'deposit_return_sum' => $deposit_return,
-			'total_return_sum' => round($deposit_return + $total_profit, 2)
-		);
+		try {
+			$result = array('plan' => $plan) + DepositForecast::calculate($sum, Decimal::of($plan['bonus']),
+				Decimal::of($plan['perc']), Decimal::of($plan['return']), $cmpd, $plan['periods']);
+		} catch (InvalidArgumentException|OverflowException) { $error = true; }
 	}
 
 	View::setPage('calc_pselect', $select_plans, 0);
-	View::setPage('calc_plans', implode(', ', $legacy_plans), 0);
 	View::setPage('calc_plan_rows', $plan_rows, 0);
 	View::setPage('calc_selected_plan', $selected_plan, 0);
-	View::setPage('calc_sum_value', $sum, 0);
-	View::setPage('calc_cmpd_value', $cmpd, 0);
+	View::setPage('calc_sum_value', (string)$sum, 0);
+	View::setPage('calc_cmpd_value', (string)$cmpd, 0);
 	View::setPage('calc_result', $result, 0);
+	View::setPage('calc_error', $error, 0);
 }
 
 function opDepoProgressWidthClass($value)
@@ -550,9 +590,11 @@ function opDepoProgressWidthClass($value)
 	return 'w-[' . $value . '%]';
 }
 
-function opDepoListPrepare(&$list)
+function opDepoListPrepare(&$list, ?int $now = null)
 {
+	global $_cfg, $_currs;
 	useLib('balance');
+	$now ??= time();
 	foreach ($list as &$d)
 	{
 		$total_periods = max(0, (int)$d['pNPer']);
@@ -576,7 +618,7 @@ function opDepoListPrepare(&$list)
 		if (($period_start <= 0) or ($period_start >= $t))
 			$period_start = $t - $period_seconds;
 		$period_duration = max(1, $t - $period_start);
-		$period_elapsed = max(0, min(time() - $period_start, $period_duration));
+		$period_elapsed = max(0, min($now - $period_start, $period_duration));
 		$current_period_progress = min(100, max(0, $period_elapsed * 100 / $period_duration));
 
 		$d['PeriodNumber'] = $total_periods > 0
@@ -588,18 +630,19 @@ function opDepoListPrepare(&$list)
 		$d['CurrentProgress'] = $d['PeriodProgress'];
 		$d['PeriodProgressClass'] = opDepoProgressWidthClass($d['PeriodProgress']);
 
-		$perc = $d['pPerc']/* + $d['pReturn']*/;
+		$perc = $d['pPerc'] ?? '0'/* + $d['pReturn']*/;
 		//----------Change from calendar----------
 		if ($d['pPClndr'])
 		{
-			if (($pClndr = opDepoGetCalendarPerc())>0)
+			if (DecimalInput::read($pClndr = opDepoGetCalendarPerc())->compareTo(Decimal::of(0)) > 0)
 			 $perc = $pClndr;
 		}
 		//--------------------------------------
-		$zper = calcPerc($d['dZD'], $perc, 6);
+		$profit = DecimalInput::read($d['dZD'] ?? '0')->multipliedBy(DecimalInput::read($perc))
+			->dividedBy(Decimal::of(100), 6, RoundingMode::HalfUp);
 		$d['NextCalcTime'] = $t;
 
-		$dt = max(0, stampToTime($d['dNTS']) - time());
+		$dt = max(0, stampToTime($d['dNTS']) - $now);
 		$d['Timer']['D'] = floor($dt / 86400);
 		$d['Timer']['H'] = floor($dt / 3600) % 24;
 		$d['Timer']['M'] = floor($dt / 60) % 60;
@@ -608,14 +651,19 @@ function opDepoListPrepare(&$list)
 		$tcalc = min($period_elapsed, $period_seconds);
 		if ($tcalc <= 1)
 			$tcalc = 0;
-		$d['CurrentProfit'] = round($zper * $tcalc / $period_seconds, 6);
-		$d['ProfitPerHour'] = _zr($zper / $d['pPer'], $d['dcID']);
+		$d['CurrentProfit'] = (string)$profit->multipliedBy(Decimal::of($tcalc))
+			->dividedBy(Decimal::of($period_seconds), 6, RoundingMode::HalfUp);
+		$hours = (int)$d['pPer'];
+		$scale = CurrencyScale::resolve($_currs[$d['dcID']] ?? array(), $_cfg);
+		$d['ProfitPerHour'] = (string)($hours > 0
+			? $profit->dividedBy(Decimal::of($hours), $scale, RoundingMode::HalfUp)
+			: Decimal::of(0)->rounded($scale, RoundingMode::HalfUp));
 	}
 }
 
 function depoGetStat()
 {
-	global $db, $_cfg, $_vcurrs;
+	global $db, $_cfg, $_vcurrs, $_currs;
 	$stat = array();
 	$startedAt = stampToTime((string)($_cfg['Depo_S0'] ?? ''));
 	if ($startedAt <= 0)
@@ -628,33 +676,45 @@ function depoGetStat()
 	$stat['worked'] = max(0, (int)floor((time() - $startedAt) / HS2_UNIX_DAY));
 	$stat['users'] = (int)$db->count('Users', 'uState=1') + (int)(isset($_cfg['Depo_S1']) ? $_cfg['Depo_S1'] : 0);
 	$stat['usersonline'] = (int)$db->count('Users', 'uState=1 and uLTS> ?', array(timeToStamp(time() - 5 * HS2_UNIX_MINUTE)));
-	$stat['zin'] = (float)(isset($_cfg["Depo_S2"]) ? $_cfg["Depo_S2"] : 0);
+	$zin = ReadAmount::decimal($_cfg['Depo_S2'] ?? null);
+	$zout = ReadAmount::decimal($_cfg['Depo_S3'] ?? null);
 	$stat['zin2'] = array();
-	foreach ($_vcurrs as $curr => $cids)
-		if ($cids){
-			$stat['zin2'][$curr] = (float)$db->fetch1($db->select('Opers', 'SUM(oSum)', "oOper='CASHIN' AND oState=3 and ocID ?i", array($cids))) + (float)(isset($_cfg["Depo_S2$curr"]) ? $_cfg["Depo_S2$curr"] : 0);
-			$stat['zin'] += $stat['zin2'][$curr] * (float)(isset($_cfg['Bal_Rate'.$curr]) ? $_cfg['Bal_Rate'.$curr] : 1);
-		}
 	$stat['zout2'] = array();
-	$stat['zout'] = (float)(isset($_cfg["Depo_S3"]) ? $_cfg["Depo_S3"] : 0);
 	foreach ($_vcurrs as $curr => $cids)
-		if ($cids){
-			$stat['zout2'][$curr] = (float)$db->fetch1($db->select('Opers', 'SUM(oSum-oComis)', "oOper='CASHOUT' AND oState=3 and ocID ?i", array($cids))) + (float)(isset($_cfg["Depo_S3$curr"]) ? $_cfg["Depo_S3$curr"] : 0);
-			$stat['zout'] += $stat['zout2'][$curr] * (float)(isset($_cfg['Bal_Rate'.$curr]) ? $_cfg['Bal_Rate'.$curr] : 1);
+		if ($cids) {
+			$in = ReadAmount::decimal($db->fetch1($db->select('Opers', 'SUM(oSum)', "oOper='CASHIN' AND oState=3 and ocID ?i", array($cids))))
+				->plus(ReadAmount::decimal($_cfg['Depo_S2'.$curr] ?? null));
+			// Keep SQL's historical NULL semantics for oSum-oComis and the net payout definition.
+			$out = ReadAmount::decimal($db->fetch1($db->select('Opers', 'SUM(oSum-oComis)', "oOper='CASHOUT' AND oState=3 and ocID ?i", array($cids))))
+				->plus(ReadAmount::decimal($_cfg['Depo_S3'.$curr] ?? null));
+			$unpriced=false;foreach($cids as $cid)if(($_currs[$cid]['cCID']??'')==='CCT')$unpriced=true;
+			$rate = $unpriced?Decimal::of(0):ReadAmount::decimal($_cfg['Bal_Rate'.$curr] ?? 1);
+			$stat['zin2'][$curr] = (string)$in;
+			$stat['zout2'][$curr] = (string)$out;
+			$zin = $zin->plus($in->multipliedBy($rate));
+			$zout = $zout->plus($out->multipliedBy($rate));
 		}
-	$stat['zref'] = (float)$db->fetch1($db->select('Opers', 'SUM(oSum)', "oOper='REF' AND oState=3")) + (float)(isset($_cfg['Depo_S4']) ? $_cfg['Depo_S4'] : 0);
-	$stat['zreinv'] = (float)$db->fetch1($db->select('Opers', 'SUM(oSum)', "oOper='GIVE' AND oState=3 AND NOT (oMemo ?%)", array('Auto'))) + (float)(isset($_cfg['Depo_S5']) ? $_cfg['Depo_S5'] : 0);
+	// Valued totals/offsets keep their exact precision; rounding belongs to display.
+	$stat['zin'] = (string)$zin;
+	$stat['zout'] = (string)$zout;
+	$stat['zref'] = (string)ReadAmount::decimal($db->fetch1($db->select('Opers', 'SUM(oSum)', "oOper='REF' AND oState=3")))
+		->plus(ReadAmount::decimal($_cfg['Depo_S4'] ?? null));
+	$stat['zreinv'] = (string)ReadAmount::decimal($db->fetch1($db->select('Opers', 'SUM(oSum)', "oOper='GIVE' AND oState=3 AND NOT (oMemo ?%)", array('Auto'))))
+		->plus(ReadAmount::decimal($_cfg['Depo_S5'] ?? null));
 	$stat['deps'] = (int)$db->count('Deps', 'dState=1') + (int)(isset($_cfg['Depo_S6']) ? $_cfg['Depo_S6'] : 0);
 	$stat['depsclosed'] = (int)$db->count('Deps', 'dState>=2') + (int)(isset($_cfg['Depo_S7']) ? $_cfg['Depo_S7'] : 0);
 	$stat['lastuser'] = $db->fetch1Row($db->select('Users LEFT JOIN AddInfo ON auID=uID', 'uLogin, aCIP', 'uState=1', array(), 'uID desc', 1));
-	if ($_cfg['Depo_S8'] > 0)
-		$stat['lastinop'] = array('oSum' => $_cfg['Depo_S8'], 'uLogin' => $_cfg['Depo_S9']);
+	if (($lastIn = ReadAmount::decimal($_cfg['Depo_S8'] ?? null))->compareTo(Decimal::of(0)) > 0)
+		$stat['lastinop'] = array('oSum' => (string)$lastIn, 'uLogin' => $_cfg['Depo_S9'] ?? '');
 	else
 		$stat['lastinop'] = $db->fetch1Row($db->select('Opers LEFT JOIN Users ON uID=ouID', 'oSum, uLogin', "oOper='CASHIN' AND oState=3", array(), 'oCTS desc', 1));
-	if ($_cfg['Depo_S11'] > 0)
-		$stat['lastoutop'] = array('oSum' => $_cfg['Depo_S11'], 'uLogin' => $_cfg['Depo_S12']);
+	if (($lastOut = ReadAmount::decimal($_cfg['Depo_S11'] ?? null))->compareTo(Decimal::of(0)) > 0)
+		$stat['lastoutop'] = array('oSum' => (string)$lastOut, 'uLogin' => $_cfg['Depo_S12'] ?? '');
 	else
 		$stat['lastoutop'] = $db->fetch1Row($db->select('Opers LEFT JOIN Users ON uID=ouID', 'oSum, uLogin', "oOper='CASHOUT' AND oState=3", array(), 'oCTS desc', 1));
+	foreach (array('lastinop', 'lastoutop') as $key)
+		if (is_array($stat[$key]) && array_key_exists('oSum', $stat[$key]))
+			$stat[$key]['oSum'] = (string)ReadAmount::decimal($stat[$key]['oSum']);
 	return $stat;
 }
 

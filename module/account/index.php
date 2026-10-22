@@ -4,6 +4,8 @@ use HScript\Http\ApiTokenRepository;
 use HScript\Telemetry\CollectorMode;
 use HScript\Telemetry\TelemetryServiceTokenRepository;
 use HScript\Util\StringHelper;
+use HScript\Security\FailedLoginPolicy;
+use HScript\Observability\StructuredLogger;
 
 use HScript\Template\View;
 
@@ -284,6 +286,19 @@ try
 			View::setError('tz_wrong');
 		$a['aTZ'] = $h * 60 + $m;
 		$a['aTimeOut'] = abs($a['aTimeOut']);
+		$thresholdChanged = false;
+		$thresholdField = '';
+		if (array_key_exists('aFailedLoginThreshold', $a))
+		{
+			try { $threshold = FailedLoginPolicy::parse($a['aFailedLoginThreshold']); }
+			catch (InvalidArgumentException) { View::setError('login_threshold_wrong'); }
+			$previousThreshold = $_user['aFailedLoginThreshold'] ?? null;
+			$thresholdChanged = FailedLoginPolicy::parse($previousThreshold) !== $threshold;
+			unset($a['aFailedLoginThreshold']);
+			$a['aFailedLoginThreshold='] = FailedLoginPolicy::assignment($threshold);
+			$thresholdField = ', aFailedLoginThreshold=';
+		}
+
 		if ($_cfg['Sec_MinSQA'] > 0)
 		{
 			if (!$a['aSQuestion'])
@@ -316,9 +331,13 @@ try
 			$a['aGA'] = StringHelper::valueIf($_user['aGA'], '', $a['GAKey']);
 			$ga = 'aGA, ';
 		}
-		$db->update('AddInfo', $a, 
+		$updated = $db->update('AddInfo', $a,
 			StringHelper::valueIf($_cfg['Account_UseName'] == 2, 'aName, ') . $f . $ga .
-			'aTZ, aIPSec, aSessIP, aSessUniq, aTimeOut, aNoMail, aNeedReConfig', 'auID=?d', array(_uid()));
+			'aTZ, aIPSec, aSessIP, aSessUniq, aTimeOut, aNoMail, aNeedReConfig' . $thresholdField, 'auID=?d', array(_uid()));
+		if ($thresholdChanged && $updated < 1) View::setError('login_threshold_save_failed');
+		if ($thresholdChanged)
+			StructuredLogger::event('notice', 'security', 'account_login_threshold_changed', 'success', 0,
+				StructuredLogger::resourceId('account', _uid()), array('reason' => 'account_owner', 'state' => FailedLoginPolicy::effective($_cfg['Sec_BFC'], $threshold), 'attempt' => (int)$_cfg['Sec_BFC']));
 		View::showInfo('Saved');
 	}
 
@@ -329,6 +348,7 @@ catch (FormAbortException $e)
 
 View::stampArrayToStr($_user, 'aBD', 1);
 View::setPage('user', $_user);
+View::setPage('account_login_policy', FailedLoginPolicy::describe($_cfg['Sec_BFC'], $_user['aFailedLoginThreshold'] ?? null));
 View::setPage('utz', sprintf("%+02d:%02d", floor($_user['aTZ'] / 60), abs($_user['aTZ'] % 60)));
 
 $apiScopeOptions = array(

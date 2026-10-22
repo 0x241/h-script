@@ -1,6 +1,9 @@
 <?php
 
 use HScript\Template\View;
+use HScript\Finance\ReadAmount;
+use HScript\Finance\Decimal;
+use HScript\Finance\DecimalOutput;
 
 $_auth = 90;
 require_once('module/auth.php');
@@ -21,7 +24,7 @@ $vcurrs = array(
 	'XRP' => array()
 );
 foreach ($stat_currs as $cid => $c)
-	$vcurrs[$c['cCurrID']][] = $cid;
+	$vcurrs[HScript\Finance\WalletPortfolio::code($c, $cid)][] = $cid;
 $op_names = array('BONUS', 'PENALTY', 'CASHIN', 'REF', 'GIVE', 'TAKE', 'CALCIN', 'CALCOUT', 'CASHOUT');
 $extra_names = array('GIVE2', 'CASHOUT2', 'DEPO', 'DEPO2', 'BAL', 'LOCK', 'OUT');
 $filter_sql = array(
@@ -35,15 +38,14 @@ $filter_sql = array(
 
 function depoStatNum($value)
 {
-	return is_numeric($value) ? 0 + $value : 0;
+	return ReadAmount::stored($value);
 }
 
 function depoStatNormalize(&$data, $vcurrs, $names)
 {
 	foreach (array_keys($vcurrs) as $curr)
 		foreach ($names as $name)
-			if (!isset($data[$name][$curr]) || !is_numeric($data[$name][$curr]))
-				$data[$name][$curr] = 0;
+			$data[$name][$curr] = depoStatNum($data[$name][$curr] ?? null);
 }
 
 function depoStatDateInputToStamp($value, $end_of_day = false)
@@ -95,7 +97,7 @@ try
 	{
 		$focurr = " and ocID=$psys";
 		$fdcurr = " and dcID=$psys";
-		$curr = $stat_currs[$psys]['cCurrID'];
+		$curr = HScript\Finance\WalletPortfolio::code($stat_currs[$psys], $psys);
 		foreach ($op_names as $o)
 			$res[$o][$curr] = depoStatNum($db->fetch1($db->select('Opers', 'SUM(oSum)', "oOper='$o' and oState=3$focurr" . $filter_sql['od1'] . $filter_sql['od2'])));
 //		$res['CASHOUT2'][$curr] = $db->fetch1($db->select('Opers', 'SUM(oSum)', "oOper='CASHOUT' and oState=2$focurr$od1$od2"));
@@ -114,6 +116,8 @@ try
 		}
 	}
 	depoStatNormalize($res, $vcurrs, array_merge($op_names, array('DEPO', 'DEPO2')));
+	foreach (array_keys($vcurrs) as $curr)
+		$res['FLOW'][$curr] = DecimalOutput::stored(Decimal::of($res['CASHIN'][$curr])->minus(Decimal::of($res['CASHOUT'][$curr])));
 	$res['REG'] = 0 + $db->count('AddInfo', "1" . $filter_sql['ud1'] . $filter_sql['ud2']);
 	View::setPage('res', $res);
 
@@ -138,14 +142,14 @@ View::setPage('vcurrs', $vcurrs);
 $stat = array();
 foreach (array_keys($vcurrs) as $curr)
 	foreach (array_merge($op_names, $extra_names) as $o)
-		$stat[0][$curr][$o] = 0;
+		$stat[0][$curr][$o] = '0.000000';
 foreach ($stat_currs as $cid => $c)
 {
-	$curr = $c['cCurrID'];
+	$curr = HScript\Finance\WalletPortfolio::code($c, $cid);
 	foreach ($op_names as $o)
 	{
 		$stat[$cid][$o] = depoStatNum($db->fetch1($db->select('Opers', 'SUM(oSum)', 'oOper=? and ocID=?d and oState=3', array($o, $cid))));
-		$stat[0][$curr][$o] += $stat[$cid][$o];
+		$stat[0][$curr][$o] = DecimalOutput::stored(Decimal::of($stat[0][$curr][$o])->plus(Decimal::of($stat[$cid][$o])));
 	}
 	$stat[$cid]['GIVE2'] = depoStatNum($db->fetch1($db->select('Opers', 'SUM(oSum)', 'oOper=? and ocID=?d and oState=3 and (oMemo ?%)', array('GIVE', $cid, 'Auto'))));
 	$stat[$cid]['CASHOUT2'] = depoStatNum($db->fetch1($db->select('Opers', 'SUM(oSum)', 'oOper=? and ocID=?d and oState=2', array('CASHOUT', $cid))));
@@ -155,7 +159,7 @@ foreach ($stat_currs as $cid => $c)
 	$stat[$cid]['LOCK'] = depoStatNum($o['Z2']);
 	$stat[$cid]['OUT'] = depoStatNum($o['Z3']);
 	foreach (array('GIVE2', 'CASHOUT2', 'DEPO', 'BAL', 'LOCK', 'OUT') as $o)
-		$stat[0][$curr][$o] += $stat[$cid][$o];
+		$stat[0][$curr][$o] = DecimalOutput::stored(Decimal::of($stat[0][$curr][$o])->plus(Decimal::of($stat[$cid][$o])));
 }
 View::setPage('stat', $stat);
 $list = array();

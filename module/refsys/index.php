@@ -21,7 +21,8 @@ if (_uid())
 		foreach ($_currs as $c)
 			if (!in_array($c['cCurr'], $ccurs))
 				$ccurs[] = $c['cCurr'];
-	View::SetPage('ccurs', $ccurs);
+	foreach($_currs as $tokenCid=>$tokenCurrency)if(($tokenCurrency['cCID']??'')==='CCT')$ccurs[]=HScript\Finance\WalletPortfolio::code($tokenCurrency,$tokenCid);
+	View::SetPage('ccurs', array_values(array_unique($ccurs)));
 
 	$ref_cids = array();
 	foreach ($_vcurrs as $curr => $cids) {

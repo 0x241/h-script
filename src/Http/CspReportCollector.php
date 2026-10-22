@@ -25,7 +25,9 @@ final class CspReportCollector
 		foreach ($records as $record)
 		{
 			$line = json_encode($record, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
-			if (!NdjsonWriter::append($directory . '/csp-violations.ndjson', $line, 20971520)) return 503;
+			$maximum = filter_var(getenv('CSP_LOG_MAX_BYTES'), FILTER_VALIDATE_INT);
+			$maximum = $maximum === false ? 20971520 : max(1048576, min((int)$maximum, 104857600));
+			if (!NdjsonWriter::append($directory . '/csp-violations.ndjson', $line, $maximum)) return 503;
 		}
 		return 204;
 	}

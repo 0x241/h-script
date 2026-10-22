@@ -1,0 +1,19 @@
+{
+  "provenance": "Synthetic protocol fixture generated from official YooMoney documentation; no captured live callback.",
+  "secret": "phase3-contract-secret",
+  "canonical": "amount=98.00&codepro=false&currency=643&datetime=2026-10-03T10%3A20%3A30Z&fixture_note=%20%20UTF-8%20%D1%82%D0%B5%D1%81%D1%82%20%2B%20%26%20%3D%20%20&label=42&notification_type=p2p-incoming&operation_id=fixture-yoo-operation&sender=fixture-wallet&unaccepted=false&withdraw_amount=100.00",
+  "payload": {
+    "notification_type": "p2p-incoming",
+    "operation_id": "fixture-yoo-operation",
+    "amount": "98.00",
+    "withdraw_amount": "100.00",
+    "currency": "643",
+    "datetime": "2026-10-03T10:20:30Z",
+    "sender": "fixture-wallet",
+    "codepro": "false",
+    "label": "42",
+    "unaccepted": "false",
+    "fixture_note": "  UTF-8 тест + & =  ",
+    "sign": "91f34e866f33951ee5f258901d2b69801ff4637fdb7461d2b68ae50c9915f7ea"
+  }
+}

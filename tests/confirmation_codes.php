@@ -1,5 +1,7 @@
 <?php
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 require dirname(__DIR__) . '/vendor/autoload.php';
 require dirname(__DIR__) . '/module/confirm/lib.php';
 

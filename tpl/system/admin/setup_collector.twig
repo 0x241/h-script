@@ -283,8 +283,8 @@
 								{% if installation.public_stats %}
 									<span class="block font-bold text-brand dark:text-white">Пользователи: {{ installation.public_stats.users_total }} · онлайн {{ installation.public_stats.users_online }}</span>
 									{% if installation.public_stats.base_currency %}
-										<span class="mt-1 block font-mono text-gray-500 dark:text-gray-400">Пополнения: {{ installation.public_stats.cash_in_base|number_format(2, '.', ' ') }} {{ installation.public_stats.base_currency }}</span>
-										<span class="mt-1 block font-mono text-gray-500 dark:text-gray-400">Выплаты: {{ installation.public_stats.cash_out_base|number_format(2, '.', ' ') }} {{ installation.public_stats.base_currency }}</span>
+										<span class="mt-1 block font-mono text-gray-500 dark:text-gray-400">Пополнения: {{ installation.public_stats.cash_in_base|decimal_format(2, ' ') }} {{ installation.public_stats.base_currency }}</span>
+										<span class="mt-1 block font-mono text-gray-500 dark:text-gray-400">Выплаты: {{ installation.public_stats.cash_out_base|decimal_format(2, ' ') }} {{ installation.public_stats.base_currency }}</span>
 									{% endif %}
 									<span class="mt-1 block text-gray-500 dark:text-gray-400">Дней работы: {{ installation.public_stats.worked_days }}</span>
 								{% elseif installation.shares_public_stats %}

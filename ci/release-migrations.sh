@@ -26,6 +26,9 @@ mkdir -p dist
         printf 'database=%s\n' "$image"
         sh tests/update_isolated.sh "$exact" "$image"
         sh tests/telemetry_isolated.sh "$exact" "$image"
+        sh tests/failed_login_isolated.sh "$exact" "$image"
+        H_SCRIPT_FINANCIAL_CANDIDATE=1 sh tests/financial_isolated.sh "$exact" "$image"
+        sh tests/idempotency_isolated.sh "$exact" "$image"
     done
     echo 'result=passed'
 } > dist/release-migrations.txt 2>&1

@@ -115,6 +115,8 @@ future_works.md
 AGENTS.md
 CLAUDE.md
 .agents/
+# Agent reports are local notes, never CI inputs.
+/ci/**/*.md
 /docs/
 /docker/release/
 showcase/

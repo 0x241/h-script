@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 $parse = static function (string $html): array {
     $document = new DOMDocument();
     $previous = libxml_use_internal_errors(true);

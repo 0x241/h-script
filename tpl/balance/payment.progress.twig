@@ -1,0 +1,5 @@
+<div class="hs-payment-progress" role="status" aria-live="polite" aria-atomic="true">
+	<span class="hs-payment-dot" aria-hidden="true"></span>
+	<div><strong data-payment-status>{% if el.oState == 2 %}{{ _t({'key': 'payment.progress.confirming'}) }}{% else %}{{ _t({'key': 'payment.progress.waiting'}) }}{% endif %}</strong><p data-payment-hint>{{ _t({'key': 'payment.progress.automatic'}) }}</p><p data-payment-confirmations hidden></p></div>
+	<button type="button" data-payment-refresh>{{ _t({'key': 'payment.progress.refresh'}) }}</button>
+</div>

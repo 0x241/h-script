@@ -1,6 +1,7 @@
 <?php
 
 use HScript\Template\View;
+use HScript\Finance\CalendarInput;
 
 $_auth = 90;
 require_once('module/auth.php');
@@ -9,7 +10,7 @@ $table = 'Calend';
 $id_field = 'cID';
 $out_link = moduleToLink('calendar/admin/days');
 
-try 
+try
 {
 
 	if (View::sendedForm())
@@ -30,15 +31,15 @@ try
 			View::setError('date_exist');
 		if (!$a['cType'])
 			View::setError('type_empty');
-        if ($a['cPerc'] < 0)
-            View::setError('perc_wrong');
-		if ($id = $db->save($table, $a, 
+		try { $a['cPerc'] = CalendarInput::percentage($a['cPerc'] ?? ''); }
+		catch (InvalidArgumentException $e) { View::setError($e->getMessage()); }
+		if ($id = $db->save($table, $a,
 			'cTS, cType, cPerc', $id_field))
 			View::showInfo('Saved', $out_link . "?id=$id");
 		View::showInfo('*Error');
 	}
 
-} 
+}
 catch (FormAbortException $e)
 {
 }

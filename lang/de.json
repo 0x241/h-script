@@ -1,4 +1,5 @@
 {
+    "calc.limit.text": "Die Parameter überschreiten die Grenzen des Rechners. Reduzieren Sie den Betrag oder die Anzahl der Gutschriften.",
     "about.title": "Über das Projekt",
     "account.detach.confirm": "Confirm detachment account '{{domain}}'",
     "account.detach.link": "detach",
@@ -398,5 +399,7 @@
     "home.partners.p1": "Advanced Security & CDN",
     "home.partners.p2": "Global Authentication",
     "home.partners.p3": "Payment Integration Gateways",
-    "home.partners.p4": "High Availability Infrastructure"
+    "home.partners.p4": "High Availability Infrastructure",
+    "opers.error.amount_precision": "Der Betrag oder die Gebühr hat mehr Dezimalstellen als unterstützt.",
+    "opers.error.amount_range": "Der Betrag oder der resultierende Kontostand überschreitet das zulässige Limit."
 }

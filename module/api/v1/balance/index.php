@@ -1,6 +1,8 @@
 <?php
 
 use HScript\Http\ApiResponse;
+use HScript\Finance\Decimal;
+use HScript\Finance\DecimalOutput;
 
 require dirname(__DIR__) . '/bootstrap.php';
 apiV1Require('balance:read', array('GET'));
@@ -8,9 +10,9 @@ apiV1Require('balance:read', array('GET'));
 $wallets = array();
 foreach ($_currs as $currency)
 {
-	$available = (float)($currency['wBal'] ?? 0);
-	$locked = (float)($currency['wLock'] ?? 0);
-	$outgoing = (float)($currency['wOut'] ?? 0);
+	$available = Decimal::of($currency['wBal'] ?? 0);
+	$locked = Decimal::of($currency['wLock'] ?? 0);
+	$outgoing = Decimal::of($currency['wOut'] ?? 0);
 	$wallets[] = array(
 		'currency' => array(
 			'id' => (int)$currency['cID'],
@@ -19,10 +21,10 @@ foreach ($_currs as $currency)
 			'name' => (string)$currency['cName'],
 			'decimals' => (int)$currency['cNumDec'],
 		),
-		'available' => $available,
-		'locked' => $locked,
-		'outgoing' => $outgoing,
-		'total' => $available + $locked + $outgoing,
+		'available' => DecimalOutput::stored($available),
+		'locked' => DecimalOutput::stored($locked),
+		'outgoing' => DecimalOutput::stored($outgoing),
+		'total' => DecimalOutput::stored($available->plus($locked)->plus($outgoing)),
 	);
 }
 

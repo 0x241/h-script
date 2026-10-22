@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 use HScript\Cache\CatalogCache;
 use HScript\Content\PublicCatalog;
 use HScript\Database\Connection;

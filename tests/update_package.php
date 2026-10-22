@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 use HScript\Update\OfficialReleaseProvider;
 use HScript\Update\ReleaseBaselineRepository;
 use HScript\Update\SchemaStateRepository;

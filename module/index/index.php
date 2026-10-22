@@ -33,10 +33,10 @@ if (!$publicMetrics)
 		$publicMetrics = $storedMetrics;
 }
 
-$processed = max(0.0, (float)($publicMetrics['processed'] ?? 0));
-$processedDecimals = abs($processed - round($processed)) < 0.000001 ? 0 : 2;
+// Monetary formatting stays exact, including previously cached schema1 JSON numbers.
+$processed = HScript\Telemetry\TelemetryAmount::landing($publicMetrics['processed'] ?? null);
 $platformCount = max(0, (int)($publicMetrics['platforms'] ?? 0));
-$gatewayCount = 25;
+$gatewayCount = count((new \HScript\Payment\Provider\ProviderCatalog($db))->available());
 $metricForm = static function (int $count): string
 {
 	$language = strtolower(View::getLang());
@@ -55,10 +55,10 @@ $metricForm = static function (int $count): string
 };
 $metricLabel = static fn(string $key, int $count): string => View::_t($key . '.' . $metricForm($count));
 View::setPage('public_metrics', array(
-	'processed' => number_format($processed, $processedDecimals, '.', ','),
+	'processed' => $processed,
 	'platforms' => number_format($platformCount, 0, '.', ','),
 	'platforms_label' => $metricLabel('home.metric.platforms', $platformCount),
-	'gateways' => number_format($gatewayCount, 0, '.', ',') . '+',
+	'gateways' => number_format($gatewayCount, 0, '.', ','),
 	'gateways_label' => $metricLabel('home.metric.gateways', $gatewayCount),
 ), 0);
 

@@ -11,9 +11,21 @@ $uid_field = 'ouID';
 
 View::setPage('currs', $_currs);
 
-$list = opPageGet(_GETN('page'), 10, "$table LEFT JOIN Users on uID=ouID LEFT JOIN Currs on cID=ocID",
+$operationTypes = array('all' => array(), 'in' => array('CASHIN'),
+	'out' => array('CASHOUT'), 'calc' => array('CALCIN', 'REF', 'BONUS'));
+$operationFilter = $_GET['type'] ?? 'all';
+if (!is_string($operationFilter) || !isset($operationTypes[$operationFilter])) $operationFilter = 'all';
+$filter = "$uid_field=?d";
+$values = array(_uid());
+if ($operationTypes[$operationFilter]) {
+	$filter .= ' AND oOper IN (' . implode(',', array_fill(0, count($operationTypes[$operationFilter]), '?')) . ')';
+	$values = array_merge($values, $operationTypes[$operationFilter]);
+}
+View::setPage('operation_filter', $operationFilter);
+
+$list = opPageGet(max(1, _GETN('page')), 10, "$table LEFT JOIN Users on uID=ouID LEFT JOIN Currs on cID=ocID",
 	"$table.*, uLogin, cName, cCurr, (oNTS>0) AS _Marked",
-	"$uid_field=?d", array(_uid()),
+	$filter, $values,
 	array(
 		'oTS' => array('oID desc', 'oID'),
 		'oState' => array()

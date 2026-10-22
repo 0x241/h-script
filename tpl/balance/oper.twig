@@ -38,7 +38,9 @@
 		{% set can_confirm = (el.oState <= 1) and ((el.oOper != 'CASHIN') or dfields or (_cfg.Bal_AFMMode > 0)) %}
 		{% set can_cancel = el.oState <= 2 %}
 		{% set can_delete = el.oState >= 5 %}
-		{% set view_errors = {'oper_not_found': _t({"key": "opers.error.state", "default": "Неверный статус операции"}), 'oper_disabled': _t({"key": "opers.error.disabled", "default": "Данная операция временно отключена"}), 'low_bal1': _t({"key": "opers.error.low_bal", "default": "Недостаточно средств на балансе"}), 'data_date_wrong': _t({"key": "opers.error.date", "default": "Неверная дата транзакции"}), 'data_sum_wrong': _t({"key": "opers.error.sum", "default": "Указана неверная сумма"}), 'data_batch_wrong': _t({"key": "opers.error.batch_empty", "default": "Не задан batch-номер операции"}), 'batch_exists': _t({"key": "opers.error.batch_exists", "default": "Транзакция с таким batch-номером уже зарегистрирована"}), 'afmacc_wrong': _t({"key": "opers.error.afmacc_wrong", "default": "Неверное значение кошелька"}), 'afmbatch_wrong': _t({"key": "opers.error.afmbatch_wrong", "default": "Неверный batch-номер"})} %}
+		{% set can_pay = el.oOper == 'CASHIN' and el.oState <= 2 and el.cCASHINMode in [2, 3] and pform.formkind|default('') != 'native_address' %}
+		{% set watch_payment = el.oOper == 'CASHIN' and el.oState <= 2 and (pform.formkind|default('') == 'native_address' or isset(_GET.check)) %}
+		{% set view_errors = {'ex_sum_wrong': _t({'key': 'opers.error.sum_wrong'}), 'ex_overflow': _t({'key': 'opers.error.amount_range'}), 'sum_precision': _t({'key': 'opers.error.amount_precision'}), 'sum_overflow': _t({'key': 'opers.error.amount_range'}), 'bal_precision': _t({'key': 'opers.error.amount_precision'}), 'bal_overflow': _t({'key': 'opers.error.amount_range'}), 'oper_not_found': _t({"key": "opers.error.state", "default": "Неверный статус операции"}), 'oper_disabled': _t({"key": "opers.error.disabled", "default": "Данная операция временно отключена"}), 'low_bal1': _t({"key": "opers.error.low_bal", "default": "Недостаточно средств на балансе"}), 'data_date_wrong': _t({"key": "opers.error.date", "default": "Неверная дата транзакции"}), 'data_sum_wrong': _t({"key": "opers.error.sum", "default": "Указана неверная сумма"}), 'data_batch_wrong': _t({"key": "opers.error.batch_empty", "default": "Не задан batch-номер операции"}), 'batch_exists': _t({"key": "opers.error.batch_exists", "default": "Транзакция с таким batch-номером уже зарегистрирована"}), 'afmacc_wrong': _t({"key": "opers.error.afmacc_wrong", "default": "Неверное значение кошелька"}), 'afmbatch_wrong': _t({"key": "opers.error.afmbatch_wrong", "default": "Неверный batch-номер"})} %}
 		<div class="mb-8 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
 			<div>
 				<div class="mb-3 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-bold text-gray-500 shadow-sm dark:border-gray-800 dark:bg-[#151515] dark:text-gray-400">
@@ -51,7 +53,7 @@
 		</div>
 
 		<div class="flex flex-col gap-8 lg:flex-row">
-			<div class="flex-1 space-y-6">
+			<div class="min-w-0 flex-1 space-y-6" {% if watch_payment %}data-hs-payment-watch data-status-url="{{ _selfLink }}?id={{ el.oID }}&amp;payment_status=1" data-success-url="{{ _link('cabinet') }}" data-state="{% if el.oState == 2 %}confirming{% else %}waiting{% endif %}" data-waiting="{{ _t({'key': 'payment.progress.waiting'}) }}" data-confirming="{{ _t({'key': 'payment.progress.confirming'}) }}" data-credited="{{ _t({'key': 'payment.progress.credited'}) }}" data-closed="{{ _t({'key': 'payment.progress.closed'}) }}" data-offline="{{ _t({'key': 'payment.progress.offline'}) }}" data-confirmations="{{ _t({'key': 'payment.progress.confirmations'}) }}" data-paused="{{ _t({'key': 'payment.progress.paused'}) }}"{% endif %}>
 				{% if isset(_GET.check) %}
 					<div class="rounded-[1.5rem] border border-blue-200 bg-blue-50 p-5 text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
 						<div class="flex gap-4">
@@ -90,8 +92,21 @@
 					</div>
 				{% endif %}
 
+				{% if el.oOper == 'CASHIN' and el.oState <= 2 and pform.formkind|default('') == 'native_address' %}
+					{% include 'balance/native.payment.twig' %}
+				{% endif %}
+
+                {% if can_pay and not pform.url and payment_route_required|default(false) and payment_route_choices|length == 1 %}
+                {% for code,route in payment_route_choices %}<input type="hidden" name="payment_route" form="deposit-payment-form" value="{{ code }}">{% endfor %}
+                {% elseif can_pay and not pform.url and payment_route_required|default(false) %}
+                <section class="card p-6"><h3 class="mb-3 text-lg font-bold">{{ _t({'key':'payment.routes.choose'}) }}</h3><p class="mb-4 text-sm text-gray-500">{{ _t({'key':'payment.routes.user_hint'}) }}</p>
+                <select name="payment_route" form="deposit-payment-form" class="hs-provider-input" required><option value="">{{ _t({'key':'payment.routes.choose'}) }}</option>{% for code,route in payment_route_choices %}<option value="{{ code }}">{{ route.asset }} · {{ route.label }}</option>{% endfor %}</select>
+                {% if not payment_route_choices %}<p role="status" class="mt-3 text-sm text-gray-500">{{ _t({'key':'payment.routes.unavailable'}) }}</p>{% endif %}
+                </section>
+                {% endif %}
 				<form method="post" action="{{ _selfLink }}?id={{ el.oID }}" name="{{ view_form_name }}" class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
 					{{ _getFormSecurity({"form": view_form_name}) }}
+					{{ _financialFormFields() }}
 					<input name="oID" value="{{ el.oID }}" type="hidden">
 					{% set view_error_text = formErrorText(view_form_name, view_errors, true) %}
 					{% if view_error_text %}
@@ -131,7 +146,7 @@
 						{% if el.oParams.sum2 %}
 							<div class="grid gap-2 p-5 sm:grid-cols-3">
 								<div class="text-sm font-bold text-gray-500">{{ _t({"key": "balance.sum2", "default": "Сумма к получению"}) }}</div>
-								<div class="font-mono font-bold text-emerald-500 sm:col-span-2">{{ _z(el.oParams.sum2, exValue(el.ocID, el.oParams.cid2), 1) }}</div>
+								<div class="font-mono font-bold text-emerald-500 sm:col-span-2">{% if el.oOper in ['EX', 'EXIN'] %}{{ exchange_quote.amount|default('—') }} <small>{{ exchange_quote.currency }}</small>{% else %}{{ _z(el.oParams.sum2, exValue(el.ocID, el.oParams.cid2), 1) }}{% endif %}</div>
 							</div>
 						{% endif %}
 						{% if el.oParams2.acc %}
@@ -167,10 +182,14 @@
 							{% endif %}
 						{% endif %}
 					</div>
-					{% if can_confirm or can_cancel or can_delete %}
-						<div class="flex flex-col gap-3 border-t border-gray-100 bg-gray-50 p-5 dark:border-gray-800 dark:bg-[#1A1A1A] sm:flex-row sm:justify-end">
+					{% if can_confirm or can_cancel or can_delete or can_pay %}
+						<div class="hs-operation-actions border-t border-gray-100 bg-gray-50 p-5 dark:border-gray-800 dark:bg-[#1A1A1A]">
+							{% if can_pay %}
+								<button form="deposit-payment-form" {% if not pform.url %}name="pay_btnpay" value="1"{% endif %} {% if payment_route_required|default(false) and not payment_route_choices and not pform.url %}disabled{% endif %} type="submit" class="hs-payment-button">{{ _t({'key': 'payment.goto', 'default': 'Перейти к оплате'}) }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+							{% endif %}
+							<div class="hs-operation-secondary">
 							{% if can_cancel %}
-								<button name="{{ view_form_name }}_btncancel" value="{{ _t({"key": "opers.btn.cancel_request", "default": "Отменить заявку"}) }}" type="submit" class="rounded-2xl border border-red-200 bg-white px-6 py-3 font-bold text-red-600 transition hover:bg-red-50 dark:border-red-500/30 dark:bg-[#151515] dark:hover:bg-red-500/10">{{ _t({"key": "opers.btn.cancel_request", "default": "Отменить заявку"}) }}</button>
+								<button name="{{ view_form_name }}_btncancel" value="{{ _t({"key": "opers.btn.cancel_request", "default": "Отменить заявку"}) }}" type="submit" class="hs-operation-cancel rounded-2xl border border-red-200 bg-white px-6 py-3 font-bold text-red-600 transition hover:bg-red-50 dark:border-red-500/30 dark:bg-[#151515] dark:hover:bg-red-500/10">{{ _t({"key": "opers.btn.cancel_request", "default": "Отменить заявку"}) }}</button>
 							{% endif %}
 							{% if can_delete %}
 								<button name="{{ view_form_name }}_btndel" value="{{ _t({"key": "opers.btn.delete_record", "default": "Удалить запись"}) }}" type="submit" class="rounded-2xl border border-red-200 bg-white px-6 py-3 font-bold text-red-600 transition hover:bg-red-50 dark:border-red-500/30 dark:bg-[#151515] dark:hover:bg-red-500/10">{{ _t({"key": "opers.btn.delete_record", "default": "Удалить запись"}) }}</button>
@@ -178,31 +197,38 @@
 							{% if can_confirm %}
 								<button name="{{ view_form_name }}_btn" value="{{ _t({"key": "opers.btn.confirm_exec", "default": "Подтвердить выполнение"}) }}" type="submit" class="rounded-2xl bg-brand px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-black dark:bg-white dark:text-brand dark:hover:bg-gray-100">{{ _t({"key": "opers.btn.confirm_exec", "default": "Подтвердить выполнение"}) }}</button>
 							{% endif %}
+							</div>
 						</div>
 					{% endif %}
 				</form>
 
-				{% if el.oOper == 'CASHIN' and el.oState <= 2 and el.cCASHINMode in [2, 3] %}
-					{% if pform.url %}
-						<form method="{% if pform.get %}get{% else %}post{% endif %}" action="{{ pform.url }}" name="pay_form" hx-boost="false" data-hs-auto-submit="1" class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+				{% if el.oOper == 'CASHIN' and el.oState <= 2 and (el.cCASHINMode in [2, 3] or pform.formkind|default('') == 'native_address') %}
+					{% if pform.formkind|default('') == 'native_address' %}
+						{# Saved native details are shown above the operation summary. #}
+					{% elseif pform.url %}
+						<form id="deposit-payment-form" method="{% if pform.get %}get{% else %}post{% endif %}" action="{{ pform.url }}" name="pay_form" hx-boost="false" data-hs-auto-submit="1" hidden>
 							{% for f, v in pform %}
 								{% if (f != 'url') and (f != 'get') %}
 									<input name="{{ f }}" value="{{ v }}" type="hidden">
 								{% endif %}
 							{% endfor %}
-							<button type="submit" class="rounded-2xl bg-emerald-600 px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-700">{{ _t({"key": "payment.goto", "default": "Перейти к оплате"}) }}</button>
 						</form>
 					{% else %}
-					<form method="post" action="{{ _selfLink }}?id={{ el.oID }}" hx-boost="false" class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-6 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+					<form method="post" action="{{ _selfLink }}?id={{ el.oID }}" hx-boost="false" id="deposit-payment-form" hidden>
 						{{ _getFormSecurity({"form": "pay"}) }}
-						<button name="pay_btnpay" value="1" type="submit" class="rounded-2xl bg-emerald-600 px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-emerald-700">{{ _t({"key": "payment.goto", "default": "Перейти к оплате"}) }}</button>
+						{{ _financialFormFields() }}
 					</form>
 					{% endif %}
+				{% endif %}
+
+				{% if watch_payment and pform.formkind|default('') != 'native_address' %}
+					{% include 'balance/payment.progress.twig' %}
 				{% endif %}
 
 				{% if el.oOper == 'CASHIN' and (isset(pvalues.acc) or dfields) %}
 					<form method="post" action="{{ _selfLink }}?id={{ el.oID }}" name="{{ data_form_name }}" class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
 						{{ _getFormSecurity({"form": data_form_name}) }}
+					{{ _financialFormFields() }}
 						<input name="oID" value="{{ el.oID }}" type="hidden">
 						{% set data_error_text = formErrorText(data_form_name, view_errors, true) %}
 						{% if data_error_text %}
@@ -279,7 +305,7 @@
 		</div>
 	{% else %}
 		{% set add_form_name = getFormName('add') %}
-		{% set add_errors = {'psys_empty': _t({"key": "opers.error.psys_empty", "default": "плат.система не указана"}), 'psys2_empty': _t({"key": "opers.error.psys2_empty", "default": "плат.система не указана"}), 'psys2_equal_psys': _t({"key": "opers.error.psys_equal", "default": "плат.системы должны различаться"}), 'ex_rate_not_set': _t({"key": "opers.error.ex_rate", "default": "Курс валюты не задан"}), 'sum_wrong': _t({"key": "opers.error.sum_wrong", "default": "неверная сумма"}), 'limit_exceeded': _t({"key": "opers.error.limit", "default": "превышен лимит"}), 'pin_wrong': _t({"key": "opers.error.pin_wrong", "default": "неверный код"}), 'plan_wrong': _t({"key": "opers.error.plan_wrong", "default": "неверный план"}), 'compnd_wrong': _t({"key": "opers.error.compnd_wrong", "default": "неверное значение"}), 'compnd_wrong1': _t({"key": "opers.error.compnd_plan_wrong", "default": "неверное значение для плана"}), 'user2_empty': _t({"key": "opers.error.user2_empty", "default": "пользователь не найден"}), 'user2_equal_user': _t({"key": "opers.error.user2_equal", "default": "пользователи должны различаться"}), 'wallet_not_defined': _t({"key": "opers.error.wallet_not_defined", "default": "платежные реквизиты не заданы"}), 'low_bal1': _t({"key": "opers.error.low_bal", "default": "недостаточно средств"}), 'oper_disabled': _t({"key": "opers.error.disabled", "default": "операция отключена"})} %}
+		{% set add_errors = {'ex_sum_wrong': _t({'key': 'opers.error.sum_wrong'}), 'ex_overflow': _t({'key': 'opers.error.amount_range'}), 'sum_precision': _t({'key': 'opers.error.amount_precision'}), 'sum_overflow': _t({'key': 'opers.error.amount_range'}), 'bal_precision': _t({'key': 'opers.error.amount_precision'}), 'bal_overflow': _t({'key': 'opers.error.amount_range'}), 'psys_empty': _t({"key": "opers.error.psys_empty", "default": "плат.система не указана"}), 'psys2_empty': _t({"key": "opers.error.psys2_empty", "default": "плат.система не указана"}), 'psys2_equal_psys': _t({"key": "opers.error.psys_equal", "default": "плат.системы должны различаться"}), 'ex_rate_not_set': _t({"key": "opers.error.ex_rate", "default": "Курс валюты не задан"}), 'sum_wrong': _t({"key": "opers.error.sum_wrong", "default": "неверная сумма"}), 'limit_exceeded': _t({"key": "opers.error.limit", "default": "превышен лимит"}), 'pin_wrong': _t({"key": "opers.error.pin_wrong", "default": "неверный код"}), 'plan_wrong': _t({"key": "opers.error.plan_wrong", "default": "неверный план"}), 'compnd_wrong': _t({"key": "opers.error.compnd_wrong", "default": "неверное значение"}), 'compnd_wrong1': _t({"key": "opers.error.compnd_plan_wrong", "default": "неверное значение для плана"}), 'user2_empty': _t({"key": "opers.error.user2_empty", "default": "пользователь не найден"}), 'user2_equal_user': _t({"key": "opers.error.user2_equal", "default": "пользователи должны различаться"}), 'wallet_not_defined': _t({"key": "opers.error.wallet_not_defined", "default": "платежные реквизиты не заданы"}), 'low_bal1': _t({"key": "opers.error.low_bal", "default": "недостаточно средств"}), 'oper_disabled': _t({"key": "opers.error.disabled", "default": "операция отключена"})} %}
 		{% set selected_psys = user.aDefCurr|default(0) %}
 		{% if isset_IN('PSys') %}{% set selected_psys = _IN('PSys') %}{% endif %}
 		{% set selected_psys2 = 0 %}
@@ -298,6 +324,7 @@
 			<div class="flex-1">
 				<form method="post" action="{{ _selfLink }}?add={{ oper }}" name="{{ add_form_name }}" class="space-y-8 rounded-[1.5rem] border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515] sm:p-8">
 					{{ _getFormSecurity({"form": add_form_name}) }}
+					{{ _financialFormFields() }}
 					<input name="Oper" value="{{ oper }}" type="hidden">
 					{% set add_error_text = formErrorText(add_form_name, add_errors, true) %}
 					{% if add_error_text %}

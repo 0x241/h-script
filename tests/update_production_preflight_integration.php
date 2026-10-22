@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 use HScript\Backup\BackupService;
 use HScript\Backup\BackupSettings;
 use HScript\Backup\DatabaseCredentials;
@@ -81,6 +83,26 @@ try
 	$recovery->drill();
 	if (file_get_contents($manifestPath) !== $sourceManifest) throw new RuntimeException('Local drill changed source backup manifest');
 	$assertReady();
+	// A Configurator SQL backup is not a new SQL/runtime recovery report.
+	// Reproduce the operator's fresh-SQL + expired-report combination before
+	// refreshing the complete bundle through the existing recovery service.
+	$backupReportPath = $temporary . '/backups/recovery/reports/latest-backup.json';
+	$expiredBackupReport = json_decode(file_get_contents($backupReportPath), true, 32, JSON_THROW_ON_ERROR);
+	$expiredBackupReport['completed_at'] = gmdate('Y-m-d\TH:i:s\Z', time() - 7200);
+	$expiredBackupBytes = json_encode($expiredBackupReport, JSON_THROW_ON_ERROR);
+	file_put_contents($backupReportPath, $expiredBackupBytes);
+	$freshSql = $backups->create('plain');
+	$verifiedSql = $backups->verifyForUpdate($freshSql['id'], $schemaState->currentVersion());
+	if (time() - strtotime($verifiedSql['created_at']) > 60 || file_get_contents($backupReportPath) !== $expiredBackupBytes)
+		throw new RuntimeException('Fresh SQL backup unexpectedly refreshed the recovery report');
+	try { $assertReady(); throw new LogicException('Fresh SQL bypassed the expired recovery report'); }
+	catch (RuntimeException $error) {
+		if (!str_starts_with($error->getMessage(), 'Recovery evidence expired: backup;')) throw $error;
+	}
+	file_put_contents($temporary . '/backup-result.json', json_encode($freshSql, JSON_THROW_ON_ERROR));
+	$recovery->bundleFromBackupResult($temporary . '/backup-result.json');
+	$assertReady();
+	$backup = $freshSql;
 	$path = $temporary . '/backups/recovery/reports/latest-drill.json';
 	$reportBytes = file_get_contents($path);
 	$report = json_decode($reportBytes, true, 32, JSON_THROW_ON_ERROR);
@@ -94,9 +116,11 @@ try
 	$runtimePath = $temporary . '/backups/' . $bundle->file('runtime_archive')['path'];
 	rename($runtimePath, $runtimePath . '.saved');
 	productionIntegrationReject($assertReady, 'Missing local runtime archive accepted');
-	productionIntegrationReject(fn() => $recovery->drill(), 'Partial local bundle accepted for restore');
+	// Both bundles can be published in one second; check the exact damaged
+	// bundle rather than whichever ID wins the default latest tie-breaker.
+	productionIntegrationReject(fn() => $recovery->drill($backup['id']), 'Partial local bundle accepted for restore');
 	rename($runtimePath . '.saved', $runtimePath);
-	$recovery->drill();
+	$recovery->drill($backup['id']);
 	putenv('REDIS_PORT=1');
 	productionIntegrationReject($assertReady, 'Unavailable enabled Redis accepted');
 	putenv('REDIS_PORT=6379');

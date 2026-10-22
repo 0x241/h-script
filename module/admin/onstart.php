@@ -53,9 +53,8 @@ foreach ($admin_modules as $category => $modules)
 			'category' => $category
 		);
 
-$admin_pinned_ids = isset($_SESSION['_admin_pins']) && is_array($_SESSION['_admin_pins'])
-	? $_SESSION['_admin_pins']
-	: array();
+$admin_legacy_pins = !$is_admin_impersonation && is_array($_SESSION['_admin_pins'] ?? null) ? $_SESSION['_admin_pins'] : [];
+$admin_pinned_ids = HScript\Navigation\MenuPins::get($db, _uid(), 'admin', array_keys($admin_module_lookup), $admin_legacy_pins);
 $pin_action = $_GS['module'] === 'admin' && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST'
 	? (string)($_POST['pin_action'] ?? '') : '';
 $pin_module = (string)($_POST['pin_item'] ?? '');
@@ -65,13 +64,9 @@ if (in_array($pin_action, array('pin', 'unpin'), true) && !SessionCsrf::valid($_
 	http_response_code(403);
 	exit;
 }
-if ($pin_action === 'pin' && isset($admin_module_lookup[$pin_module]))
-{
-	$admin_pinned_ids = array_values(array_diff($admin_pinned_ids, array($pin_module)));
-	array_unshift($admin_pinned_ids, $pin_module);
-}
-elseif ($pin_action === 'unpin')
-	$admin_pinned_ids = array_values(array_diff($admin_pinned_ids, array($pin_module)));
+if (in_array($pin_action, ['pin','unpin'], true))
+	$admin_pinned_ids = HScript\Navigation\MenuPins::change($db, _uid(), 'admin', array_keys($admin_module_lookup), $pin_action, $pin_module, $admin_legacy_pins);
+unset($_SESSION['_admin_pins']);
 
 $admin_pinned_modules = array();
 foreach ($admin_pinned_ids as $module)
@@ -79,9 +74,6 @@ foreach ($admin_pinned_ids as $module)
 		$admin_pinned_modules[] = $admin_module_lookup[$module];
 
 $admin_pinned_ids = array_column($admin_pinned_modules, 'module');
-if ($pin_action !== '')
-	$_SESSION['_admin_pins'] = $admin_pinned_ids;
-
 $admin_unpinned_modules = array();
 foreach ($admin_modules as $category => $modules)
 	foreach ($modules as $title => $module)

@@ -1,6 +1,8 @@
 <?php
 
 use HScript\Util\StringHelper;
+use HScript\Security\FailedLoginPolicy;
+use HScript\Observability\StructuredLogger;
 use HScript\Payment\PaymentManager;
 
 use HScript\Template\View;
@@ -47,6 +49,19 @@ try
 			View::setError('tz_wrong');
 		$a['aTZ'] = $h * 60 + $m;
 		$a['aTimeOut'] = abs($a['aTimeOut']);
+		$thresholdChanged = false;
+		$thresholdField = '';
+		if (array_key_exists('aFailedLoginThreshold', $a))
+		{
+			try { $threshold = FailedLoginPolicy::parse($a['aFailedLoginThreshold']); }
+			catch (InvalidArgumentException) { View::setError('login_threshold_wrong'); }
+			$previousThreshold = $db->fetch1($db->select('AddInfo', 'aFailedLoginThreshold', 'auID=?d', array($id)));
+			$thresholdChanged = FailedLoginPolicy::parse($previousThreshold) !== $threshold;
+			unset($a['aFailedLoginThreshold']);
+			$a['aFailedLoginThreshold='] = FailedLoginPolicy::assignment($threshold);
+			$thresholdField = ', aFailedLoginThreshold=';
+		}
+
 		if ($_cfg['Sec_MinSQA'] > 0)
 		{
 			if (!$a['aSQuestion'])
@@ -69,9 +84,15 @@ try
 		else
 			$f = '';
 		View::strArrayToStamp($a, 'aBD', 1);
-		$a['aSessIP'] = $a['aSessIP'];
-		$a['aSessUniq'] = $a['aSessUniq'];
-		$db->update('AddInfo', $a, '', 'auID=?d', array($a['auID']));
+		$a['aSessIP'] = (int)($a['aSessIP'] ?? 0);
+		$a['aSessUniq'] = (int)($a['aSessUniq'] ?? 0);
+		$updated = $db->update('AddInfo', $a,
+			'aName, aTZ, aBD, aCountry, aCity, aTel, aNoMail, aPerc, aDPerc, aPPerc, aGA, aIPSec, aSessIP, aSessUniq, aTimeOut, ' . $f . $thresholdField,
+			'auID=?d', array($id));
+		if ($thresholdChanged && $updated < 1) View::setError('login_threshold_save_failed');
+		if ($thresholdChanged)
+			StructuredLogger::event('notice', 'security', 'account_login_threshold_changed', 'success', 0,
+				StructuredLogger::resourceId('account', $id), array('reason' => 'administrator', 'owner' => StructuredLogger::resourceId('account', _uid()), 'state' => FailedLoginPolicy::effective($_cfg['Sec_BFC'], $threshold), 'attempt' => (int)$_cfg['Sec_BFC']));
 		View::showInfo('Saved', $out_link . "?id=$id");
 	}
 
@@ -126,6 +147,7 @@ View::stampArrayToStr($el, 'aCTS');
 View::stampArrayToStr($el, 'aBD', 1);
 $el['aTZ'] = sprintf("%+02d:%02d", floor($el['aTZ'] / 60), abs($el['aTZ'] % 60));
 View::setPage('el', $el, 2);
+View::setPage('account_login_policy', FailedLoginPolicy::describe($_cfg['Sec_BFC'], $el['aFailedLoginThreshold'] ?? null));
 
 $defcurr = array();
 $wfields = array();

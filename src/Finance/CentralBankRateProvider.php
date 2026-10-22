@@ -6,6 +6,8 @@ use Closure;
 use HScript\Http\Client;
 use SimpleXMLElement;
 use Throwable;
+use Brick\Math\RoundingMode;
+use InvalidArgumentException;
 
 /**
  * Loads official fiat rates from the Central Bank of Russia over verified TLS.
@@ -26,7 +28,8 @@ final class CentralBankRateProvider
 	/**
 	 * Returns the RUB value of one unit for every requested currency code.
 	 *
-	 * @return array<string, float>|null
+	 * Per-unit division is explicitly rounded HALF_UP to 18 decimal places.
+	 * @return array<string, string>|null
 	 */
 	public function rates(array $currencies): ?array
 	{
@@ -41,7 +44,7 @@ final class CentralBankRateProvider
 			return array();
 
 		$response = ($this->request)(self::ENDPOINT);
-		if (!is_string($response) || trim($response) === '')
+		if (!is_string($response) || trim($response) === '' || stripos($response, '<!DOCTYPE') !== false)
 			return null;
 
 		$previousErrors = libxml_use_internal_errors(true);
@@ -58,7 +61,7 @@ final class CentralBankRateProvider
 			libxml_clear_errors();
 			libxml_use_internal_errors($previousErrors);
 		}
-		if (!$xml)
+		if (!$xml || $xml->getName() !== 'ValCurs')
 			return null;
 
 		$result = array();
@@ -67,11 +70,18 @@ final class CentralBankRateProvider
 			$code = strtoupper(trim((string)$valute->CharCode));
 			if (!isset($wanted[$code]))
 				continue;
-			$nominal = (float)str_replace(',', '.', trim((string)$valute->Nominal));
-			$value = (float)str_replace(',', '.', trim((string)$valute->Value));
-			if ($nominal <= 0 || $value <= 0)
+			if (isset($result[$code]) || count($valute->CharCode) !== 1
+				|| count($valute->Nominal) !== 1 || count($valute->Value) !== 1
+				|| count($valute->Nominal->children()) || count($valute->Value->children()))
 				return null;
-			$result[$code] = $value / $nominal;
+			$nominal = trim((string)$valute->Nominal);
+			if (!preg_match('/^[0-9]{1,36}$/D', $nominal)) return null;
+			try {
+				$divisor = Rate::of($nominal);
+				$value = Rate::of(str_replace(',', '.', trim((string)$valute->Value)));
+				$unit = $divisor->divide($value->decimal(), 18, RoundingMode::HalfUp);
+				$result[$code] = (string)Rate::of((string)$unit)->decimal();
+			} catch (InvalidArgumentException) { return null; }
 		}
 
 		return count($result) === count($wanted) ? $result : null;

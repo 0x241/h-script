@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 use HScript\Template\View;
 use HScript\Security\ProductionPreflight;
 
@@ -42,6 +44,9 @@ foreach (array('en', 'ru') as $language) {
 	$catalog = $language === 'en' ? $en : $ru;
 	$expired = cfg_update_error_message('Recovery evidence expired: drill; timestamp=2026-09-21T15:48:56Z; max_age=60');
 	cfgAssert(str_contains($expired, '2026-09-21T15:48:56Z') && str_contains($expired, '60') && !str_contains($expired, '{{'), 'Evidence age details were not rendered');
+	$expiredBackup = cfg_update_error_message('Recovery evidence expired: backup; timestamp=2026-09-22T08:10:19Z; max_age=21600');
+	cfgAssert(str_contains($expiredBackup, $catalog['configurator.update.recovery.kind_backup'])
+		&& str_contains($expiredBackup, $catalog['configurator.update.recovery.sql_backup_difference']), 'Expired recovery report was confused with the Configurator SQL backup');
 	foreach (array('invalid', 'future') as $reason)
 		cfgAssert(cfg_update_error_message('Recovery evidence ' . $reason . ': backup') !== $catalog['configurator.update.operation_failed'], 'Evidence reason was hidden');
 	cfgAssert(cfg_update_error_message('Recovery evidence expired: drill; timestamp=<script>; max_age=60') === $catalog['configurator.update.operation_failed'], 'Unsafe evidence diagnostics leaked');

@@ -31,17 +31,36 @@ final class ContentSecurityPolicy
 		return 'public';
 	}
 
-	public static function reportOnly(string $surface): string
+	public static function turnstileEnabled(array $configuration): bool
+	{
+		return ($configuration['Captcha_Service'] ?? 'turnstile') === 'turnstile'
+			&& !empty($configuration['Turnstile_SiteKey']) && !empty($configuration['Turnstile_SecretKey']);
+	}
+
+	public static function apply(string $surface, array $configuration): void
+	{
+		if (headers_sent()) return;
+		$enabled = self::turnstileEnabled($configuration);
+		header('Content-Security-Policy: ' . self::enforced($surface, $enabled));
+		header('Content-Security-Policy-Report-Only: ' . self::reportOnly($surface, $enabled));
+	}
+
+	public static function enforced(string $surface = 'error', bool $turnstile = false): string
+	{
+		$external = $turnstile && !in_array($surface, ['error','technical','configurator'], true) ? ' https://challenges.cloudflare.com' : '';
+		return "default-src 'self'; script-src 'self' 'unsafe-inline'$external; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:$external; media-src 'self' blob:; connect-src 'self'$external; frame-src " . ($external !== '' ? trim($external) : "'none'") . "; form-action 'self'" . ($surface === 'payment' ? ' https:' : '') . "; object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
+	}
+
+	public static function reportOnly(string $surface, bool $configuredTurnstile = false): string
 	{
 		$nonce = self::nonce();
 		if (!preg_match('~^[A-Za-z0-9+/]{24}$~D', $nonce))
 			throw new \InvalidArgumentException('Invalid CSP nonce');
 		$minimal = in_array($surface, array('technical', 'error'), true);
-		$turnstile = in_array($surface, array('public', 'authentication', 'account', 'administration', 'payment'), true);
-		$media = in_array($surface, array('public', 'administration'), true);
+		$turnstile = $configuredTurnstile && in_array($surface, array('public', 'authentication', 'account', 'administration', 'payment'), true);
 		$script = $minimal ? "script-src 'none'"
 			: "script-src 'self' 'nonce-$nonce'" . ($turnstile ? ' https://challenges.cloudflare.com' : '');
-		$styleSources = "'self'" . ($minimal ? '' : ' https://fonts.googleapis.com https://cdnjs.cloudflare.com');
+		$styleSources = "'self'";
 		$directives = array(
 			"default-src 'self'",
 			$script,
@@ -49,12 +68,11 @@ final class ContentSecurityPolicy
 			"style-src $styleSources",
 			"style-src-elem $styleSources",
 			"style-src-attr " . ($minimal ? "'none'" : "'unsafe-inline'"),
-			"font-src 'self'" . ($minimal ? '' : ' https://fonts.gstatic.com https://cdnjs.cloudflare.com'),
+			"font-src 'self'",
 			"img-src 'self' data:" . ($turnstile ? ' https://challenges.cloudflare.com' : ''),
 			"media-src 'self' blob:",
 			"connect-src 'self'" . ($turnstile ? ' https://challenges.cloudflare.com' : ''),
-			"frame-src " . ($turnstile ? 'https://challenges.cloudflare.com' : "'none'")
-				. ($media ? ' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com' : ''),
+			"frame-src " . ($turnstile ? 'https://challenges.cloudflare.com' : "'none'"),
 			"form-action 'self'" . ($surface === 'payment' ? ' https:' : ''),
 			"object-src 'none'",
 			"base-uri 'self'",

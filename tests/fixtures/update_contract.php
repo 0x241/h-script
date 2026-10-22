@@ -1,5 +1,7 @@
 <?php
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 function updateTestCompatibility(string $minApp, string $maxApp, string $minSchema, string $maxSchema): array
 {
 	$data = json_decode(file_get_contents(dirname(__DIR__, 2) . '/resources/update-compatibility.json'), true, 32, JSON_THROW_ON_ERROR);

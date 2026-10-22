@@ -1,6 +1,9 @@
 <?php
 
 use HScript\Template\View;
+use HScript\Finance\FinancialForm;
+use HScript\Finance\RequestDecimal;
+use HScript\Finance\ManualCharge;
 
 $_auth = 90;
 require_once('module/auth.php');
@@ -18,43 +21,27 @@ if ($_cfg['Depo_ChargeMode'] == 2)
 
 		if (isset_IN('ids'))
 		{
-			$ids = $db->fetchRows($db->select($table, $id_field, '?# ?i', array($id_field, (array)_IN('ids'))), 1);
-			if (count($ids) > 0)
-			{
-				View::checkFormSecurity();
-
-                //--add to cron for manual---
-                $p = (array)_IN('p'); // percents
-                foreach ($ids as $pid) {
-                    $did = $db->fetch1($db->select('Deps','dID','dpID=?d and dState=1',array($pid),'dID desc',1));
-                    if ($did and ($p[$pid]>0))
-                        $db->update('Plans',array('pmndID'=>$did, 'pmnPerc'=>$p[$pid],'pmndIDdone'=>0),'','pID=?d',array($pid));
-                }
-                //----------------------------
-
-				if (!$cdate)
-					View::setError('date_wrong');
-				$p = (array)_IN('p'); // percents
-				$t = time();
-				$n = 0;
-				foreach ($ids as $pid) {
-					$dl = $db->select('Deps LEFT JOIN Plans ON pID=dpID LEFT JOIN Users ON uID=duID', '*', 
-						'dID>pmndIDdone and dpID=?d and dState=1 and (dNPer<pNPer or pNPer=0) and dNTS<=? and dLTS<=?'
-						, array($pid, timeToStamp(), timeToStamp(time() - 10 * HS2_UNIX_MINUTE)),'dID');
-					while ((abs(time() - $t) < 30) and ($d = $db->fetch($dl)))
-					{
-						opDepoCharge($d, $p[$pid], $cdate);
-						$db->update('Plans',array('pmndIDdone'=>$d['dID']),'','pID=?d',array($d['pID']));
-						$n++;
-					}
-				}
-				View::showInfo('Completed', moduleToLink() . "?done=$n");
-			}
-			else
-				View::showInfo('*NoSelected');
+			FinancialForm::check('admin:depo:charge');
+			$ids = array_values(array_unique(array_map('intval', (array)_IN('ids'))));
+			sort($ids, SORT_NUMERIC);
+			$p = (array)_IN('p'); // percents
+			$percentages = [];
+			foreach ($ids as $pid) $percentages[$pid] = RequestDecimal::normalize($p[$pid] ?? 0, true);
+			$boundary = filter_var(_IN('financial_boundary'), FILTER_VALIDATE_INT);
+			if (!$boundary || $boundary < 1) View::setError('date_wrong');
+			$response = FinancialForm::execute('admin:depo:charge', ['plan_ids'=>$ids, 'percentages'=>$percentages, 'boundary'=>$boundary], static function () use ($ids, $percentages, $boundary, $cdate) {
+				return ManualCharge::run($ids, $percentages, $boundary, $cdate);
+			});
+			View::setError($response);
+			View::showInfo($response['info'], moduleToLink() . '?done=' . $response['done']);
 		}
 
 	} 
+	catch (InvalidArgumentException|OverflowException $e)
+	{
+		http_response_code(422);
+		xSysStop('Invalid financial percentage', true);
+	}
 	catch (FormAbortException $e)
 {
 }
@@ -67,6 +54,7 @@ if ($_cfg['Depo_ChargeMode'] == 2)
 
 	View::setPage('list', $list);
 	View::setPage('cdate', View::timeToStr($cdate, 1));
+	View::setPage('charge_boundary', $cdate);
 
 }
 

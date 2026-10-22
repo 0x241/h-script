@@ -2,6 +2,8 @@
 
 // Replace only network primitives in this process; assert the real client's policy.
 namespace HScript\Telemetry {
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 	function curl_init(string $url): object { $GLOBALS['proof_url'] = $url; return new \stdClass(); }
 	function curl_setopt_array($handle, array $options): bool { $GLOBALS['proof_options'] = $options; return true; }
 	function curl_exec($handle): bool {
@@ -22,6 +24,7 @@ namespace {
 	use HScript\Telemetry\DomainProofService;
 	use HScript\Telemetry\TelemetryClientInterface;
 	use HScript\Telemetry\TelemetryReporter;
+use HScript\Telemetry\TelemetryAttemptGate;
 
 	require dirname(__DIR__) . '/vendor/autoload.php';
 	$checks = 0;
@@ -116,7 +119,10 @@ namespace {
 			return array('ok' => true, 'status' => 200, 'data' => $data);
 		}
 	};
-	$reporter = new TelemetryReporter($db, array(), 'example.org', $client);
+	$gate = new class($db) extends TelemetryAttemptGate {
+		public function claim(bool $manual = false): array { return ['allowed' => true, 'retry_after' => 0]; }
+	};
+	$reporter = new TelemetryReporter($db, array(), 'example.org', $client, $gate);
 	$assert($reporter->register()['ok'], 'Registration failed');
 	$assert($client->proofCalls === 2 && $db->config['Telemetry_DomainVerifiedUntil'] > time(), 'Handshake incomplete');
 	$assert(json_decode($db->config['Telemetry_PublicMetrics'], true)['platforms'] === 1, 'Verified eligibility not reflected in cached metrics');
@@ -124,7 +130,7 @@ namespace {
 	$reporter->report();
 	$assert($client->proofCalls === 2, 'Fresh proof re-requested');
 	$client->fail = true;
-	$changed = new TelemetryReporter($db, $db->config, 'changed.org', $client);
+	$changed = new TelemetryReporter($db, $db->config, 'changed.org', $client, $gate);
 	$assert($changed->register()['ok'], 'Proof outage broke registration');
 	$assert((int)$db->config['Telemetry_DomainVerifiedUntil'] === 0, 'Domain change preserved verification');
 	$assert($db->config['Telemetry_DomainProofError'] === 'proof_local_error', 'Proof failure not recorded');

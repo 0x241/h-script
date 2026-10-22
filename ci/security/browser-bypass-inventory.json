@@ -1,17 +1,17 @@
 [
     {
         "path": "module/_config/_header.php",
-        "line": 81,
+        "line": 80,
         "kind": "php_script_tag",
         "count": 1,
         "sha256": "1e9f13863a158aceb5a2a41f2056dce2d799b102f998c627ef79df605f43c7a8"
     },
     {
         "path": "module/_config/_header.php",
-        "line": 82,
+        "line": 81,
         "kind": "php_script_tag",
         "count": 1,
-        "sha256": "1bd642326e4997a8d6be1ed1b8cd574e71537577684d6397b7cfffbd3765e7b6"
+        "sha256": "8460374317dcffedacee9c42a7fc6f3af247b6a71769a9390b3f5d01a4a95a2e"
     },
     {
         "path": "module/_config/security.php",
@@ -32,39 +32,46 @@
         "line": 319,
         "kind": "twig_safe_html_registration",
         "count": 1,
-        "sha256": "8eb7ba4e4778c315543b8258dc3dcbddf0bf7a3efeedecef83773ee14cd8ab58"
+        "sha256": "8158d619b034dd28ec414acb34ed91f52ecf0c7585fa112f8f8bd63e8b5afe86"
     },
     {
         "path": "src/Template/View.php",
         "line": 320,
         "kind": "twig_safe_html_registration",
         "count": 1,
+        "sha256": "8eb7ba4e4778c315543b8258dc3dcbddf0bf7a3efeedecef83773ee14cd8ab58"
+    },
+    {
+        "path": "src/Template/View.php",
+        "line": 321,
+        "kind": "twig_safe_html_registration",
+        "count": 1,
         "sha256": "bb0c6b456679ebe2dde9001f7212e98e0da5caf5934750483f79369f100a83ff"
     },
     {
         "path": "src/Template/View.php",
-        "line": 322,
+        "line": 323,
         "kind": "twig_safe_html_registration",
         "count": 1,
         "sha256": "21e9913b957311289c415f23d2441b9becb88ea40bb547798465e89d7b065245"
     },
     {
         "path": "src/Template/View.php",
-        "line": 415,
+        "line": 416,
         "kind": "twig_safe_html_registration",
         "count": 1,
         "sha256": "721846372521b973f1e1467f1151e3dcba1e6efeb61af4f1624a935e23a5b261"
     },
     {
         "path": "src/Template/View.php",
-        "line": 433,
+        "line": 437,
         "kind": "twig_safe_html_registration",
         "count": 1,
         "sha256": "0779499e68a21fb3f702aa5e604c6d124a804fa90e01351e0b2f2b5e87ca29de"
     },
     {
         "path": "src/Template/View.php",
-        "line": 441,
+        "line": 445,
         "kind": "twig_safe_html_registration",
         "count": 1,
         "sha256": "721846372521b973f1e1467f1151e3dcba1e6efeb61af4f1624a935e23a5b261"
@@ -99,17 +106,17 @@
     },
     {
         "path": "tpl/admin/header.twig",
-        "line": 32,
+        "line": 31,
         "kind": "script_tag",
         "count": 1,
         "sha256": "1e9f13863a158aceb5a2a41f2056dce2d799b102f998c627ef79df605f43c7a8"
     },
     {
         "path": "tpl/admin/header.twig",
-        "line": 33,
+        "line": 32,
         "kind": "script_tag",
         "count": 1,
-        "sha256": "824a8436a52e210a02eb4cb709532119bc98b3cbb60593a983fc3295463ae28b"
+        "sha256": "8460374317dcffedacee9c42a7fc6f3af247b6a71769a9390b3f5d01a4a95a2e"
     },
     {
         "path": "tpl/admin/list.block.twig",
@@ -123,7 +130,7 @@
         "line": 65,
         "kind": "twig_sanitized_html",
         "count": 1,
-        "sha256": "84190724efd523918db572df93abe6c45cd580a2f3a966fbb425e4b8e9da7ac6"
+        "sha256": "7c3a9cdc5e94ac83df1d0051567bb84aeef87321ed1710ff2da851a82bea574a"
     },
     {
         "path": "tpl/admin/list.block.twig",
@@ -134,17 +141,17 @@
     },
     {
         "path": "tpl/base.twig",
-        "line": 22,
+        "line": 21,
         "kind": "script_tag",
         "count": 1,
         "sha256": "1e9f13863a158aceb5a2a41f2056dce2d799b102f998c627ef79df605f43c7a8"
     },
     {
         "path": "tpl/base.twig",
-        "line": 23,
+        "line": 22,
         "kind": "script_tag",
         "count": 1,
-        "sha256": "824a8436a52e210a02eb4cb709532119bc98b3cbb60593a983fc3295463ae28b"
+        "sha256": "8460374317dcffedacee9c42a7fc6f3af247b6a71769a9390b3f5d01a4a95a2e"
     },
     {
         "path": "tpl/edit.field.twig",
@@ -211,56 +218,56 @@
     },
     {
         "path": "tpl/external/auth.header.twig",
-        "line": 22,
+        "line": 21,
         "kind": "script_tag",
         "count": 1,
         "sha256": "1e9f13863a158aceb5a2a41f2056dce2d799b102f998c627ef79df605f43c7a8"
     },
     {
         "path": "tpl/external/auth.header.twig",
-        "line": 23,
+        "line": 22,
         "kind": "script_tag",
         "count": 1,
-        "sha256": "824a8436a52e210a02eb4cb709532119bc98b3cbb60593a983fc3295463ae28b"
+        "sha256": "d9f43c7d0903df88af0bd592985bafe33d9daeafc13c877c7141e66fdd784db7"
     },
     {
         "path": "tpl/external/header.twig",
-        "line": 57,
+        "line": 56,
         "kind": "script_tag",
         "count": 1,
         "sha256": "1e9f13863a158aceb5a2a41f2056dce2d799b102f998c627ef79df605f43c7a8"
     },
     {
         "path": "tpl/external/header.twig",
-        "line": 58,
+        "line": 57,
         "kind": "script_tag",
         "count": 1,
-        "sha256": "824a8436a52e210a02eb4cb709532119bc98b3cbb60593a983fc3295463ae28b"
+        "sha256": "d9f43c7d0903df88af0bd592985bafe33d9daeafc13c877c7141e66fdd784db7"
     },
     {
         "path": "tpl/external/header.twig",
-        "line": 59,
+        "line": 58,
         "kind": "script_tag",
         "count": 1,
         "sha256": "a494dd166d1c8e68cff0d6abd1a0bdf31df1d09899230b566b9938cf459e0462"
     },
     {
         "path": "tpl/external/header.twig",
-        "line": 67,
+        "line": 66,
         "kind": "twig_raw",
         "count": 1,
         "sha256": "0114e3438f3ac920a6afa30b29acfd19a4b6fdfc225a5ec664c4246230ae0c42"
     },
     {
         "path": "tpl/external/header.twig",
-        "line": 68,
+        "line": 67,
         "kind": "script_tag",
         "count": 1,
         "sha256": "ffd7c001c4015727705b74d00a7314cfae1801ac58ce38cf6a87b0deec194d3f"
     },
     {
         "path": "tpl/external/header.twig",
-        "line": 68,
+        "line": 67,
         "kind": "twig_raw",
         "count": 1,
         "sha256": "ffd7c001c4015727705b74d00a7314cfae1801ac58ce38cf6a87b0deec194d3f"
@@ -274,17 +281,17 @@
     },
     {
         "path": "tpl/header.twig",
-        "line": 38,
+        "line": 37,
         "kind": "script_tag",
         "count": 1,
         "sha256": "1e9f13863a158aceb5a2a41f2056dce2d799b102f998c627ef79df605f43c7a8"
     },
     {
         "path": "tpl/header.twig",
-        "line": 39,
+        "line": 38,
         "kind": "script_tag",
         "count": 1,
-        "sha256": "824a8436a52e210a02eb4cb709532119bc98b3cbb60593a983fc3295463ae28b"
+        "sha256": "8460374317dcffedacee9c42a7fc6f3af247b6a71769a9390b3f5d01a4a95a2e"
     },
     {
         "path": "tpl/news/show.twig",

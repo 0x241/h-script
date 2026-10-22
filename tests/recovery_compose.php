@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 const POLICY_KEYS = array(
     'RECOVERY_CMS_RPO_SECONDS', 'RECOVERY_CMS_RTO_SECONDS',
     'RECOVERY_COLLECTOR_RPO_SECONDS', 'RECOVERY_COLLECTOR_RTO_SECONDS',
@@ -11,7 +13,11 @@ const POLICY_KEYS = array(
 function policyValid(array $config, bool $overrides = false): bool
 {
     $app = $config['services']['app']['environment'] ?? array();
+    $cron = $config['services']['cron']['environment'] ?? array();
     $worker = $config['services']['recovery']['environment'] ?? array();
+    // Cron and recovery share the app's persistent config volume but must not write it.
+    if ((string)($cron['APP_GENERATE_CONFIG'] ?? '') !== '0'
+        || (string)($worker['APP_GENERATE_CONFIG'] ?? '') !== '0') return false;
     foreach (POLICY_KEYS as $key) {
         $value = $app[$key] ?? null;
         if ((!is_string($value) && !is_int($value)) || !ctype_digit((string)$value) || (int)$value < 1
@@ -28,9 +34,13 @@ function policyValid(array $config, bool $overrides = false): bool
 try {
     if (($argv[1] ?? '') === '--self-test') {
         $environment = array_fill_keys(POLICY_KEYS, '3600');
-        $valid = array('services'=>array('app'=>array('environment'=>$environment, 'volumes'=>array()), 'recovery'=>array('environment'=>$environment)));
+        $valid = array('services'=>array('app'=>array('environment'=>$environment, 'volumes'=>array()),
+            'cron'=>array('environment'=>array('APP_GENERATE_CONFIG'=>'0')),
+            'recovery'=>array('environment'=>$environment + array('APP_GENERATE_CONFIG'=>'0'))));
         if (!policyValid($valid) || policyValid($valid, true)) throw new RuntimeException();
         $cases = array();
+        $case = $valid; $case['services']['cron']['environment']['APP_GENERATE_CONFIG'] = '1'; $cases[] = $case;
+        $case = $valid; $case['services']['recovery']['environment']['APP_GENERATE_CONFIG'] = '1'; $cases[] = $case;
         $case = $valid; unset($case['services']['app']['environment'][POLICY_KEYS[0]]); $cases[] = $case;
         $case = $valid; $case['services']['recovery']['environment'][POLICY_KEYS[0]] = '1'; $cases[] = $case;
         foreach (array('0', '-1', '1.5', 'invalid') as $bad) {

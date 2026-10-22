@@ -1,5 +1,7 @@
 <?php
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 use HScript\Application;
 use HScript\Database\Connection;
 use HScript\Telemetry\CollectorMode;
@@ -12,10 +14,15 @@ use HScript\Telemetry\ServiceTokenListQuery;
 use HScript\Telemetry\TelemetryPayloadValidator;
 use HScript\Telemetry\TelemetryClientInterface;
 use HScript\Telemetry\TelemetryReporter;
+use HScript\Telemetry\TelemetryAttemptGate;
 use HScript\Telemetry\TelemetryServiceTokenRepository;
 use HScript\Telemetry\TelemetryValidationException;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
+
+final class PayloadTestAttemptGate extends TelemetryAttemptGate {
+    public function claim(bool $manual = false): array { return ['allowed' => true, 'retry_after' => 0]; }
+}
 
 function telemetryAssert(bool $condition, string $message): void
 {
@@ -569,10 +576,10 @@ $validReport = array(
 );
 telemetryAssert($validator->report($validReport, $validationNow)['public_stats']['users_total'] === 25, 'Valid report payload was rejected');
 foreach (array(
-	array('payload' => array_replace($validReport, array('schema_version' => 2)), 'code' => 'field_range_invalid'),
+	array('payload' => array_replace($validReport, array('schema_version' => 3)), 'code' => 'field_range_invalid'),
 	array('payload' => array_replace($validReport, array('reported_at' => $validationNow - 259200, 'sequence' => intdiv($validationNow - 259200, 86400))), 'code' => 'field_range_invalid'),
 	array('payload' => array_replace($validReport, array('public_stats' => array_replace($publicStats, array('cash_in_base' => -1)))), 'code' => 'field_range_invalid'),
-	array('payload' => array_replace($validReport, array('public_stats' => array_replace($publicStats, array('cash_in_base' => NAN)))), 'code' => 'field_type_invalid'),
+	array('payload' => array_replace($validReport, array('public_stats' => array_replace($publicStats, array('cash_in_base' => NAN)))), 'code' => 'field_range_invalid'),
 	array('payload' => array_replace($validReport, array('public_stats' => array_replace($publicStats, array('users_total' => 1000000001)))), 'code' => 'field_range_invalid'),
 ) as $invalidCase)
 {
@@ -607,12 +614,12 @@ $reporterClient = new TelemetryFakeClient();
 $reporter = new TelemetryReporter($reporterDb, array(
 	'Telemetry_SharePublicStats' => 1,
 	'Telemetry_Registered' => 0,
-), 'reporter.example.org', $reporterClient);
+), 'reporter.example.org', $reporterClient, new PayloadTestAttemptGate($reporterDb));
 telemetryAssert($reporter->register()['ok'], 'Mandatory registration failed');
 $registrationRequest = $reporterClient->requests[0];
 telemetryAssert($registrationRequest['path'] === 'register', 'Reporter used the wrong registration route');
 telemetryAssert(!array_key_exists('ip', $registrationRequest['payload']), 'Reporter submitted a client IP');
-telemetryAssert($registrationRequest['payload']['schema_version'] === 1, 'Reporter omitted contract schema version');
+telemetryAssert($registrationRequest['payload']['schema_version'] === 2, 'Reporter omitted contract schema version');
 telemetryAssert(preg_match('/^hsi_[a-f0-9]{64}$/', $registrationRequest['token']) === 1, 'Reporter token was not generated');
 telemetryAssert(isset($reporterDb->config['Telemetry_InstallationID'], $reporterDb->config['Telemetry_Token']), 'Identity was not persisted before registration');
 telemetryAssert(($reporterDb->config['Telemetry_DnsStatus'] ?? '') === 'matched', 'Reporter did not persist DNS status');
@@ -629,12 +636,12 @@ $demoReporter = new TelemetryReporter(new TelemetryFakeConnection(), array(
 	'Telemetry_SharePublicStats' => 1,
 	'Telemetry_Registered' => 1,
 	'demo_mode' => '1',
-), 'demo.example.org', $demoClient);
+), 'demo.example.org', $demoClient, new PayloadTestAttemptGate($reporterDb));
 $demoReporter->report($publicStats);
 telemetryAssert($demoClient->requests[0]['payload']['stats_consent'] === false, 'Demo aggregates were not isolated');
 telemetryAssert(!isset($demoClient->requests[0]['payload']['public_stats']), 'Demo aggregates entered an external report');
 $offlineDb = new TelemetryFakeConnection();
-$offlineResult = (new TelemetryReporter($offlineDb, array(), 'offline.example.org', new TelemetryFakeClient(false)))->register();
+$offlineResult = (new TelemetryReporter($offlineDb, array(), 'offline.example.org', new TelemetryFakeClient(false), new PayloadTestAttemptGate($offlineDb)))->register();
 telemetryAssert(!$offlineResult['ok'], 'Unavailable collector was reported as available');
 telemetryAssert(isset($offlineDb->config['Telemetry_InstallationID'], $offlineDb->config['Telemetry_Token']), 'Fail-open registration did not persist identity');
 telemetryAssert((int)($offlineDb->config['Telemetry_NextAttemptAt'] ?? 0) > time(), 'Fail-open registration did not schedule a retry');
@@ -713,7 +720,7 @@ foreach (array(
 }
 
 telemetryAssert($publicStats['users_total'] === 25, 'Public user count is invalid');
-telemetryAssert($publicStats['cash_in_by_currency']['BTC'] === 0.25, 'Currency aggregate is invalid');
+telemetryAssert($publicStats['cash_in_by_currency']['BTC'] === '0.25000000', 'Currency aggregate is invalid');
 telemetryAssert(!isset($publicStats['lastuser']), 'Last user leaked into telemetry');
 telemetryAssert(!isset($publicStats['lastinop']), 'Last operation leaked into telemetry');
 
@@ -788,12 +795,12 @@ telemetryAssert(
 	'Worked days were not derived from the installation date'
 );
 telemetryAssert(
-	$dashboard['installations'][0]['public_stats']['cash_in_by_currency']['BTC'] === 0.25,
+	$dashboard['installations'][0]['public_stats']['cash_in_by_currency']['BTC'] === '0.25000000',
 	'Per-installation top-up totals are missing'
 );
 
 $metrics = $repository->publicMetrics();
-telemetryAssert($metrics['processed'] === 100.5, 'Processed amount is invalid');
+telemetryAssert($metrics['processed'] === '100.50000000', 'Processed amount is invalid');
 telemetryAssert($metrics['processed_currency'] === 'USD', 'Processed currency is invalid');
 telemetryAssert($metrics['platforms'] === 1, 'Public platform count is invalid');
 
@@ -807,8 +814,8 @@ telemetryAssert(
 	'Duplicate-domain installation was not recorded for audit'
 );
 $inflatedStats = array_replace($publicStats, array(
-	'cash_in_base' => 9999999,
-	'cash_in_by_currency' => array('USD' => 9999999),
+	'cash_in_base' => '9999999.00000000',
+	'cash_in_by_currency' => array('USD' => '9999999.00000000'),
 ));
 telemetryAssert(
 	$repository->report(array_replace($report, array(
@@ -828,7 +835,7 @@ telemetryAssert(
 	'Duplicate domain inflated the public platform count'
 );
 telemetryAssert(
-	$repository->publicMetrics()['processed'] === 100.5,
+	$repository->publicMetrics()['processed'] === '100.50000000',
 	'Duplicate domain inflated the public processed amount'
 );
 
@@ -859,7 +866,7 @@ telemetryAssert(
 	'Local development domain inflated the public platform count'
 );
 telemetryAssert(
-	$repository->publicMetrics()['processed'] === 100.5,
+	$repository->publicMetrics()['processed'] === '100.50000000',
 	'Local development domain inflated the public processed amount'
 );
 
@@ -879,7 +886,7 @@ foreach (array('mismatch' => 'e', 'unresolved' => 'f', 'invalid' => '1') as $sta
 		'Non-matched heartbeat was not retained'
 	);
 }
-telemetryAssert($repository->publicMetrics()['processed'] === 100.5, 'Non-matched DNS status entered public totals');
+telemetryAssert($repository->publicMetrics()['processed'] === '100.50000000', 'Non-matched DNS status entered public totals');
 
 $serviceTokenRepository = new TelemetryServiceTokenRepository($db);
 $lowerLevelRejected = false;

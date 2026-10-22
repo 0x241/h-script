@@ -1,6 +1,6 @@
 {
   "name": "h-script",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "private": true,
   "description": "H-Script application packaged for Docker Compose.",
   "type": "module",
@@ -20,5 +20,8 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.2",
     "tailwindcss": "^4.3.2"
+  },
+  "overrides": {
+    "@parcel/watcher": "2.6.0"
   }
 }

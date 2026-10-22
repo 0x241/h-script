@@ -1,5 +1,7 @@
 <?php
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 use HScript\Database\Connection;
 use HScript\Http\ApiRateLimiter;
 use HScript\Http\ApiRequest;

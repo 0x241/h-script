@@ -5,7 +5,7 @@ namespace HScript\Telemetry;
 /** Strictly validates the self-reported installation telemetry contract. */
 final class TelemetryPayloadValidator
 {
-	public const SCHEMA_VERSION = 1;
+	public const SCHEMA_VERSION = 2;
 	public const MAX_BODY_BYTES = 65536;
 	private const MAX_COUNTER = 1000000000;
 	private const MAX_AMOUNT = 1000000000000000.0;
@@ -34,12 +34,13 @@ final class TelemetryPayloadValidator
 		));
 		$now ??= time();
 		$consent = $this->boolean($input, 'stats_consent');
+		$schema = $this->schemaVersion($input);
 		$stats = null;
 		if (array_key_exists('public_stats', $input))
 		{
 			if (!$consent)
 				$this->fail('field_not_allowed', 'Public statistics require consent', 'public_stats');
-			$stats = $this->publicStats($input['public_stats']);
+			$stats = $this->publicStats($input['public_stats'], $schema);
 		}
 		$sequence = $this->integer($input, 'sequence', 1, intdiv($now + 300, 86400));
 		$reportedAt = $this->timestamp($input, 'reported_at', $now - 172800, $now + 300);
@@ -57,7 +58,7 @@ final class TelemetryPayloadValidator
 		);
 	}
 
-	private function publicStats(mixed $value): array
+	private function publicStats(mixed $value, int $schema): array
 	{
 		if (!is_array($value) || array_is_list($value))
 			$this->fail('field_type_invalid', 'Public statistics must be an object', 'public_stats');
@@ -71,7 +72,7 @@ final class TelemetryPayloadValidator
 		foreach (array('worked_days', 'users_total', 'users_online', 'active_deposits', 'closed_deposits') as $field)
 			$result[$field] = $this->integer($value, $field, 0, self::MAX_COUNTER, 'public_stats.');
 		foreach (array('cash_in_base', 'cash_out_base', 'referral_paid_base', 'reinvested_base') as $field)
-			$result[$field] = $this->number($value, $field, 'public_stats.');
+			$result[$field] = $schema === 1 ? $this->number($value, $field, 'public_stats.') : $this->decimal($value[$field], 'public_stats.' . $field);
 
 		$currency = $this->string($value, 'base_currency', 0, 10, 'public_stats.');
 		$currency = strtoupper($currency);
@@ -79,11 +80,11 @@ final class TelemetryPayloadValidator
 			$this->fail('field_format_invalid', 'Invalid base currency', 'public_stats.base_currency');
 		$result['base_currency'] = $currency;
 		foreach (array('cash_in_by_currency', 'cash_out_by_currency') as $field)
-			$result[$field] = $this->amountMap($value[$field], 'public_stats.' . $field);
+			$result[$field] = $this->amountMap($value[$field], 'public_stats.' . $field, $schema);
 		return $result;
 	}
 
-	private function amountMap(mixed $value, string $field): array
+	private function amountMap(mixed $value, string $field, int $schema): array
 	{
 		if (!is_array($value) || ($value !== array() && array_is_list($value)) || count($value) > 20)
 			$this->fail('field_type_invalid', 'Currency statistics must be an object with at most 20 entries', $field);
@@ -92,6 +93,10 @@ final class TelemetryPayloadValidator
 		{
 			if (!is_string($currency) || !preg_match('/^[A-Z0-9]{2,10}$/', $currency))
 				$this->fail('field_format_invalid', 'Invalid currency code', $field);
+			if ($schema === 2) {
+				$result[$currency] = $this->decimal($amount, $field . '.' . $currency);
+				continue;
+			}
 			if ((!is_int($amount) && !is_float($amount)) || !is_finite((float)$amount) || $amount < 0 || $amount > self::MAX_AMOUNT)
 				$this->fail('field_range_invalid', 'Invalid currency amount', $field . '.' . $currency);
 			$result[$currency] = (float)$amount;
@@ -121,7 +126,7 @@ final class TelemetryPayloadValidator
 
 	private function schemaVersion(array $input): int
 	{
-		$value = $this->integer($input, 'schema_version', self::SCHEMA_VERSION, self::SCHEMA_VERSION);
+		$value = $this->integer($input, 'schema_version', 1, self::SCHEMA_VERSION);
 		return $value;
 	}
 
@@ -182,6 +187,13 @@ final class TelemetryPayloadValidator
 		return $this->integer($input, $field, $minimum, $maximum);
 	}
 
+	private function decimal(mixed $value, string $field): string
+	{
+		try { return TelemetryAmount::wire($value); }
+		catch (\InvalidArgumentException) { $this->fail('field_range_invalid', 'Telemetry amount must be canonical fixed8 text within the allowed range', $field); }
+	}
+
+	/** Immutable schema1 validation types/order preserve existing report hash and replay. */
 	private function number(array $input, string $field, string $prefix): float
 	{
 		$value = $input[$field] ?? null;

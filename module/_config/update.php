@@ -159,9 +159,13 @@ $dockerUpdatePending = $deploymentMode === 'docker'
 	&& ($recordedCmsVersion !== $currentCmsVersion || $installedSchemaVersion !== $targetSchemaVersion);
 $latestRunState = (string)($latestRun['urState'] ?? '');
 $preparedClassification = (string)($prepared['manifest']['classification'] ?? '');
-$databaseWillChange = $preparedClassification !== ''
+$databaseWillChange = $deploymentMode === 'docker'
+	? $installedSchemaVersion !== '—' && $installedSchemaVersion !== $targetSchemaVersion
+	: ($preparedClassification !== ''
 	? $preparedClassification !== 'code-only'
-	: $installedSchemaVersion !== '—' && $installedSchemaVersion !== $targetSchemaVersion;
+	: $installedSchemaVersion !== '—' && $installedSchemaVersion !== $targetSchemaVersion);
+$recoveryChecksRequired = strtolower(trim((string)getenv('APP_ENV'))) === 'production'
+	|| in_array(strtolower((string)getenv('RECOVERY_ENABLED')), array('1', 'true', 'yes', 'on'), true);
 $statusTone = 'emerald';
 $statusIcon = 'fa-circle-check';
 $statusTitle = cfg_t('configurator.update.ready_to_check_for_updates');
@@ -266,6 +270,16 @@ include('module/_config/_header.php');
 	<?php } elseif ($deploymentMode === 'docker') { ?>
 		<section class="rounded-lg border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#151515]">
 			<div class="flex items-start gap-4"><span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><i class="fa-brands fa-docker" aria-hidden="true"></i></span><div><h2 class="text-lg font-extrabold text-brand dark:text-white"><?php echo cfg_t('configurator.update.update_through_a_docker_image'); ?></h2><p class="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400"><?php echo cfg_t('configurator.update.first_change_the_exact_official_image_tag_after_the_new_container_starts_return'); ?></p></div></div>
+			<?php if ($dockerUpdatePending && $databaseWillChange && $recoveryChecksRequired) { ?>
+				<aside class="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-5 text-blue-950 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-100">
+					<strong class="block text-sm font-extrabold"><?php echo cfg_t('configurator.update.recovery.bundle_required_title'); ?></strong>
+					<p class="mt-2 text-xs font-medium"><?php echo cfg_t('configurator.update.recovery.sql_backup_difference'); ?></p>
+					<details class="mt-4 text-xs"><summary class="cursor-pointer font-extrabold"><?php echo cfg_t('configurator.update.recovery.run_once_title'); ?></summary>
+						<p class="mt-3 font-medium"><?php echo cfg_t('configurator.update.recovery.run_once_requirements'); ?></p>
+						<pre class="mt-3 overflow-x-auto rounded-lg bg-gray-950 p-4 text-xs text-gray-100"><code>docker compose run --rm --no-deps -e RECOVERY_ENABLED=1 -e RECOVERY_RUN_ONCE=1 recovery</code></pre>
+					</details>
+				</aside>
+			<?php } ?>
 			<?php if ($schemaGateReason !== 'unsupported_source_version' && $dockerUpdatePending) { ?>
 				<form method="post" hx-boost="false" class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-5 dark:border-amber-500/30 dark:bg-amber-500/10">
 					<input type="hidden" name="csrf" value="<?php echo htmlspecialchars($updateCsrf, ENT_QUOTES, 'UTF-8'); ?>">

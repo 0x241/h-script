@@ -1,0 +1,5228 @@
+{
+  "valid": [
+    {
+      "input": {
+        "pMin": "572330,333044",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "-93628,90",
+        "pMinAdd": "-8135185,207322",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "572330.333044",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-93628.90",
+        "pMinAdd": "-8135185.207322",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1559136.495664e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "78272.09e0",
+        "pReturn": "-47338.57e0",
+        "pBonus": "34121.88e0",
+        "pMinAdd": "8832110.788673e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "1559136.495664",
+        "pMax": "9999999.999999",
+        "pPerc": "78272.09",
+        "pReturn": "-47338.57",
+        "pBonus": "34121.88",
+        "pMinAdd": "8832110.788673",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1436322.267722",
+        "pMax": "9999999.999999",
+        "pPerc": "36191.51",
+        "pReturn": "-73906.00",
+        "pBonus": "73377.89",
+        "pMinAdd": "-5621895.062260",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1436322.267722",
+        "pMax": "9999999.999999",
+        "pPerc": "36191.51",
+        "pReturn": "-73906.00",
+        "pBonus": "73377.89",
+        "pMinAdd": "-5621895.062260",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1734986,648975",
+        "pMax": "9999999,999999",
+        "pPerc": "15937,77",
+        "pReturn": "-24476,94",
+        "pBonus": "-47116,20",
+        "pMinAdd": "-2149314,005088",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1734986.648975",
+        "pMax": "9999999.999999",
+        "pPerc": "15937.77",
+        "pReturn": "-24476.94",
+        "pBonus": "-47116.20",
+        "pMinAdd": "-2149314.005088",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3091074.640061e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "-18419.25e0",
+        "pMinAdd": "1823825.100546e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "3091074.640061",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-18419.25",
+        "pMinAdd": "1823825.100546",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7942994.308789",
+        "pMax": "9999999.999999",
+        "pPerc": "42375.54",
+        "pReturn": "15049.54",
+        "pBonus": "95704.12",
+        "pMinAdd": "6610232.660716",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "7942994.308789",
+        "pMax": "9999999.999999",
+        "pPerc": "42375.54",
+        "pReturn": "15049.54",
+        "pBonus": "95704.12",
+        "pMinAdd": "6610232.660716",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6325191,697668",
+        "pMax": "9999999,999999",
+        "pPerc": "25572,73",
+        "pReturn": "95351,36",
+        "pBonus": "-70009,40",
+        "pMinAdd": "8985192,833603",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "6325191.697668",
+        "pMax": "9999999.999999",
+        "pPerc": "25572.73",
+        "pReturn": "95351.36",
+        "pBonus": "-70009.40",
+        "pMinAdd": "8985192.833603",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6163768.444369e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "47063.24e0",
+        "pReturn": "-17805.49e0",
+        "pBonus": "20952.47e0",
+        "pMinAdd": "4322152.164452e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "6163768.444369",
+        "pMax": "9999999.999999",
+        "pPerc": "47063.24",
+        "pReturn": "-17805.49",
+        "pBonus": "20952.47",
+        "pMinAdd": "4322152.164452",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1724332.071076",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "99965.44",
+        "pMinAdd": "-3785328.550406",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1724332.071076",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "99965.44",
+        "pMinAdd": "-3785328.550406",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1400091,585847",
+        "pMax": "9999999,999999",
+        "pPerc": "39845,02",
+        "pReturn": "-97555,74",
+        "pBonus": "-46848,05",
+        "pMinAdd": "-1514044,776102",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1400091.585847",
+        "pMax": "9999999.999999",
+        "pPerc": "39845.02",
+        "pReturn": "-97555.74",
+        "pBonus": "-46848.05",
+        "pMinAdd": "-1514044.776102",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8918553.627278e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "94564.31e0",
+        "pReturn": "-11773.53e0",
+        "pBonus": "53497.80e0",
+        "pMinAdd": "-1159791.447842e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "8918553.627278",
+        "pMax": "9999999.999999",
+        "pPerc": "94564.31",
+        "pReturn": "-11773.53",
+        "pBonus": "53497.80",
+        "pMinAdd": "-1159791.447842",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4629498.531911",
+        "pMax": "9999999.999999",
+        "pPerc": "19085.05",
+        "pReturn": "7259.31",
+        "pBonus": "20371.21",
+        "pMinAdd": "-1181299.477835",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "4629498.531911",
+        "pMax": "9999999.999999",
+        "pPerc": "19085.05",
+        "pReturn": "7259.31",
+        "pBonus": "20371.21",
+        "pMinAdd": "-1181299.477835",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3038339,061719",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "-70238,34",
+        "pMinAdd": "4316111,485202",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3038339.061719",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-70238.34",
+        "pMinAdd": "4316111.485202",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6562949.025243e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "86401.41e0",
+        "pReturn": "-80513.65e0",
+        "pBonus": "56650.04e0",
+        "pMinAdd": "-6337464.527530e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "6562949.025243",
+        "pMax": "9999999.999999",
+        "pPerc": "86401.41",
+        "pReturn": "-80513.65",
+        "pBonus": "56650.04",
+        "pMinAdd": "-6337464.527530",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8478549.311671",
+        "pMax": "9999999.999999",
+        "pPerc": "37029.77",
+        "pReturn": "49139.21",
+        "pBonus": "-67727.13",
+        "pMinAdd": "6231466.411153",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "8478549.311671",
+        "pMax": "9999999.999999",
+        "pPerc": "37029.77",
+        "pReturn": "49139.21",
+        "pBonus": "-67727.13",
+        "pMinAdd": "6231466.411153",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3797942,121559",
+        "pMax": "9999999,999999",
+        "pPerc": "36682,17",
+        "pReturn": "-61712,88",
+        "pBonus": "-29960,77",
+        "pMinAdd": "-9391439,338654",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3797942.121559",
+        "pMax": "9999999.999999",
+        "pPerc": "36682.17",
+        "pReturn": "-61712.88",
+        "pBonus": "-29960.77",
+        "pMinAdd": "-9391439.338654",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5689850.225992e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "-64874.85e0",
+        "pMinAdd": "-745283.061017e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "5689850.225992",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-64874.85",
+        "pMinAdd": "-745283.061017",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "561848.116381",
+        "pMax": "9999999.999999",
+        "pPerc": "59703.44",
+        "pReturn": "-83369.38",
+        "pBonus": "-15860.08",
+        "pMinAdd": "275348.699844",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "561848.116381",
+        "pMax": "9999999.999999",
+        "pPerc": "59703.44",
+        "pReturn": "-83369.38",
+        "pBonus": "-15860.08",
+        "pMinAdd": "275348.699844",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6087807,931714",
+        "pMax": "9999999,999999",
+        "pPerc": "70905,97",
+        "pReturn": "92659,08",
+        "pBonus": "-36880,43",
+        "pMinAdd": "5602902,753775",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "6087807.931714",
+        "pMax": "9999999.999999",
+        "pPerc": "70905.97",
+        "pReturn": "92659.08",
+        "pBonus": "-36880.43",
+        "pMinAdd": "5602902.753775",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6339802.482245e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "12340.37e0",
+        "pReturn": "49538.07e0",
+        "pBonus": "13651.01e0",
+        "pMinAdd": "-5961158.908270e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "6339802.482245",
+        "pMax": "9999999.999999",
+        "pPerc": "12340.37",
+        "pReturn": "49538.07",
+        "pBonus": "13651.01",
+        "pMinAdd": "-5961158.908270",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3571924.258665",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "64244.42",
+        "pMinAdd": "-5572967.552811",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3571924.258665",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "64244.42",
+        "pMinAdd": "-5572967.552811",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2742902,928275",
+        "pMax": "9999999,999999",
+        "pPerc": "70354,66",
+        "pReturn": "55835,63",
+        "pBonus": "50107,96",
+        "pMinAdd": "9248785,774419",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2742902.928275",
+        "pMax": "9999999.999999",
+        "pPerc": "70354.66",
+        "pReturn": "55835.63",
+        "pBonus": "50107.96",
+        "pMinAdd": "9248785.774419",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2602354.860203e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "29011.86e0",
+        "pReturn": "45526.93e0",
+        "pBonus": "-89700.83e0",
+        "pMinAdd": "4873543.108994e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "2602354.860203",
+        "pMax": "9999999.999999",
+        "pPerc": "29011.86",
+        "pReturn": "45526.93",
+        "pBonus": "-89700.83",
+        "pMinAdd": "4873543.108994",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3736418.577791",
+        "pMax": "9999999.999999",
+        "pPerc": "41972.32",
+        "pReturn": "6705.52",
+        "pBonus": "21840.13",
+        "pMinAdd": "6595157.782968",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3736418.577791",
+        "pMax": "9999999.999999",
+        "pPerc": "41972.32",
+        "pReturn": "6705.52",
+        "pBonus": "21840.13",
+        "pMinAdd": "6595157.782968",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8178618,937094",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "-22631,73",
+        "pMinAdd": "-7315655,845670",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "8178618.937094",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-22631.73",
+        "pMinAdd": "-7315655.845670",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6774075.236178e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "8215.88e0",
+        "pReturn": "73310.48e0",
+        "pBonus": "-35152.11e0",
+        "pMinAdd": "-9574314.333581e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "6774075.236178",
+        "pMax": "9999999.999999",
+        "pPerc": "8215.88",
+        "pReturn": "73310.48",
+        "pBonus": "-35152.11",
+        "pMinAdd": "-9574314.333581",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "593830.480985",
+        "pMax": "9999999.999999",
+        "pPerc": "36378.84",
+        "pReturn": "-27016.09",
+        "pBonus": "-53880.33",
+        "pMinAdd": "-527747.727356",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "593830.480985",
+        "pMax": "9999999.999999",
+        "pPerc": "36378.84",
+        "pReturn": "-27016.09",
+        "pBonus": "-53880.33",
+        "pMinAdd": "-527747.727356",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2832003,244667",
+        "pMax": "9999999,999999",
+        "pPerc": "25985,23",
+        "pReturn": "66685,67",
+        "pBonus": "-32983,41",
+        "pMinAdd": "2816294,672323",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2832003.244667",
+        "pMax": "9999999.999999",
+        "pPerc": "25985.23",
+        "pReturn": "66685.67",
+        "pBonus": "-32983.41",
+        "pMinAdd": "2816294.672323",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8147661.542846e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "-22363.60e0",
+        "pMinAdd": "-2745576.571511e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "8147661.542846",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-22363.60",
+        "pMinAdd": "-2745576.571511",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4587650.361649",
+        "pMax": "9999999.999999",
+        "pPerc": "75776.74",
+        "pReturn": "-4962.58",
+        "pBonus": "-15363.06",
+        "pMinAdd": "-5345308.444375",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "4587650.361649",
+        "pMax": "9999999.999999",
+        "pPerc": "75776.74",
+        "pReturn": "-4962.58",
+        "pBonus": "-15363.06",
+        "pMinAdd": "-5345308.444375",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3314481,024584",
+        "pMax": "9999999,999999",
+        "pPerc": "16628,55",
+        "pReturn": "2590,93",
+        "pBonus": "22685,83",
+        "pMinAdd": "-8075969,311084",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3314481.024584",
+        "pMax": "9999999.999999",
+        "pPerc": "16628.55",
+        "pReturn": "2590.93",
+        "pBonus": "22685.83",
+        "pMinAdd": "-8075969.311084",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8503796.341092e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "71015.36e0",
+        "pReturn": "94652.18e0",
+        "pBonus": "24471.16e0",
+        "pMinAdd": "5318759.357888e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "8503796.341092",
+        "pMax": "9999999.999999",
+        "pPerc": "71015.36",
+        "pReturn": "94652.18",
+        "pBonus": "24471.16",
+        "pMinAdd": "5318759.357888",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3953938.974252",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "-89400.28",
+        "pMinAdd": "9232000.694067",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3953938.974252",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-89400.28",
+        "pMinAdd": "9232000.694067",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5920375,387446",
+        "pMax": "9999999,999999",
+        "pPerc": "46174,30",
+        "pReturn": "-14924,92",
+        "pBonus": "30749,05",
+        "pMinAdd": "7300462,716755",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5920375.387446",
+        "pMax": "9999999.999999",
+        "pPerc": "46174.30",
+        "pReturn": "-14924.92",
+        "pBonus": "30749.05",
+        "pMinAdd": "7300462.716755",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "649000.886940e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "36070.51e0",
+        "pReturn": "87569.08e0",
+        "pBonus": "-93646.79e0",
+        "pMinAdd": "-178535.181616e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "649000.886940",
+        "pMax": "9999999.999999",
+        "pPerc": "36070.51",
+        "pReturn": "87569.08",
+        "pBonus": "-93646.79",
+        "pMinAdd": "-178535.181616",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6944656.184373",
+        "pMax": "9999999.999999",
+        "pPerc": "38376.46",
+        "pReturn": "-59841.38",
+        "pBonus": "73269.78",
+        "pMinAdd": "2120090.687489",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "6944656.184373",
+        "pMax": "9999999.999999",
+        "pPerc": "38376.46",
+        "pReturn": "-59841.38",
+        "pBonus": "73269.78",
+        "pMinAdd": "2120090.687489",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "332959,709393",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "-75481,50",
+        "pMinAdd": "-1867978,779819",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "332959.709393",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-75481.50",
+        "pMinAdd": "-1867978.779819",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "642293.329575e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "71608.03e0",
+        "pReturn": "-39187.45e0",
+        "pBonus": "-822.37e0",
+        "pMinAdd": "7540539.145225e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "642293.329575",
+        "pMax": "9999999.999999",
+        "pPerc": "71608.03",
+        "pReturn": "-39187.45",
+        "pBonus": "-822.37",
+        "pMinAdd": "7540539.145225",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8101604.748390",
+        "pMax": "9999999.999999",
+        "pPerc": "87006.56",
+        "pReturn": "-84349.93",
+        "pBonus": "-39648.41",
+        "pMinAdd": "-6590150.870810",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "8101604.748390",
+        "pMax": "9999999.999999",
+        "pPerc": "87006.56",
+        "pReturn": "-84349.93",
+        "pBonus": "-39648.41",
+        "pMinAdd": "-6590150.870810",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2038485,337630",
+        "pMax": "9999999,999999",
+        "pPerc": "36455,54",
+        "pReturn": "-18618,14",
+        "pBonus": "-14584,34",
+        "pMinAdd": "-6585663,090402",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2038485.337630",
+        "pMax": "9999999.999999",
+        "pPerc": "36455.54",
+        "pReturn": "-18618.14",
+        "pBonus": "-14584.34",
+        "pMinAdd": "-6585663.090402",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2023182.565659e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "13207.43e0",
+        "pMinAdd": "5629004.368734e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "2023182.565659",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "13207.43",
+        "pMinAdd": "5629004.368734",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1983686.231291",
+        "pMax": "9999999.999999",
+        "pPerc": "53624.02",
+        "pReturn": "-72042.63",
+        "pBonus": "-18353.17",
+        "pMinAdd": "-8994832.546978",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1983686.231291",
+        "pMax": "9999999.999999",
+        "pPerc": "53624.02",
+        "pReturn": "-72042.63",
+        "pBonus": "-18353.17",
+        "pMinAdd": "-8994832.546978",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "340244,998960",
+        "pMax": "9999999,999999",
+        "pPerc": "32282,64",
+        "pReturn": "-21006,79",
+        "pBonus": "-98205,72",
+        "pMinAdd": "-9645454,400041",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "340244.998960",
+        "pMax": "9999999.999999",
+        "pPerc": "32282.64",
+        "pReturn": "-21006.79",
+        "pBonus": "-98205.72",
+        "pMinAdd": "-9645454.400041",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2779810.441978e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "85324.72e0",
+        "pReturn": "-67236.13e0",
+        "pBonus": "-86528.66e0",
+        "pMinAdd": "7451113.576970e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "2779810.441978",
+        "pMax": "9999999.999999",
+        "pPerc": "85324.72",
+        "pReturn": "-67236.13",
+        "pBonus": "-86528.66",
+        "pMinAdd": "7451113.576970",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7437034.492265",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "62452.01",
+        "pMinAdd": "3859775.207164",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "7437034.492265",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "62452.01",
+        "pMinAdd": "3859775.207164",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3688123,261619",
+        "pMax": "9999999,999999",
+        "pPerc": "78663,86",
+        "pReturn": "-83095,93",
+        "pBonus": "-43548,21",
+        "pMinAdd": "-8058829,728496",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3688123.261619",
+        "pMax": "9999999.999999",
+        "pPerc": "78663.86",
+        "pReturn": "-83095.93",
+        "pBonus": "-43548.21",
+        "pMinAdd": "-8058829.728496",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7457582.095150e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "89199.00e0",
+        "pReturn": "-78215.54e0",
+        "pBonus": "37747.32e0",
+        "pMinAdd": "-8324838.749740e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "7457582.095150",
+        "pMax": "9999999.999999",
+        "pPerc": "89199.00",
+        "pReturn": "-78215.54",
+        "pBonus": "37747.32",
+        "pMinAdd": "-8324838.749740",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1807703.642179",
+        "pMax": "9999999.999999",
+        "pPerc": "81832.56",
+        "pReturn": "-40990.05",
+        "pBonus": "-25363.81",
+        "pMinAdd": "4016804.383079",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1807703.642179",
+        "pMax": "9999999.999999",
+        "pPerc": "81832.56",
+        "pReturn": "-40990.05",
+        "pBonus": "-25363.81",
+        "pMinAdd": "4016804.383079",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2115500,714090",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "-86106,69",
+        "pMinAdd": "3124229,391857",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2115500.714090",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-86106.69",
+        "pMinAdd": "3124229.391857",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8259988.220494e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "64354.02e0",
+        "pReturn": "18328.21e0",
+        "pBonus": "31318.78e0",
+        "pMinAdd": "6843025.309270e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "8259988.220494",
+        "pMax": "9999999.999999",
+        "pPerc": "64354.02",
+        "pReturn": "18328.21",
+        "pBonus": "31318.78",
+        "pMinAdd": "6843025.309270",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5953648.341738",
+        "pMax": "9999999.999999",
+        "pPerc": "15519.98",
+        "pReturn": "60256.75",
+        "pBonus": "-91116.35",
+        "pMinAdd": "7154444.937636",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5953648.341738",
+        "pMax": "9999999.999999",
+        "pPerc": "15519.98",
+        "pReturn": "60256.75",
+        "pBonus": "-91116.35",
+        "pMinAdd": "7154444.937636",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6797748,754982",
+        "pMax": "9999999,999999",
+        "pPerc": "64412,04",
+        "pReturn": "95752,13",
+        "pBonus": "55579,38",
+        "pMinAdd": "-3728626,784168",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "6797748.754982",
+        "pMax": "9999999.999999",
+        "pPerc": "64412.04",
+        "pReturn": "95752.13",
+        "pBonus": "55579.38",
+        "pMinAdd": "-3728626.784168",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7644390.478772e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "-85740.89e0",
+        "pMinAdd": "-565580.115030e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "7644390.478772",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-85740.89",
+        "pMinAdd": "-565580.115030",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1416025.940892",
+        "pMax": "9999999.999999",
+        "pPerc": "46728.84",
+        "pReturn": "-27946.29",
+        "pBonus": "-29385.70",
+        "pMinAdd": "3365949.138349",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1416025.940892",
+        "pMax": "9999999.999999",
+        "pPerc": "46728.84",
+        "pReturn": "-27946.29",
+        "pBonus": "-29385.70",
+        "pMinAdd": "3365949.138349",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4686524,206175",
+        "pMax": "9999999,999999",
+        "pPerc": "93659,72",
+        "pReturn": "-6020,84",
+        "pBonus": "-77217,49",
+        "pMinAdd": "2598561,341401",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "4686524.206175",
+        "pMax": "9999999.999999",
+        "pPerc": "93659.72",
+        "pReturn": "-6020.84",
+        "pBonus": "-77217.49",
+        "pMinAdd": "2598561.341401",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1515223.217096e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "26509.81e0",
+        "pReturn": "51377.65e0",
+        "pBonus": "23120.22e0",
+        "pMinAdd": "-4217025.290051e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "1515223.217096",
+        "pMax": "9999999.999999",
+        "pPerc": "26509.81",
+        "pReturn": "51377.65",
+        "pBonus": "23120.22",
+        "pMinAdd": "-4217025.290051",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1864742.896757",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "33193.05",
+        "pMinAdd": "950171.491292",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1864742.896757",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "33193.05",
+        "pMinAdd": "950171.491292",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1817777,564323",
+        "pMax": "9999999,999999",
+        "pPerc": "27101,18",
+        "pReturn": "-15329,27",
+        "pBonus": "-78701,33",
+        "pMinAdd": "9095068,255497",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1817777.564323",
+        "pMax": "9999999.999999",
+        "pPerc": "27101.18",
+        "pReturn": "-15329.27",
+        "pBonus": "-78701.33",
+        "pMinAdd": "9095068.255497",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3819139.939496e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "74429.56e0",
+        "pReturn": "-82531.28e0",
+        "pBonus": "69573.85e0",
+        "pMinAdd": "17595.704732e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "3819139.939496",
+        "pMax": "9999999.999999",
+        "pPerc": "74429.56",
+        "pReturn": "-82531.28",
+        "pBonus": "69573.85",
+        "pMinAdd": "17595.704732",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4448717.655277",
+        "pMax": "9999999.999999",
+        "pPerc": "38686.07",
+        "pReturn": "79586.39",
+        "pBonus": "18412.13",
+        "pMinAdd": "6722542.296615",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "4448717.655277",
+        "pMax": "9999999.999999",
+        "pPerc": "38686.07",
+        "pReturn": "79586.39",
+        "pBonus": "18412.13",
+        "pMinAdd": "6722542.296615",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5372986,313943",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "9449,49",
+        "pMinAdd": "-9398178,423235",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5372986.313943",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "9449.49",
+        "pMinAdd": "-9398178.423235",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2823693.986542e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "3641.26e0",
+        "pReturn": "-44838.70e0",
+        "pBonus": "-26755.59e0",
+        "pMinAdd": "-4959031.887104e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "2823693.986542",
+        "pMax": "9999999.999999",
+        "pPerc": "3641.26",
+        "pReturn": "-44838.70",
+        "pBonus": "-26755.59",
+        "pMinAdd": "-4959031.887104",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2046328.720514",
+        "pMax": "9999999.999999",
+        "pPerc": "36183.62",
+        "pReturn": "-64116.30",
+        "pBonus": "52637.02",
+        "pMinAdd": "1823045.022495",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2046328.720514",
+        "pMax": "9999999.999999",
+        "pPerc": "36183.62",
+        "pReturn": "-64116.30",
+        "pBonus": "52637.02",
+        "pMinAdd": "1823045.022495",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2941374,895254",
+        "pMax": "9999999,999999",
+        "pPerc": "79668,55",
+        "pReturn": "-36198,62",
+        "pBonus": "62354,23",
+        "pMinAdd": "-410684,463703",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2941374.895254",
+        "pMax": "9999999.999999",
+        "pPerc": "79668.55",
+        "pReturn": "-36198.62",
+        "pBonus": "62354.23",
+        "pMinAdd": "-410684.463703",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4755828.086331e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "-83976.42e0",
+        "pMinAdd": "7760539.176181e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "4755828.086331",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-83976.42",
+        "pMinAdd": "7760539.176181",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2956081.064660",
+        "pMax": "9999999.999999",
+        "pPerc": "74615.32",
+        "pReturn": "-55836.28",
+        "pBonus": "95745.54",
+        "pMinAdd": "805301.425707",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2956081.064660",
+        "pMax": "9999999.999999",
+        "pPerc": "74615.32",
+        "pReturn": "-55836.28",
+        "pBonus": "95745.54",
+        "pMinAdd": "805301.425707",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6274305,425318",
+        "pMax": "9999999,999999",
+        "pPerc": "25521,12",
+        "pReturn": "-12199,21",
+        "pBonus": "-57407,25",
+        "pMinAdd": "-4385456,135151",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "6274305.425318",
+        "pMax": "9999999.999999",
+        "pPerc": "25521.12",
+        "pReturn": "-12199.21",
+        "pBonus": "-57407.25",
+        "pMinAdd": "-4385456.135151",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2351177.628414e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "39423.61e0",
+        "pReturn": "-80955.84e0",
+        "pBonus": "24140.90e0",
+        "pMinAdd": "-7346835.151655e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "2351177.628414",
+        "pMax": "9999999.999999",
+        "pPerc": "39423.61",
+        "pReturn": "-80955.84",
+        "pBonus": "24140.90",
+        "pMinAdd": "-7346835.151655",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3125121.664816",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "-81308.51",
+        "pMinAdd": "-4705063.351200",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3125121.664816",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-81308.51",
+        "pMinAdd": "-4705063.351200",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2419095,064824",
+        "pMax": "9999999,999999",
+        "pPerc": "11259,69",
+        "pReturn": "7283,33",
+        "pBonus": "89634,79",
+        "pMinAdd": "1048970,090594",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2419095.064824",
+        "pMax": "9999999.999999",
+        "pPerc": "11259.69",
+        "pReturn": "7283.33",
+        "pBonus": "89634.79",
+        "pMinAdd": "1048970.090594",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8396418.494702e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "33894.25e0",
+        "pReturn": "-19138.46e0",
+        "pBonus": "89395.36e0",
+        "pMinAdd": "3715530.684297e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "8396418.494702",
+        "pMax": "9999999.999999",
+        "pPerc": "33894.25",
+        "pReturn": "-19138.46",
+        "pBonus": "89395.36",
+        "pMinAdd": "3715530.684297",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "676264.425642",
+        "pMax": "9999999.999999",
+        "pPerc": "26278.80",
+        "pReturn": "10846.16",
+        "pBonus": "-22020.65",
+        "pMinAdd": "4075381.714658",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "676264.425642",
+        "pMax": "9999999.999999",
+        "pPerc": "26278.80",
+        "pReturn": "10846.16",
+        "pBonus": "-22020.65",
+        "pMinAdd": "4075381.714658",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3293403,600817",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "-54530,60",
+        "pMinAdd": "-2715859,056940",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3293403.600817",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-54530.60",
+        "pMinAdd": "-2715859.056940",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4368680.793788e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "158.91e0",
+        "pReturn": "-92794.49e0",
+        "pBonus": "-28656.58e0",
+        "pMinAdd": "-3468715.956305e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "4368680.793788",
+        "pMax": "9999999.999999",
+        "pPerc": "158.91",
+        "pReturn": "-92794.49",
+        "pBonus": "-28656.58",
+        "pMinAdd": "-3468715.956305",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2534209.383115",
+        "pMax": "9999999.999999",
+        "pPerc": "32564.76",
+        "pReturn": "44005.84",
+        "pBonus": "24317.87",
+        "pMinAdd": "7116928.010499",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2534209.383115",
+        "pMax": "9999999.999999",
+        "pPerc": "32564.76",
+        "pReturn": "44005.84",
+        "pBonus": "24317.87",
+        "pMinAdd": "7116928.010499",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3181021,804573",
+        "pMax": "9999999,999999",
+        "pPerc": "59246,37",
+        "pReturn": "-30983,44",
+        "pBonus": "99398,47",
+        "pMinAdd": "-3869504,951286",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3181021.804573",
+        "pMax": "9999999.999999",
+        "pPerc": "59246.37",
+        "pReturn": "-30983.44",
+        "pBonus": "99398.47",
+        "pMinAdd": "-3869504.951286",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2378840.565844e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "58645.67e0",
+        "pMinAdd": "-6558429.205217e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "2378840.565844",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "58645.67",
+        "pMinAdd": "-6558429.205217",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7852790.532835",
+        "pMax": "9999999.999999",
+        "pPerc": "15419.69",
+        "pReturn": "21702.07",
+        "pBonus": "19814.85",
+        "pMinAdd": "-9682881.354026",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "7852790.532835",
+        "pMax": "9999999.999999",
+        "pPerc": "15419.69",
+        "pReturn": "21702.07",
+        "pBonus": "19814.85",
+        "pMinAdd": "-9682881.354026",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5060966,397488",
+        "pMax": "9999999,999999",
+        "pPerc": "80213,27",
+        "pReturn": "-76386,16",
+        "pBonus": "-81132,03",
+        "pMinAdd": "2775512,388648",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5060966.397488",
+        "pMax": "9999999.999999",
+        "pPerc": "80213.27",
+        "pReturn": "-76386.16",
+        "pBonus": "-81132.03",
+        "pMinAdd": "2775512.388648",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2840020.803921e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "99953.13e0",
+        "pReturn": "45627.71e0",
+        "pBonus": "-48572.84e0",
+        "pMinAdd": "7445784.338198e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "2840020.803921",
+        "pMax": "9999999.999999",
+        "pPerc": "99953.13",
+        "pReturn": "45627.71",
+        "pBonus": "-48572.84",
+        "pMinAdd": "7445784.338198",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "667639.441028",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "-64576.09",
+        "pMinAdd": "1310167.581701",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "667639.441028",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-64576.09",
+        "pMinAdd": "1310167.581701",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6985908,854392",
+        "pMax": "9999999,999999",
+        "pPerc": "10898,07",
+        "pReturn": "97342,44",
+        "pBonus": "97234,34",
+        "pMinAdd": "9762877,220296",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "6985908.854392",
+        "pMax": "9999999.999999",
+        "pPerc": "10898.07",
+        "pReturn": "97342.44",
+        "pBonus": "97234.34",
+        "pMinAdd": "9762877.220296",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "315360.410522e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "8089.20e0",
+        "pReturn": "67515.17e0",
+        "pBonus": "-67612.06e0",
+        "pMinAdd": "-8747304.545283e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "315360.410522",
+        "pMax": "9999999.999999",
+        "pPerc": "8089.20",
+        "pReturn": "67515.17",
+        "pBonus": "-67612.06",
+        "pMinAdd": "-8747304.545283",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1530036.741705",
+        "pMax": "9999999.999999",
+        "pPerc": "33160.66",
+        "pReturn": "66844.29",
+        "pBonus": "1852.86",
+        "pMinAdd": "-3896430.495138",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1530036.741705",
+        "pMax": "9999999.999999",
+        "pPerc": "33160.66",
+        "pReturn": "66844.29",
+        "pBonus": "1852.86",
+        "pMinAdd": "-3896430.495138",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7283256,176293",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "-77378,93",
+        "pMinAdd": "7064379,751899",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "7283256.176293",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-77378.93",
+        "pMinAdd": "7064379.751899",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4235861.956590e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "61044.53e0",
+        "pReturn": "-11613.28e0",
+        "pBonus": "98845.18e0",
+        "pMinAdd": "2601416.639015e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "4235861.956590",
+        "pMax": "9999999.999999",
+        "pPerc": "61044.53",
+        "pReturn": "-11613.28",
+        "pBonus": "98845.18",
+        "pMinAdd": "2601416.639015",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5448037.331311",
+        "pMax": "9999999.999999",
+        "pPerc": "79995.44",
+        "pReturn": "-1400.04",
+        "pBonus": "-92465.71",
+        "pMinAdd": "-8554188.688479",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5448037.331311",
+        "pMax": "9999999.999999",
+        "pPerc": "79995.44",
+        "pReturn": "-1400.04",
+        "pBonus": "-92465.71",
+        "pMinAdd": "-8554188.688479",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7366818,571974",
+        "pMax": "9999999,999999",
+        "pPerc": "62876,23",
+        "pReturn": "98220,28",
+        "pBonus": "-41917,51",
+        "pMinAdd": "5232855,007760",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "7366818.571974",
+        "pMax": "9999999.999999",
+        "pPerc": "62876.23",
+        "pReturn": "98220.28",
+        "pBonus": "-41917.51",
+        "pMinAdd": "5232855.007760",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8646142.614530e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "-3043.25e0",
+        "pMinAdd": "-3935548.684425e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "8646142.614530",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-3043.25",
+        "pMinAdd": "-3935548.684425",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7753494.584650",
+        "pMax": "9999999.999999",
+        "pPerc": "84354.05",
+        "pReturn": "-66482.08",
+        "pBonus": "8777.88",
+        "pMinAdd": "-7631475.398721",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "7753494.584650",
+        "pMax": "9999999.999999",
+        "pPerc": "84354.05",
+        "pReturn": "-66482.08",
+        "pBonus": "8777.88",
+        "pMinAdd": "-7631475.398721",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3880775,844372",
+        "pMax": "9999999,999999",
+        "pPerc": "56931,24",
+        "pReturn": "21126,18",
+        "pBonus": "-70930,80",
+        "pMinAdd": "6656715,098113",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3880775.844372",
+        "pMax": "9999999.999999",
+        "pPerc": "56931.24",
+        "pReturn": "21126.18",
+        "pBonus": "-70930.80",
+        "pMinAdd": "6656715.098113",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1895141.139855e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "92994.89e0",
+        "pReturn": "51405.13e0",
+        "pBonus": "36106.57e0",
+        "pMinAdd": "-6259499.308363e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "1895141.139855",
+        "pMax": "9999999.999999",
+        "pPerc": "92994.89",
+        "pReturn": "51405.13",
+        "pBonus": "36106.57",
+        "pMinAdd": "-6259499.308363",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8328059.336565",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "95324.15",
+        "pMinAdd": "-2219142.974693",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "8328059.336565",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "95324.15",
+        "pMinAdd": "-2219142.974693",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7882859,325984",
+        "pMax": "9999999,999999",
+        "pPerc": "44944,68",
+        "pReturn": "-78203,21",
+        "pBonus": "27348,04",
+        "pMinAdd": "929896,899170",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "7882859.325984",
+        "pMax": "9999999.999999",
+        "pPerc": "44944.68",
+        "pReturn": "-78203.21",
+        "pBonus": "27348.04",
+        "pMinAdd": "929896.899170",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "619098.310548e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "96239.96e0",
+        "pReturn": "71650.07e0",
+        "pBonus": "54309.87e0",
+        "pMinAdd": "-6725290.670390e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "619098.310548",
+        "pMax": "9999999.999999",
+        "pPerc": "96239.96",
+        "pReturn": "71650.07",
+        "pBonus": "54309.87",
+        "pMinAdd": "-6725290.670390",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7864964.475948",
+        "pMax": "9999999.999999",
+        "pPerc": "14058.74",
+        "pReturn": "-71852.54",
+        "pBonus": "6021.89",
+        "pMinAdd": "-1631341.911882",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "7864964.475948",
+        "pMax": "9999999.999999",
+        "pPerc": "14058.74",
+        "pReturn": "-71852.54",
+        "pBonus": "6021.89",
+        "pMinAdd": "-1631341.911882",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4022275,869805",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "1297,34",
+        "pMinAdd": "-5852111,156683",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "4022275.869805",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "1297.34",
+        "pMinAdd": "-5852111.156683",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3867897.783670e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "4551.78e0",
+        "pReturn": "-26975.92e0",
+        "pBonus": "-80346.18e0",
+        "pMinAdd": "8408051.560094e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "3867897.783670",
+        "pMax": "9999999.999999",
+        "pPerc": "4551.78",
+        "pReturn": "-26975.92",
+        "pBonus": "-80346.18",
+        "pMinAdd": "8408051.560094",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5588805.337242",
+        "pMax": "9999999.999999",
+        "pPerc": "41019.26",
+        "pReturn": "65776.61",
+        "pBonus": "88083.66",
+        "pMinAdd": "5637038.086920",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5588805.337242",
+        "pMax": "9999999.999999",
+        "pPerc": "41019.26",
+        "pReturn": "65776.61",
+        "pBonus": "88083.66",
+        "pMinAdd": "5637038.086920",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3683977,481823",
+        "pMax": "9999999,999999",
+        "pPerc": "25388,75",
+        "pReturn": "-18356,23",
+        "pBonus": "-90914,88",
+        "pMinAdd": "3994422,427903",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3683977.481823",
+        "pMax": "9999999.999999",
+        "pPerc": "25388.75",
+        "pReturn": "-18356.23",
+        "pBonus": "-90914.88",
+        "pMinAdd": "3994422.427903",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "69589.537854e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "-32185.36e0",
+        "pMinAdd": "9442331.684270e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "69589.537854",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-32185.36",
+        "pMinAdd": "9442331.684270",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4399876.428187",
+        "pMax": "9999999.999999",
+        "pPerc": "54368.77",
+        "pReturn": "88841.96",
+        "pBonus": "-71493.29",
+        "pMinAdd": "-1030666.730919",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "4399876.428187",
+        "pMax": "9999999.999999",
+        "pPerc": "54368.77",
+        "pReturn": "88841.96",
+        "pBonus": "-71493.29",
+        "pMinAdd": "-1030666.730919",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4094211,971292",
+        "pMax": "9999999,999999",
+        "pPerc": "80955,66",
+        "pReturn": "58307,69",
+        "pBonus": "-81898,16",
+        "pMinAdd": "-5296623,262829",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "4094211.971292",
+        "pMax": "9999999.999999",
+        "pPerc": "80955.66",
+        "pReturn": "58307.69",
+        "pBonus": "-81898.16",
+        "pMinAdd": "-5296623.262829",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4114547.226823e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "37905.45e0",
+        "pReturn": "-78226.36e0",
+        "pBonus": "-52857.82e0",
+        "pMinAdd": "195612.725290e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "4114547.226823",
+        "pMax": "9999999.999999",
+        "pPerc": "37905.45",
+        "pReturn": "-78226.36",
+        "pBonus": "-52857.82",
+        "pMinAdd": "195612.725290",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5422945.459558",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "-71875.55",
+        "pMinAdd": "3329976.231485",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5422945.459558",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-71875.55",
+        "pMinAdd": "3329976.231485",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5811759,671314",
+        "pMax": "9999999,999999",
+        "pPerc": "35905,68",
+        "pReturn": "-11195,02",
+        "pBonus": "-45846,84",
+        "pMinAdd": "-4226288,967288",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5811759.671314",
+        "pMax": "9999999.999999",
+        "pPerc": "35905.68",
+        "pReturn": "-11195.02",
+        "pBonus": "-45846.84",
+        "pMinAdd": "-4226288.967288",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2168882.189928e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "45019.46e0",
+        "pReturn": "-72501.80e0",
+        "pBonus": "94148.08e0",
+        "pMinAdd": "3035359.197607e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "2168882.189928",
+        "pMax": "9999999.999999",
+        "pPerc": "45019.46",
+        "pReturn": "-72501.80",
+        "pBonus": "94148.08",
+        "pMinAdd": "3035359.197607",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "246132.752731",
+        "pMax": "9999999.999999",
+        "pPerc": "64520.18",
+        "pReturn": "21281.13",
+        "pBonus": "-74990.19",
+        "pMinAdd": "1374677.112846",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "246132.752731",
+        "pMax": "9999999.999999",
+        "pPerc": "64520.18",
+        "pReturn": "21281.13",
+        "pBonus": "-74990.19",
+        "pMinAdd": "1374677.112846",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3044782,999135",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "62310,53",
+        "pMinAdd": "2349533,116504",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3044782.999135",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "62310.53",
+        "pMinAdd": "2349533.116504",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6676318.908927e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "26283.37e0",
+        "pReturn": "11874.65e0",
+        "pBonus": "99130.60e0",
+        "pMinAdd": "-3061975.357160e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "6676318.908927",
+        "pMax": "9999999.999999",
+        "pPerc": "26283.37",
+        "pReturn": "11874.65",
+        "pBonus": "99130.60",
+        "pMinAdd": "-3061975.357160",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7935072.498700",
+        "pMax": "9999999.999999",
+        "pPerc": "4466.72",
+        "pReturn": "42832.33",
+        "pBonus": "36159.14",
+        "pMinAdd": "-8527856.547678",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "7935072.498700",
+        "pMax": "9999999.999999",
+        "pPerc": "4466.72",
+        "pReturn": "42832.33",
+        "pBonus": "36159.14",
+        "pMinAdd": "-8527856.547678",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2249524,835195",
+        "pMax": "9999999,999999",
+        "pPerc": "35762,17",
+        "pReturn": "-78644,40",
+        "pBonus": "-48343,47",
+        "pMinAdd": "2013276,339514",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2249524.835195",
+        "pMax": "9999999.999999",
+        "pPerc": "35762.17",
+        "pReturn": "-78644.40",
+        "pBonus": "-48343.47",
+        "pMinAdd": "2013276.339514",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2514025.778158e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "12578.82e0",
+        "pMinAdd": "-6427295.938290e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "2514025.778158",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "12578.82",
+        "pMinAdd": "-6427295.938290",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6865705.985420",
+        "pMax": "9999999.999999",
+        "pPerc": "4776.84",
+        "pReturn": "82392.51",
+        "pBonus": "9980.92",
+        "pMinAdd": "-8431926.937927",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "6865705.985420",
+        "pMax": "9999999.999999",
+        "pPerc": "4776.84",
+        "pReturn": "82392.51",
+        "pBonus": "9980.92",
+        "pMinAdd": "-8431926.937927",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5213761,925788",
+        "pMax": "9999999,999999",
+        "pPerc": "60764,68",
+        "pReturn": "-32906,28",
+        "pBonus": "-4513,04",
+        "pMinAdd": "-2018399,999550",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5213761.925788",
+        "pMax": "9999999.999999",
+        "pPerc": "60764.68",
+        "pReturn": "-32906.28",
+        "pBonus": "-4513.04",
+        "pMinAdd": "-2018399.999550",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3973251.033260e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "13951.50e0",
+        "pReturn": "-13507.14e0",
+        "pBonus": "-41736.46e0",
+        "pMinAdd": "-9384453.444943e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "3973251.033260",
+        "pMax": "9999999.999999",
+        "pPerc": "13951.50",
+        "pReturn": "-13507.14",
+        "pBonus": "-41736.46",
+        "pMinAdd": "-9384453.444943",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2873030.642607",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "-27572.62",
+        "pMinAdd": "-7414941.712048",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2873030.642607",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-27572.62",
+        "pMinAdd": "-7414941.712048",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4097874,136347",
+        "pMax": "9999999,999999",
+        "pPerc": "57437,98",
+        "pReturn": "44147,84",
+        "pBonus": "7013,88",
+        "pMinAdd": "-2458426,660074",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "4097874.136347",
+        "pMax": "9999999.999999",
+        "pPerc": "57437.98",
+        "pReturn": "44147.84",
+        "pBonus": "7013.88",
+        "pMinAdd": "-2458426.660074",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7534344.641395e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "68109.40e0",
+        "pReturn": "-51264.60e0",
+        "pBonus": "85111.59e0",
+        "pMinAdd": "7492902.464619e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "7534344.641395",
+        "pMax": "9999999.999999",
+        "pPerc": "68109.40",
+        "pReturn": "-51264.60",
+        "pBonus": "85111.59",
+        "pMinAdd": "7492902.464619",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2267792.633698",
+        "pMax": "9999999.999999",
+        "pPerc": "95247.79",
+        "pReturn": "60513.04",
+        "pBonus": "58906.50",
+        "pMinAdd": "-3751257.891912",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2267792.633698",
+        "pMax": "9999999.999999",
+        "pPerc": "95247.79",
+        "pReturn": "60513.04",
+        "pBonus": "58906.50",
+        "pMinAdd": "-3751257.891912",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3355723,643957",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "40995,91",
+        "pMinAdd": "5377681,991723",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3355723.643957",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "40995.91",
+        "pMinAdd": "5377681.991723",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "971947.759428e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "58433.75e0",
+        "pReturn": "80876.30e0",
+        "pBonus": "67176.62e0",
+        "pMinAdd": "3861020.019011e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "971947.759428",
+        "pMax": "9999999.999999",
+        "pPerc": "58433.75",
+        "pReturn": "80876.30",
+        "pBonus": "67176.62",
+        "pMinAdd": "3861020.019011",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5152055.143906",
+        "pMax": "9999999.999999",
+        "pPerc": "54445.10",
+        "pReturn": "-63174.71",
+        "pBonus": "-50730.65",
+        "pMinAdd": "5035746.013271",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5152055.143906",
+        "pMax": "9999999.999999",
+        "pPerc": "54445.10",
+        "pReturn": "-63174.71",
+        "pBonus": "-50730.65",
+        "pMinAdd": "5035746.013271",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7261785,981435",
+        "pMax": "9999999,999999",
+        "pPerc": "86500,57",
+        "pReturn": "-60800,45",
+        "pBonus": "-43260,72",
+        "pMinAdd": "-9231277,051579",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "7261785.981435",
+        "pMax": "9999999.999999",
+        "pPerc": "86500.57",
+        "pReturn": "-60800.45",
+        "pBonus": "-43260.72",
+        "pMinAdd": "-9231277.051579",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6122194.183411e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "-82980.56e0",
+        "pMinAdd": "-1125949.004285e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "6122194.183411",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-82980.56",
+        "pMinAdd": "-1125949.004285",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3764590.806520",
+        "pMax": "9999999.999999",
+        "pPerc": "64017.88",
+        "pReturn": "-48373.77",
+        "pBonus": "38848.29",
+        "pMinAdd": "-9704328.728918",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3764590.806520",
+        "pMax": "9999999.999999",
+        "pPerc": "64017.88",
+        "pReturn": "-48373.77",
+        "pBonus": "38848.29",
+        "pMinAdd": "-9704328.728918",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7018371,016505",
+        "pMax": "9999999,999999",
+        "pPerc": "32633,40",
+        "pReturn": "13769,93",
+        "pBonus": "-48347,73",
+        "pMinAdd": "8306024,292941",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "7018371.016505",
+        "pMax": "9999999.999999",
+        "pPerc": "32633.40",
+        "pReturn": "13769.93",
+        "pBonus": "-48347.73",
+        "pMinAdd": "8306024.292941",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4203873.636685e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "53264.18e0",
+        "pReturn": "-84189.50e0",
+        "pBonus": "82199.99e0",
+        "pMinAdd": "-6847255.449097e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "4203873.636685",
+        "pMax": "9999999.999999",
+        "pPerc": "53264.18",
+        "pReturn": "-84189.50",
+        "pBonus": "82199.99",
+        "pMinAdd": "-6847255.449097",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1360140.208267",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "99314.29",
+        "pMinAdd": "-2119945.934863",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1360140.208267",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "99314.29",
+        "pMinAdd": "-2119945.934863",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6533091,772243",
+        "pMax": "9999999,999999",
+        "pPerc": "27420,10",
+        "pReturn": "-92747,23",
+        "pBonus": "20487,97",
+        "pMinAdd": "2575166,919784",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "6533091.772243",
+        "pMax": "9999999.999999",
+        "pPerc": "27420.10",
+        "pReturn": "-92747.23",
+        "pBonus": "20487.97",
+        "pMinAdd": "2575166.919784",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8931736.855783e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "15805.63e0",
+        "pReturn": "31327.29e0",
+        "pBonus": "56343.23e0",
+        "pMinAdd": "-1839238.516585e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "8931736.855783",
+        "pMax": "9999999.999999",
+        "pPerc": "15805.63",
+        "pReturn": "31327.29",
+        "pBonus": "56343.23",
+        "pMinAdd": "-1839238.516585",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4212601.262945",
+        "pMax": "9999999.999999",
+        "pPerc": "41262.37",
+        "pReturn": "-53063.42",
+        "pBonus": "-5268.28",
+        "pMinAdd": "8186194.335757",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "4212601.262945",
+        "pMax": "9999999.999999",
+        "pPerc": "41262.37",
+        "pReturn": "-53063.42",
+        "pBonus": "-5268.28",
+        "pMinAdd": "8186194.335757",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2226855,756630",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "36784,09",
+        "pMinAdd": "-5774315,024854",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2226855.756630",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "36784.09",
+        "pMinAdd": "-5774315.024854",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1209496.551803e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "41136.97e0",
+        "pReturn": "-91736.17e0",
+        "pBonus": "-96523.74e0",
+        "pMinAdd": "8031424.678601e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "1209496.551803",
+        "pMax": "9999999.999999",
+        "pPerc": "41136.97",
+        "pReturn": "-91736.17",
+        "pBonus": "-96523.74",
+        "pMinAdd": "8031424.678601",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6874209.061178",
+        "pMax": "9999999.999999",
+        "pPerc": "17193.80",
+        "pReturn": "72017.36",
+        "pBonus": "19853.79",
+        "pMinAdd": "3900483.349321",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "6874209.061178",
+        "pMax": "9999999.999999",
+        "pPerc": "17193.80",
+        "pReturn": "72017.36",
+        "pBonus": "19853.79",
+        "pMinAdd": "3900483.349321",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1658571,688125",
+        "pMax": "9999999,999999",
+        "pPerc": "67132,10",
+        "pReturn": "-96644,93",
+        "pBonus": "71791,33",
+        "pMinAdd": "-4470280,214491",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1658571.688125",
+        "pMax": "9999999.999999",
+        "pPerc": "67132.10",
+        "pReturn": "-96644.93",
+        "pBonus": "71791.33",
+        "pMinAdd": "-4470280.214491",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3808389.198361e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "65299.27e0",
+        "pMinAdd": "9420825.667673e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "3808389.198361",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "65299.27",
+        "pMinAdd": "9420825.667673",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "931997.409891",
+        "pMax": "9999999.999999",
+        "pPerc": "68686.48",
+        "pReturn": "-74232.03",
+        "pBonus": "77537.76",
+        "pMinAdd": "8734275.154435",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "931997.409891",
+        "pMax": "9999999.999999",
+        "pPerc": "68686.48",
+        "pReturn": "-74232.03",
+        "pBonus": "77537.76",
+        "pMinAdd": "8734275.154435",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2481639,458405",
+        "pMax": "9999999,999999",
+        "pPerc": "23252,80",
+        "pReturn": "15485,79",
+        "pBonus": "52061,53",
+        "pMinAdd": "3042639,244737",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2481639.458405",
+        "pMax": "9999999.999999",
+        "pPerc": "23252.80",
+        "pReturn": "15485.79",
+        "pBonus": "52061.53",
+        "pMinAdd": "3042639.244737",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5118401.189276e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "33900.16e0",
+        "pReturn": "-39654.98e0",
+        "pBonus": "56951.42e0",
+        "pMinAdd": "-2735197.618679e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "5118401.189276",
+        "pMax": "9999999.999999",
+        "pPerc": "33900.16",
+        "pReturn": "-39654.98",
+        "pBonus": "56951.42",
+        "pMinAdd": "-2735197.618679",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5113890.813374",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "53656.53",
+        "pMinAdd": "535221.523125",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5113890.813374",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "53656.53",
+        "pMinAdd": "535221.523125",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3951449,590960",
+        "pMax": "9999999,999999",
+        "pPerc": "33218,96",
+        "pReturn": "-1981,02",
+        "pBonus": "-14674,70",
+        "pMinAdd": "4768366,521888",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3951449.590960",
+        "pMax": "9999999.999999",
+        "pPerc": "33218.96",
+        "pReturn": "-1981.02",
+        "pBonus": "-14674.70",
+        "pMinAdd": "4768366.521888",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5638666.625097e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "16969.57e0",
+        "pReturn": "-27343.54e0",
+        "pBonus": "18086.73e0",
+        "pMinAdd": "4328732.261230e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "5638666.625097",
+        "pMax": "9999999.999999",
+        "pPerc": "16969.57",
+        "pReturn": "-27343.54",
+        "pBonus": "18086.73",
+        "pMinAdd": "4328732.261230",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6650799.410267",
+        "pMax": "9999999.999999",
+        "pPerc": "21154.86",
+        "pReturn": "-26670.73",
+        "pBonus": "52333.72",
+        "pMinAdd": "1245603.697848",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "6650799.410267",
+        "pMax": "9999999.999999",
+        "pPerc": "21154.86",
+        "pReturn": "-26670.73",
+        "pBonus": "52333.72",
+        "pMinAdd": "1245603.697848",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "475436,863127",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "40526,70",
+        "pMinAdd": "-2659916,147584",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "475436.863127",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "40526.70",
+        "pMinAdd": "-2659916.147584",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2764272.849649e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "58126.76e0",
+        "pReturn": "70307.66e0",
+        "pBonus": "52259.57e0",
+        "pMinAdd": "-3207518.106494e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "2764272.849649",
+        "pMax": "9999999.999999",
+        "pPerc": "58126.76",
+        "pReturn": "70307.66",
+        "pBonus": "52259.57",
+        "pMinAdd": "-3207518.106494",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "504627.202689",
+        "pMax": "9999999.999999",
+        "pPerc": "5528.82",
+        "pReturn": "68783.75",
+        "pBonus": "-84.16",
+        "pMinAdd": "-9488455.612081",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "504627.202689",
+        "pMax": "9999999.999999",
+        "pPerc": "5528.82",
+        "pReturn": "68783.75",
+        "pBonus": "-84.16",
+        "pMinAdd": "-9488455.612081",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3071428,525371",
+        "pMax": "9999999,999999",
+        "pPerc": "44222,88",
+        "pReturn": "-18524,60",
+        "pBonus": "-80672,45",
+        "pMinAdd": "7444496,065748",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3071428.525371",
+        "pMax": "9999999.999999",
+        "pPerc": "44222.88",
+        "pReturn": "-18524.60",
+        "pBonus": "-80672.45",
+        "pMinAdd": "7444496.065748",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "261910.347827e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "90232.82e0",
+        "pMinAdd": "-617998.909175e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "261910.347827",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "90232.82",
+        "pMinAdd": "-617998.909175",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8952974.281088",
+        "pMax": "9999999.999999",
+        "pPerc": "40500.90",
+        "pReturn": "-34025.99",
+        "pBonus": "-46495.92",
+        "pMinAdd": "-4205848.863145",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "8952974.281088",
+        "pMax": "9999999.999999",
+        "pPerc": "40500.90",
+        "pReturn": "-34025.99",
+        "pBonus": "-46495.92",
+        "pMinAdd": "-4205848.863145",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5454449,760652",
+        "pMax": "9999999,999999",
+        "pPerc": "72415,49",
+        "pReturn": "-47412,30",
+        "pBonus": "79109,26",
+        "pMinAdd": "-2189455,339347",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5454449.760652",
+        "pMax": "9999999.999999",
+        "pPerc": "72415.49",
+        "pReturn": "-47412.30",
+        "pBonus": "79109.26",
+        "pMinAdd": "-2189455.339347",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4063762.204567e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "5910.18e0",
+        "pReturn": "-6119.77e0",
+        "pBonus": "30.13e0",
+        "pMinAdd": "-8765488.151446e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "4063762.204567",
+        "pMax": "9999999.999999",
+        "pPerc": "5910.18",
+        "pReturn": "-6119.77",
+        "pBonus": "30.13",
+        "pMinAdd": "-8765488.151446",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3170023.900304",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "-70243.89",
+        "pMinAdd": "5199143.293807",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3170023.900304",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-70243.89",
+        "pMinAdd": "5199143.293807",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8722958,498226",
+        "pMax": "9999999,999999",
+        "pPerc": "8471,68",
+        "pReturn": "81600,48",
+        "pBonus": "-49199,92",
+        "pMinAdd": "-852650,016563",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "8722958.498226",
+        "pMax": "9999999.999999",
+        "pPerc": "8471.68",
+        "pReturn": "81600.48",
+        "pBonus": "-49199.92",
+        "pMinAdd": "-852650.016563",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6649017.249166e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "94920.33e0",
+        "pReturn": "-91800.77e0",
+        "pBonus": "-17464.85e0",
+        "pMinAdd": "-1405572.068349e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "6649017.249166",
+        "pMax": "9999999.999999",
+        "pPerc": "94920.33",
+        "pReturn": "-91800.77",
+        "pBonus": "-17464.85",
+        "pMinAdd": "-1405572.068349",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5615169.457540",
+        "pMax": "9999999.999999",
+        "pPerc": "12490.27",
+        "pReturn": "-93759.71",
+        "pBonus": "91807.27",
+        "pMinAdd": "-7607119.321377",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5615169.457540",
+        "pMax": "9999999.999999",
+        "pPerc": "12490.27",
+        "pReturn": "-93759.71",
+        "pBonus": "91807.27",
+        "pMinAdd": "-7607119.321377",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4905088,852304",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "-58020,36",
+        "pMinAdd": "5406359,678387",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "4905088.852304",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-58020.36",
+        "pMinAdd": "5406359.678387",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3284895.225956e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "91955.67e0",
+        "pReturn": "-56323.53e0",
+        "pBonus": "78049.77e0",
+        "pMinAdd": "-9804043.975339e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "3284895.225956",
+        "pMax": "9999999.999999",
+        "pPerc": "91955.67",
+        "pReturn": "-56323.53",
+        "pBonus": "78049.77",
+        "pMinAdd": "-9804043.975339",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7923261.406674",
+        "pMax": "9999999.999999",
+        "pPerc": "30025.03",
+        "pReturn": "80340.64",
+        "pBonus": "-39099.11",
+        "pMinAdd": "8564700.552141",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "7923261.406674",
+        "pMax": "9999999.999999",
+        "pPerc": "30025.03",
+        "pReturn": "80340.64",
+        "pBonus": "-39099.11",
+        "pMinAdd": "8564700.552141",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3145589,016930",
+        "pMax": "9999999,999999",
+        "pPerc": "50415,80",
+        "pReturn": "-3333,41",
+        "pBonus": "73145,67",
+        "pMinAdd": "2856552,933484",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3145589.016930",
+        "pMax": "9999999.999999",
+        "pPerc": "50415.80",
+        "pReturn": "-3333.41",
+        "pBonus": "73145.67",
+        "pMinAdd": "2856552.933484",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1970903.914407e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "-94454.98e0",
+        "pMinAdd": "4294579.368509e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "1970903.914407",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-94454.98",
+        "pMinAdd": "4294579.368509",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6104032.975905",
+        "pMax": "9999999.999999",
+        "pPerc": "10952.05",
+        "pReturn": "92097.78",
+        "pBonus": "45250.63",
+        "pMinAdd": "1339248.230821",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "6104032.975905",
+        "pMax": "9999999.999999",
+        "pPerc": "10952.05",
+        "pReturn": "92097.78",
+        "pBonus": "45250.63",
+        "pMinAdd": "1339248.230821",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4012650,049624",
+        "pMax": "9999999,999999",
+        "pPerc": "51065,13",
+        "pReturn": "-70729,87",
+        "pBonus": "-71999,52",
+        "pMinAdd": "5013726,950095",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "4012650.049624",
+        "pMax": "9999999.999999",
+        "pPerc": "51065.13",
+        "pReturn": "-70729.87",
+        "pBonus": "-71999.52",
+        "pMinAdd": "5013726.950095",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6487957.878041e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "38462.30e0",
+        "pReturn": "65604.78e0",
+        "pBonus": "56097.36e0",
+        "pMinAdd": "8425289.206315e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "6487957.878041",
+        "pMax": "9999999.999999",
+        "pPerc": "38462.30",
+        "pReturn": "65604.78",
+        "pBonus": "56097.36",
+        "pMinAdd": "8425289.206315",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1405914.586332",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "46098.89",
+        "pMinAdd": "-1821242.381171",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1405914.586332",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "46098.89",
+        "pMinAdd": "-1821242.381171",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "8332023,937299",
+        "pMax": "9999999,999999",
+        "pPerc": "82079,76",
+        "pReturn": "27024,54",
+        "pBonus": "7069,75",
+        "pMinAdd": "-1776948,398500",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "8332023.937299",
+        "pMax": "9999999.999999",
+        "pPerc": "82079.76",
+        "pReturn": "27024.54",
+        "pBonus": "7069.75",
+        "pMinAdd": "-1776948.398500",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1051673.314086e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "58804.51e0",
+        "pReturn": "-22920.07e0",
+        "pBonus": "-45269.58e0",
+        "pMinAdd": "-8640518.743276e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "1051673.314086",
+        "pMax": "9999999.999999",
+        "pPerc": "58804.51",
+        "pReturn": "-22920.07",
+        "pBonus": "-45269.58",
+        "pMinAdd": "-8640518.743276",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1824377.526419",
+        "pMax": "9999999.999999",
+        "pPerc": "84599.91",
+        "pReturn": "-87778.88",
+        "pBonus": "80510.39",
+        "pMinAdd": "4653313.467462",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "1824377.526419",
+        "pMax": "9999999.999999",
+        "pPerc": "84599.91",
+        "pReturn": "-87778.88",
+        "pBonus": "80510.39",
+        "pMinAdd": "4653313.467462",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2845290,191344",
+        "pMax": "9999999,999999",
+        "pPerc": "-99999,99",
+        "pReturn": "1",
+        "pBonus": "-45254,48",
+        "pMinAdd": "3938153,580882",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2845290.191344",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-45254.48",
+        "pMinAdd": "3938153.580882",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4622486.911932e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "25294.06e0",
+        "pReturn": "-34776.74e0",
+        "pBonus": "30106.66e0",
+        "pMinAdd": "-5560243.178163e0",
+        "pCompndMin": "33.33e0",
+        "pCompndMax": "33.33e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "4622486.911932",
+        "pMax": "9999999.999999",
+        "pPerc": "25294.06",
+        "pReturn": "-34776.74",
+        "pBonus": "30106.66",
+        "pMinAdd": "-5560243.178163",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2436512.027720",
+        "pMax": "9999999.999999",
+        "pPerc": "42694.52",
+        "pReturn": "-4789.29",
+        "pBonus": "-93024.33",
+        "pMinAdd": "-2456669.605822",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2436512.027720",
+        "pMax": "9999999.999999",
+        "pPerc": "42694.52",
+        "pReturn": "-4789.29",
+        "pBonus": "-93024.33",
+        "pMinAdd": "-2456669.605822",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "2431798,251728",
+        "pMax": "9999999,999999",
+        "pPerc": "94686,90",
+        "pReturn": "62360,65",
+        "pBonus": "51899,54",
+        "pMinAdd": "6015581,167427",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "2431798.251728",
+        "pMax": "9999999.999999",
+        "pPerc": "94686.90",
+        "pReturn": "62360.65",
+        "pBonus": "51899.54",
+        "pMinAdd": "6015581.167427",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "4822194.025959e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "-99999.99e0",
+        "pReturn": "1e0",
+        "pBonus": "39229.45e0",
+        "pMinAdd": "8259058.782557e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "4822194.025959",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "39229.45",
+        "pMinAdd": "8259058.782557",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "6483541.299841",
+        "pMax": "9999999.999999",
+        "pPerc": "64417.77",
+        "pReturn": "46049.79",
+        "pBonus": "-93020.61",
+        "pMinAdd": "-8390143.878543",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "6483541.299841",
+        "pMax": "9999999.999999",
+        "pPerc": "64417.77",
+        "pReturn": "46049.79",
+        "pBonus": "-93020.61",
+        "pMinAdd": "-8390143.878543",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "304578,158764",
+        "pMax": "9999999,999999",
+        "pPerc": "47540,39",
+        "pReturn": "74078,77",
+        "pBonus": "91256,12",
+        "pMinAdd": "-2757709,036366",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "304578.158764",
+        "pMax": "9999999.999999",
+        "pPerc": "47540.39",
+        "pReturn": "74078.77",
+        "pBonus": "91256.12",
+        "pMinAdd": "-2757709.036366",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "7597657.134514e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "57968.57e0",
+        "pReturn": "-60583.08e0",
+        "pBonus": "58191.62e0",
+        "pMinAdd": "-5753635.650845e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "7597657.134514",
+        "pMax": "9999999.999999",
+        "pPerc": "57968.57",
+        "pReturn": "-60583.08",
+        "pBonus": "58191.62",
+        "pMinAdd": "-5753635.650845",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5454366.644568",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1",
+        "pBonus": "-57494.84",
+        "pMinAdd": "-7181651.980116",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5454366.644568",
+        "pMax": "9999999.999999",
+        "pPerc": "-99999.99",
+        "pReturn": "1.00",
+        "pBonus": "-57494.84",
+        "pMinAdd": "-7181651.980116",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "3067759,707053",
+        "pMax": "9999999,999999",
+        "pPerc": "54589,97",
+        "pReturn": "-16968,51",
+        "pBonus": "-34203,99",
+        "pMinAdd": "-2995473,618632",
+        "pCompndMin": "33,33",
+        "pCompndMax": "33,33",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "3067759.707053",
+        "pMax": "9999999.999999",
+        "pPerc": "54589.97",
+        "pReturn": "-16968.51",
+        "pBonus": "-34203.99",
+        "pMinAdd": "-2995473.618632",
+        "pCompndMin": "33.33",
+        "pCompndMax": "33.33",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "1528322.510590e0",
+        "pMax": "9999999.999999e0",
+        "pPerc": "85135.87e0",
+        "pReturn": "33893.89e0",
+        "pBonus": "1533.23e0",
+        "pMinAdd": "-8624964.721049e0",
+        "pCompndMin": "0e0",
+        "pCompndMax": "100e0",
+        "pClComis": "0e0"
+      },
+      "expected": {
+        "pMin": "1528322.510590",
+        "pMax": "9999999.999999",
+        "pPerc": "85135.87",
+        "pReturn": "33893.89",
+        "pBonus": "1533.23",
+        "pMinAdd": "-8624964.721049",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": "5538447.820142",
+        "pMax": "9999999.999999",
+        "pPerc": "40753.28",
+        "pReturn": "89346.50",
+        "pBonus": "434.67",
+        "pMinAdd": "8178129.182864",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "5538447.820142",
+        "pMax": "9999999.999999",
+        "pPerc": "40753.28",
+        "pReturn": "89346.50",
+        "pBonus": "434.67",
+        "pMinAdd": "8178129.182864",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": ".0100000",
+        "pMax": "1e3",
+        "pPerc": "+1.50",
+        "pReturn": "100",
+        "pBonus": "-0.00",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "0.010000",
+        "pMax": "1000.000000",
+        "pPerc": "1.50",
+        "pReturn": "100.00",
+        "pBonus": "0.00",
+        "pMinAdd": "0.000000",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    },
+    {
+      "input": {
+        "pMin": " 0,01 ",
+        "pMax": "1 000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "",
+        "pCompndMin": "",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "expected": {
+        "pMin": "0.010000",
+        "pMax": "1000.000000",
+        "pPerc": "1.00",
+        "pReturn": "100.00",
+        "pBonus": "0.00",
+        "pMinAdd": "0.000000",
+        "pCompndMin": "0.00",
+        "pCompndMax": "100.00",
+        "pClComis": "0.00"
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "input": {
+        "pMin": "0.0000001",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "min_wrong"
+    },
+    {
+      "input": {
+        "pMin": "10000000",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "min_wrong"
+    },
+    {
+      "input": {
+        "pMin": "1e1000000",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "min_wrong"
+    },
+    {
+      "input": {
+        "pMin": "NaN",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "min_wrong"
+    },
+    {
+      "input": {
+        "pMin": [],
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "min_wrong"
+    },
+    {
+      "input": {
+        "pMin": true,
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "min_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "0.0000001",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "max_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "10000000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "max_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1e1000000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "max_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "NaN",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "max_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": [],
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "max_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": true,
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "max_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "0.001",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "perc_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "100000",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "perc_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1e1000000",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "perc_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "NaN",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "perc_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": [],
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "perc_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": true,
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "perc_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "0.001",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "perc2_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100000",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "perc2_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "1e1000000",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "perc2_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "NaN",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "perc2_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": [],
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "perc2_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": true,
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "perc2_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0.001",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "bonus_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "100000",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "bonus_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "1e1000000",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "bonus_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "NaN",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "bonus_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": [],
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "bonus_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": true,
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "bonus_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0.0000001",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "minadd_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "10000000",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "minadd_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "1e1000000",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "minadd_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "NaN",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "minadd_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": [],
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "minadd_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": true,
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "minadd_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0.001",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "compndmin_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "100000",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "compndmin_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "1e1000000",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "compndmin_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "NaN",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "compndmin_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": [],
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "compndmin_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": true,
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "compndmin_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "0.001",
+        "pClComis": "0"
+      },
+      "error": "compndmax_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100000",
+        "pClComis": "0"
+      },
+      "error": "compndmax_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "1e1000000",
+        "pClComis": "0"
+      },
+      "error": "compndmax_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "NaN",
+        "pClComis": "0"
+      },
+      "error": "compndmax_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": [],
+        "pClComis": "0"
+      },
+      "error": "compndmax_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": true,
+        "pClComis": "0"
+      },
+      "error": "compndmax_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0.001"
+      },
+      "error": "clcomis_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "100000"
+      },
+      "error": "clcomis_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "1e1000000"
+      },
+      "error": "clcomis_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "NaN"
+      },
+      "error": "clcomis_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": []
+      },
+      "error": "clcomis_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": true
+      },
+      "error": "clcomis_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.009999",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "min_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "0.01",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "max_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "-0.01",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "compndmin_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100.01",
+        "pClComis": "0"
+      },
+      "error": "compndmax_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "-0.01"
+      },
+      "error": "clcomis_wrong"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "0",
+        "pReturn": "0",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "0",
+        "pCompndMax": "100",
+        "pClComis": "0"
+      },
+      "error": "percent_required"
+    },
+    {
+      "input": {
+        "pMin": "0.01",
+        "pMax": "1000",
+        "pPerc": "1",
+        "pReturn": "100",
+        "pBonus": "0",
+        "pMinAdd": "0",
+        "pCompndMin": "50",
+        "pCompndMax": "49.99",
+        "pClComis": "0"
+      },
+      "error": "compndmax_wrong"
+    }
+  ]
+}

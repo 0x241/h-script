@@ -26,7 +26,8 @@ final class HealthService
 
 	public function readiness(Connection $database, RedisCache $cache): array
 	{
-		$checks = array();
+		$retention = $this->logRetention();
+		$checks = array('log_retention' => $retention['status']);
 		$databaseReady = false;
 		try { $databaseReady = (int)$database->fetch1($database->query('SELECT 1')) === 1; }
 		catch (Throwable) { $databaseReady = false; }
@@ -77,6 +78,7 @@ final class HealthService
 			),
 			'cron_age_seconds' => $cron['age_seconds'],
 			'dns_backlog' => $dnsBacklog,
+			'log_retention' => $retention,
 		);
 		(new OperationalStateRepository($this->projectRoot))->recordReadiness($result);
 		StructuredLogger::event(
@@ -105,6 +107,39 @@ final class HealthService
 		);
 		(new OperationalStateRepository($this->projectRoot))->recordReadiness($result);
 		StructuredLogger::event('error', 'health', 'readiness_checked', 'failure', 0, '', array('state' => 'not_ready'));
+		return $result;
+	}
+
+	public function logRetention(): array
+	{
+		$paths = array(
+			'events' => (string)(getenv('OBSERVABILITY_LOG_PATH') ?: $this->projectRoot . '/logs/observability.ndjson'),
+			'metrics' => (string)(getenv('OBSERVABILITY_METRICS_PATH') ?: $this->projectRoot . '/logs/metrics.ndjson'),
+			'csp' => $this->projectRoot . '/logs/csp-violations.ndjson',
+		);
+		$result = array('status' => 'ok', 'streams' => array());
+		foreach ($paths as $name => $path)
+		{
+			if (!NdjsonWriter::safePaths($path))
+			{
+				$result['streams'][$name] = array('status' => 'unknown');
+				$result['status'] = 'unknown';
+				continue;
+			}
+			$started = is_file($path) || is_file($path . '.rotation') || is_file($path . '.rotation.next');
+			for ($index = 1; !$started && $index <= NdjsonWriter::MAX_ROTATIONS; $index++)
+				$started = is_file($path . '.' . $index);
+			// Higher retained generations also count when active/.1 are absent.
+			if (!$started)
+			{
+				$result['streams'][$name] = array('status' => 'not_started');
+				continue;
+			}
+			try { $result['streams'][$name] = NdjsonHistory::inspect($path); }
+			catch (Throwable) { $result['streams'][$name] = array('status' => 'unknown'); }
+			$status = $result['streams'][$name]['status'];
+			if ($status === 'unknown' || ($status === 'shortfall' && $result['status'] !== 'unknown')) $result['status'] = $status;
+		}
 		return $result;
 	}
 

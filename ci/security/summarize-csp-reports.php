@@ -1,42 +1,36 @@
 <?php
 
-/** Aggregate sanitized CSP reports without printing URL paths or request data. */
+/** Aggregate every retained CSP generation without printing URL paths or request data. */
+
+use HScript\Http\CspReportSummary;
 
 if (PHP_SAPI !== 'cli') exit(1);
-
-$path = $argv[1] ?? dirname(__DIR__, 2) . '/logs/csp-violations.ndjson';
-if (!is_file($path) || !is_readable($path))
-{
-	fwrite(STDERR, "CSP report log is unavailable: $path\n");
-	exit(1);
-}
-
-$counts = array();
-$total = 0;
-$invalid = 0;
-$stream = fopen($path, 'rb');
-if ($stream === false) exit(1);
+require dirname(__DIR__, 2) . '/vendor/autoload.php';
+$arguments = array_values(array_filter(array_slice($argv, 1), static fn(string $value): bool => $value !== '--json'));
+$path = $arguments[0] ?? dirname(__DIR__, 2) . '/logs/csp-violations.ndjson';
+set_error_handler(static fn(): bool => true);
 try
 {
-	while (($line = fgets($stream)) !== false)
+	$summary = CspReportSummary::summarize($path);
+	if (in_array('--json', $argv, true))
 	{
-		$record = json_decode($line, true);
-		if (!is_array($record)) { $invalid++; continue; }
-		$fields = array();
-		foreach (array('document_surface', 'directive', 'blocked_origin', 'source_kind', 'source_asset', 'disposition') as $field)
-		{
-			$value = $record[$field] ?? '';
-			$fields[] = is_string($value) && strlen($value) <= 160 ? $value : '';
-		}
-		$key = json_encode($fields, JSON_THROW_ON_ERROR);
-		$counts[$key] = ($counts[$key] ?? 0) + 1;
-		$total++;
+		echo json_encode($summary, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
 	}
+	else
+	{
+		$history = $summary['history'];
+		echo 'Reports: ' . $history['records'] . '; invalid lines: ' . $history['invalid_lines'] . '; retained files: ' . $history['files'] . "\n";
+		echo 'Retention: ' . $history['status'] . '; retained seconds: ' . $history['retained_seconds'] . '; required seconds: ' . $history['required_seconds'] . "\n";
+		echo 'Capacity: ' . $summary['capacity']['total_byte_ceiling'] . ' bytes; peak observed day: ' . $history['peak_daily_bytes'] . " bytes\n";
+		echo "Count | Surface | Directive | Blocked origin | Source kind | Asset class | Disposition\n";
+		foreach ($summary['groups'] as $group)
+			echo $group['count'] . ' | ' . implode(' | ', $group['fields']) . "\n";
+	}
+	exit(0);
 }
-finally { fclose($stream); }
-
-arsort($counts, SORT_NUMERIC);
-echo "Reports: $total; invalid lines: $invalid\n";
-echo "Count | Surface | Directive | Blocked origin | Source kind | Source asset | Disposition\n";
-foreach ($counts as $key => $count)
-	echo $count . ' | ' . implode(' | ', json_decode($key, true, 8, JSON_THROW_ON_ERROR)) . "\n";
+catch (Throwable)
+{
+	fwrite(STDERR, "CSP report history is unavailable; check private storage and writer recovery.\n");
+	exit(1);
+}
+finally { restore_error_handler(); }

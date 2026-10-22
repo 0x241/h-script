@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 // Mutations are limited to the disposable database created by seo_isolated.sh.
 if (getenv('H_SCRIPT_SEO_TEST') !== '1' || getenv('DB_NAME') !== 'fixture') {
     exit(2);

@@ -3,18 +3,17 @@
 use HScript\Util\StringHelper;
 
 use HScript\Template\View;
+use HScript\Finance\CurrencyScale;
+use HScript\Finance\DecimalOutput;
 
 // User Defined Functions module
 
 function _z($z, $cid, $mode = 0) // 0-only sum / 1-sum and curr / 2-sum (+bold) and curr 
 {
 	global $_GS, $_cfg, $_currs;
-	$r = isset($_currs[$cid]['cNumDec']) ? $_currs[$cid]['cNumDec'] : 0;
-	if ($r <= 0)
-		$r = $_cfg['UI_NumDec'];
-	if ($z === '' || $z === null || !is_numeric($z))
-		$z = 0;
-	$z = number_format((float)$z, 0 + $r, '.', '');
+	try { $r = CurrencyScale::resolve($_currs[$cid] ?? [], $_cfg); }
+	catch (InvalidArgumentException) { $r = 2; }
+	$z = DecimalOutput::display($z, $r);
 	if ($mode < 1)
 		return $z;
 	if ($mode === 2)

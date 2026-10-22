@@ -1,0 +1,38 @@
+<h2>Платежная система [PAW]{% if paw_currency %} — {{ paw_currency }}{% endif %}</h2>
+<div class="space-y-6">
+    <p class="text-sm leading-relaxed text-gray-500">PAW — платёжный провайдер. USD, EUR и другие выбранные валюты — единицы учёта балансов H-Script; криптоактивы и сети PAW — способы оплаты.</p>
+    <nav class="flex flex-wrap gap-3" aria-label="Настройки PAW">
+        {% set tabs = {'setup':'Подключение','currencies':'Валюты','settings':'Настройки валюты','info':'Информация'} %}
+        {% if paw_currency %}{% set tabs = tabs|merge({'settings':'Настройки ' ~ paw_currency}) %}{% endif %}
+        {% for key,label in tabs %}<a href="{{ paw_url }}&tab={{ key }}" class="rounded-xl border px-4 py-2 {% if paw_tab == key %}border-brand font-bold{% else %}border-gray-200 dark:border-gray-700{% endif %}" {% if paw_tab == key %}aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+    </nav>
+    {% if paw_error %}<p role="alert" class="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">{{ paw_error }}</p>{% endif %}
+    <section class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-950 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"><strong>Пополнение отключено. Вывод отключён.</strong>{% if paw_schema_ready %}<p class="mt-2">Профиль можно настроить и проверить. Приём платежей станет доступен после завершения проверки финансовой обработки PAW.</p>{% endif %}</section>
+    {% if paw_tab in ['setup','info'] %}{% include "balance/admin/paw.referral.twig" %}{% endif %}
+    {% if paw_schema_ready %}
+    <section class="card hs-curr-card p-6">
+    {% if paw_tab == 'info' %}
+        <h2 class="font-bold">Состояние профиля</h2>
+        <dl class="mt-4 grid grid-cols-2 gap-3"><dt>Конфигурация</dt><dd>{% if paw_profile.state == 'enabled' %}Подключена{% elseif paw_profile.state == 'retired' %}Удалена, история сохранена{% elseif paw_profile.state == 'disabled' %}Отключена{% else %}Ещё не создана{% endif %}</dd><dt>Среда PAW</dt><dd>{{ paw_profile.environment ?? '—' }}</dd><dt>API-ключ</dt><dd>{{ paw_profile.has_key ? 'Сохранён' : 'Не задан' }}</dd></dl>
+        <p class="mt-5 text-sm text-gray-500">Для выбранных валют используется один профиль. Криптовалюты и сети PAW не создаются как отдельные валюты учёта H-Script.</p>
+    {% elseif paw_profile.state == 'retired' %}<p>Этот профиль удалён. Валюты, ключи для восстановления и финансовая история сохранены.</p><a href="{{ _link('balance/admin/curr', false, 0) }}?provider=PAW" class="mt-4 inline-block underline">Открыть текущее подключение</a>
+    {% elseif paw_tab == 'settings' and paw_currency_values|default(false) %}
+        <h3 class="mb-2 text-lg font-extrabold">Настройки валюты {{ paw_currency_values.cCurrID }}</h3>
+        {% if paw_currency_preview|default(false) %}<p class="mb-6 rounded-xl bg-blue-50 p-4 text-sm leading-relaxed text-blue-950 dark:bg-blue-950 dark:text-blue-100">Предварительный просмотр на примере USD. Чтобы сохранять параметры, сначала проверьте API-ключ на вкладке «Подключение». Затем откройте выбранную валюту в списке ниже. Для USD, EUR и остальных валют лимиты и комиссии задаются отдельно.</p>{% else %}<p class="mb-6 text-sm leading-relaxed text-gray-500">Лимиты, комиссии и отображение задаются отдельно для этой валюты. API-ключ и список подключённых валют общие для профиля PAW.</p>{% endif %}
+        {% include 'balance/admin/curr.settings.twig' with {
+            'currency_provider_paw':true, 'currency_preview':paw_currency_preview|default(false), 'form':'paw_currency_save', 'url':paw_url ~ '&tab=settings', 'tpl_module':'balance/admin/curr',
+            'values':paw_currency_values, 'fields':{
+                'cID':[], 'profile_id':[], 'revision':[], 'cDisabled':{0:'C',1:'Отключена', 'readonly':true}, 'cHidden':{0:'C',1:'Скрыта'},
+                'cMTS':{0:'X',1:'Исправлено','skip':not paw_currency_values.cMTS},
+                99:'Вид', 'cName':{0:'T',1:'Наименование'}, 'cCurrID':{0:'X',1:'Код валюты'},
+                'cCurr':{0:'T',1:'Обозначение валюты', 'comment':'Подпись рядом с суммой; код валюты учёта сохраняется.'},
+                'cNumDec':{0:'I',1:'Кол-во знаков после запятой (0-6) <<0 - по умолчанию>>', 'min':0, 'max':6}
+            }
+        } %}
+    {% elseif paw_tab == 'currencies' and not paw_profile.has_key %}<p>Сначала подключите API-ключ PAW на вкладке «Подключение».</p>
+    {% else %}{% include "balance/admin/paw.form.twig" %}{% endif %}
+    </section>
+    {% if paw_profile.connections %}<section class="card hs-curr-card p-6"><h2 class="mb-4 font-bold">Сохранённые валюты</h2><div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr><th class="p-2">Валюта</th><th class="p-2">Настройки</th><th class="p-2">Выбрана</th><th class="p-2">Пополнение</th><th class="p-2">Вывод</th></tr></thead><tbody>{% for connection in paw_profile.connections %}<tr class="border-t border-gray-100 dark:border-gray-800"><td class="p-2"><a href="{{ _link('balance/admin/curr', false, 0) }}?id={{ connection.cID }}" class="underline">{{ connection.cCurrID }}</a></td><td class="p-2"><a href="{{ _link('balance/admin/curr', false, 0) }}?id={{ connection.cID }}&tab=settings" class="font-semibold underline">Лимиты и комиссии</a></td><td class="p-2">{{ connection.cProviderSelected ? 'Да' : 'Нет' }}</td><td class="p-2">Отключено</td><td class="p-2">Отключён</td></tr>{% endfor %}</tbody></table></div></section>{% endif %}
+    {% if paw_profile.id and paw_profile.state != 'retired' %}<form method="post" action="{{ paw_url }}&tab={{ paw_tab }}" class="flex flex-wrap gap-3">{{ _getFormSecurity({"form": 'paw_profile_manage'}) }}<input type="hidden" name="profile_id" value="{{ paw_profile.id }}"><input type="hidden" name="revision" value="{{ paw_profile.revision }}"><button type="submit" name="paw_profile_manage_btndisable" value="1" class="rounded-xl border border-gray-300 px-5 py-3 dark:border-gray-700">Отключить профиль</button><button type="submit" name="paw_profile_manage_btnremove" value="1" class="rounded-xl border border-red-200 px-5 py-3 text-red-700">Удалить подключение, сохранив историю</button></form>{% endif %}
+    {% endif %}
+</div>

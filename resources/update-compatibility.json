@@ -2,24 +2,54 @@
     "format": 2,
     "application": {
         "minimum": "1.0.0",
-        "maximum": "1.0.7"
+        "maximum": "1.0.8"
     },
     "schema": {
         "minimum": "1.0.0",
-        "maximum": "1.0.2"
+        "maximum": "1.0.11"
     },
     "environment": {
-        "php": {"minimum": "8.4.0", "maximum_exclusive": "8.5.0"},
-        "extensions": ["curl", "dom", "gd", "mbstring", "pdo_mysql", "simplexml", "sodium"],
+        "php": {
+            "minimum": "8.4.0",
+            "maximum_exclusive": "8.5.0"
+        },
+        "extensions": [
+            "curl",
+            "dom",
+            "gd",
+            "mbstring",
+            "pdo_mysql",
+            "simplexml",
+            "sodium"
+        ],
         "database": {
-            "mysql": [{"minimum": "8.4.0", "maximum_exclusive": "8.5.0"}],
+            "mysql": [
+                {
+                    "minimum": "8.4.0",
+                    "maximum_exclusive": "8.5.0"
+                }
+            ],
             "mariadb": [
-                {"minimum": "10.11.0", "maximum_exclusive": "10.12.0"},
-                {"minimum": "11.4.0", "maximum_exclusive": "11.5.0"}
+                {
+                    "minimum": "10.11.0",
+                    "maximum_exclusive": "10.12.0"
+                },
+                {
+                    "minimum": "11.4.0",
+                    "maximum_exclusive": "11.5.0"
+                }
             ]
         },
-        "redis": {"required": false, "minimum": "8.0.0", "maximum_exclusive": "9.0.0"},
-        "browsers": {"chrome": "111", "firefox": "128", "safari": "16.4"}
+        "redis": {
+            "required": false,
+            "minimum": "8.0.0",
+            "maximum_exclusive": "9.0.0"
+        },
+        "browsers": {
+            "chrome": "111",
+            "firefox": "128",
+            "safari": "16.4"
+        }
     },
     "rollback": {
         "code": "only-before-schema-change",

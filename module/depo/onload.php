@@ -7,7 +7,7 @@ function onDepoEvent($oper, $uid, $params)
 		return;
 	if (($oper != 'Oper') or ($params['oper'] != 'CASHIN'))
 		return;
-	if ($params['cid2'])
+	if (!empty($params['cid2']))
 	{
 		$params['cid'] = $params['cid2'];
 		$params['sum'] = $params['sum2'];

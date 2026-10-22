@@ -36,6 +36,14 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' && isse
 	foreach ($_dbstru as $t => $cmnd)
 		$db->query("CREATE TABLE $t ($cmnd)$dt CHARACTER SET utf8 COLLATE utf8_general_ci");
 
+    HScript\Payment\Provider\ProviderConnectionSchema::ensure($db);
+    HScript\Payment\Provider\ProviderCatalogSchema::ensure($db);
+    HScript\Payment\Provider\ProviderNetworkSchema::ensure($db);
+    HScript\Navigation\MenuPinsSchema::ensure($db);
+    HScript\Payment\Routing\PaymentRouteSchema::ensure($db);
+    HScript\Payment\Routing\TokenCatalogSchema::ensure($db);
+    HScript\Payment\CheckoutProgressSchema::ensure($db);
+
 	$psalt = substr(md5(uniqid(rand(), true).time()), 0, rand(6, 10));
 	clearstatcache();
 	$cfg = array(

@@ -96,6 +96,93 @@ const copyMarkedField = async (element) => {
   document.execCommand('copy');
 };
 
+const paymentWatchers = new Map();
+const initializePaymentWatchers = (root = document) => {
+  const elements = [
+    ...(root instanceof HTMLElement && root.matches('[data-hs-payment-watch]') ? [root] : []),
+    ...(root.querySelectorAll?.('[data-hs-payment-watch]') ?? []),
+  ];
+  elements.forEach((element) => {
+    if (paymentWatchers.has(element)) return;
+    const url = new URL(element.dataset.statusUrl, document.baseURI);
+    const success = new URL(element.dataset.successUrl, document.baseURI);
+    if (url.origin !== location.origin || success.origin !== location.origin) return;
+    const status = element.querySelector('[data-payment-status]');
+    const hint = element.querySelector('[data-payment-hint]');
+    const button = element.querySelector('[data-payment-refresh]');
+    const confirmations = element.querySelector('[data-payment-confirmations]');
+    if (!status || !hint || !button) return;
+    const automatic = hint.textContent;
+    let timer, controller, last = 0, failures = 0, stopped = false, until = Date.now() + 30 * 60 * 1000;
+    const schedule = (delay = 8000) => {
+      clearTimeout(timer);
+      if (!stopped) timer = setTimeout(() => void poll(), delay);
+    };
+    const poll = async () => {
+      clearTimeout(timer);
+      if (!element.isConnected) { stopped = true; paymentWatchers.delete(element); return; }
+      if (stopped || controller) return;
+      if (Date.now() > until) { hint.textContent = element.dataset.paused; return; }
+      if (document.hidden) { schedule(); return; }
+      if (Date.now() - last < 5000) { schedule(5000); return; }
+      last = Date.now();
+      button.disabled = true;
+      controller = new AbortController();
+      const timeout = setTimeout(() => controller?.abort(), 10000);
+      try {
+        const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', redirect: 'error', signal: controller.signal, headers: {Accept: 'application/json'}});
+        if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) throw new Error('Payment status unavailable');
+        const data = await response.json();
+        if (!['waiting', 'confirming', 'credited', 'closed'].includes(data.state)) throw new Error('Invalid payment status');
+        failures = 0;
+        element.dataset.state = data.state;
+        status.textContent = element.dataset[data.state];
+        hint.textContent = automatic;
+        if (confirmations) {
+          const count = data.confirmations;
+          confirmations.hidden = !Number.isSafeInteger(count) || count < 0;
+          confirmations.textContent = confirmations.hidden ? '' : element.dataset.confirmations.replace('{{count}}', String(count));
+        }
+        if (data.state === 'credited') {
+          stopped = true;
+          setTimeout(() => { if (element.isConnected) location.assign(success.href); }, 1200);
+        } else if (data.state === 'closed') {
+          stopped = true;
+          hint.textContent = '';
+          element.querySelectorAll('.hs-payment-button').forEach((item) => { item.disabled = true; });
+        }
+      } catch {
+        failures++;
+        hint.textContent = element.dataset.offline;
+      } finally {
+        clearTimeout(timeout);
+        controller = null;
+        button.disabled = stopped;
+        schedule(Math.min(60000, 8000 * (1 + failures)));
+      }
+    };
+    const refresh = () => { until = Date.now() + 30 * 60 * 1000; void poll(); };
+    const stop = () => { stopped = true; clearTimeout(timer); controller?.abort(); };
+    paymentWatchers.set(element, {refresh, stop});
+    schedule();
+  });
+};
+
+// The name attribute provides native exclusivity; toggle also covers older Safari.
+document.addEventListener('toggle', (event) => {
+  const opened = event.target;
+  if (!(opened instanceof HTMLDetailsElement) || !opened.open) return;
+  opened.closest('[data-hs-accordion]')?.querySelectorAll('details[open]').forEach((item) => {
+    if (item !== opened) item.open = false;
+  });
+}, true);
+
+window.addEventListener('pagehide', () => {
+  paymentWatchers.forEach(({stop}) => stop());
+  paymentWatchers.clear();
+});
+window.addEventListener('pageshow', () => initializePaymentWatchers());
+
 document.addEventListener('click', (event) => {
   const target = event.target;
   if (!(target instanceof Element)) return;
@@ -103,6 +190,8 @@ document.addEventListener('click', (event) => {
   if (button instanceof HTMLButtonElement) togglePasswordVisibility(button);
   const copy = target.closest('[data-copy-target]');
   if (copy instanceof HTMLElement) void copyMarkedField(copy);
+  const refresh = target.closest('[data-payment-refresh]');
+  if (refresh) paymentWatchers.get(refresh.closest('[data-hs-payment-watch]'))?.refresh();
 });
 
 document.addEventListener('submit', (event) => {
@@ -135,9 +224,22 @@ document.addEventListener('DOMContentLoaded', () => {
   markReadReceipts();
   startClock();
   initializeBulkSelection();
+  initializePaymentWatchers();
 });
 document.addEventListener('htmx:afterSwap', (event) => {
   submitMarkedPaymentForm(event.target);
   markReadReceipts(event.target);
   initializeBulkSelection(event.target);
+  initializePaymentWatchers(event.target);
+});
+
+// Provider catalogs contain plain text; filtering never renders provider HTML.
+document.addEventListener('input', (event) => {
+  const field = event.target;
+  if (!(field instanceof HTMLInputElement) || !field.matches('[data-token-search]')) return;
+  const query = field.value.trim().toLocaleLowerCase();
+  field.closest('[data-token-catalog]')?.querySelectorAll('[data-token-option]').forEach((item) => {
+    item.hidden = !item.textContent.toLocaleLowerCase().includes(query);
+    item.style.display = item.hidden ? 'none' : '';
+  });
 });

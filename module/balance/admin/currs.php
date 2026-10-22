@@ -38,14 +38,55 @@ catch (FormAbortException $e)
 
 useLib('balance');
 
-$list = opPageGet(_GETN('page'), 20, $table, '*', '', null, 
+$visible = "cCID NOT IN (".implode(',',array_map([$db->link,'quote'],HScript\Payment\PaymentManager::DEPRECATED_IDS)).")";
+$provider_filters = [];
+$provider_currency_ids = [];
+foreach ($db->fetchRows($db->select('Currs', 'cID,cCID', $visible)) as $currency) {
+	$kind = HScript\Payment\Provider\ProviderCatalog::kind($currency['cCID']) ?? ((int)$currency['cID'] === 1 ? 'INTERNAL' : 'OTHER');
+	$provider_currency_ids[$kind][] = (int)$currency['cID'];
+}
+foreach (HScript\Payment\Provider\ProviderCatalog::GROUPS as $kind => [$name])
+	if (isset($provider_currency_ids[$kind])) $provider_filters[$kind] = $name;
+if (isset($provider_currency_ids['INTERNAL'])) $provider_filters['INTERNAL'] = View::_t('currs.filter.internal');
+if (isset($provider_currency_ids['OTHER'])) $provider_filters['OTHER'] = View::_t('currs.filter.other');
+$selected_provider = is_string($_GET['provider'] ?? null) ? $_GET['provider'] : 'ALL';
+if (!isset($provider_filters[$selected_provider])) $selected_provider = 'ALL';
+$filter = $visible;
+$filter_values = null;
+if ($selected_provider !== 'ALL') {
+	$filter .= ' AND cID ?i';
+	$filter_values = [$provider_currency_ids[$selected_provider]];
+}
+View::setPage('provider_filters', $provider_filters, 0);
+View::setPage('selected_provider', $selected_provider, 0);
+View::setPage('provider_filter_params', '&provider=' . rawurlencode($selected_provider), 0);
+$provider_connections=[];
+foreach($db->link->query('SELECT ppKind,ppState FROM PaymentProviders WHERE ppSlot IS NOT NULL ORDER BY ppKind')->fetchAll(PDO::FETCH_ASSOC) as $profile){
+    $kind=$profile['ppKind'];
+    if(!isset(HScript\Payment\Provider\ProviderCatalog::GROUPS[$kind]))continue;
+    if($selected_provider!=='ALL' && $selected_provider!==$kind)continue;
+    $provider_connections[$kind]=['name'=>HScript\Payment\Provider\ProviderCatalog::GROUPS[$kind][0],'enabled'=>$profile['ppState']==='enabled'];
+}
+View::setPage('provider_connections',$provider_connections,0);
+
+$list = opPageGet(_GETN('page') ?: (isset($_GET['provider']) ? 1 : 0), 20, $table, '*', $filter, $filter_values,
 	array(
 		$id_field => array($id_field)
 	),
 	_GET('sort'), $id_field
 );
-foreach ($list as $id => $r)
-	opDecodeCurrParams($r, $p, $p, $list[$id]['PAPI']);
+$currency_manager = new HScript\Payment\PaymentManager($db);
+foreach ($list as $id => $r) {
+    $api_configured = false;
+    if (empty($r['cProviderID']) && !empty($r['cParamsAPI']) && isset($currency_manager->fields($r['cCID'], 'api')['apipass'])) {
+        opDecodeCurrParams($r, $pay, $sci, $api);
+        $api_configured = !empty($api['apipass']);
+        unset($pay, $sci, $api);
+    }
+    $list[$id]['PAPI']=['configured'=>$api_configured];
+    $list[$id]['presentation']=HScript\Payment\Provider\CurrencyPresentation::describe($r);
+    unset($list[$id]['cParams'],$list[$id]['cParamsSCI'],$list[$id]['cParamsAPI']);
+}
 View::setPage('list', $list);
 
 View::showPage();

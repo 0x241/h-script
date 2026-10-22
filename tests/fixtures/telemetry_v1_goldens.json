@@ -1,0 +1,327 @@
+{
+  "producer_image": "hscript-phase4-decimal-plan-final:local",
+  "producer_index": "sha256:6f185a264095ca57c0b9c38005be6d18022cc336092c0365a8ffe7284316781b",
+  "now": 1800000000,
+  "cases": [
+    {
+      "input": {
+        "schema_version": 1,
+        "installation_id": "123e4567-e89b-42d3-a456-426614174099",
+        "domain": "review.example.org",
+        "version": "1.0.8",
+        "reported_at": 1800000000,
+        "sequence": 20833,
+        "stats_consent": true,
+        "public_stats": {
+          "worked_days": 12,
+          "users_total": 25,
+          "users_online": 3,
+          "active_deposits": 8,
+          "closed_deposits": 4,
+          "cash_in_base": 0,
+          "cash_out_base": 0,
+          "referral_paid_base": 0,
+          "reinvested_base": 0,
+          "base_currency": "usd",
+          "cash_in_by_currency": {
+            "USD": 0,
+            "BTC": 0.25
+          },
+          "cash_out_by_currency": {
+            "EUR": 0
+          }
+        }
+      },
+      "validated_json": "{\"schema_version\":1,\"installation_id\":\"123e4567-e89b-42d3-a456-426614174099\",\"domain\":\"review.example.org\",\"version\":\"1.0.8\",\"reported_at\":1800000000,\"sequence\":20833,\"stats_consent\":true,\"public_stats\":{\"worked_days\":12,\"users_total\":25,\"users_online\":3,\"active_deposits\":8,\"closed_deposits\":4,\"cash_in_base\":0.0,\"cash_out_base\":0.0,\"referral_paid_base\":0.0,\"reinvested_base\":0.0,\"base_currency\":\"USD\",\"cash_in_by_currency\":{\"BTC\":0.25,\"USD\":0.0},\"cash_out_by_currency\":{\"EUR\":0.0}}}",
+      "hash": "3e5db876307c990b83cd802285226803661fc24dffd4858d7b5ec9d7bf5b13ed"
+    },
+    {
+      "input": {
+        "schema_version": 1,
+        "installation_id": "123e4567-e89b-42d3-a456-426614174099",
+        "domain": "review.example.org",
+        "version": "1.0.8",
+        "reported_at": 1800000000,
+        "sequence": 20833,
+        "stats_consent": true,
+        "public_stats": {
+          "worked_days": 12,
+          "users_total": 25,
+          "users_online": 3,
+          "active_deposits": 8,
+          "closed_deposits": 4,
+          "cash_in_base": 1,
+          "cash_out_base": 1,
+          "referral_paid_base": 1,
+          "reinvested_base": 1,
+          "base_currency": "usd",
+          "cash_in_by_currency": {
+            "USD": 1,
+            "BTC": 0.25
+          },
+          "cash_out_by_currency": {
+            "EUR": 1
+          }
+        }
+      },
+      "validated_json": "{\"schema_version\":1,\"installation_id\":\"123e4567-e89b-42d3-a456-426614174099\",\"domain\":\"review.example.org\",\"version\":\"1.0.8\",\"reported_at\":1800000000,\"sequence\":20833,\"stats_consent\":true,\"public_stats\":{\"worked_days\":12,\"users_total\":25,\"users_online\":3,\"active_deposits\":8,\"closed_deposits\":4,\"cash_in_base\":1.0,\"cash_out_base\":1.0,\"referral_paid_base\":1.0,\"reinvested_base\":1.0,\"base_currency\":\"USD\",\"cash_in_by_currency\":{\"BTC\":0.25,\"USD\":1.0},\"cash_out_by_currency\":{\"EUR\":1.0}}}",
+      "hash": "01d690309cbdfa30f91d29bc1b5d60277aee40c26c0f330780699e7a5c6624bf"
+    },
+    {
+      "input": {
+        "schema_version": 1,
+        "installation_id": "123e4567-e89b-42d3-a456-426614174099",
+        "domain": "review.example.org",
+        "version": "1.0.8",
+        "reported_at": 1800000000,
+        "sequence": 20833,
+        "stats_consent": true,
+        "public_stats": {
+          "worked_days": 12,
+          "users_total": 25,
+          "users_online": 3,
+          "active_deposits": 8,
+          "closed_deposits": 4,
+          "cash_in_base": 0.1,
+          "cash_out_base": 0.1,
+          "referral_paid_base": 0.1,
+          "reinvested_base": 0.1,
+          "base_currency": "usd",
+          "cash_in_by_currency": {
+            "USD": 0.1,
+            "BTC": 0.25
+          },
+          "cash_out_by_currency": {
+            "EUR": 0.1
+          }
+        }
+      },
+      "validated_json": "{\"schema_version\":1,\"installation_id\":\"123e4567-e89b-42d3-a456-426614174099\",\"domain\":\"review.example.org\",\"version\":\"1.0.8\",\"reported_at\":1800000000,\"sequence\":20833,\"stats_consent\":true,\"public_stats\":{\"worked_days\":12,\"users_total\":25,\"users_online\":3,\"active_deposits\":8,\"closed_deposits\":4,\"cash_in_base\":0.1,\"cash_out_base\":0.1,\"referral_paid_base\":0.1,\"reinvested_base\":0.1,\"base_currency\":\"USD\",\"cash_in_by_currency\":{\"BTC\":0.25,\"USD\":0.1},\"cash_out_by_currency\":{\"EUR\":0.1}}}",
+      "hash": "5fa3523f41d500d623dd36b07e65e265d737654b3f6b5b7a486737a72136cdc3"
+    },
+    {
+      "input": {
+        "schema_version": 1,
+        "installation_id": "123e4567-e89b-42d3-a456-426614174099",
+        "domain": "review.example.org",
+        "version": "1.0.8",
+        "reported_at": 1800000000,
+        "sequence": 20833,
+        "stats_consent": true,
+        "public_stats": {
+          "worked_days": 12,
+          "users_total": 25,
+          "users_online": 3,
+          "active_deposits": 8,
+          "closed_deposits": 4,
+          "cash_in_base": 1e-08,
+          "cash_out_base": 1e-08,
+          "referral_paid_base": 1e-08,
+          "reinvested_base": 1e-08,
+          "base_currency": "usd",
+          "cash_in_by_currency": {
+            "USD": 1e-08,
+            "BTC": 0.25
+          },
+          "cash_out_by_currency": {
+            "EUR": 1e-08
+          }
+        }
+      },
+      "validated_json": "{\"schema_version\":1,\"installation_id\":\"123e4567-e89b-42d3-a456-426614174099\",\"domain\":\"review.example.org\",\"version\":\"1.0.8\",\"reported_at\":1800000000,\"sequence\":20833,\"stats_consent\":true,\"public_stats\":{\"worked_days\":12,\"users_total\":25,\"users_online\":3,\"active_deposits\":8,\"closed_deposits\":4,\"cash_in_base\":1.0e-8,\"cash_out_base\":1.0e-8,\"referral_paid_base\":1.0e-8,\"reinvested_base\":1.0e-8,\"base_currency\":\"USD\",\"cash_in_by_currency\":{\"BTC\":0.25,\"USD\":1.0e-8},\"cash_out_by_currency\":{\"EUR\":1.0e-8}}}",
+      "hash": "c1458f6a6049ecedbb136ef95197fa81c50ef45ebc2d055486c25a784823811c"
+    },
+    {
+      "input": {
+        "schema_version": 1,
+        "installation_id": "123e4567-e89b-42d3-a456-426614174099",
+        "domain": "review.example.org",
+        "version": "1.0.8",
+        "reported_at": 1800000000,
+        "sequence": 20833,
+        "stats_consent": true,
+        "public_stats": {
+          "worked_days": 12,
+          "users_total": 25,
+          "users_online": 3,
+          "active_deposits": 8,
+          "closed_deposits": 4,
+          "cash_in_base": 1.005,
+          "cash_out_base": 1.005,
+          "referral_paid_base": 1.005,
+          "reinvested_base": 1.005,
+          "base_currency": "usd",
+          "cash_in_by_currency": {
+            "USD": 1.005,
+            "BTC": 0.25
+          },
+          "cash_out_by_currency": {
+            "EUR": 1.005
+          }
+        }
+      },
+      "validated_json": "{\"schema_version\":1,\"installation_id\":\"123e4567-e89b-42d3-a456-426614174099\",\"domain\":\"review.example.org\",\"version\":\"1.0.8\",\"reported_at\":1800000000,\"sequence\":20833,\"stats_consent\":true,\"public_stats\":{\"worked_days\":12,\"users_total\":25,\"users_online\":3,\"active_deposits\":8,\"closed_deposits\":4,\"cash_in_base\":1.005,\"cash_out_base\":1.005,\"referral_paid_base\":1.005,\"reinvested_base\":1.005,\"base_currency\":\"USD\",\"cash_in_by_currency\":{\"BTC\":0.25,\"USD\":1.005},\"cash_out_by_currency\":{\"EUR\":1.005}}}",
+      "hash": "d725a22bd58dd4d588bcf6dfff036acb85af8c85d6eccf1c7a4e637e0f7fb4f1"
+    },
+    {
+      "input": {
+        "schema_version": 1,
+        "installation_id": "123e4567-e89b-42d3-a456-426614174099",
+        "domain": "review.example.org",
+        "version": "1.0.8",
+        "reported_at": 1800000000,
+        "sequence": 20833,
+        "stats_consent": true,
+        "public_stats": {
+          "worked_days": 12,
+          "users_total": 25,
+          "users_online": 3,
+          "active_deposits": 8,
+          "closed_deposits": 4,
+          "cash_in_base": 999999999999999.9,
+          "cash_out_base": 999999999999999.9,
+          "referral_paid_base": 999999999999999.9,
+          "reinvested_base": 999999999999999.9,
+          "base_currency": "usd",
+          "cash_in_by_currency": {
+            "USD": 999999999999999.9,
+            "BTC": 0.25
+          },
+          "cash_out_by_currency": {
+            "EUR": 999999999999999.9
+          }
+        }
+      },
+      "validated_json": "{\"schema_version\":1,\"installation_id\":\"123e4567-e89b-42d3-a456-426614174099\",\"domain\":\"review.example.org\",\"version\":\"1.0.8\",\"reported_at\":1800000000,\"sequence\":20833,\"stats_consent\":true,\"public_stats\":{\"worked_days\":12,\"users_total\":25,\"users_online\":3,\"active_deposits\":8,\"closed_deposits\":4,\"cash_in_base\":999999999999999.9,\"cash_out_base\":999999999999999.9,\"referral_paid_base\":999999999999999.9,\"reinvested_base\":999999999999999.9,\"base_currency\":\"USD\",\"cash_in_by_currency\":{\"BTC\":0.25,\"USD\":999999999999999.9},\"cash_out_by_currency\":{\"EUR\":999999999999999.9}}}",
+      "hash": "b67c9cd2fe5c23fa77ba00a87f94242dabc6bbc03a2f67687d0e545a589dfaf9"
+    },
+    {
+      "input": {
+        "schema_version": 1,
+        "installation_id": "123e4567-e89b-42d3-a456-426614174099",
+        "domain": "review.example.org",
+        "version": "1.0.8",
+        "reported_at": 1800000000,
+        "sequence": 20833,
+        "stats_consent": true,
+        "public_stats": {
+          "worked_days": 12,
+          "users_total": 25,
+          "users_online": 3,
+          "active_deposits": 8,
+          "closed_deposits": 4,
+          "cash_in_base": 1000000000000000,
+          "cash_out_base": 1000000000000000,
+          "referral_paid_base": 1000000000000000,
+          "reinvested_base": 1000000000000000,
+          "base_currency": "usd",
+          "cash_in_by_currency": {
+            "USD": 1000000000000000,
+            "BTC": 0.25
+          },
+          "cash_out_by_currency": {
+            "EUR": 1000000000000000
+          }
+        }
+      },
+      "validated_json": "{\"schema_version\":1,\"installation_id\":\"123e4567-e89b-42d3-a456-426614174099\",\"domain\":\"review.example.org\",\"version\":\"1.0.8\",\"reported_at\":1800000000,\"sequence\":20833,\"stats_consent\":true,\"public_stats\":{\"worked_days\":12,\"users_total\":25,\"users_online\":3,\"active_deposits\":8,\"closed_deposits\":4,\"cash_in_base\":1000000000000000.0,\"cash_out_base\":1000000000000000.0,\"referral_paid_base\":1000000000000000.0,\"reinvested_base\":1000000000000000.0,\"base_currency\":\"USD\",\"cash_in_by_currency\":{\"BTC\":0.25,\"USD\":1000000000000000.0},\"cash_out_by_currency\":{\"EUR\":1000000000000000.0}}}",
+      "hash": "afb80dfd0dbbd7249c4ebac8a7db948c83058738d4af8e5d0e79fee6d3fffa31"
+    },
+    {
+      "input": {
+        "schema_version": 1,
+        "installation_id": "123e4567-e89b-42d3-a456-426614174099",
+        "domain": "review.example.org",
+        "version": "1.0.8",
+        "reported_at": 1800000000,
+        "sequence": 20833,
+        "stats_consent": true,
+        "public_stats": {
+          "worked_days": 12,
+          "users_total": 25,
+          "users_online": 3,
+          "active_deposits": 8,
+          "closed_deposits": 4,
+          "cash_in_base": 1e-120,
+          "cash_out_base": 1e-120,
+          "referral_paid_base": 1e-120,
+          "reinvested_base": 1e-120,
+          "base_currency": "usd",
+          "cash_in_by_currency": {
+            "USD": 1e-120,
+            "BTC": 0.25
+          },
+          "cash_out_by_currency": {
+            "EUR": 1e-120
+          }
+        }
+      },
+      "validated_json": "{\"schema_version\":1,\"installation_id\":\"123e4567-e89b-42d3-a456-426614174099\",\"domain\":\"review.example.org\",\"version\":\"1.0.8\",\"reported_at\":1800000000,\"sequence\":20833,\"stats_consent\":true,\"public_stats\":{\"worked_days\":12,\"users_total\":25,\"users_online\":3,\"active_deposits\":8,\"closed_deposits\":4,\"cash_in_base\":1.0e-120,\"cash_out_base\":1.0e-120,\"referral_paid_base\":1.0e-120,\"reinvested_base\":1.0e-120,\"base_currency\":\"USD\",\"cash_in_by_currency\":{\"BTC\":0.25,\"USD\":1.0e-120},\"cash_out_by_currency\":{\"EUR\":1.0e-120}}}",
+      "hash": "99caa08ebfcc6d306075348fed963c4f2aa345fd3c5edaff19cc06c0d164e046"
+    },
+    {
+      "input": {
+        "schema_version": 1,
+        "installation_id": "123e4567-e89b-42d3-a456-426614174099",
+        "domain": "review.example.org",
+        "version": "1.0.8",
+        "reported_at": 1800000000,
+        "sequence": 20833,
+        "stats_consent": true,
+        "public_stats": {
+          "worked_days": 12,
+          "users_total": 25,
+          "users_online": 3,
+          "active_deposits": 8,
+          "closed_deposits": 4,
+          "cash_in_base": 123456789.12345678,
+          "cash_out_base": 123456789.12345678,
+          "referral_paid_base": 123456789.12345678,
+          "reinvested_base": 123456789.12345678,
+          "base_currency": "usd",
+          "cash_in_by_currency": {
+            "USD": 123456789.12345678,
+            "BTC": 0.25
+          },
+          "cash_out_by_currency": {
+            "EUR": 123456789.12345678
+          }
+        }
+      },
+      "validated_json": "{\"schema_version\":1,\"installation_id\":\"123e4567-e89b-42d3-a456-426614174099\",\"domain\":\"review.example.org\",\"version\":\"1.0.8\",\"reported_at\":1800000000,\"sequence\":20833,\"stats_consent\":true,\"public_stats\":{\"worked_days\":12,\"users_total\":25,\"users_online\":3,\"active_deposits\":8,\"closed_deposits\":4,\"cash_in_base\":123456789.12345678,\"cash_out_base\":123456789.12345678,\"referral_paid_base\":123456789.12345678,\"reinvested_base\":123456789.12345678,\"base_currency\":\"USD\",\"cash_in_by_currency\":{\"BTC\":0.25,\"USD\":123456789.12345678},\"cash_out_by_currency\":{\"EUR\":123456789.12345678}}}",
+      "hash": "2176398e9fcf07b81cf2b943396a601e51a5f12914850c6a1481447e94bd3a87"
+    },
+    {
+      "input": {
+        "schema_version": 1,
+        "installation_id": "123e4567-e89b-42d3-a456-426614174099",
+        "domain": "review.example.org",
+        "version": "1.0.8",
+        "reported_at": 1800000000,
+        "sequence": 20833,
+        "stats_consent": true,
+        "public_stats": {
+          "worked_days": 12,
+          "users_total": 25,
+          "users_online": 3,
+          "active_deposits": 8,
+          "closed_deposits": 4,
+          "cash_in_base": 500000000000000.5,
+          "cash_out_base": 500000000000000.5,
+          "referral_paid_base": 500000000000000.5,
+          "reinvested_base": 500000000000000.5,
+          "base_currency": "usd",
+          "cash_in_by_currency": {
+            "USD": 500000000000000.5,
+            "BTC": 0.25
+          },
+          "cash_out_by_currency": {
+            "EUR": 500000000000000.5
+          }
+        }
+      },
+      "validated_json": "{\"schema_version\":1,\"installation_id\":\"123e4567-e89b-42d3-a456-426614174099\",\"domain\":\"review.example.org\",\"version\":\"1.0.8\",\"reported_at\":1800000000,\"sequence\":20833,\"stats_consent\":true,\"public_stats\":{\"worked_days\":12,\"users_total\":25,\"users_online\":3,\"active_deposits\":8,\"closed_deposits\":4,\"cash_in_base\":500000000000000.5,\"cash_out_base\":500000000000000.5,\"referral_paid_base\":500000000000000.5,\"reinvested_base\":500000000000000.5,\"base_currency\":\"USD\",\"cash_in_by_currency\":{\"BTC\":0.25,\"USD\":500000000000000.5},\"cash_out_by_currency\":{\"EUR\":500000000000000.5}}}",
+      "hash": "2047561d8bd3be4e1ab7e960e162cd844ff5b2afb60c1e84206b78512fb30726"
+    }
+  ]
+}

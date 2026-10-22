@@ -1,6 +1,10 @@
 <?php
 
 use HScript\Util\StringHelper;
+use HScript\Finance\Decimal;
+use HScript\Finance\DecimalInput;
+use HScript\Finance\Money;
+use HScript\Finance\Rate;
 
 use HScript\Template\View;
 
@@ -17,14 +21,22 @@ try
 		$cid = intval(_RQ('PSys'));
 		$sum_value = (string)_RQ('Sum');
 		cn($sum_value);
-		$sum = (float)$sum_value;
+		$sum = (string)DecimalInput::read($sum_value);
 		$commission = 0;
 		$commission_ready = false;
 		if (in_array($oper, array('CASHIN', 'CASHOUT', 'EX', 'TR')) and ($cid > 0) and ($sum > 0) and isset($_currs[$cid]))
 		{
+			if ($oper === 'CASHIN' && $_currs[$cid]['cCID'] !== 'CCT' && !empty($_cfg['Const_IntCurr']) && !empty($_cfg['Bal_SumInInternal'])) {
+				$converted = opAmountFromBase($sum, $cid);
+				if (is_string($converted)) throw new InvalidArgumentException($converted);
+				$sum = (string)$converted;
+			}
 			$commission = opCalcComis($cid, $oper, $sum, $_user['uLevel'] >= 90);
 			if (!is_string($commission))
+			{
 				$commission_ready = true;
+				$commission = (string)$commission;
+			}
 			else
 				$commission = 0;
 		}
@@ -61,16 +73,24 @@ try
 				echo(json_encode(array('', '-', '-')));
 			break;
 		}
-		$sum = _zr($sum_value, $cid);
+		if ($oper === 'CASHIN' && $_currs[$cid]['cCID'] !== 'CCT' && !empty($_cfg['Const_IntCurr']) && !empty($_cfg['Bal_SumInInternal'])) {
+			$converted = opAmountFromBase($sum_value, $cid);
+			if (is_string($converted)) throw new InvalidArgumentException($converted);
+			$sum = (string)$converted;
+		} else
+			$sum = (string)opMoney($sum_value, !empty($_cfg['Const_IntCurr']) && $_currs[$cid]['cCID'] !== 'CCT' && $oper === 'CASHOUT' ? 1 : $cid);
 		$c = $_currs[$cid];
 		$cid2 = $cid;
 		$csum = 0;
 		$sum2 = 0;
 		$by_admin = $_user['uLevel'] >= 90;
-		if ($_cfg['Const_IntCurr'] and in_array($oper, array('CASHIN', 'CASHOUT')))
+		if ($_cfg['Const_IntCurr'] and $c['cCID'] !== 'CCT' and in_array($oper, array('CASHIN', 'CASHOUT')))
 		{
-			$zc = $_cfg['Bal_Rate' . $c['cCurrID']];
-			if ($zc > 0)
+			try {
+				Rate::of((string)DecimalInput::read($_cfg['Bal_Rate' . $c['cCurrID']] ?? 0));
+				$has_rate = true;
+			} catch (InvalidArgumentException) { $has_rate = false; }
+			if ($has_rate)
 			{
 				if ($oper == 'CASHIN')
 				{
@@ -78,24 +98,24 @@ try
 					$csum = opCalcComis($cid, 'CASHIN', $sum, $by_admin);
 					if (!is_string($csum))
 					{
-						$sum -= $csum;
+						$sum = (string)DecimalInput::read($sum)->minus($csum->decimal());
 						$csum1 = opCalcComis($cid, 'EX', $sum, $by_admin);
 						if (!is_string($csum1))
-							$sum2 = opCalcExSum(true, $cid, $sum - $csum1);
+							$sum2 = opCalcEx($cid, 1, (string)DecimalInput::read($sum)->minus($csum1->decimal()));
 					}
 				}
 				else
 				{
 					$cid2 = $cid;
-					$csum1 = opCalcComis($cid, 'EX', $sum, $by_admin);
+					$csum1 = opCalcComis(1, 'EX', $sum, $by_admin);
 					if (!is_string($csum1))
 					{
-						$sum2 = opCalcExSum(false, $cid, $sum - $csum1);
+						$sum2 = opCalcEx(1, $cid, (string)DecimalInput::read($sum)->minus($csum1->decimal()));
 						if (!is_string($sum2))
 						{
-							$csum = opCalcComis($cid, 'CASHOUT', $sum2, $by_admin);
+							$csum = opCalcComis($cid, 'CASHOUT', (string)$sum2, $by_admin);
 							if (!is_string($csum))
-								$sum2 -= $csum;
+								$sum2 = (string)DecimalInput::read((string)$sum2)->minus($csum->decimal());
 						}
 					}
 				}
@@ -106,21 +126,23 @@ try
 			$cid2 = intval(StringHelper::valueIf(_RQ('cid2'), _RQ('cid2'), _RQ('PSys2')));
 			$csum = opCalcComis($cid, $oper, $sum, $by_admin);
 			if (!is_string($csum))
-				$sum2 = opCalcEx($cid, $cid2, $sum - $csum);
+				$sum2 = opCalcEx($cid, $cid2, (string)DecimalInput::read($sum)->minus($csum->decimal()));
 		}
 		else
 		{
 			$csum = opCalcComis($cid, $oper, $sum, $by_admin);
 			if (!is_string($csum))
-				$sum2 = $sum - $csum;
+				$sum2 = (string)DecimalInput::read($sum)->minus($csum->decimal());
 		}
-		if (is_string($csum))
-			$csum = 0;
-		if (is_string($sum2))
+		$csum = $csum instanceof Money ? (string)$csum : '0';
+		if ($sum2 instanceof Money || $sum2 instanceof Decimal) $sum2 = (string)$sum2;
+		if (!is_numeric($sum2))
 			$sum2 = 0;
 		$currency = StringHelper::textLangFilter($c['cCurr'], $_GS['lang']);
-		$commission = StringHelper::valueIf($csum > 0, _z($csum, $cid, 2), '-');
-		$total = StringHelper::valueIf($sum2 > 0, _z($sum2, $cid2, 2), '-');
+		$unit = htmlspecialchars((string)$currency, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+		$targetUnit = htmlspecialchars((string)StringHelper::textLangFilter($_currs[$cid2]['cCurr'] ?? '', $_GS['lang']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+		$commission = $csum > 0 ? '<b>' . (string)opMoney($csum, $cid) . '</b> <small>' . $unit . '</small>' : '-';
+		$total = $sum2 > 0 ? '<b>' . (string)opMoney($sum2, $cid2) . '</b> <small>' . $targetUnit . '</small>' : '-';
 		if ($is_html)
 		{
 			View::setPage('oper', $oper, 0);
@@ -137,6 +159,10 @@ try
 }
 catch (FormAbortException $e)
 {
+}
+catch (InvalidArgumentException | OverflowException $e)
+{
+	http_response_code(422);
 }
 
 ?>

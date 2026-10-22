@@ -84,6 +84,13 @@
       "suppression_seconds": 900,
       "threshold_env": "RECOVERY_*_RPO_SECONDS,RECOVERY_*_RTO_SECONDS",
       "runbook": "docs/observability.md#recovery-policy-breached"
+    },
+    "log_retention_shortfall": {
+      "severity": "warning",
+      "owner": "security",
+      "suppression_seconds": 86400,
+      "threshold_env": "NDJSON_RETENTION_DAYS,NDJSON_ROTATED_FILES,CSP_LOG_MAX_BYTES,OBSERVABILITY_LOG_MAX_BYTES",
+      "runbook": "docs/observability.md#log-retention-shortfall"
     }
   }
 }

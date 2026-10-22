@@ -1,5 +1,7 @@
 <?php
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 use HScript\Http\ContentSecurityPolicy;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -15,7 +17,7 @@ if ($second === $_GET['csp_nonce'] || str_contains(ContentSecurityPolicy::report
 	throw new RuntimeException('Request-supplied CSP nonce was accepted');
 unset($_GET['csp_nonce']);
 
-$public = ContentSecurityPolicy::reportOnly('public');
+$public = ContentSecurityPolicy::reportOnly('public', true);
 if (!str_contains($public, "script-src 'self' 'nonce-$second' https://challenges.cloudflare.com")
 	|| !str_contains($public, "script-src-attr 'none'")
 	|| !str_contains($public, "object-src 'none'")
@@ -27,6 +29,15 @@ if (!str_contains($public, "script-src 'self' 'nonce-$second' https://challenges
 if (!str_contains($public, "style-src-attr 'unsafe-inline'"))
 	throw new RuntimeException('Legacy style-attribute exception was not scoped');
 
+foreach (['public','authentication','account','administration','payment','technical','configurator','error'] as $surface) {
+    foreach ([ContentSecurityPolicy::reportOnly($surface), ContentSecurityPolicy::enforced($surface)] as $policy)
+        if (preg_match('~https?://~', $policy)) throw new RuntimeException('Inactive third-party origin is allowed');
+}
+if (ContentSecurityPolicy::turnstileEnabled([]) || ContentSecurityPolicy::turnstileEnabled(['Turnstile_SiteKey'=>'site']))
+    throw new RuntimeException('Incomplete captcha configuration activates external origins');
+if (!ContentSecurityPolicy::turnstileEnabled(['Turnstile_SiteKey'=>'site','Turnstile_SecretKey'=>'secret'])
+    || ContentSecurityPolicy::turnstileEnabled(['Captcha_Service'=>'local','Turnstile_SiteKey'=>'site','Turnstile_SecretKey'=>'secret']))
+    throw new RuntimeException('Configured captcha origin activation is incorrect');
 $configurator = ContentSecurityPolicy::reportOnly('configurator');
 if (str_contains($configurator, 'challenges.cloudflare.com') || !str_contains($configurator, "frame-src 'none'"))
 	throw new RuntimeException('Configurator CSP includes unrelated external origins');

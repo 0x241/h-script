@@ -27,7 +27,7 @@ if ($_cfg['Depo_ChargeMode'] == 2){
                 'dID>pmndIDdone and dpID=?d and dState=1 and (dNPer<pNPer or pNPer=0) and dNTS<=? and dLTS<=? and dID<=?', array($pid['pID'], timeToStamp(), timeToStamp(time() - 10 * HS2_UNIX_MINUTE),$pid['pmndID']),'dID');
             while ((abs(time() - $t) < 30) and ($d = $db->fetch($dl)))
             {
-                opDepoCharge($d, $pid['pmnPerc'], $cdate);
+                if (is_string(opDepoCharge($d, $pid['pmnPerc'], $cdate))) break;
                 $db->update('Plans',array('pmndIDdone'=>$d['dID']),'','pID=?d',array($d['pID']));
                 $n++;
             }

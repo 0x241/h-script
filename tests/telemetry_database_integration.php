@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 use HScript\Database\Connection;
 use HScript\Telemetry\CollectorSchema;
 use HScript\Telemetry\DnsResolverInterface;
@@ -180,7 +182,7 @@ $transport->document['nonce'] = $challenge['nonce'];
 $verified = $proofService->execute('verify', $proofId, $proofDomain, $token);
 $assert($verified['state'] === 'verified' && $verified['verified_until'] > time(), 'Valid HTTPS proof rejected');
 $assert((int)$repository->publicMetrics()['platforms'] === 1, 'HTTPS-verified proxy domain excluded');
-$assert($repository->publicMetrics()['processed'] === 10.0, 'Verified domain missing from aggregate SQL');
+$assert($repository->publicMetrics()['processed'] === '10.00000000', 'Verified domain missing from aggregate SQL');
 $proofRow = $repository->dashboard()['installations'][0];
 $assert($proofRow['domain_verified'] && $proofRow['counted_in_public_metrics'] && $proofRow['dns_status'] === 'mismatch', 'Proof changed DNS diagnosis or list eligibility');
 $assert(!isset($proofRow['tiDomainProofHash'], $proofRow['nonce']), 'Challenge leaked through list');

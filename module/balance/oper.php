@@ -6,9 +6,38 @@ use HScript\Util\StringHelper;
 
 use HScript\Template\View;
 use HScript\Security\SessionCsrf;
+use HScript\Finance\FinancialForm;
+use HScript\Finance\RequestDecimal;
 
+$payment_status_requested = isset($_GET['payment_status']);
+if ($payment_status_requested) {
+	// Preserve idle timeout: automatic background reads are not user activity.
+	startSessionSafely();
+	$payment_activity = $_SESSION['_lts'] ?? null;
+}
 $_auth = 1;
 require_once('module/auth.php');
+if ($payment_status_requested) {
+	if ($payment_activity === null) unset($_SESSION['_lts']);
+	else $_SESSION['_lts'] = $payment_activity;
+	header('Content-Type: application/json; charset=UTF-8');
+	header('Cache-Control: no-store, private');
+	header('X-Content-Type-Options: nosniff');
+	if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
+		header('Allow: GET'); http_response_code(405); exit('{}');
+	}
+	$id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 2147483647]]);
+	if (!$id) { http_response_code(404); exit('{}'); }
+	$now = time();
+	if ($now - (int)($_SESSION['_payment_status_at'] ?? 0) < 5) {
+		header('Retry-After: 5'); http_response_code(429); exit('{}');
+	}
+	$_SESSION['_payment_status_at'] = $now;
+	$result = HScript\Payment\CheckoutProgress::read($db, _uid(), $id);
+	if (!$result) { http_response_code(404); exit('{}'); }
+	echo json_encode($result, JSON_THROW_ON_ERROR);
+	exit;
+}
 $paymentManager = new PaymentManager($db);
 
 $table = 'Opers';
@@ -39,13 +68,13 @@ try
 {
 	if (View::sendedForm('pay', 'pay'))
 	{
-		View::checkFormSecurity('pay');
+		FinancialForm::check('balance:pay', 'pay');
 		$pay_requested = true;
 	}
 
 	if (View::sendedForm('', 'add'))
 	{
-		View::checkFormSecurity('add');
+		FinancialForm::check('balance:add', 'add');
 
 		if (!_IN('Oper'))
 			goToURL($out_link);
@@ -64,9 +93,19 @@ try
 		cn($a['Sum']);
 		if (($a['Oper'] == 'CASHOUT') and $_cfg['Bal_NeedPIN'] and !verifyPasswordWithLegacyDigest($a['PIN'], $_user['uPIN'], $_cfg['Const_Salt'], false))
 			View::setError('pin_wrong', 'add');
-		if ($_cfg['Const_IntCurr'] and ($a['Oper'] == 'CASHIN') and $_cfg['Bal_SumInInternal'] and isset($_currs[$a['PSys']]) and
-			(($crate = $_cfg['Bal_Rate' . $_currs[$a['PSys']]['cCurr']]) > 0))
-			$a['Sum'] /= $crate;
+		$id = FinancialForm::execute('balance:add', [
+			'operation'=>(string)$a['Oper'], 'currency_id'=>(int)$a['PSys'],
+			'amount'=>RequestDecimal::normalize($a['Sum']), 'peer_login'=>(string)$a['Login2'],
+			'target_currency_id'=>(int)$a['PSys2'], 'plan_id'=>(int)$a['Plan'],
+			'compound'=>RequestDecimal::normalize($a['Compnd'] ?: 0, true), 'memo'=>$a['Memo'],
+		], static function () use ($a) {
+		global $db, $_cfg, $_currs;
+		if ($_cfg['Const_IntCurr'] and ($a['Oper'] == 'CASHIN') and $_cfg['Bal_SumInInternal'])
+		{
+			$converted = opAmountFromBase($a['Sum'], $a['PSys']);
+			if (is_string($converted)) View::setError($converted, 'add');
+			$a['Sum'] = (string)$converted;
+		}
 		if ($a['Oper'] == 'CASHOUT')
 		{
 			$udata = opDecodeUserCurrParams($_currs[$a['PSys']]);
@@ -95,7 +134,9 @@ try
 			$a['Oper'] = 'EX';
 			$a['PSys'] = 1;
 		}
-		View::setError($id = opOperCreate(_uid(), $a['Oper'], $a['PSys'], $a['Sum'], $params, $a['Memo']), 'add');
+		return opOperCreate(_uid(), $a['Oper'], $a['PSys'], $a['Sum'], $params, $a['Memo']);
+		});
+		View::setError($id, 'add');
 		View::showInfo('Saved', moduleToLink() . "?id=$id");
 	}
 
@@ -124,21 +165,26 @@ try
 	
 	if ($id = _INN($id_field))
 	{
-		View::checkFormSecurity();
+		$actions=[];foreach(['cancel'=>'cancel','del'=>'delete',''=>'confirm'] as $suffix=>$candidate)if(View::sendedForm($suffix))$actions[]=$candidate;
+		if(count($actions)!==1){http_response_code(400);exit('Invalid operation action');}
+		$action=$actions[0];
+		FinancialForm::check('balance:' . $action);
+		$response = FinancialForm::execute('balance:' . $action, ['operation_id' => $id, 'afm_account' => _IN('AFMAccount'), 'afm_batch' => _IN('AFMBatch')], function () use ($id, $id_field, $uid_field, $out_link, $action) {
+		global $db, $_cfg, $_currs, $_user, $paymentManager;
 		
 		if ($o = $db->fetch1Row($db->select('Opers', '*', "$id_field=?d and $uid_field=?d", array($id, _uid()))))
 		{
-			if (View::sendedForm('del') and ($o['oState'] >= 5))
+			if ($action === 'delete' and ($o['oState'] >= 5))
 			{
 				$db->delete('Opers', 'oID=?d', array($id));
-				View::showInfo('Deleted', $out_link);
+				return ['info' => 'Deleted', 'url' => $out_link];
 			}
-			elseif (View::sendedForm('cancel') and ($o['oState'] <= 2))
+			elseif ($action === 'cancel' and ($o['oState'] <= 2))
 			{
 				if (opOperCancel(_uid(), $id, array()) === true)
-					View::showInfo('Canceled');
+					return ['info' => 'Canceled', 'url' => moduleToLink() . '?id=' . $id];
 			}
-			elseif (View::sendedForm() and ($o['oState'] <= 1))
+			elseif ($action === 'confirm' and ($o['oState'] <= 1))
 			{
 				if (($o['oOper'] == 'CASHIN') and ($_cfg['Bal_AFMMode'] > 0))
 				{
@@ -164,7 +210,7 @@ try
 					useLib('confirm');
 					$tel = $_user['aTel'];
 					opConfirmPrepareSMS(_uid(), 'OPER', array('oid' => $id, 'tel' => $tel), '', $tel);
-					View::showInfo('Saved', moduleToLink('confirm') . '?need_confirm_sms');
+					return ['info' => 'Saved', 'url' => moduleToLink('confirm') . '?need_confirm_sms'];
 				}
 				$err = opOperConfirm(_uid(), $id, array());
 				if (($err === 'limit_exceeded') and ($_currs[$o['ocID']]['c' . $o['oOper'] . 'Mode'] == 2))
@@ -183,19 +229,27 @@ try
 							View::setError(opOperComplete(_uid(), $id, array('initid' => $id)));
 							if ($p = strToArray($db->fetch1($db->select('Opers', 'oParams2', "$id_field=?d", array($id)))))
 								if ($id = $p['newid'])
-									View::showInfo('Completed', moduleToLink() . "?id=$id");
+									return ['info' => 'Completed', 'url' => moduleToLink() . '?id=' . $id];
 						}
 						else
 							View::sendMailToAdmin('OperRequired',
 								opUserConsts($_user, array('oid' => $id, 'url' => fullURL(moduleToLink('balance/admin/oper')))));
 					}
 				}
-				View::showInfo();
+				return ['info' => 'Completed', 'url' => moduleToLink() . '?id=' . $id];
 			}
 		}
-		View::showInfo('*Error');
+		return 'oper_state_wrong';
+		});
+		View::setError($response);
+		View::showInfo($response['info'], $response['url']);
 	}
 
+}
+catch (InvalidArgumentException $e)
+{
+	http_response_code(422);
+	xSysStop('Invalid financial amount', true);
 } 
 catch (FormAbortException $e)
 {
@@ -207,45 +261,66 @@ if (!isset($_GET['add']))
 		$el = $db->fetch1Row($db->select("$table LEFT JOIN Users on uID=ouID LEFT JOIN Currs on cID=ocID", '*', "$id_field=?d and $uid_field=?d", array($id, _uid())));
 	if (!$el)
 		goToURL($out_link);
-	if (isset($_GET['check']) and ($el['oOper'] == 'CASHIN'))
-		if ($el['oState'] >= 3)
-			goToURL(moduleToLink('balance/oper') . "?id=$id");
-		else
-			refreshToURL(5, moduleToLink('balance/oper') . "?id=$id&check");
+	if (isset($_GET['check']) && $el['oOper'] === 'CASHIN' && (int)$el['oState'] === 3)
+		goToURL(moduleToLink('cabinet'));
 	View::stampArrayToStr($el, 'oCTS, oTS, oNTS');
 	$el['oParams'] = strToArray($el['oParams']);
 	$el['oParams2'] = strToArray($el['oParams2']);
 	View::stampArrayToStr($el['oParams2'], 'date', 1);
 	View::setPage('el', $el);
+	View::setPage('exchange_quote', opExchangeQuoteDisplay($el), 0);
 	View::setPage('read_receipt_id', $id, 0);
 	if (($el['oOper'] == 'CASHIN') and ($el['oState'] <= 2))
 	{
+        View::setPage('payment_route_required',isset(HScript\Payment\Routing\PaymentRoutes::GATEWAYS[$el['cCID']]));
+        View::setPage('payment_route_choices',HScript\Payment\Routing\PaymentRoutes::enabled($el));
 		opDecodeCurrParams($el, $p, $p_sci, $p_api);
 		if ($pay_requested and in_array($el['cCASHINMode'], array(2, 3)))
 		{
-			$up = opDecodeUserCurrParams($_currs[$el['cID']]);
-			$up['psysorder'] = $el['oParams']['psysorder'];
-			$pf = $paymentManager->processDeposit($el['cCID'], array(
+            try {
+			$pf = HScript\Finance\DepositCheckout::prepare($db, (int)_uid(), (int)$id, static function (array $operation) use ($paymentManager, $id): array {
+				global $_cfg, $db;
+				opDecodeCurrParams($operation, $p, $p_sci, $p_api);
+				$wallet = $db->fetch1Row($db->select('Wallets', '*', 'wcID=?d AND wuID=?d', [(int)$operation['ocID'], (int)$operation['ouID']]));
+				$up = opDecodeUserCurrParams($wallet ?: []);
+				$up['psysorder'] = strToArray($operation['oParams'])['psysorder'] ?? '';
+				return $paymentManager->processDeposit($operation['cCID'], array(
 				'pay' => $p,
 				'sci' => $p_sci,
-				'sum' => $el['oSum'],
-				'memo' => $el['oParams2']['memo'],
+				'api' => $p_api,
+				'payment_route'=>$operation['_payment_route']??null,
+                'ccapi_wallets'=>$operation['_ccapi_wallets']??null,
+                'callback_scale' => HScript\Finance\CallbackContract::scale($operation),
+				'callback_fee_policy' => $operation,
+				'sum' => $operation['oSum'],
+				'memo' => strToArray($operation['oParams2'])['memo'],
 				'tag' => $id,
 				'url_ok' => fullURL(moduleToLink('balance/oper')) . "?id=$id&check",
 				'url_fail' => fullURL(moduleToLink('balance')) . '?fail',
-				'url_callback' => StringHelper::valueIf(!$p_sci['hideurl'], fullURL(moduleToLink('balance/status'))),
+				'url_callback' => StringHelper::valueIf(empty($p_sci['hideurl']), fullURL(moduleToLink('balance/status'))),
 				'user' => $up,
 				'force_payer' => $_cfg['Bal_ForcePayer'],
 			));
-			if (isset($pf['psysorder']))
-			{
-				$el['oParams']['psysorder'] = $pf['psysorder'];
-				$db->update('Opers', array('oParams' => arrayToStr($el['oParams'])), '', 'oID=?d and ouID=?d and oState<=2', array($id, _uid()));
-				unset($pf['psysorder']);
-			}
+			}, $_POST['payment_route']??null);
+            } catch (HScript\Finance\IdempotencyConflict) {
+                http_response_code(409);header('Content-Type: text/plain; charset=UTF-8');exit('Payment network cannot change after invoice creation.');
+            } catch (HScript\Finance\CallbackValidationException $e) {
+                if(!str_starts_with($e->reason,'payment_route_'))throw $e;
+                http_response_code(400);header('Content-Type: text/plain; charset=UTF-8');exit('Select an enabled payment network and retry.');
+            }
 			View::setPage('pform', $pf, 0);
-			if (!empty($pf['url']))
+			if (($pf['formkind'] ?? '') === 'native_address')
+				View::setPage('native_details', HScript\Payment\NativePaymentDetails::present($el['cCID'], $pf), 0);
+			if (!empty($pf['url']) && ($pf['formkind'] ?? '') !== 'native_address')
 				View::setPage('pay_auto_submit', true, 0);
+		}
+		elseif (!$pay_requested && HScript\Payment\Gateways\CryptoCurrencyApi::supports($el['cCID']))
+		{
+			$stored = HScript\Finance\DepositCheckout::nativeStored($db, (int)_uid(), (int)$id);
+			if ($stored !== null) {
+				View::setPage('pform', $stored, 0);
+				View::setPage('native_details', HScript\Payment\NativePaymentDetails::present($el['cCID'], $stored), 0);
+			}
 		}
 		if (in_array($el['cCASHINMode'], array(1, 3)))
 		{

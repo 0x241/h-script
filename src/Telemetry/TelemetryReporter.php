@@ -21,12 +21,14 @@ final class TelemetryReporter
 	private array $config;
 	private string $domain;
 	private TelemetryClientInterface $client;
+	private TelemetryAttemptGate $attemptGate;
 
 	public function __construct(
 		Connection $db,
 		array $config,
 		string $domain = '',
-		?TelemetryClientInterface $client = null
+		?TelemetryClientInterface $client = null,
+		?TelemetryAttemptGate $attemptGate = null
 	) {
 		$this->db = $db;
 		$this->config = $config;
@@ -40,9 +42,30 @@ final class TelemetryReporter
 		if ($endpoint === '')
 			$endpoint = trim((string)(getenv('TELEMETRY_ENDPOINT') ?: self::DEFAULT_ENDPOINT));
 		$this->client = $client ?: new TelemetryClient($endpoint);
+		$this->attemptGate = $attemptGate ?: new TelemetryAttemptGate($db);
 	}
 
-	public function register(): array
+	public function register(bool $manual = false): array
+	{
+		return $this->guarded(fn() => $this->registerInternal(), $manual);
+	}
+
+	public function report(?array $publicStats = null, bool $manual = false): array
+	{
+		return $this->guarded(fn() => $this->reportInternal($publicStats), $manual);
+	}
+
+	private function guarded(callable $attempt, bool $manual): array
+	{
+		try { $claim = $this->attemptGate->claim($manual); }
+		catch (Throwable) {
+			return ['ok' => false, 'status' => 0, 'error' => 'telemetry_attempt_unavailable', 'data' => []];
+		}
+		if (!$claim['allowed']) return ['ok' => false, 'status' => 429, 'error' => 'telemetry_cooldown', 'retry_after' => $claim['retry_after'], 'data' => []];
+		return $attempt();
+	}
+
+	private function registerInternal(): array
 	{
 		try
 		{
@@ -69,14 +92,14 @@ final class TelemetryReporter
 		}
 	}
 
-	public function report(?array $publicStats = null): array
+	private function reportInternal(?array $publicStats = null): array
 	{
 		try
 		{
 			$identity = $this->ensureIdentity();
 			if (empty($this->config['Telemetry_Registered']) || !empty($identity['domain_changed']))
 			{
-				$registration = $this->register();
+				$registration = $this->registerInternal();
 				if (empty($registration['ok']))
 					return $registration;
 			}
@@ -87,7 +110,7 @@ final class TelemetryReporter
 			if ((int)($result['status'] ?? 0) === 401)
 			{
 				$this->writeConfig('Registered', 0);
-				$registration = $this->register();
+				$registration = $this->registerInternal();
 				if (empty($registration['ok']))
 					return $registration;
 				$result = $this->client->request('POST', 'report', $payload, $identity['token']);
@@ -274,11 +297,13 @@ final class TelemetryReporter
 		$processed = $metrics['processed'] ?? null;
 		$platforms = filter_var($metrics['platforms'] ?? null, FILTER_VALIDATE_INT);
 		$updatedAt = filter_var($metrics['updated_at'] ?? null, FILTER_VALIDATE_INT);
-		if (!is_numeric($processed) || (float)$processed < 0 || $platforms === false || $platforms < 0)
+		try { $processed=TelemetryAmount::metric($processed); }
+		catch (\InvalidArgumentException) { return; }
+		if ($platforms === false || $platforms < 0)
 			return;
 
 		$encoded = json_encode(array(
-			'processed' => (float)$processed,
+			'processed' => $processed,
 			'processed_currency' => 'USD',
 			'platforms' => (int)$platforms,
 			'updated_at' => $updatedAt !== false && $updatedAt > 0 ? (int)$updatedAt : time(),

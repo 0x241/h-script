@@ -46,6 +46,20 @@ try
 		$a = strToArray($op['hParams']);
 		if (!$a['oper'])
 			View::setError('oper_wrong');
+		if (($a['module'] ?? '') === 'account/register' && strtolower($a['mname'] ?? '') === 'register') {
+			useLib('account/register');
+			$registered = opRegisterConfirmCode((int)$op['hID']);
+			View::setError($registered);
+			if ($registered === true) {
+				unset($_SESSION['_confirm_code_mode']);
+				if (!empty($_cfg['Account_RegLogin'])) {
+					useLib('account/login');
+					opLogin($uid, '');
+				}
+				View::showInfo('Completed', moduleToLink('account/register') . '?done');
+			}
+			View::showInfo('*Error');
+		}
 		$db->update('Hist', array('hTag' => 1), '', 'hID=?d', array($op['hID'])); // mark as 'used'
 		
 		View::setError($e = opConfirmTry($uid, $a));

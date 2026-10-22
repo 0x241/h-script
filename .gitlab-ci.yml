@@ -108,7 +108,7 @@ validate:supply-chain:
   script:
     - |
       docker run --rm --network none --entrypoint php -v "${CI_PROJECT_DIR}:/src:ro" \
-        composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 /src/tests/supply_chain.php
+        composer:2@sha256:da624c2c705d54e2f5a9bb77a5dc6c7d091711433ebefd7035672e84c2010fee /src/tests/supply_chain.php
     - sh tests/supply_chain_promotion.sh
     - sh tests/supply_chain_recovery.sh
     - sh tests/staging_image.sh
@@ -118,10 +118,10 @@ validate:security-inventory:
   script:
     - |
       docker run --rm --network none --entrypoint php -v "${CI_PROJECT_DIR}:/src:ro" \
-        composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 \
+        composer:2@sha256:da624c2c705d54e2f5a9bb77a5dc6c7d091711433ebefd7035672e84c2010fee \
         /src/ci/security/check-inventory.php --self-test
       docker run --rm --network none --entrypoint php -v "${CI_PROJECT_DIR}:/src:ro" \
-        composer:2@sha256:4d71c3c2109c61d5415544264b59ad4087e4c5b7244481723664138fd36d5040 \
+        composer:2@sha256:da624c2c705d54e2f5a9bb77a5dc6c7d091711433ebefd7035672e84c2010fee \
         /src/ci/security/check-inventory.php --check
 
 validate:secret-boundary:

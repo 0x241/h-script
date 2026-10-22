@@ -1,0 +1,3847 @@
+{
+  "oracle": "Python decimal, explicit HALF_UP6 -> currency; exact 100% identity; CEILING native cap",
+  "cases": [
+    {
+      "id": "0:0.000001:False:0",
+      "scale": 0,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "0:0.000001:False:50",
+      "scale": 0,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "0:0.000001:False:100",
+      "scale": 0,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "0:0.000001:False:120",
+      "scale": 0,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "0:0.000001:True:0",
+      "scale": 0,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "0:0.000001:True:50",
+      "scale": 0,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "0:0.000001:True:100",
+      "scale": 0,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "0:0.000001:True:120",
+      "scale": 0,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "0:0.01:False:0",
+      "scale": 0,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "0:0.01:False:50",
+      "scale": 0,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "0:0.01:False:100",
+      "scale": 0,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "0:0.01:False:120",
+      "scale": 0,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "0:0.01:True:0",
+      "scale": 0,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.002500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "0:0.01:True:50",
+      "scale": 0,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.002500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "0:0.01:True:100",
+      "scale": 0,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.010000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "0:0.01:True:120",
+      "scale": 0,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.002500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "0:1.005001:False:0",
+      "scale": 0,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "0:1.005001:False:50",
+      "scale": 0,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "0:1.005001:False:100",
+      "scale": 0,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "0:1.005001:False:120",
+      "scale": 0,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "0:1.005001:True:0",
+      "scale": 0,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.251250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "0:1.005001:True:50",
+      "scale": 0,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.251250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "0:1.005001:True:100",
+      "scale": 0,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "1.005001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "0:1.005001:True:120",
+      "scale": 0,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "1.251250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "0:123.499950:False:0",
+      "scale": 0,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "2.000000",
+        "returned": "0.000000",
+        "reinvest": "1.000000",
+        "totalProfit": "2.000001",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "0:123.499950:False:50",
+      "scale": 0,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "2.000000",
+        "returned": "0.000000",
+        "reinvest": "1.000000",
+        "totalProfit": "2.000001",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "0:123.499950:False:100",
+      "scale": 0,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "2.000000",
+        "returned": "0.000000",
+        "reinvest": "1.000000",
+        "totalProfit": "2.000001",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "0:123.499950:False:120",
+      "scale": 0,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "2.000000",
+        "returned": "0.000000",
+        "reinvest": "1.000000",
+        "totalProfit": "2.000001",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "0:123.499950:True:0",
+      "scale": 0,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "2.000000",
+        "returned": "30.874988",
+        "reinvest": "0.000000",
+        "totalProfit": "2.000001",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "0:123.499950:True:50",
+      "scale": 0,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "2.000000",
+        "returned": "76.874988",
+        "reinvest": "0.000000",
+        "totalProfit": "2.000001",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "0:123.499950:True:100",
+      "scale": 0,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "2.000000",
+        "returned": "123.499950",
+        "reinvest": "0.000000",
+        "totalProfit": "2.000001",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "0:123.499950:True:120",
+      "scale": 0,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "2.000000",
+        "returned": "141.874988",
+        "reinvest": "0.000000",
+        "totalProfit": "2.000001",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "0:99999.999999:False:0",
+      "scale": 0,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "410.000000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "0:99999.999999:False:50",
+      "scale": 0,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "410.000000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "0:99999.999999:False:100",
+      "scale": 0,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "410.000000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "0:99999.999999:False:120",
+      "scale": 0,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "410.000000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "0:99999.999999:True:0",
+      "scale": 0,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "25000.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "0:99999.999999:True:50",
+      "scale": 0,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "62500.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "0:99999.999999:True:100",
+      "scale": 0,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "99999.999999",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "0:99999.999999:True:120",
+      "scale": 0,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "115000.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "2:0.000001:False:0",
+      "scale": 2,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "2:0.000001:False:50",
+      "scale": 2,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "2:0.000001:False:100",
+      "scale": 2,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "2:0.000001:False:120",
+      "scale": 2,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "2:0.000001:True:0",
+      "scale": 2,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "2:0.000001:True:50",
+      "scale": 2,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "2:0.000001:True:100",
+      "scale": 2,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "2:0.000001:True:120",
+      "scale": 2,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "2:0.01:False:0",
+      "scale": 2,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "2:0.01:False:50",
+      "scale": 2,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "2:0.01:False:100",
+      "scale": 2,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "2:0.01:False:120",
+      "scale": 2,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "2:0.01:True:0",
+      "scale": 2,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.002500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "2:0.01:True:50",
+      "scale": 2,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.002500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "2:0.01:True:100",
+      "scale": 2,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.010000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "2:0.01:True:120",
+      "scale": 2,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.012500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "2:1.005001:False:0",
+      "scale": 2,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.010000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.010001",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "2:1.005001:False:50",
+      "scale": 2,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.010000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.010001",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "2:1.005001:False:100",
+      "scale": 2,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.010000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.010001",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "2:1.005001:False:120",
+      "scale": 2,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.010000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.010001",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "2:1.005001:True:0",
+      "scale": 2,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.010000",
+        "returned": "0.251250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.010001",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "2:1.005001:True:50",
+      "scale": 2,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.010000",
+        "returned": "0.631250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.010001",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "2:1.005001:True:100",
+      "scale": 2,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.010000",
+        "returned": "1.005001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.010001",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "2:1.005001:True:120",
+      "scale": 2,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.010000",
+        "returned": "1.151250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.010001",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "2:123.499950:False:0",
+      "scale": 2,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.520000",
+        "returned": "0.000000",
+        "reinvest": "0.510000",
+        "totalProfit": "1.520001",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "2:123.499950:False:50",
+      "scale": 2,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.520000",
+        "returned": "0.000000",
+        "reinvest": "0.510000",
+        "totalProfit": "1.520001",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "2:123.499950:False:100",
+      "scale": 2,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.520000",
+        "returned": "0.000000",
+        "reinvest": "0.510000",
+        "totalProfit": "1.520001",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "2:123.499950:False:120",
+      "scale": 2,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.520000",
+        "returned": "0.000000",
+        "reinvest": "0.510000",
+        "totalProfit": "1.520001",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "2:123.499950:True:0",
+      "scale": 2,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.520000",
+        "returned": "30.874988",
+        "reinvest": "0.000000",
+        "totalProfit": "1.520001",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "2:123.499950:True:50",
+      "scale": 2,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.520000",
+        "returned": "77.184988",
+        "reinvest": "0.000000",
+        "totalProfit": "1.520001",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "2:123.499950:True:100",
+      "scale": 2,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.520000",
+        "returned": "123.499950",
+        "reinvest": "0.000000",
+        "totalProfit": "1.520001",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "2:123.499950:True:120",
+      "scale": 2,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.520000",
+        "returned": "142.024988",
+        "reinvest": "0.000000",
+        "totalProfit": "1.520001",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "2:99999.999999:False:0",
+      "scale": 2,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.960000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "2:99999.999999:False:50",
+      "scale": 2,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.960000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "2:99999.999999:False:100",
+      "scale": 2,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.960000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "2:99999.999999:False:120",
+      "scale": 2,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.960000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "2:99999.999999:True:0",
+      "scale": 2,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "25000.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "2:99999.999999:True:50",
+      "scale": 2,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "62500.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "2:99999.999999:True:100",
+      "scale": 2,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "99999.999999",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "2:99999.999999:True:120",
+      "scale": 2,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "115000.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "3:0.000001:False:0",
+      "scale": 3,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "3:0.000001:False:50",
+      "scale": 3,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "3:0.000001:False:100",
+      "scale": 3,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "3:0.000001:False:120",
+      "scale": 3,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "3:0.000001:True:0",
+      "scale": 3,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "3:0.000001:True:50",
+      "scale": 3,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "3:0.000001:True:100",
+      "scale": 3,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "3:0.000001:True:120",
+      "scale": 3,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "3:0.01:False:0",
+      "scale": 3,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "3:0.01:False:50",
+      "scale": 3,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "3:0.01:False:100",
+      "scale": 3,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "3:0.01:False:120",
+      "scale": 3,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "3:0.01:True:0",
+      "scale": 3,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.002500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "3:0.01:True:50",
+      "scale": 3,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.006500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "3:0.01:True:100",
+      "scale": 3,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.010000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "3:0.01:True:120",
+      "scale": 3,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.011500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "3:1.005001:False:0",
+      "scale": 3,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.012000",
+        "returned": "0.000000",
+        "reinvest": "0.004000",
+        "totalProfit": "0.012001",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "3:1.005001:False:50",
+      "scale": 3,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.012000",
+        "returned": "0.000000",
+        "reinvest": "0.004000",
+        "totalProfit": "0.012001",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "3:1.005001:False:100",
+      "scale": 3,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.012000",
+        "returned": "0.000000",
+        "reinvest": "0.004000",
+        "totalProfit": "0.012001",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "3:1.005001:False:120",
+      "scale": 3,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.012000",
+        "returned": "0.000000",
+        "reinvest": "0.004000",
+        "totalProfit": "0.012001",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "3:1.005001:True:0",
+      "scale": 3,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.012000",
+        "returned": "0.251250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.012001",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "3:1.005001:True:50",
+      "scale": 3,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.012000",
+        "returned": "0.628250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.012001",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "3:1.005001:True:100",
+      "scale": 3,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.012000",
+        "returned": "1.005001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.012001",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "3:1.005001:True:120",
+      "scale": 3,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.012000",
+        "returned": "1.156250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.012001",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "3:123.499950:False:0",
+      "scale": 3,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.519000",
+        "returned": "0.000000",
+        "reinvest": "0.506000",
+        "totalProfit": "1.519001",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "3:123.499950:False:50",
+      "scale": 3,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.519000",
+        "returned": "0.000000",
+        "reinvest": "0.506000",
+        "totalProfit": "1.519001",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "3:123.499950:False:100",
+      "scale": 3,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.519000",
+        "returned": "0.000000",
+        "reinvest": "0.506000",
+        "totalProfit": "1.519001",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "3:123.499950:False:120",
+      "scale": 3,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.519000",
+        "returned": "0.000000",
+        "reinvest": "0.506000",
+        "totalProfit": "1.519001",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "3:123.499950:True:0",
+      "scale": 3,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.519000",
+        "returned": "30.874988",
+        "reinvest": "0.000000",
+        "totalProfit": "1.519001",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "3:123.499950:True:50",
+      "scale": 3,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.519000",
+        "returned": "77.186988",
+        "reinvest": "0.000000",
+        "totalProfit": "1.519001",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "3:123.499950:True:100",
+      "scale": 3,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.519000",
+        "returned": "123.499950",
+        "reinvest": "0.000000",
+        "totalProfit": "1.519001",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "3:123.499950:True:120",
+      "scale": 3,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.519000",
+        "returned": "142.024988",
+        "reinvest": "0.000000",
+        "totalProfit": "1.519001",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "3:99999.999999:False:0",
+      "scale": 3,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.959000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "3:99999.999999:False:50",
+      "scale": 3,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.959000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "3:99999.999999:False:100",
+      "scale": 3,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.959000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "3:99999.999999:False:120",
+      "scale": 3,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.959000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "3:99999.999999:True:0",
+      "scale": 3,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "25000.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "3:99999.999999:True:50",
+      "scale": 3,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "62500.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "3:99999.999999:True:100",
+      "scale": 3,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "99999.999999",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "3:99999.999999:True:120",
+      "scale": 3,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "115000.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "6:0.000001:False:0",
+      "scale": 6,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "6:0.000001:False:50",
+      "scale": 6,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "6:0.000001:False:100",
+      "scale": 6,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "6:0.000001:False:120",
+      "scale": 6,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "6:0.000001:True:0",
+      "scale": 6,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "6:0.000001:True:50",
+      "scale": 6,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "6:0.000001:True:100",
+      "scale": 6,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "6:0.000001:True:120",
+      "scale": 6,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "6:0.01:False:0",
+      "scale": 6,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.000000",
+        "reinvest": "0.000041",
+        "totalProfit": "0.000124",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "6:0.01:False:50",
+      "scale": 6,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.000000",
+        "reinvest": "0.000041",
+        "totalProfit": "0.000124",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "6:0.01:False:100",
+      "scale": 6,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.000000",
+        "reinvest": "0.000041",
+        "totalProfit": "0.000124",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "6:0.01:False:120",
+      "scale": 6,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.000000",
+        "reinvest": "0.000041",
+        "totalProfit": "0.000124",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "6:0.01:True:0",
+      "scale": 6,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.002500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000124",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "6:0.01:True:50",
+      "scale": 6,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.006250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000124",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "6:0.01:True:100",
+      "scale": 6,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.010000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000124",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "6:0.01:True:120",
+      "scale": 6,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.011500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000124",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "6:1.005001:False:0",
+      "scale": 6,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "0.000000",
+        "reinvest": "0.004120",
+        "totalProfit": "0.012363",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "6:1.005001:False:50",
+      "scale": 6,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "0.000000",
+        "reinvest": "0.004120",
+        "totalProfit": "0.012363",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "6:1.005001:False:100",
+      "scale": 6,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "0.000000",
+        "reinvest": "0.004120",
+        "totalProfit": "0.012363",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "6:1.005001:False:120",
+      "scale": 6,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "0.000000",
+        "reinvest": "0.004120",
+        "totalProfit": "0.012363",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "6:1.005001:True:0",
+      "scale": 6,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "0.251250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.012363",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "6:1.005001:True:50",
+      "scale": 6,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "0.628126",
+        "reinvest": "0.000000",
+        "totalProfit": "0.012363",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "6:1.005001:True:100",
+      "scale": 6,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "1.005001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.012363",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "6:1.005001:True:120",
+      "scale": 6,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "1.155751",
+        "reinvest": "0.000000",
+        "totalProfit": "0.012363",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "6:123.499950:False:0",
+      "scale": 6,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "0.000000",
+        "reinvest": "0.506299",
+        "totalProfit": "1.519050",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "6:123.499950:False:50",
+      "scale": 6,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "0.000000",
+        "reinvest": "0.506299",
+        "totalProfit": "1.519050",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "6:123.499950:False:100",
+      "scale": 6,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "0.000000",
+        "reinvest": "0.506299",
+        "totalProfit": "1.519050",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "6:123.499950:False:120",
+      "scale": 6,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "0.000000",
+        "reinvest": "0.506299",
+        "totalProfit": "1.519050",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "6:123.499950:True:0",
+      "scale": 6,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "30.874988",
+        "reinvest": "0.000000",
+        "totalProfit": "1.519050",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "6:123.499950:True:50",
+      "scale": 6,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "77.187469",
+        "reinvest": "0.000000",
+        "totalProfit": "1.519050",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "6:123.499950:True:100",
+      "scale": 6,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "123.499950",
+        "reinvest": "0.000000",
+        "totalProfit": "1.519050",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "6:123.499950:True:120",
+      "scale": 6,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "142.024942",
+        "reinvest": "0.000000",
+        "totalProfit": "1.519050",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "6:99999.999999:False:0",
+      "scale": 6,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.959000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "6:99999.999999:False:50",
+      "scale": 6,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.959000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "6:99999.999999:False:100",
+      "scale": 6,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.959000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "6:99999.999999:False:120",
+      "scale": 6,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.959000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "6:99999.999999:True:0",
+      "scale": 6,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "25000.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "6:99999.999999:True:50",
+      "scale": 6,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "62500.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "6:99999.999999:True:100",
+      "scale": 6,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "99999.999999",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "6:99999.999999:True:120",
+      "scale": 6,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "114999.999999",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "8:0.000001:False:0",
+      "scale": 8,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "8:0.000001:False:50",
+      "scale": 8,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "8:0.000001:False:100",
+      "scale": 8,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "8:0.000001:False:120",
+      "scale": 8,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000000",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "8:0.000001:True:0",
+      "scale": 8,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "8:0.000001:True:50",
+      "scale": 8,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "8:0.000001:True:100",
+      "scale": 8,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "8:0.000001:True:120",
+      "scale": 8,
+      "principal": "0.000001",
+      "compounded": "0.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000000",
+        "returned": "0.000001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000001",
+        "release": "0.000001",
+        "worked": "0.000001"
+      }
+    },
+    {
+      "id": "8:0.01:False:0",
+      "scale": 8,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.000000",
+        "reinvest": "0.000041",
+        "totalProfit": "0.000124",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "8:0.01:False:50",
+      "scale": 8,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.000000",
+        "reinvest": "0.000041",
+        "totalProfit": "0.000124",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "8:0.01:False:100",
+      "scale": 8,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.000000",
+        "reinvest": "0.000041",
+        "totalProfit": "0.000124",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "8:0.01:False:120",
+      "scale": 8,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.000000",
+        "reinvest": "0.000041",
+        "totalProfit": "0.000124",
+        "release": "0.000000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "8:0.01:True:0",
+      "scale": 8,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.002500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000124",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "8:0.01:True:50",
+      "scale": 8,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.006250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000124",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "8:0.01:True:100",
+      "scale": 8,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.010000",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000124",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "8:0.01:True:120",
+      "scale": 8,
+      "principal": "0.01",
+      "compounded": "0.002500",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.000123",
+        "returned": "0.011500",
+        "reinvest": "0.000000",
+        "totalProfit": "0.000124",
+        "release": "0.010000",
+        "worked": "0.007500"
+      }
+    },
+    {
+      "id": "8:1.005001:False:0",
+      "scale": 8,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "0.000000",
+        "reinvest": "0.004120",
+        "totalProfit": "0.012363",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "8:1.005001:False:50",
+      "scale": 8,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "0.000000",
+        "reinvest": "0.004120",
+        "totalProfit": "0.012363",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "8:1.005001:False:100",
+      "scale": 8,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "0.000000",
+        "reinvest": "0.004120",
+        "totalProfit": "0.012363",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "8:1.005001:False:120",
+      "scale": 8,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "0.000000",
+        "reinvest": "0.004120",
+        "totalProfit": "0.012363",
+        "release": "0.000000",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "8:1.005001:True:0",
+      "scale": 8,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "0.251250",
+        "reinvest": "0.000000",
+        "totalProfit": "0.012363",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "8:1.005001:True:50",
+      "scale": 8,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "0.628126",
+        "reinvest": "0.000000",
+        "totalProfit": "0.012363",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "8:1.005001:True:100",
+      "scale": 8,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "1.005001",
+        "reinvest": "0.000000",
+        "totalProfit": "0.012363",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "8:1.005001:True:120",
+      "scale": 8,
+      "principal": "1.005001",
+      "compounded": "0.251250",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "0.012362",
+        "returned": "1.155751",
+        "reinvest": "0.000000",
+        "totalProfit": "0.012363",
+        "release": "1.005001",
+        "worked": "0.753751"
+      }
+    },
+    {
+      "id": "8:123.499950:False:0",
+      "scale": 8,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "0.000000",
+        "reinvest": "0.506299",
+        "totalProfit": "1.519050",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "8:123.499950:False:50",
+      "scale": 8,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "0.000000",
+        "reinvest": "0.506299",
+        "totalProfit": "1.519050",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "8:123.499950:False:100",
+      "scale": 8,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "0.000000",
+        "reinvest": "0.506299",
+        "totalProfit": "1.519050",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "8:123.499950:False:120",
+      "scale": 8,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "0.000000",
+        "reinvest": "0.506299",
+        "totalProfit": "1.519050",
+        "release": "0.000000",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "8:123.499950:True:0",
+      "scale": 8,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "30.874988",
+        "reinvest": "0.000000",
+        "totalProfit": "1.519050",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "8:123.499950:True:50",
+      "scale": 8,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "77.187469",
+        "reinvest": "0.000000",
+        "totalProfit": "1.519050",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "8:123.499950:True:100",
+      "scale": 8,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "123.499950",
+        "reinvest": "0.000000",
+        "totalProfit": "1.519050",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "8:123.499950:True:120",
+      "scale": 8,
+      "principal": "123.499950",
+      "compounded": "30.874988",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1.519049",
+        "returned": "142.024942",
+        "reinvest": "0.000000",
+        "totalProfit": "1.519050",
+        "release": "123.499950",
+        "worked": "92.624962"
+      }
+    },
+    {
+      "id": "8:99999.999999:False:0",
+      "scale": 8,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.959000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "8:99999.999999:False:50",
+      "scale": 8,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.959000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "8:99999.999999:False:100",
+      "scale": 8,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.959000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "8:99999.999999:False:120",
+      "scale": 8,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": false,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "0.000000",
+        "reinvest": "409.959000",
+        "totalProfit": "1230.000001",
+        "release": "0.000000",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "8:99999.999999:True:0",
+      "scale": 8,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "0",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "25000.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "8:99999.999999:True:50",
+      "scale": 8,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "62500.000000",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "8:99999.999999:True:100",
+      "scale": 8,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "100",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "99999.999999",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    },
+    {
+      "id": "8:99999.999999:True:120",
+      "scale": 8,
+      "principal": "99999.999999",
+      "compounded": "25000.000000",
+      "previousProfit": "0.000001",
+      "percent": "1.23",
+      "returnPercent": "120",
+      "compoundPercent": "33.33",
+      "terminal": true,
+      "expected": {
+        "profit": "1230.000000",
+        "returned": "114999.999999",
+        "reinvest": "0.000000",
+        "totalProfit": "1230.000001",
+        "release": "99999.999999",
+        "worked": "74999.999999"
+      }
+    }
+  ],
+  "caps": [
+    {
+      "scale": 2,
+      "rate": "3",
+      "minimum": "1",
+      "principal": "1",
+      "compounded": "0.9",
+      "expected": "0.660000"
+    },
+    {
+      "scale": 2,
+      "rate": "2",
+      "minimum": "1",
+      "principal": "2",
+      "compounded": "1.8",
+      "expected": "1.500000"
+    },
+    {
+      "scale": 6,
+      "rate": "30000",
+      "minimum": "1",
+      "principal": "0.0001",
+      "compounded": "0.00009",
+      "expected": "0.000066"
+    },
+    {
+      "scale": 8,
+      "rate": "3",
+      "minimum": "1",
+      "principal": "1",
+      "compounded": "0.9",
+      "expected": "0.666666"
+    },
+    {
+      "scale": 3,
+      "rate": "1.2345",
+      "minimum": "10",
+      "principal": "20",
+      "compounded": "15",
+      "expected": "11.899000"
+    }
+  ]
+}

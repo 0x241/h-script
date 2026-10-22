@@ -54,12 +54,14 @@ if ($action !== '')
 				$db,
 				$_cfg,
 				(string)($_GS['domain'] ?? '')
-			))->register();
+			))->register(true);
 			$setFlash(
 				!empty($result['ok']) ? 'success' : 'warning',
-				!empty($result['ok'])
+				($result['error'] ?? '') === 'telemetry_cooldown'
+					? $telemetryTranslate('admin.telemetry.flash.cooldown', 'Повторная отправка ограничена: не чаще одного раза в пять минут. Настройки сохранены.')
+					: (!empty($result['ok'])
 					? $telemetryTranslate('admin.telemetry.flash.saved', 'Настройка агрегатов сохранена, установка зарегистрирована.')
-					: $telemetryTranslate('admin.telemetry.flash.saved_offline', 'Настройка сохранена. Центральный сервис сейчас недоступен; cron повторит регистрацию.')
+					: $telemetryTranslate('admin.telemetry.flash.saved_offline', 'Настройка сохранена. Центральный сервис сейчас недоступен; cron повторит регистрацию.'))
 			);
 		}
 		else
@@ -75,12 +77,14 @@ if ($action !== '')
 				$db,
 				$_cfg,
 				(string)($_GS['domain'] ?? '')
-			))->report($stats);
+			))->report($stats, true);
 			$setFlash(
 				!empty($result['ok']) ? 'success' : 'warning',
-				!empty($result['ok'])
+				($result['error'] ?? '') === 'telemetry_cooldown'
+					? $telemetryTranslate('admin.telemetry.flash.cooldown', 'Повторная отправка ограничена: не чаще одного раза в пять минут. Настройки сохранены.')
+					: (!empty($result['ok'])
 					? $telemetryTranslate('admin.telemetry.flash.sent', 'Отчёт принят центральным сервисом.')
-					: $telemetryTranslate('admin.telemetry.flash.send_failed', 'Отчёт не отправлен. Cron повторит попытку по расписанию.')
+					: $telemetryTranslate('admin.telemetry.flash.send_failed', 'Отчёт не отправлен. Cron повторит попытку по расписанию.'))
 			);
 		}
 	}

@@ -166,36 +166,37 @@ function opRegisterPrepare($params, $from_admin = false)
 	return $params['auID'];
 }
 
-function opRegisterComplete($uid, $pass = '', $url = '') // $pass (for autoregister) is send to mail
+function opRegisterComplete($uid, $pass = '', $url = '', $defer_login = false) // $pass (for autoregister) is send to mail
 {
-	$usr = opReadUser($uid);
-	if (!$usr or ($usr['uID'] ?? 0) <= 1) // except admin ;)
-		return 'user_not_found';
-	global $_GS, $db, $_cfg;
-	$pin = '';
-	$minPIN = $_cfg['Sec_MinPIN'] ?? 4;
-	for ($i = 1; $i <= $minPIN; $i++)
-		$pin .= rand(1, 9);
-	$db->update('Users', array('uPIN' => hashPassword($pin), 'uState' => 1), '', 'uID=?d', array($uid));
-	opAddHist('REG', $uid);
-	View::SendMailToUser($usr['uMail'] ?? '',
-		'RegComplete' . StringHelper::valueIf($pass, '2'),
-		opUserConsts($usr, array('pass' => $pass, 'pin' => $pin)),
-		$usr['uLang'] ?? 'ru'
-	);
-	if (isset($usr['uRef']) and ($rusr = opReadUser($usr['uRef'])) and !empty($rusr['uID']))
-		View::SendMailToUser($rusr['uMail'] ?? '',
-			'NewRef', 
-			opUserConsts($rusr, array('reflogin' => $usr['uLogin'] ?? '')),
-			$rusr['uLang'] ?? 'ru'
-		);
-	opEvent('RegComplete', $uid);
-	if (!empty($_cfg['Account_RegLogin']))
-	{
-		useLib('account/login');
-		opLogin($uid, $url);
-	}
-	return true;
+    global $db, $_cfg;
+    $result = HScript\Database\TransactionScope::run($db->link, static function () use ($uid, $pass) {
+        global $db, $_cfg;
+        $usr = $db->fetch1Row($db->query('SELECT * FROM Users LEFT JOIN AddInfo ON auID=uID WHERE uID=?d FOR UPDATE', [(int)$uid]));
+        if (!$usr || (int)$usr['uID'] <= 1) return 'user_not_found'; // except admin ;)
+        if ((int)$usr['uState'] === 1) return true;
+        if ((int)$usr['uState'] !== 0) return 'not_active';
+        $pin = '';
+        $minPIN = $_cfg['Sec_MinPIN'] ?? 4;
+        for ($i = 1; $i <= $minPIN; $i++) $pin .= rand(1, 9);
+        $pin_hash = hashPassword($pin);
+        if (!$db->update('Users', ['uPIN' => $pin_hash, 'uState' => 1], '', 'uID=?d AND uState=0', [(int)$uid])) return 'db_error';
+        $saved = $db->fetch1Row($db->query('SELECT uState,uPIN FROM Users WHERE uID=?d FOR UPDATE', [(int)$uid]));
+        if (!$saved || (int)$saved['uState'] !== 1 || !hash_equals($pin_hash, (string)$saved['uPIN'])) return 'db_error';
+        opAddHist('REG', $uid);
+        View::SendMailToUser($usr['uMail'] ?? '',
+            'RegComplete' . StringHelper::valueIf($pass, '2'),
+            opUserConsts($usr, ['pass' => $pass, 'pin' => $pin]), $usr['uLang'] ?? 'ru');
+        if (isset($usr['uRef']) && ($rusr = opReadUser($usr['uRef'])) && !empty($rusr['uID']))
+            View::SendMailToUser($rusr['uMail'] ?? '', 'NewRef',
+                opUserConsts($rusr, ['reflogin' => $usr['uLogin'] ?? '']), $rusr['uLang'] ?? 'ru');
+        opEvent('RegComplete', $uid);
+        return true;
+    });
+    if ($result === true && !$defer_login && !$db->link->inTransaction() && !empty($_cfg['Account_RegLogin'])) {
+        useLib('account/login');
+        opLogin($uid, $url);
+    }
+    return $result;
 }
 
 function opRegisterMail($uid, $mail)
@@ -229,24 +230,51 @@ function opRegisterTel($uid, $tel)
 	return true;
 }
 
-function opRegisterConfirm($uid, $params)
+/** Confirmation consumption, activation, notifications and financial event share one owner. */
+function opRegisterConfirmCode($confirmation_id)
 {
-	$tel = $params['tel'] ?? '';
-	$mail = $params['mail'] ?? '';
-	if ($tel)
-		if (opRegisterTel($uid, $tel))
-		{
-			opRegisterComplete($uid);
-			View::showInfo('Completed', moduleToLink('account/register') . '?done');
-		}
-	if ($mail)
-	{
-		if (opRegisterMail($uid, $mail))
-		{
-			opRegisterComplete($uid);
-			View::showInfo('Completed', moduleToLink('account/register') . '?done');
-		}
-	}
+    global $db;
+    return HScript\Database\TransactionScope::run($db->link, static function () use ($confirmation_id) {
+        global $db, $_cfg, $_GS;
+        $op = $db->fetch1Row($db->query("SELECT * FROM Hist WHERE hID=?d AND hOper='CONFIRM' FOR UPDATE", [(int)$confirmation_id]));
+        if (!$op || !(int)$op['huID']) return 'code_not_found';
+        if ($op['hTag']) return 'code_used';
+        if (($_cfg['Confirm_Expire'] ?? 0) > 0 && subStamps($op['hTS']) > $_cfg['Confirm_Expire'] * HS2_UNIX_MINUTE) return 'code_expired';
+        if (!empty($_cfg['Confirm_DifIP']) && $_GS['client_ip'] != $op['hIP']) return 'dif_ip';
+        $params = strToArray($op['hParams']);
+        if (empty($params['oper']) || ($params['module'] ?? '') !== 'account/register' || strtolower($params['mname'] ?? '') !== 'register') return 'oper_wrong';
+        $result = opRegisterConfirm((int)$op['huID'], $params, true);
+        if ($result !== true) return is_string($result) ? $result : 'oper_wrong';
+        if (!$db->update('Hist', ['hTag' => 1], '', 'hID=?d AND hTag=0', [(int)$confirmation_id])) return 'db_error';
+        $saved = $db->fetch1Row($db->query("SELECT hTag FROM Hist WHERE hID=?d AND hOper='CONFIRM' FOR UPDATE", [(int)$confirmation_id]));
+        if (!$saved || (int)$saved['hTag'] !== 1) return 'db_error';
+        return true;
+    });
+}
+
+function opRegisterConfirm($uid, $params, $defer_finish = false)
+{
+    global $db, $_cfg;
+    $result = HScript\Database\TransactionScope::run($db->link, static function () use ($uid, $params) {
+        global $db;
+        $usr = $db->fetch1Row($db->query('SELECT * FROM Users LEFT JOIN AddInfo ON auID=uID WHERE uID=?d FOR UPDATE', [(int)$uid]));
+        if (!$usr || (int)$usr['uID'] <= 1) return 'user_not_found';
+        if ((int)$usr['uState'] === 1) return true;
+        if ((int)$usr['uState'] !== 0) return 'not_active';
+        $tel = $params['tel'] ?? '';
+        $mail = $params['mail'] ?? '';
+        if ($tel) {
+            if (!opRegisterTel($uid, $tel)) return false;
+        } elseif ($mail) {
+            if (!opRegisterMail($uid, $mail)) return false;
+        } else return false;
+        return opRegisterComplete($uid, '', '', true);
+    });
+    if ($result === true && !$defer_finish && !$db->link->inTransaction()) {
+        if (!empty($_cfg['Account_RegLogin'])) { useLib('account/login'); opLogin($uid, ''); }
+        View::showInfo('Completed', moduleToLink('account/register') . '?done');
+    }
+    return $result;
 }
 
 ?>

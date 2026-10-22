@@ -290,6 +290,12 @@ class Connection
 		$p = '{(\?)([\?\#dfail%]?)|(\#)(\#|\!|[\w_]+)}';
 		$query = preg_replace_callback($p, array(&$this, '_parseParamCallback'), $query);
 		$qr = $this->_doQuery($query, $this->bound_values);
+		// A financial unit of work must catch errors and roll back before a
+		// response is emitted. InnoDB may already have ended a deadlocked job.
+		if ($qr === false && $this->last_exception instanceof \PDOException
+			&& ($this->pdo->inTransaction() || $this->last_exception->getCode() === '40001'
+				|| in_array((int)($this->last_exception->errorInfo[1] ?? 0), [1205, 1213], true)))
+			throw $this->last_exception;
 		if ($qr === false)
 			xSysError($this->lastError());
 		$this->_notifyMutation($query);

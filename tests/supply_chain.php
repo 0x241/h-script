@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 require dirname(__DIR__) . '/ci/supply-chain/Policy.php';
 
 function supplyAssert(bool $ok, string $message): void { if (!$ok) throw new RuntimeException($message); }
@@ -145,7 +147,7 @@ try {
         copy($path, $publication . '/ci/supply-chain/' . basename($path));
     foreach (glob($evidence . '/*') as $path)
         copy($path, $publication . '/dist/evidence/' . basename($path));
-    copy($root . '/tests/fixtures/mock-publication-docker.php', $publication . '/bin/docker');
+    file_put_contents($publication . '/bin/docker', "#!/usr/bin/env php\n" . file_get_contents($root . '/tests/fixtures/mock-publication-docker.php'));
     chmod($publication . '/bin/docker', 0700);
     copy($root . '/tests/fixtures/mock-publication-refresh.sh', $publication . '/ci/supply-chain/refresh-publication.sh');
     $archiveName = 'h-script-1.2.3-shared-hosting.tar.gz';

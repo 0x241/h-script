@@ -1,8 +1,5 @@
 <?php
 
-use HScript\Observability\CorrelationContext;
-use HScript\Observability\OperationalStateRepository;
-use HScript\Observability\StructuredLogger;
 use HScript\Security\CronAuthentication;
 
 if (!CronAuthentication::authorized($_SERVER, getenv('CRON_TOKEN')))
@@ -27,48 +24,5 @@ flush();
 
 $_smode = 2;
 require_once('module/auth.php');
-CorrelationContext::setActorClass('system');
-$cron_time = microtime(true);
-$cronState = new OperationalStateRepository(dirname(__DIR__, 2));
-$cronState->recordCron('started');
-StructuredLogger::event('info', 'cron', 'cron_started', 'started');
-
-if (!$_cfg['Cron_Enabled'])
-{
-		$cronState->recordCron('disabled');
-		StructuredLogger::event('notice', 'cron', 'cron_disabled', 'noop');
-		exit;
-	}
-
-require_once('module/cron/jobs.php');
-
-if (!$_oncron)
-{
-		$cronState->recordCron('success');
-		StructuredLogger::event('info', 'cron', 'cron_completed', 'success', max(0, (int)round((microtime(true) - $cron_time) * 1000)));
-		exit;
-	}
-
-// onCron init
-
-function checkCronTO()
-{
-	global $cron_time;
-	if (abs(time() - $cron_time) > 30)
-		exit;
-}
-
-$cron_ts = timeToStamp();
-foreach ($_oncron as $m => $n)
-	if (($n > 0) and ($_cfg['Cron_' . $m] <= $cron_ts))
-		if (file_exists($f = $_GS['module_dir'] . $m . '/oncron.php'))
-			if (opWriteCfg('Cron', $m, timeToStamp(time() + $n * HS2_UNIX_MINUTE), ' and Val<=?', array($cron_ts)))
-			{
-				include_once($f);
-				checkCronTO();
-			}
-
-$cronState->recordCron('success');
-StructuredLogger::event('info', 'cron', 'cron_completed', 'success', max(0, (int)round((microtime(true) - $cron_time) * 1000)));
-
-?>
+useLib('cron');
+try { opCronRun(); } catch (Throwable) { /* Failure is recorded by the common runner. */ }

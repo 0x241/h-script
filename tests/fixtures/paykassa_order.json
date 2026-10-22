@@ -1,0 +1,41 @@
+{
+  "provenance": "synthetic; assembled from current official SCI0.4 fields, not captured from a live payment",
+  "checked_at": "2026-10-03",
+  "sources": [
+    "https://paykassa.pro/docs/#api-SCI-sci_confirm_order",
+    "https://paykassa.pro/docs/#api-SCI-sci_create_order_get_data",
+    "https://github.com/paykassa-dev/paykassa-modules/blob/1b3b4d4a0dcda0769b9bca7fef5bb131c923fbb8/src/PaykassaSCI.php"
+  ],
+  "config": {
+    "id": "122",
+    "key": "synthetic-paykassa-sci-secret"
+  },
+  "request_body": "private_hash=exact%2Btoken%3A42&system=BitCoin&currency=BTC&order_id=42",
+  "verified_order": {
+    "shop_id": "122",
+    "order_id": "42",
+    "transaction": "579205",
+    "amount": "1.23000000",
+    "currency": "BTC",
+    "system": "BitCoin",
+    "address": "bc1qsyntheticinvoice42receiverabcdef1234",
+    "tag": false,
+    "hash": "fixture_paykassa_payment_42",
+    "partial": "no"
+  },
+  "created_invoice": {
+    "invoice": "579205",
+    "order_id": "42",
+    "wallet": "bc1qsyntheticinvoice42receiverabcdef1234",
+    "amount": "1.23000000",
+    "system": "BitCoin",
+    "currency": "BTC",
+    "url": "https://crypto.paykassa.pro/sci/index.php?hash=fixture_paykassa_payment_42",
+    "tag": false
+  },
+  "creation_intent": {
+    "sum": "1.23000000",
+    "tag": 42,
+    "memo": "Synthetic exact invoice"
+  }
+}

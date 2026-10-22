@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 require __DIR__ . '/public_seo_http.php';
 $run([
     'sitemap:ru' => ['/sitemap.xml', 'lang=ru', 'ru'],

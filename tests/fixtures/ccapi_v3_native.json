@@ -1,0 +1,23 @@
+{
+  "provenance": "Synthetic native v3 protocol vector generated independently with Python hashlib from official CryptoCurrencyAPI IPN verification algorithm; no captured merchant callback.",
+  "secret": "fixture-ccapi-v3-secret",
+  "canonical": "1.230000:bitcoin:2:3:BTC:1791459000:0.00000001::42:0:bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq:::bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:in:5aea4fc26cfe33f6940f35ca85d34a32",
+  "payload": {
+    "cryptocurrencyapi.net": 3,
+    "chain": "bitcoin",
+    "currency": "BTC",
+    "type": "in",
+    "date": 1791459000,
+    "from": null,
+    "to": "bc1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+    "token": null,
+    "tokenContract": null,
+    "amount": "1.230000",
+    "fee": "0.00000001",
+    "txid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "pos": 0,
+    "confirmation": 2,
+    "label": "42",
+    "sign": "90d4f982705bcec160a7c89c2412e2cb07b2ad67"
+  }
+}

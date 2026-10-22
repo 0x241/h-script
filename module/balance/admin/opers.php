@@ -3,6 +3,8 @@
 use HScript\Util\StringHelper;
 
 use HScript\Template\View;
+use HScript\Finance\FinancialForm;
+use HScript\Finance\FinancialOperationException;
 
 $_auth = 70;
 require_once('module/auth.php');
@@ -33,51 +35,40 @@ try
 		goToURL();
 	}
 
-	if (isset_IN('ids') and (count($ids = (array)_IN('ids')) > 0))
+	if (isset_IN('ids'))
 	{
-		$ids = $db->fetchRows($db->select($table, $id_field, '?# ?i', array($id_field, $ids)), 1);
-		if (count($ids) > 0)
-		{
-			View::checkFormSecurity();
-			
-			if (View::sendedForm('complete'))
+		$action = null;
+		foreach (['complete', 'confirm', 'cancel', 'del'] as $candidate)
+			if (View::sendedForm($candidate)) $action = $candidate;
+		if ($action === null) { http_response_code(403); xSysStop('Invalid financial action', true); }
+		FinancialForm::check('admin:balance:bulk:' . $action);
+		$requested = array_values(array_unique(array_map('intval', (array)_IN('ids'))));
+		sort($requested, SORT_NUMERIC);
+		$response = FinancialForm::execute('admin:balance:bulk:' . $action, ['operation_ids' => $requested], static function () use ($requested, $action, $table, $id_field) {
+			global $db;
+			$ids = $db->fetchRows($db->select($table, $id_field, '?# ?i', [$id_field, $requested], $id_field), 1);
+			if (!$ids) return ['info' => '*NoSelected'];
+			foreach ($ids as $id)
 			{
-				foreach ($ids as $id)
-					opOperComplete(0, $id, array(), true);
-			}
-			
-			if (View::sendedForm('confirm'))
-			{
-				foreach ($ids as $id)
-				if ($o = $db->fetch1Row($db->select('Opers', '*', '(oID=?d) and (oState<3) and (oOper=? or oOper=?)', array($id, 'CASHIN', 'CASHOUT'))))
+				if ($action === 'complete') FinancialOperationException::check(opOperComplete(0, $id, [], true));
+				elseif ($action === 'cancel') FinancialOperationException::check(opOperCancel(0, $id, [], true));
+				elseif ($action === 'confirm')
 				{
+					$o = $db->fetch1Row($db->query('SELECT * FROM Opers WHERE oID=?d FOR UPDATE', [$id]));
+					if ((int)$o['oState'] >= 3 || !in_array($o['oOper'], ['CASHIN', 'CASHOUT'], true)) continue;
 					$p = strToArray($o['oParams2']);
-					if (!$p['date'])
-						$p['date'] = timeToStamp();
-					if (!$p['batch'])
-						$p['batch'] = 'M' . str_pad($id, 6, '0', STR_PAD_LEFT);
-					$db->update('Opers', array('oParams2' => arrayToStr($p)), '', 'oID=?d', array($id));
-					  if ($o['oState'] < 2)
-						opOperConfirm($o['ouID'], $id, array(), true);
-						opOperComplete($o['ouID'], $id, array(), true);
+					if (empty($p['date'])) $p['date'] = timeToStamp();
+					if (empty($p['batch'])) $p['batch'] = 'M' . str_pad($id, 6, '0', STR_PAD_LEFT);
+					$db->update('Opers', ['oParams2' => arrayToStr($p)], '', 'oID=?d', [$id]);
+					if ((int)$o['oState'] < 2) FinancialOperationException::check(opOperConfirm($o['ouID'], $id, [], true));
+					FinancialOperationException::check(opOperComplete($o['ouID'], $id, [], true));
 				}
 			}
-			
-			if (View::sendedForm('cancel'))
-			{
-				foreach ($ids as $id)
-					opOperCancel(0, $id, array(), true);
-			}
-			
-			if (View::sendedForm('del'))
-			{
-				$db->delete($table, '(oState >= 4) and (?# ?i)', array($id_field, $ids));
-			}
-			
-			View::showInfo();
-		}
-		else
-			View::showInfo('*NoSelected');
+			if ($action === 'del') $db->delete($table, '(oState >= 4) and (?# ?i)', [$id_field, $ids]);
+			return ['info' => ''];
+		});
+		View::setError($response);
+		View::showInfo($response['info']);
 	}
 
 } 

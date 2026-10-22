@@ -1,0 +1,6 @@
+{
+  "provenance": "Synthetic workchain0/account0xaa, independent Python binascii.crc_hqx and base64; no provider capture",
+  "ton_raw": "0:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "ton_bounceable": "EQCqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqseb",
+  "ton_nonbounceable": "UQCqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqppe"
+}

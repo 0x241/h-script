@@ -5,6 +5,7 @@ namespace HScript\Finance;
 use Closure;
 use HScript\Http\Client;
 use JsonException;
+use InvalidArgumentException;
 
 /**
  * Loads keyless cryptocurrency exchange rates from Coinbase Data API.
@@ -25,7 +26,7 @@ final class CoinbaseRateProvider
 	/**
 	 * Returns the value of one cryptocurrency unit in the requested base currency.
 	 */
-	public function rate(string $currency, string $baseCurrency = 'USD'): ?float
+	public function rate(string $currency, string $baseCurrency = 'USD'): ?string
 	{
 		$currency = strtoupper(trim($currency));
 		$baseCurrency = strtoupper(trim($baseCurrency));
@@ -53,13 +54,17 @@ final class CoinbaseRateProvider
 		if (
 			!is_array($payload)
 			|| !is_array($payload['data'] ?? null)
-			|| strtoupper((string)($payload['data']['currency'] ?? '')) !== $currency
+			|| !is_string($payload['data']['currency'] ?? null)
+			|| strtoupper($payload['data']['currency']) !== $currency
+			|| !is_array($payload['data']['rates'] ?? null)
 		)
 			return null;
 
 		$value = $payload['data']['rates'][$baseCurrency] ?? null;
-		if (!is_numeric($value) || (float)$value <= 0)
+		// API decimals are strings; decoding JSON numbers can lose precision.
+		if (!is_string($value))
 			return null;
-		return (float)$value;
+		try { return (string)Rate::of($value)->decimal(); }
+		catch (InvalidArgumentException) { return null; }
 	}
 }

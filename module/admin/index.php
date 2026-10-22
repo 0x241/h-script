@@ -1,6 +1,7 @@
 <?php
 
 use HScript\Template\View;
+use HScript\Finance\ReadAmount;
 
 $_auth = 90;
 require_once('module/auth.php');
@@ -12,7 +13,7 @@ $admin_stats = array(
 	'users_today' => (int)$db->fetch1($db->select('Users LEFT JOIN AddInfo ON auID=uID', 'COUNT(*)', 'aCTS>=?', array($today_stamp))),
 	'active_deposits' => (int)$db->fetch1($db->select('Deps', 'COUNT(*)', 'dState=1')),
 	'active_deposits_today' => (int)$db->fetch1($db->select('Deps', 'COUNT(*)', 'dState=1 and dCTS>=?', array($today_stamp))),
-	'active_deposits_sum' => (float)$db->fetch1($db->select('Deps', 'COALESCE(SUM(dZD),0)', 'dState=1')),
+	'active_deposits_sum' => ReadAmount::stored($db->fetch1($db->select('Deps', 'COALESCE(SUM(dZD),0)', 'dState=1'))),
 	'cashin_count' => (int)$db->fetch1($db->select('Opers', 'COUNT(*)', "oOper='CASHIN'")),
 	'cashout_count' => (int)$db->fetch1($db->select('Opers', 'COUNT(*)', "oOper='CASHOUT'")),
 	'inout_today' => (int)$db->fetch1($db->select('Opers', 'COUNT(*)', "(oOper='CASHIN' or oOper='CASHOUT') and oCTS>=?", array($today_stamp))),

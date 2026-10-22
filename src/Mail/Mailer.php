@@ -4,6 +4,7 @@ namespace HScript\Mail;
 
 use HScript\Queue\JobQueue;
 use HScript\Util\StringHelper;
+use PDOException;
 use PHPMailer\PHPMailer\PHPMailer;
 use Throwable;
 
@@ -45,6 +46,10 @@ final class Mailer
 		}
 		catch (Throwable $e)
 		{
+			// InnoDB may have aborted the financial transaction. Its owner must
+			// stop all later effects and retry the whole request with the same key.
+			if ($e instanceof PDOException && ($e->getCode() === '40001'
+				|| in_array((int)($e->errorInfo[1] ?? 0), array(1205, 1213), true))) throw $e;
 			return self::fail('Unable to queue email: ' . $e->getMessage());
 		}
 	}

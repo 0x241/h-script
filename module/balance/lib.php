@@ -1,7 +1,19 @@
 <?php
 
 use HScript\Util\StringHelper;
+use HScript\Database\TransactionScope;
+use HScript\Finance\WithdrawalDispatcher;
 use HScript\Payment\PaymentManager;
+use HScript\Finance\CommissionPolicy;
+use HScript\Finance\CurrencyScale;
+use HScript\Finance\Decimal;
+use HScript\Finance\DecimalInput;
+use HScript\Finance\ExchangePolicy;
+use HScript\Finance\Rate;
+use HScript\Finance\Money;
+use HScript\Finance\Percentage;
+use HScript\Finance\StoredAmount;
+use Brick\Math\RoundingMode;
 
 use HScript\Template\View;
 
@@ -52,15 +64,6 @@ function opUser($uid)
 	return $db->count('Users', 'uID=?d and (uState=1 or uState=2)', array($uid));
 }
 
-function _zr($z, $cid)
-{
-	global $_cfg, $_currs;
-	$r = isset($_currs[$cid]['cNumDec']) ? $_currs[$cid]['cNumDec'] : 0;
-	if ($r <= 0)
-		$r = isset($_cfg['UI_NumDec']) ? $_cfg['UI_NumDec'] : 2;
-	return round((float)$z, $r);
-}
-
 function opCalcComis($cid, $oper, $sum, $by_admin)
 {
 	global $db, $_cfg, $_currs;
@@ -70,54 +73,126 @@ function opCalcComis($cid, $oper, $sum, $by_admin)
 	$prfx = 'c' . $oper;
 	if (!$by_admin and empty($c[$prfx . 'Mode']) and ($oper != 'EXIN') and ($oper != 'TRIN'))
 		return 'oper_disabled';
-	if (!empty($c[$prfx . 'Int']) and (round($sum) != $sum))
-		return 'sum_not_int';
-	if (isset($c[$prfx . 'Min']) and $sum < $c[$prfx . 'Min'])
-		return 'sum_min';
-	if (isset($c[$prfx . 'Max']) and ($c[$prfx . 'Max'] > 0) and ($sum > $c[$prfx . 'Max']))
-		return 'sum_max';
-	// Calculate with extra precision first, then round to the currency scale and
-	// clamp the result to the configured absolute commission bounds.
-	$csum = _zr(calcPerc($sum, isset($c[$prfx . 'Comis']) ? $c[$prfx . 'Comis'] : 0, 6), $cid);
-	if (isset($c[$prfx . 'ComisMin']) and $csum < $c[$prfx . 'ComisMin'])
-		$csum = 0 + $c[$prfx . 'ComisMin'];
-	elseif (isset($c[$prfx . 'ComisMax']) and ($c[$prfx . 'ComisMax'] > 0) and ($csum > $c[$prfx . 'ComisMax']))
-		$csum = 0 + $c[$prfx . 'ComisMax'];
-	return _zr($csum, $cid);
+	try {
+		$amount = DecimalInput::read($sum);
+		if (!empty($c[$prfx . 'Int']) && !$amount->isInteger()) return 'sum_not_int';
+		$minimum = DecimalInput::read($c[$prfx . 'Min'] ?? 0);
+		$maximum = DecimalInput::read($c[$prfx . 'Max'] ?? 0);
+		if ($amount->compareTo($minimum) < 0) return 'sum_min';
+		if ($maximum->compareTo(Decimal::of(0)) > 0 && $amount->compareTo($maximum) > 0) return 'sum_max';
+		// Calculate with extra precision first, then round to the currency scale and
+		// clamp the result to the configured absolute commission bounds.
+		$fee = CommissionPolicy::calculate($amount,
+			Percentage::of((string)DecimalInput::read($c[$prfx . 'Comis'] ?? 0)),
+			DecimalInput::read($c[$prfx . 'ComisMin'] ?? 0), DecimalInput::read($c[$prfx . 'ComisMax'] ?? 0),
+			(string)$cid, CurrencyScale::resolve($c, $_cfg));
+		StoredAmount::exact($fee->decimal());
+		return $fee;
+	} catch (OverflowException) { return 'sum_overflow'; }
+	catch (InvalidArgumentException $e) {
+		return $e->getMessage() === 'amount_storage_precision' ? 'sum_precision' : 'sum_wrong';
+	}
+}
+
+/** New money ingress; remaining deposit/rate callers use an explicit boundary. */
+function opMoney($value, $cid): Money
+{
+	global $_cfg, $_currs;
+	return Money::fromDecimal($value instanceof Decimal ? $value : DecimalInput::read($value), (string)$cid,
+		CurrencyScale::resolve($_currs[$cid] ?? [], $_cfg), RoundingMode::HalfUp);
+}
+
+/** Bare base-denominated CASHIN/bonus conversion; no exchange adjustments. */
+function opAmountFromBase($value, $cid): Money|string
+{
+	global $_cfg, $_currs;
+	if (!isset($_currs[$cid])) return 'psys_wrong';
+    if(($_currs[$cid]['cCID']??'')==='CCT')return 'ex_rate_not_set';
+	try {
+		$amount = $value instanceof Decimal ? $value : DecimalInput::read($value);
+		if ($amount->compareTo(Decimal::of(0)) <= 0) return 'sum_wrong';
+	} catch (InvalidArgumentException) { return 'sum_wrong'; }
+	try {
+		$rate = Rate::of((string)DecimalInput::read($_cfg['Bal_Rate' . $_currs[$cid]['cCurrID']] ?? 0));
+	} catch (InvalidArgumentException) { return 'ex_rate_not_set'; }
+	try {
+		$money = opMoney($rate->divide($amount, CurrencyScale::resolve($_currs[$cid], $_cfg), RoundingMode::HalfUp), $cid);
+		if ($money->decimal()->compareTo(Decimal::of(0)) <= 0) return 'sum_wrong';
+		StoredAmount::exact($money->decimal());
+		return $money;
+	} catch (OverflowException) { return 'sum_overflow'; }
+	catch (InvalidArgumentException $e) { return $e->getMessage() === 'amount_storage_precision' ? 'sum_precision' : 'sum_wrong'; }
+}
+
+function opAdditionalComis($sum, $percentage, $cid): Money
+{
+	global $_cfg, $_currs;
+	$percent = DecimalInput::read($percentage);
+	$fee = $percent->compareTo(Decimal::of(0)) > 0
+		? Percentage::of((string)$percent)->apply(DecimalInput::read($sum), 6, RoundingMode::HalfUp)
+		: Decimal::of(0);
+	return Money::fromDecimal($fee, (string)$cid, CurrencyScale::resolve($_currs[$cid], $_cfg), RoundingMode::HalfUp);
 }
 
 function opCalcExSum($is_out, $cid, $sum)
 {
-	global $db, $_cfg, $_currs;
-	if ($sum <= 0)
-		return 'ex_sum_wrong';
+	global $_cfg, $_currs;
+	if (!isset($_currs[$cid])) return 'psys_wrong';
 	$c = $_currs[$cid];
-	$zc = isset($_cfg['Bal_Rate' . $c['cCurrID']]) ? $_cfg['Bal_Rate' . $c['cCurrID']] : 0;
-	if ($zc <= 0)
-		return 'ex_rate_not_set';
-	try
-	{
+    if(($c['cCID']??'')==='CCT')return 'ex_rate_not_set';
+	try {
+		$amount = $sum instanceof Decimal ? $sum : DecimalInput::read($sum);
+		if ($amount->compareTo(Decimal::of(0)) <= 0) return 'ex_sum_wrong';
+	} catch (InvalidArgumentException) { return 'ex_sum_wrong'; }
+	try {
+		$rate = Rate::of((string)DecimalInput::read($_cfg['Bal_Rate' . $c['cCurrID']] ?? 0));
+	} catch (InvalidArgumentException) { return 'ex_rate_not_set'; }
+	try {
 		// Rates are stored as base-currency value per source unit. Converting out
 		// multiplies by the rate; converting in divides and applies the inverse fee.
-		if ($is_out)
-			return _zr($sum * $zc * (1 + (isset($c['cEXOut']) ? $c['cEXOut'] : 0) / 100), $cid);
-		else
-			return _zr($sum / ($zc * (1 - (isset($c['cEXIn']) ? $c['cEXIn'] : 0) / 100)), $cid);
-	}
-	catch (ArithmeticError $e)
-	{
-	}
-	return 'ex_overflow';
+		return ExchangePolicy::convert($amount, $rate,
+			Percentage::of((string)DecimalInput::read($c[$is_out ? 'cEXOut' : 'cEXIn'] ?? 0)),
+			(bool)$is_out, CurrencyScale::resolve($c, $_cfg));
+	} catch (InvalidArgumentException) { return 'ex_rate_not_set'; }
+	catch (\Brick\Math\Exception\MathException | OverflowException) { return 'ex_overflow'; }
 }
 
 function opCalcEx($cid, $cid2, $sum)
 {
-	if ($cid != 1)
-		if (is_string($sum = opCalcExSum(true, $cid, $sum)))
-			return $sum;
-	if ($cid2 != 1)
+	global $_currs;
+	if (!isset($_currs[$cid])) return 'psys_wrong';
+	if (!isset($_currs[$cid2])) return 'psys2_wrong';
+	if ($cid != 1) {
+		$sum = opCalcExSum(true, $cid, $sum);
+		if (is_string($sum)) return $sum;
+	}
+	if ($cid2 != 1) {
 		$sum = opCalcExSum(false, $cid2, $sum);
-	return $sum;
+		if (is_string($sum)) return $sum;
+	}
+	try {
+		// The source intermediate may exceed storage range. Only the final quote
+		// is stored, at the same target scale used by the paired EXIN operation.
+		$money = opMoney($sum, $cid2);
+		if ($money->decimal()->compareTo(Decimal::of(0)) <= 0) return 'ex_sum_wrong';
+		StoredAmount::exact($money->decimal());
+		return $money;
+	} catch (OverflowException) { return 'sum_overflow'; }
+	catch (InvalidArgumentException $e) { return $e->getMessage() === 'amount_storage_precision' ? 'sum_precision' : 'ex_sum_wrong'; }
+}
+
+/** Decimal-only receipt presentation; existing stored quotes are never rewritten. */
+function opExchangeQuoteDisplay(array $operation): array
+{
+	global $_currs, $_GS;
+	$params = $operation['oParams'] ?? [];
+	$cid = $params['cid2'] ?? $operation['ocID'];
+	try {
+		if (!isset($_currs[$cid])) return [];
+		$amount = (string)opMoney($params['sum2'] ?? 0, $cid);
+		$currency = StringHelper::textLangFilter($_currs[$cid]['cCurr'] ?: $_currs[$cid]['cCurrID'], $_GS['lang'] ?? '');
+		return ['amount' => $amount, 'currency' => $currency];
+	} catch (InvalidArgumentException | OverflowException) { return []; }
 }
 
 // Operations
@@ -128,7 +203,7 @@ function opOperChkAWD($o)
 	$oper = $o['oOper'];
 	$uid = $o['ouID'];
 	$cid = $o['ocID'];
-	$sum = $o['oSum'] - $o['oComis'];
+	$sum = (string)DecimalInput::read($o['oSum'])->minus(DecimalInput::read($o['oComis']));
 	if (empty($_cfg["Bal_AWD$oper"]) or (($oper == 'EXIN') and ($cid == 1)))
 		return false;
 	if ($cid == 1)
@@ -146,6 +221,14 @@ function opOperCreateInfo($uid, $oper, $cid, $sum, $params = array(), $memo = ''
 {
 	global $db, $_currs;
 	$params = asArray($params);
+	try {
+		// Informational receipts retain their exact stored six-place value, even
+		// when the currency display scale is lower. They do not move funds.
+		$sum = StoredAmount::exact(DecimalInput::read($sum));
+		$fee = opAdditionalComis($sum, $params['comis'] ?? 0, $cid);
+		StoredAmount::exact($fee->decimal());
+	} catch (OverflowException) { return 'sum_overflow'; }
+	catch (InvalidArgumentException $e) { return $e->getMessage() === 'amount_storage_precision' ? 'sum_precision' : 'sum_wrong'; }
 	$a = array(
 		'oCTS' => timeToStamp(),
 		'oATS' => timeToStamp(time() + HS2_UNIX_HOUR),
@@ -153,7 +236,7 @@ function opOperCreateInfo($uid, $oper, $cid, $sum, $params = array(), $memo = ''
 		'oOper' => $oper,
 		'ocID' => $cid,
 		'oSum' => $sum,
-		'oComis' => StringHelper::valueIf(isset($params['comis']) && $params['comis'] > 0, _zr(calcPerc($sum, isset($params['comis']) ? $params['comis'] : 0, 6), $cid), 0),
+		'oComis' => (string)$fee,
 		'oParams' => arrayToStr($params),
 		'oBatch' => isset($params['batch']) ? $params['batch'] : '',
 		'oTag' => isset($params['tag']) ? $params['tag'] : '',
@@ -163,6 +246,7 @@ function opOperCreateInfo($uid, $oper, $cid, $sum, $params = array(), $memo = ''
 		'oNTS' => timeToStamp()
 	);
 	$oid = $db->insert('Opers', $a);
+	if (!$oid) return 'db_error';
 	$n = array(
 		'oid' => $oid,
 		'oper' => $oper,
@@ -186,35 +270,62 @@ function opOperCreateInfo($uid, $oper, $cid, $sum, $params = array(), $memo = ''
 	return $oid;
 }
 
-function opOperCreate($uid, $oper, $cid, $sum, $params = array(), $memo = '', $and_complete = false, $by_admin = false)
+function opOperCreate($uid, $oper, $cid, $sum, $params = array(), $memo = '', $and_complete = false, $by_admin = false, $preserve_stored = false)
 {
+	global $db;
+	return TransactionScope::run($db->link, function () use ($uid, $oper, $cid, $sum, $params, $memo, $and_complete, $by_admin, $preserve_stored) {
 	global $db, $_cfg, $_currs;
 	if ($uid < 0)
 		$uid = _uid();
-	$sum = _zr($sum, $cid);
 	$params = asArray($params);
 	if (!$oper)
 		return 'oper_empty';
 	if (!$uid)
 		return 'user_empty';
-	if (!opUser($uid))
+	// REF issuer eligibility must agree with the current locked sponsor policy.
+	$user_exists = $oper === 'REF'
+		? $db->fetch1($db->query('SELECT uID FROM Users WHERE uID=?d AND uState IN (1,2) LOCK IN SHARE MODE', [$uid]))
+		: opUser($uid);
+	if (!$user_exists)
 		return 'user_wrong';
 	if (!$cid)
 		return 'psys_empty';
 	if (!isset($_currs[$cid]))
 		return 'psys_wrong';
+	try {
+		// Locked deposit principal and paired stored quotes retain their original scale.
+		if ($preserve_stored && (!$sum instanceof Decimal
+            || !(($oper === 'TAKE' && !empty($params['tag']))
+                || (in_array($oper, ['TRIN','EXIN'], true) && !empty($params['oid'])))))
+			return 'sum_wrong';
+		$money = $preserve_stored ? Money::fromDecimal($sum, (string)$cid, 6, RoundingMode::Unnecessary) : opMoney($sum, $cid);
+		StoredAmount::exact($money->decimal());
+		$sum = (string)$money;
+	} catch (OverflowException) { return 'sum_overflow'; }
+	catch (InvalidArgumentException $e) { return $e->getMessage() === 'amount_storage_precision' ? 'sum_precision' : 'sum_wrong'; }
+	// Persisted provider capability wins over stale request-global mode flags.
+	if (in_array($oper, array('CASHIN','CASHOUT'), true)) {
+		$gateway = $db->fetch1($db->select('Currs', 'cCID', 'cID=?d', array($cid)));
+		if (\HScript\Payment\CallbackCapabilities::disabledAutomation((string)$gateway))
+			return 'automatic_payment_unsupported';
+	}
 	if (!$by_admin and empty($_currs[$cid]['c' . $oper . 'Mode']) and ($oper != 'EXIN') and ($oper != 'TRIN'))
 		return 'oper_disabled';
 	if ($sum <= 0)
 		return 'sum_wrong';
 	if (is_string($csum = opCalcComis($cid, $oper, $sum, $by_admin)))
 		return $csum; // 'sum_wrong'
-	if (isset($params['comis']) && $params['comis'] > 0)
-		$csum += _zr(calcPerc($sum, $params['comis'], 6), $cid);
-	if (($sum - $csum) < 0)
-		return 'sum_wrong';
+	try {
+		if (isset($params['comis']) && DecimalInput::read($params['comis'])->compareTo(Decimal::of(0)) > 0)
+			$csum = $csum->plus(opAdditionalComis($sum, $params['comis'], $cid));
+		StoredAmount::exact($csum->decimal());
+		if ($money->decimal()->compareTo($csum->decimal()) < 0) return 'sum_wrong';
+		$net = (string)$money->decimal()->minus($csum->decimal());
+		$csum = (string)$csum;
+	} catch (OverflowException) { return 'sum_overflow'; }
+	catch (InvalidArgumentException $e) { return $e->getMessage() === 'amount_storage_precision' ? 'sum_precision' : 'sum_wrong'; }
 	if (in_array($oper, array('CASHOUT', 'EX', 'TR', 'BUY', 'BUY2', 'GIVE')))
-		if ((0 + $db->fetch1($db->select('Wallets', 'wBal', 'wuID=? and wcID=?', array($uid, $cid)))) < $sum)
+		if (DecimalInput::read($db->fetch1($db->select('Wallets', 'wBal', 'wuID=? and wcID=?', array($uid, $cid))) ?: 0)->compareTo($money->decimal()) < 0)
 			return 'low_bal1';
 	if ($oper == 'EX')
 	{
@@ -225,9 +336,10 @@ function opOperCreate($uid, $oper, $cid, $sum, $params = array(), $memo = '', $a
 		$params['psys'] = isset($_currs[$params['cid2']]['cName']) ? $_currs[$params['cid2']]['cName'] : '';
 		if (!$params['psys'])
 			return 'psys2_wrong';
-		$params['sum2'] = opCalcEx($cid, $params['cid2'], $sum - $csum);
+		$params['sum2'] = opCalcEx($cid, $params['cid2'], $net);
 		if (is_string($params['sum2']))
 			return $params['sum2']; // 'sum2_wrong'
+		$params['sum2'] = (string)$params['sum2'];
 	}
 	if ($oper == 'TR')
 	{
@@ -282,6 +394,39 @@ function opOperCreate($uid, $oper, $cid, $sum, $params = array(), $memo = '', $a
 			return $err;
 	}
 	return $oid;
+	});
+}
+
+/** Persist a transition inside its owning transaction and verify every intended field. */
+function opOperSaveState(array $previous, array $changes): bool
+{
+	global $db;
+	$db->update('Opers', $changes, '', 'oID=?d and oState=?d', array($previous['oID'], $previous['oState']));
+	$saved = $db->fetch1Row($db->select('Opers', '*', 'oID=?d', array($previous['oID'])));
+	if (!$saved) return false;
+	// A repeated CASHIN confirmation may legitimately affect no row. A matched
+	// row or unchanged state alone does not prove that its receipt was saved.
+	foreach ($changes as $field => $value) {
+		if (!array_key_exists($field, $saved)) return false;
+		if ($value === null || $saved[$field] === null) {
+			if ($value !== $saved[$field]) return false;
+		} elseif ($field === 'oSum' || $field === 'oComis') {
+			if (Decimal::of($saved[$field])->compareTo(Decimal::of($value)) !== 0) return false;
+		} elseif ((string)$saved[$field] !== (string)$value) return false;
+	}
+	return true;
+}
+
+/** Serialize completed batch identity even when no matching operation exists yet. */
+function opOperBatchError($cid, $batch): ?string
+{
+	global $db;
+	if (!$db->link->inTransaction()) throw new LogicException('Batch validation requires a transaction');
+	// An existing currency row supplies the mutex under RR and READ COMMITTED.
+	// Keep SQL batch equality (including the configured collation) unchanged.
+	if (!$db->fetch1($db->query('SELECT cID FROM Currs WHERE cID=?d FOR UPDATE', [$cid]))) return 'psys_wrong';
+	if ($db->fetch1($db->query('SELECT oID FROM Opers WHERE ocID=?d AND oBatch=? AND oState=3 LIMIT 1 LOCK IN SHARE MODE', [$cid, $batch]))) return 'batch_exists';
+	return null;
 }
 
 function opOperConfirm($uid, $oid, $params = array(), $by_admin = false)
@@ -308,9 +453,13 @@ function opOperConfirm($uid, $oid, $params = array(), $by_admin = false)
 			}
 		View::showInfo('*Error', moduleToLink('balance'));
 	}
+	return TransactionScope::run($db->link, function () use ($uid, $oid, $params, $by_admin) {
+	global $db, $_cfg, $_currs;
+	$db->fetch1Row($db->query('SELECT oID FROM Opers WHERE oID=?d FOR UPDATE', array($oid)));
 	$params = asArray($params);
 	if (!($o = $db->fetch1Row($db->select('Opers LEFT JOIN Currs ON cID=ocID', '*', 'oID=?d' . StringHelper::valueIf($uid > 0, ' and ouID=?d'), array($oid, $uid)))))
 		return 'oper_not_found';
+	if ($o['oState'] == 2 && $o['oOper'] !== 'CASHIN') return true;
 	if (!(($o['oState'] < 2) or (($o['oState'] == 2) and ($o['oOper'] == 'CASHIN'))))
 		return 'oper_state_wrong';
 //	if (!$by_admin and (stampToTime($o['oATS']) < time()))
@@ -353,23 +502,23 @@ function opOperConfirm($uid, $oid, $params = array(), $by_admin = false)
 		elseif (empty($oparams2['batch']))
 			$res = 'data_batch_wrong';
 		// A completed gateway batch may credit a currency only once.
-		elseif ($db->count('Opers', 'ocID=?d and oBatch=? and oState=3', array($cid, $oparams2['batch'])))
-			$res = 'batch_exists';
+		elseif ($batchError = opOperBatchError($cid, $oparams2['batch']))
+			$res = $batchError;
 		$a['oBatch'] = '?' . (isset($oparams2['batch']) ? $oparams2['batch'] : '');
 		break;
 	case 'CASHOUT':
 		if (!$by_admin and !empty($o['cCASHOUTLimitPer']) and ($o['cCASHOUTLimitPer'] > 0))
 		{
-			$outsum = (float)$db->fetch1($db->select('Opers', 'SUM(oSum)',
+			$outsum = $db->fetch1($db->select('Opers', 'SUM(oSum)',
 				"(ouID=?d) and (oOper=?) and (ocID=?d) and (oState=3) and (oTS>?)", 
 				array($uid, 'CASHOUT', $cid, timeToStamp(time() - ($o['cCASHOUTLimitPer'] * HS2_UNIX_HOUR)))));
-			if (($sum + $outsum) > (isset($o['cCASHOUTLimit']) ? $o['cCASHOUTLimit'] : 0))
+			if (DecimalInput::read($sum)->plus(DecimalInput::read($outsum ?: 0))->compareTo(DecimalInput::read($o['cCASHOUTLimit'] ?? 0)) > 0)
 			{
 				$res = 'limit_exceeded';
 				break;
 			}
 		}
-		$res = opChangeBalance($uid, $cid, -$sum, 0, $sum, true, $oid, '');
+		$res = opChangeStoredBalance($uid, $cid, (string)DecimalInput::read($sum)->negated(), 0, $sum, true, $oid, '');
 		break;
 	case 'EX':
 		if ($params)
@@ -377,7 +526,7 @@ function opOperConfirm($uid, $oid, $params = array(), $by_admin = false)
 			$a['oParams'] = arrayToStr($params);
 			$oparams = $params;
 		}
-		$res = opChangeBalance($uid, $cid, -$sum, 0, $sum, true, $oid, '');
+		$res = opChangeStoredBalance($uid, $cid, (string)DecimalInput::read($sum)->negated(), 0, $sum, true, $oid, '');
 		break;
 	case 'TR':
 		if ($params)
@@ -386,34 +535,35 @@ function opOperConfirm($uid, $oid, $params = array(), $by_admin = false)
 			$oparams = $params;
 		}
 		if (isset($oparams['uid2']) && opUser($oparams['uid2']))
-			$res = opChangeBalance($uid, $cid, -$sum, 0, $sum, true, $oid, '');
+			$res = opChangeStoredBalance($uid, $cid, (string)DecimalInput::read($sum)->negated(), 0, $sum, true, $oid, '');
 		else
 			$res = 'user2_wrong';
 		break;
 	case 'BUY':
 	case 'GIVE':
-		$res = opChangeBalance($uid, $cid, -$sum, 0, $sum, empty($oparams['nocheck']), $oid, '');
+		$res = opChangeStoredBalance($uid, $cid, (string)DecimalInput::read($sum)->negated(), 0, $sum, empty($oparams['nocheck']), $oid, '');
 		break;
 	case 'TAKE':
-		$res = opChangeBalance($uid, $cid, 0, -$sum, $sum, empty($oparams['nocheck']), $oid, '');
+		$res = opChangeStoredBalance($uid, $cid, 0, (string)DecimalInput::read($sum)->negated(), $sum, empty($oparams['nocheck']), $oid, '');
 		break;
 	}
 	if (is_string($res))
 		return $res;
-	$db->update('Opers', $a, '', 'oID=?d', array($oid));
+	if (!opOperSaveState($o, $a)) return 'db_error';
 	return true;
+	});
 }
 
 function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $aparams = array())
 {
+	global $db;
+	return TransactionScope::run($db->link, function () use ($uid, $oid, $params, $by_admin, $aparams) {
 	global $db, $_cfg;
-	// oPTS acts as a short processing lease. Only one callback or worker may
-	// complete a confirmed operation during the lease window.
-	if (!$db->update('Opers', array('oPTS' => timeToStamp()), '', 'oID=?d and oState=2 and oPTS<?' . StringHelper::valueIf($uid > 0, ' and ouID=?d'),
-		array($oid, timeToStamp(time() - 3 * HS2_UNIX_MINUTE), $uid)))
-		return 'oper_not_found';
+	$db->fetch1Row($db->query('SELECT oID FROM Opers WHERE oID=?d FOR UPDATE', array($oid)));
 	$o = $db->fetch1Row($db->select('Opers LEFT JOIN Currs ON cID=ocID LEFT JOIN Users ON uID=ouID', 
-		'Opers.*, Currs.*, Users.uLogin', 'oID=?d', array($oid)));
+		'Opers.*, Currs.*, Users.uLogin', 'oID=?d' . StringHelper::valueIf($uid > 0, ' and ouID=?d'), array($oid, $uid)));
+	if (!$o) return 'oper_not_found';
+	if ($o['oState'] == 3) return true;
 	if ($o['oState'] != 2)
 		return 'oper_state_wrong';
 	$uid = $o['ouID'];
@@ -433,7 +583,7 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 	if ($by_admin)
 		$a['oNTS'] = timeToStamp();
 	$cid = $o['ocID'];
-	$sum = $o['oSum'] - $o['oComis'];
+	$sum = (string)DecimalInput::read($o['oSum'])->minus(DecimalInput::read($o['oComis']));
 	if ($sum < 0)
 		return 'oper_sum_wrong';
 	$n = array(
@@ -457,21 +607,24 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 	case 'SELL':
 	case 'SELL2':
 	case 'REF':
-		$res = opChangeBalance($uid, $cid, $sum, 0, 0, false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
+		$res = opChangeStoredBalance($uid, $cid, $sum, 0, 0, false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
 		if (($o['oOper'] == 'EXIN') and !empty($_cfg['Const_IntCurr']) and isset($oparams['cid2']) and ($oparams['cid2'] == 1))
-			if (!is_string($woid = opOperCreate($uid, 'CASHOUT', $cid, $sum, array(), 'Auto', false, $by_admin)))
-			{
-				opOperConfirm($uid, $woid, array(), $by_admin);
-				if (isset($o['cCASHOUTMode']) && $o['cCASHOUTMode'] == 2)
-					opOperComplete($uid, $woid, array(), $by_admin);
-				$p = strToArray($db->fetch1($db->select('Opers', 'oParams2', 'oID=?d', array(isset($oparams['initid']) ? $oparams['initid'] : 0))));
-				$p['newid'] = $woid;
-				$db->update('Opers', array('oParams2' => arrayToStr($p)), '', 'oID=?d', array(isset($oparams['initid']) ? $oparams['initid'] : 0));
-			}
+		{
+			if (is_string($res)) return $res;
+			$woid = opOperCreate($uid, 'CASHOUT', $cid, $sum, array(), 'Auto', false, $by_admin);
+			if (is_string($woid)) return $woid;
+			if (is_string($err = opOperConfirm($uid, $woid, array(), $by_admin))) return $err;
+			if (isset($o['cCASHOUTMode']) && $o['cCASHOUTMode'] == 2)
+				if (is_string($err = opOperComplete($uid, $woid, array(), $by_admin))) return $err;
+			$p = strToArray($db->fetch1($db->select('Opers', 'oParams2', 'oID=?d', array(isset($oparams['initid']) ? $oparams['initid'] : 0))));
+			$p['newid'] = $woid;
+			$db->update('Opers', array('oParams2' => arrayToStr($p)), '', 'oID=?d', array(isset($oparams['initid']) ? $oparams['initid'] : 0));
+		}
+
 		break;
 	case 'PENALTY':
 	case 'CALCOUT':
-		$res = opChangeBalance($uid, $cid, -$sum, 0, 0, !$by_admin, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
+		$res = opChangeStoredBalance($uid, $cid, (string)DecimalInput::read($sum)->negated(), 0, 0, !$by_admin, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
 		break;
 	case 'CASHOUT':
 		if (!empty($params['date'])) // fake send ??? direct params
@@ -482,30 +635,9 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 		}
 		elseif (empty($oparams2['batch']) or ($oparams2['batch'] == '-')) // real send
 		{
-			if (empty($aparams['apipass'])) // NO psys direct access params
-				opDecodeCurrParams($o, $r, $r, $aparams);
-			$paymentManager = new PaymentManager($db);
-			$c = $paymentManager->definitions($o['cCID']);
-			if (!empty($c[3]) and !empty($aparams['apipass'])) // psys access password is set?
-			{
-				// pay SUM-COMIS from $aparams to $oparams2
-				$r = $paymentManager->processWithdrawal($o['cCID'], array(
-					'from' => $aparams,
-					'to' => $oparams2,
-					'sum' => $sum,
-					'memo' => isset($oparams2['memo']) ? $oparams2['memo'] : '',
-					'tag' => $oid,
-					'url_callback' => fullURL(moduleToLink('balance/status')),
-				));
-				$db->update('Opers', array('oMemo' => '~' . (isset($r['result']) ? $r['result'] : '')), '', 'oID=?d', array($oid));
-				if (empty($r['batch']))
-				{
-					$res = 'send_error';
-					break;
-				}
-				$oparams2['date'] = timeToStamp();
-				$oparams2['batch'] = $r['batch'];
-			}
+			// The reservation and outbox commit together. The worker does network I/O.
+			WithdrawalDispatcher::enqueue($db, (int)$oid, $by_admin ? $aparams : []);
+			return true;
 		}
 		$n['acc'] = isset($oparams2['acc']) ? $oparams2['acc'] : ''; // payee acc
 		$n['batch'] = isset($oparams2['batch']) ? $oparams2['batch'] : '';
@@ -514,25 +646,27 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 			return 'psys_wrong';
 		if (isset($oparams2['sum'])) // SUM from SCI
 		{
-			$sum = _zr($oparams2['sum'], $cid);
+			try { $sum = (string)opMoney($oparams2['sum'], $cid); StoredAmount::exact(Decimal::of($sum)); }
+			catch (OverflowException) { return 'sum_overflow'; }
+			catch (InvalidArgumentException $e) { return $e->getMessage() === 'amount_storage_precision' ? 'sum_precision' : 'sum_wrong'; }
 			$a['oSum'] = $sum;
 			if (is_string($res = opCalcComis($cid, $o['oOper'], $sum, $by_admin)))
 				break;
-			$a['oComis'] = $res;
-			if (($sum -= $res) < 0)
+			$a['oComis'] = (string)$res;
+			$sum = (string)Decimal::of($sum)->minus($res->decimal());
+			if (Decimal::of($sum)->isNegative())
 			{
 				$res = 'data_sum_wrong';
 				break;
 			}
 			$n['sum'] = $sum;
 		}
-		$r_batch = isset($r) && isset($r['batch']) ? $r['batch'] : null;
 		if (empty($oparams2['date']))
 			$res = 'data_date_wrong';
 		elseif (empty($oparams2['batch']))
 			$res = 'data_batch_wrong';
-		elseif (!$r_batch and $db->count('Opers', 'ocID=?d and oBatch=? and oState=3', array($cid, $oparams2['batch'])))
-			$res = 'batch_exists';
+		elseif ($batchError = opOperBatchError($cid, $oparams2['batch']))
+			$res = $batchError;
 		else
 		{
 			$a['oCTS'] = $oparams2['date'];
@@ -540,7 +674,7 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 			$a['oMemo'] = isset($oparams2['memo']) ? $oparams2['memo'] : '';
 			if ($o['oOper'] == 'CASHIN')
 			{
-				$res = opChangeBalance($uid, $cid, $sum, 0, 0, false, $oid, $a['oMemo']);
+				$res = opChangeStoredBalance($uid, $cid, $sum, 0, 0, false, $oid, $a['oMemo']);
 				if (!empty($oparams2['acc'])) // try fill currency property 'acc'
 				{
 					$w = $db->fetch1Row($db->select('AddInfo LEFT JOIN Wallets ON (wcID=?d AND wuID=auID)', 
@@ -559,9 +693,10 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 					if (empty($w['aDefCurr']))
 						$db->update('AddInfo', array('aDefCurr' => $cid), '', 'auID=?d', array($uid));
 				}
-				if (!is_string($res) and !empty($_cfg['Const_IntCurr']) and ($cid > 1))
+				if (!is_string($res) and !empty($_cfg['Const_IntCurr']) and ($cid > 1) and (($o['cCID']??$db->fetch1($db->select('Currs','cCID','cID=?d',[$cid])))!=='CCT'))
 				{
 					$err = opOperCreate($uid, 'EX', $cid, $sum, array('cid2' => 1), 'Auto', true, true);
+					if (is_string($err)) return $err;
 					if (!is_string($err))
 					{
 						$o2 = $db->fetch1Row($db->select('Opers', 'ocID, oSum, oComis, oParams', 'oID=?d', array($err)));
@@ -575,11 +710,11 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 				}
 			}
 			else
-				$res = opChangeBalance($uid, $cid, 0, 0, -$o['oSum'], false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
+				$res = opChangeStoredBalance($uid, $cid, 0, 0, (string)DecimalInput::read($o['oSum'])->negated(), false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
 		}
 		break;
 	case 'EX':
-		$res = opChangeBalance($uid, $cid, 0, 0, -$o['oSum'], false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
+		$res = opChangeStoredBalance($uid, $cid, 0, 0, (string)DecimalInput::read($o['oSum'])->negated(), false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
 		if ($res === true)
 		{
 			$cid2 = isset($oparams['cid2']) ? $oparams['cid2'] : 0;
@@ -587,43 +722,47 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 			$batch = 'EX' . str_pad($oid, 6, '0', STR_PAD_LEFT);
 			$a['oBatch'] = $batch;
 			$n['batch'] = $batch;
-			$n['course'] = $sum > 0 ? round($sum2 / $sum, 4) : 0;
+			$n['course'] = DecimalInput::read($sum)->compareTo(Decimal::of(0)) > 0
+				? (string)DecimalInput::read($sum2)->dividedBy(DecimalInput::read($sum), 4, RoundingMode::HalfUp)
+				: '0.0000';
 			global $_currs;
 			$n['psys2'] = isset($_currs[$cid2]['cName']) ? $_currs[$cid2]['cName'] : '';
 			$n['curr2'] = isset($_currs[$cid2]['cCurr']) ? $_currs[$cid2]['cCurr'] : '';
-			opOperCreate($uid, 'EXIN', $cid2, $sum2, 
-				array('oid' => $oid, 'sum2' => $sum, 'cid2' => $cid, 'batch' => $batch, 'initid' => isset($params['initid']) ? $params['initid'] : 0), isset($o['oMemo']) ? $o['oMemo'] : '', true, true);
+			$child = opOperCreate($uid, 'EXIN', $cid2, DecimalInput::read($sum2),
+				array('oid' => $oid, 'sum2' => $sum, 'cid2' => $cid, 'batch' => $batch, 'initid' => isset($params['initid']) ? $params['initid'] : 0), isset($o['oMemo']) ? $o['oMemo'] : '', true, true, true);
+			if (is_string($child)) return $child;
 		}
 		break;
 	case 'TR':
 		if (!empty($oparams['uid2']) and $usr2 = opReadUser($oparams['uid2']))
 		{
-			$res = opChangeBalance($uid, $cid, 0, 0, -$o['oSum'], false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
+			$res = opChangeStoredBalance($uid, $cid, 0, 0, (string)DecimalInput::read($o['oSum'])->negated(), false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
 			if ($res === true)
 			{
 				$batch = 'TR' . str_pad($oid, 6, '0', STR_PAD_LEFT);
 				$a['oBatch'] = $batch;
 				$n['to'] = isset($usr2['uLogin']) ? $usr2['uLogin'] : '';
 				$n['batch'] = $batch;
-				opOperCreate($oparams['uid2'], 'TRIN', $cid, $sum, 
-					array('oid' => $oid, 'uid2' => $uid, 'user' => isset($o['uLogin']) ? $o['uLogin'] : '', 'batch' => $batch), isset($o['oMemo']) ? $o['oMemo'] : '', true, $by_admin);
+				$child = opOperCreate($oparams['uid2'], 'TRIN', $cid, DecimalInput::read($sum),
+					array('oid' => $oid, 'uid2' => $uid, 'user' => isset($o['uLogin']) ? $o['uLogin'] : '', 'batch' => $batch), isset($o['oMemo']) ? $o['oMemo'] : '', true, $by_admin, true);
+				if (is_string($child)) return $child;
 			}
 		}
 		else
 			$res = 'user2_wrong';
 		break;
 	case 'BUY':
-		$res = opChangeBalance($uid, $cid, 0, 0, -$o['oSum'], false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
+		$res = opChangeStoredBalance($uid, $cid, 0, 0, (string)DecimalInput::read($o['oSum'])->negated(), false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
 		break;
 	case 'GIVE':
 		if (!empty($oparams['bonus']) and $oparams['bonus'] > 0)
-			opOperCreateInfo($uid, 'BONUS', $cid, $oparams['bonus']);
-		$res = opChangeBalance($uid, $cid, 0, $sum + (isset($oparams['bonus']) ? $oparams['bonus'] : 0), -$o['oSum'], false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
+			if (is_string($error = opOperCreateInfo($uid, 'BONUS', $cid, $oparams['bonus']))) return $error;
+		$res = opChangeStoredBalance($uid, $cid, 0, (string)DecimalInput::read($sum)->plus(DecimalInput::read($oparams['bonus'] ?? 0)), (string)DecimalInput::read($o['oSum'])->negated(), false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
 		if (!empty($o['oTag']) and $o['oTag'] > 0)
 			$a['oMemo'] = (isset($o['oMemo']) ? $o['oMemo'] : '') . '#' . $o['oTag'];
 		break;
 	case 'TAKE':
-		$res = opChangeBalance($uid, $cid, $sum, 0, -$o['oSum'], false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
+		$res = opChangeStoredBalance($uid, $cid, $sum, 0, (string)DecimalInput::read($o['oSum'])->negated(), false, $oid, isset($o['oMemo']) ? $o['oMemo'] : '');
 		if (!empty($o['oTag']) and $o['oTag'] > 0)
 			$a['oMemo'] = (isset($o['oMemo']) ? $o['oMemo'] : '') . '#' . $o['oTag'];
 		break;
@@ -636,7 +775,7 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 				opUserConsts(opReadUser($uid), array('oid' => $oid, 'url' => fullURL(moduleToLink('balance/admin/oper')))));
 		return $res;
 	}
-	$db->update('Opers', $a, '', 'oID=?d', array($oid));
+	if (!opOperSaveState($o, $a)) return 'db_error';
 	$oparams = array_merge($oparams, $n);
 	$oparams['url'] = fullURL(moduleToLink('balance/oper'));
 	if ($usr = opReadUser($uid))
@@ -651,17 +790,26 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 		View::sendMailToAdmin('Oper' . $o['oOper'],
 			opUserConsts($usr, $oparams));
 	}
-	opEvent('Oper', $uid, $oparams);
+	if ($o['oOper'] === 'CASHIN')
+		HScript\Finance\ReferralSourceEvent::dispatch($db->link, 'Oper', (int)$uid, $oparams,
+			static fn() => opEvent('Oper', $uid, $oparams));
+	else
+		opEvent('Oper', $uid, $oparams);
 	opOperChkAWD($o);
 	return true;
+	});
 }
 
 function opOperCancel($uid, $oid, $params = array(), $by_admin = false)
 {
+	global $db;
+	return TransactionScope::run($db->link, function () use ($uid, $oid, $params, $by_admin) {
 	global $db, $_cfg;
+	$db->fetch1Row($db->query('SELECT oID FROM Opers WHERE oID=?d FOR UPDATE', array($oid)));
 	$params = asArray($params);
 	if (!($o = $db->fetch1Row($db->select('Opers', '*', 'oID=?d' . StringHelper::valueIf($uid > 0, ' and ouID=?d'), array($oid, $uid)))))
 		return 'oper_not_found';
+	if ($o['oOper'] === 'CASHOUT' && WithdrawalDispatcher::wasAttempted($db, (int)$oid)) return 'payout_reconciliation_required';
 	if ($o['oState'] >= 3)
 		return 'oper_state_wrong';
 	$uid = $o['ouID'];
@@ -697,52 +845,79 @@ function opOperCancel($uid, $oid, $params = array(), $by_admin = false)
 		case 'TR':
 		case 'BUY':
 		case 'GIVE':
-			$res = opChangeBalance($uid, $cid, $sum, 0, -$sum, false, $oid, '');
-			if (!is_string($res) and ($o['oOper'] == 'CASHOUT') and !empty($_cfg['Const_IntCurr']) and ($cid > 1))
-				opOperCreate($uid, 'EX', $cid, $sum, array('cid2' => 1), 'Auto', true, true);
+			$res = opChangeStoredBalance($uid, $cid, $sum, 0, (string)DecimalInput::read($sum)->negated(), false, $oid, '');
+			if (!is_string($res) and ($o['oOper'] == 'CASHOUT') and !empty($_cfg['Const_IntCurr']) and ($cid > 1) and (($o['cCID']??$db->fetch1($db->select('Currs','cCID','cID=?d',[$cid])))!=='CCT'))
+			{
+				$exchange = opOperCreate($uid, 'EX', $cid, $sum, array('cid2' => 1), 'Auto', true, true);
+				if (is_string($exchange)) return $exchange;
+			}
 			break;
 		case 'TAKE':
-			$res = opChangeBalance($uid, $cid, 0, $sum, -$sum, false, $oid, '');
+			$res = opChangeStoredBalance($uid, $cid, 0, $sum, (string)DecimalInput::read($sum)->negated(), false, $oid, '');
 			break;
 		}
 		if (is_string($res))
 			return $res;
 	}
-	$db->update('Opers', $a, '', 'oID=?d', array($oid));
+	if (!opOperSaveState($o, $a)) return 'db_error';
 	return true;
+	});
 }
 
 // Change balance
+
+/** Internal persisted/computed deltas never pass through currency rounding again. */
+function opChangeStoredBalance($uid, $cid, $z1, $z2, $z3, $chk_before = true, $oid = 0, $memo = '')
+{
+    try {
+        $deltas = array_map(static fn($value) => $value instanceof Decimal ? $value : DecimalInput::read($value), [$z1, $z2, $z3]);
+        return opChangeBalance($uid, $cid, ...array_merge($deltas, [$chk_before, $oid, $memo]));
+    } catch (OverflowException) { return 'bal_overflow'; }
+    catch (InvalidArgumentException) { return 'bal_wrong'; }
+}
 
 function opChangeBalance($uid, $cid, $z1, $z2, $z3, $chk_before = true, $oid = 0, $memo = '')
 {
 	if (($uid <= 0) or ($cid <= 0))
 		return 'bal_wrong';
-	$z1 = _zr($z1, $cid);
-	$z2 = _zr($z2, $cid);
-	$z3 = _zr($z3, $cid);
+	try {
+		$z1 = StoredAmount::exact($z1 instanceof Decimal ? $z1 : opMoney($z1, $cid)->decimal());
+		$z2 = StoredAmount::exact($z2 instanceof Decimal ? $z2 : opMoney($z2, $cid)->decimal());
+		$z3 = StoredAmount::exact($z3 instanceof Decimal ? $z3 : opMoney($z3, $cid)->decimal());
+	} catch (OverflowException) { return 'bal_overflow'; }
+	catch (InvalidArgumentException $e) { return $e->getMessage() === 'amount_storage_precision' ? 'bal_precision' : 'bal_wrong'; }
 	if (($z1 == 0) and ($z2 == 0) and ($z3 == 0))
 		return true;
 	// z1, z2, and z3 change the available, locked, and outgoing buckets. uBal
 	// mirrors their combined value for fast account-level reads.
-	$z = $z1 + $z2 + $z3;
+	$z = (string)Decimal::of($z1)->plus(Decimal::of($z2))->plus(Decimal::of($z3));
 	global $db;
+	return TransactionScope::run($db->link, function () use ($uid, $cid, $z1, $z2, $z3, $z, $oid, $memo) {
+	global $db;
+	$user = $db->fetch1Row($db->query('SELECT uID,uBal FROM Users WHERE uID=?d FOR UPDATE', array($uid)));
+	if (!$user) return 'bal_wrong';
 	$w = $db->fetch1Row(
-		$db->select('Wallets', 'wBal, wLock, wOut', 'wcID=?d and wuID=?d', array($cid, $uid))
+		$db->query('SELECT wBal, wLock, wOut FROM Wallets WHERE wcID=?d and wuID=?d FOR UPDATE', array($cid, $uid))
 	);
-	if (!$w) {
+	$walletExists = (bool)$w;
+	$w = $w ?: array('wBal' => 0, 'wLock' => 0, 'wOut' => 0);
+	try {
+		foreach (array('wBal'=>$z1, 'wLock'=>$z2, 'wOut'=>$z3) as $field=>$delta) {
+			$next = DecimalInput::read($w[$field])->plus(Decimal::of($delta));
+			if ($next->isNegative()) return array('wBal'=>'low_bal1', 'wLock'=>'low_bal2', 'wOut'=>'low_bal3')[$field];
+			StoredAmount::exact($next);
+		}
+		if (!Decimal::of($z)->isZero()) {
+			$total = DecimalInput::read($user['uBal'])->plus(Decimal::of($z));
+			if ($total->isNegative()) return 'low_bal';
+			StoredAmount::exact($total);
+		}
+	} catch (OverflowException) { return 'bal_overflow'; }
+	catch (InvalidArgumentException) { return 'bal_wrong'; }
+	if (!$walletExists)
 		$db->query('INSERT INTO Wallets (wcID, wuID) VALUES (?d, ?d) ON DUPLICATE KEY UPDATE wMTS=wMTS', array($cid, $uid));
-		$w = array('wBal' => 0, 'wLock' => 0, 'wOut' => 0);
-	}
-	if (($w['wBal'] + $z1) < 0)
-		return 'low_bal1';
-	if (($w['wLock'] + $z2) < 0)
-		return 'low_bal2';
-	if (($w['wOut'] + $z3) < 0)
-		return 'low_bal3';
 	try
 	{
-		$db->beginJob();
 		// The non-negative predicates provide an atomic overdraft guard even when
 		// concurrent requests passed the earlier informational balance check.
 		if (!$db->update('Wallets', 
@@ -760,17 +935,15 @@ function opChangeBalance($uid, $cid, $z1, $z2, $z3, $chk_before = true, $oid = 0
 	}
 	catch (FormAbortException $e)
 	{
-		$db->cancelJob();
 		return 'low_bal';
 	}
 	catch (Throwable $e)
 	{
-		$db->cancelJob();
 		throw $e;
 	}
-	$db->endJob();
 	opAddHist('BAL', $uid, '', $memo, 0, $cid, $z, $oid);
 	return true;
+	});
 }
 
 // Currs support
@@ -781,6 +954,15 @@ function opDecodeCurrParams($crec, &$p, &$p_sci, &$p_api)
 	$p = decodeArrayFromStr(isset($crec['cParams']) ? $crec['cParams'] : '', $key);
 	$p_sci = decodeArrayFromStr(isset($crec['cParamsSCI']) ? $crec['cParamsSCI'] : '', $key, 2);
 	$p_api = decodeArrayFromStr(isset($crec['cParamsAPI']) ? $crec['cParamsAPI'] : '', $key, 3);
+    if (!empty($crec['cProviderID']) && ($crec['cCID'] ?? '') !== 'PAW') {
+        global $db;
+        $resolved=(new \HScript\Payment\Provider\ProviderRepository($db))->configuration($crec,$p_api);
+        $p_sci=$resolved['sci'];$p_api=$resolved['api'];
+        if ($crec['cCID']==='ST') $p_sci += [
+            '_provider_id'=>$resolved['profile_id'],'_provider_public'=>$resolved['public_id'],
+            '_provider_version'=>$resolved['key_version'],'_provider_environment'=>$resolved['environment']];
+    }
+
 }
 
 function opDecodeUserCurrParams($wrec)

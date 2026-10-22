@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 $root = dirname(__DIR__);
 $editBegin = (string)file_get_contents($root . '/tpl/edit.begin.twig');
 $translationTemplate = (string)file_get_contents($root . '/tpl/translations/admin/index.twig');

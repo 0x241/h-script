@@ -1,5 +1,12 @@
 const { test, expect } = require('@playwright/test');
 
+async function waitForPageAssets(page) {
+  // Finish each document's font loads before navigating away. WebKit reports
+  // navigation-cancelled fonts as request failures, even when CSP allowed them.
+  await page.waitForLoadState('load');
+  await page.evaluate(async () => { await document.fonts.ready; });
+}
+
 async function enforceCandidate(page, violations) {
   let promoted = 0;
   const appOrigin = new URL(process.env.CSP_TEST_BASE_URL || 'http://hs.local').origin;
@@ -52,6 +59,7 @@ for (const [path, expectedStatus, expectedSelector] of [
       expect(await page.evaluate(() => window.htmx.config.includeIndicatorStyles)).toBe(false);
       await expect(page.locator('style')).toHaveCount(0);
     }
+    await waitForPageAssets(page);
     await page.waitForTimeout(250);
     expect(violations).toEqual([]);
   });
@@ -85,8 +93,10 @@ async function loginAsAdmin(page, credentials) {
   await expect(password).toHaveAttribute('type', 'text');
   await page.locator('[data-hs-password-toggle]').click();
   await expect(password).toHaveAttribute('type', 'password');
+  await waitForPageAssets(page);
   await page.locator('form[name="login_frm"] button[type="submit"]').click();
   await expect(page).toHaveURL(/\/cabinet(?:\?|$)/);
+  await waitForPageAssets(page);
 }
 
 test('authenticated editors render with candidate CSP', async ({ page }) => {
@@ -100,6 +110,7 @@ test('authenticated editors render with candidate CSP', async ({ page }) => {
     expect(response.status()).toBe(200);
     expect(response.headers()['content-security-policy']).toContain("script-src-attr 'none'");
     await expect(page.locator('.ck-editor')).toBeVisible();
+    await waitForPageAssets(page);
   }
   expect(promoted()).toBeGreaterThan(0);
   expect(violations).toEqual([]);
@@ -114,6 +125,7 @@ test('authenticated configurator works with candidate CSP', async ({ page, brows
   const violations = [];
   const promoted = await enforceCandidate(page, violations);
   await page.goto('/_cfg?login', { waitUntil: 'domcontentloaded' });
+  await waitForPageAssets(page);
   const csrf = await page.locator('form:has([name="bLogin"]) [name="csrf"]').inputValue();
   const login = await page.request.post('/_cfg?login', {
     form: { csrf, pass: password, bLogin: '1' }, maxRedirects: 0,
@@ -123,6 +135,7 @@ test('authenticated configurator works with candidate CSP', async ({ page, brows
     const response = await page.goto(`/_cfg?${section}`, { waitUntil: 'domcontentloaded' });
     expect(response.status()).toBe(200);
     await expect(page.locator('#cfg-sidebar')).toBeAttached();
+    await waitForPageAssets(page);
   }
   expect(promoted()).toBeGreaterThan(0);
   expect(violations).toEqual([]);

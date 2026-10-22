@@ -1,5 +1,7 @@
 <?php
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 use HScript\Database\Connection;
 use HScript\Payment\AbstractGateway;
 use HScript\Payment\PaymentManager;
@@ -14,10 +16,10 @@ function paymentAssert(bool $condition, string $message): void
 
 $manager = new PaymentManager(new Connection());
 $expected = array(
-	'AC', 'ACR', 'PKAU', 'PKAR', 'WM', 'YM', 'YMC', 'SB', 'BW',
+	'AC', 'VEUR', 'VUST', 'VUSC', 'VBTC', 'VETH', 'VSOL', 'VTRX', 'VXRP', 'VTON', 'VLTC', 'ACR', 'PKAU', 'PKAR', 'WM', 'YM', 'YMC', 'SB', 'BW',
 	'CP', 'CPE', 'CPL', 'CPR', 'PKB', 'PKL', 'PKE',
-	'CCAB', 'CCAL', 'CCAD', 'CCAG', 'CCAH',
-	'EA', 'EAT', 'EAT1', 'BSC', 'BSCT', 'XRPA', 'TRA', 'TRAT',
+	'CCT','CCTU','CCTC','PKTU','PKTC','CCAB', 'CCAL', 'CCAD', 'CCAG', 'CCAH',
+	'CCAE', 'CCAM', 'CCAN', 'CCAT', 'CCAX', 'CCAO', 'CCAS', 'PAW', 'ST',
 );
 
 paymentAssert(array_keys($manager->definitions()) === $expected, 'Live gateway registry differs from the approved list');
@@ -32,18 +34,21 @@ foreach (PaymentManager::DEPRECATED_IDS as $id)
 
 $volet = $manager->processDeposit('AC', array(
 	'sci' => array('name' => 'merchant@example.test', 'sci' => 'Shop', 'key' => 'secret'),
-	'sum' => 12.3,
+	'api' => array('name'=>'merchant@example.test','api'=>'Synthetic API','apipass'=>'synthetic-secret','acc'=>'USD123456789012'),
+	'callback_fee_policy'=>['cCASHINComis'=>'0','cCASHINComisMin'=>'0','cCASHINComisMax'=>'0','oComis'=>'0'],
+	'sum' => '12.30',
 	'memo' => 'Order',
 	'tag' => 42,
 	'url_ok' => 'https://example.test/ok',
 	'url_fail' => 'https://example.test/fail',
 	'url_callback' => 'https://example.test/callback',
 ));
-paymentAssert($volet['url'] === 'https://account.volet.com/sci/', 'Volet SCI endpoint is stale');
+paymentAssert($volet['url'] === 'https://account.volet.com/api/public/payment-gateway', 'Volet SCI endpoint is stale');
 paymentAssert($volet['ac_amount'] === '12.30', 'Volet fiat amount format changed');
 
 $webMoney = $manager->processDeposit('WM', array(
 	'pay' => array('acc' => 'Z123456789012'),
+	'sci' => array('key' => 'secret', 'timezone' => 'UTC'),
 	'sum' => 5,
 	'memo' => 'Order',
 	'tag' => 7,
@@ -52,9 +57,12 @@ $webMoney = $manager->processDeposit('WM', array(
 	'url_callback' => 'https://example.test/callback',
 ));
 paymentAssert($webMoney['LMI_PAYMENT_AMOUNT'] === '5.00', 'WebMoney amount format changed');
+paymentAssert($webMoney['url']==='https://merchant.wmtransfer.com/lmi/payment_utf.asp', 'WebMoney UTF-8 checkout endpoint');
+paymentAssert($webMoney['LMI_SUCCESS_METHOD']==='1' && $webMoney['LMI_FAIL_METHOD']==='1', 'WebMoney POST URL method is not protocol value 1');
+paymentAssert(base64_decode($webMoney['LMI_PAYMENT_DESC_BASE64'],true)==='Order' && !isset($webMoney['LMI_PAYMENT_DESC']), 'WebMoney effective description has competing fields');
 
 $yooMoney = $manager->processDeposit('YMC', array(
-	'sci' => array('acc' => '4100111222333'),
+	'sci' => array('acc' => '4100111222333', 'key' => 'secret'),
 	'sum' => 20,
 	'memo' => 'Order',
 	'tag' => 9,
@@ -63,8 +71,8 @@ paymentAssert($yooMoney['url'] === 'https://yoomoney.ru/quickpay/confirm.xml', '
 paymentAssert($yooMoney['paymentType'] === 'AC', 'YooMoney card mode is missing');
 
 $coinPayments = $manager->processDeposit('CPE', array(
-	'sci' => array('id' => 'merchant'),
-	'sum' => 0.5,
+	'sci' => array('id' => 'merchant', 'key' => 'secret'),
+	'sum' => '0.5',
 	'memo' => 'Order',
 	'tag' => 11,
 	'url_callback' => 'https://example.test/callback',
@@ -92,12 +100,12 @@ paymentAssert($manager->processDeposit('TEST', array()) === $probe->form,
 	'Gateway form validation changed signed field values');
 
 $detectors = array(
-	array(array('ac_transfer' => '1', 'ac_merchant_currency' => 'RUR'), array(), 'ACR'),
+	array(array('ac_transfer' => '1', 'ac_merchant_currency' => 'RUR'), array(), ''),
 	array(array('operation_id' => '1', 'notification_type' => 'card-incoming'), array(), 'YMC'),
-	array(array('bnbapi.net' => 1, 'token' => 'USDT'), array(), 'BSCT'),
-	array(array('etherapi.net' => 1, 'token' => 'DAI'), array(), 'EAT1'),
-	array(array('tronapi.net' => 1, 'token' => 'USDT'), array(), 'TRAT'),
-	array(array('cryptocurrencyapi.net' => 1, 'currency' => 'DOGE'), array(), 'CCAG'),
+	array(array('bnbapi.net' => 1, 'token' => 'USDT'), array(), ''),
+	array(array('etherapi.net' => 1, 'token' => 'DAI'), array(), ''),
+	array(array('tronapi.net' => 1, 'token' => 'USDT'), array(), ''),
+	array(array('cryptocurrencyapi.net' => 3, 'chain' => 'dogecoin', 'currency' => 'DOGE'), array(), 'CCAG'),
 	array(array('txn_id' => '1'), array('its' => 'CPR'), 'CPR'),
 	array(array('private_hash' => '1', 'system' => 'bitcoin', 'currency' => 'BTC'), array(), 'PKB'),
 );
@@ -127,7 +135,7 @@ $voletCallback['ac_hash'] = hash('sha256', implode(':', array(
 	$voletCallback['ac_merchant_currency'],
 	'secret',
 )));
-paymentAssert(!empty($manager->handleCallback('AC', $voletCallback, array('key' => 'secret'))['correct']), 'Volet callback validation failed');
+paymentAssert(empty($manager->handleCallback('AC', $voletCallback, array('key' => 'secret'))['correct']), 'Legacy SCI-only callback can settle without an immutable API proof');
 $invalidVolet = $voletCallback;
 $invalidVolet['ac_hash'] = str_repeat('0', 64);
 paymentAssert(empty($manager->handleCallback('AC', $invalidVolet, array('key' => 'secret'))['correct']), 'Volet accepted a bad signature');
@@ -143,20 +151,14 @@ $yooCallback = array(
 	'label' => '43',
 	'test_notification' => false,
 );
-$yooCallback['sha1_hash'] = sha1(implode('&', array(
-	$yooCallback['notification_type'],
-	$yooCallback['operation_id'],
-	$yooCallback['amount'],
-	$yooCallback['currency'],
-	$yooCallback['datetime'],
-	$yooCallback['sender'],
-	$yooCallback['codepro'],
-	'secret',
-	$yooCallback['label'],
-)));
+$yooCallback['test_notification']='false';
+$yooCallback['unaccepted']='false';
+$yooCallback['withdraw_amount']='10.00';
+ksort($yooCallback, SORT_STRING);
+$yooCallback['sign']=hash_hmac('sha256', http_build_query($yooCallback,'','&',PHP_QUERY_RFC3986),'secret');
 paymentAssert(!empty($manager->handleCallback('YM', $yooCallback, array('key' => 'secret'))['correct']), 'YooMoney callback validation failed');
 $invalidYoo = $yooCallback;
-$invalidYoo['sha1_hash'] = str_repeat('0', 40);
+$invalidYoo['sign'] = str_repeat('0', 64);
 paymentAssert(empty($manager->handleCallback('YM', $invalidYoo, array('key' => 'secret'))['correct']), 'YooMoney accepted a bad signature');
 
 $webMoneyCallback = array(
@@ -164,129 +166,34 @@ $webMoneyCallback = array(
 	'LMI_PAYER_WM' => '123456789012', 'LMI_PAYMENT_AMOUNT' => '5.00',
 	'LMI_PAYMENT_NO' => '48', 'LMI_MODE' => '0', 'LMI_SYS_INVS_NO' => '100',
 	'LMI_SYS_TRANS_NO' => '200', 'LMI_SYS_TRANS_DATE' => '20260724 10:00:00',
+    'LMI_PAYMENT_DESC' => 'Order',
 );
-$webMoneyCallback['LMI_HASH'] = strtoupper(hash('sha256', implode('', array(
+$webMoneyCallback['LMI_HASH2'] = strtoupper(hash('sha256', implode(';', array(
 	$webMoneyCallback['LMI_PAYEE_PURSE'], $webMoneyCallback['LMI_PAYMENT_AMOUNT'],
 	$webMoneyCallback['LMI_PAYMENT_NO'], $webMoneyCallback['LMI_MODE'],
 	$webMoneyCallback['LMI_SYS_INVS_NO'], $webMoneyCallback['LMI_SYS_TRANS_NO'],
 	$webMoneyCallback['LMI_SYS_TRANS_DATE'], 'secret',
 	$webMoneyCallback['LMI_PAYER_PURSE'], $webMoneyCallback['LMI_PAYER_WM'],
 ))));
-paymentAssert(!empty($manager->handleCallback('WM', $webMoneyCallback, array('key' => 'secret'))['correct']), 'WebMoney callback validation failed');
-$webMoneyCallback['LMI_HASH'] = str_repeat('0', 64);
-paymentAssert(empty($manager->handleCallback('WM', $webMoneyCallback, array('key' => 'secret'))['correct']), 'WebMoney accepted a bad signature');
+paymentAssert(!empty($manager->handleCallback('WM', $webMoneyCallback, array('key' => 'secret', 'timezone' => 'UTC'))['correct']), 'WebMoney callback validation failed');
+$webMoneyCallback['LMI_HASH2'] = str_repeat('0', 64);
+paymentAssert(empty($manager->handleCallback('WM', $webMoneyCallback, array('key' => 'secret', 'timezone' => 'UTC'))['correct']), 'WebMoney accepted a bad signature');
 
-$hostedCallbacks = array(
-	'BSC' => array('bnbapi.net', '', 2),
-	'EAT' => array('etherapi.net', 'USDT', 12),
-	'TRAT' => array('tronapi.net', 'USDT', 10),
-);
-foreach ($hostedCallbacks as $id => [$marker, $token, $confirmations])
-{
-	$callback = array(
-		$marker => 1,
-		'type' => 'in',
-		'date' => 1721815200,
-		'from' => 'source',
-		'to' => 'destination',
-		'token' => $token,
-		'amount' => '1.25',
-		'txid' => 'tx-' . $id,
-		'confirmations' => $confirmations,
-		'tag' => '44',
-	);
-	$signatureParts = array(
-		$callback['type'], $callback['date'], $callback['from'], $callback['to'],
-		$callback['token'], $callback['amount'], $callback['txid'],
-		$callback['confirmations'], $callback['tag'], 'token',
-	);
-	if ($id === 'BSC')
-		unset($signatureParts[4]);
-	$callback['sign'] = sha1(implode(':', $signatureParts));
-	$request = $callback;
-	$request['_json'] = $callback;
-	paymentAssert(!empty($manager->handleCallback($id, $request, array('apipass' => 'token'))['correct']), "$id callback validation failed");
-	$request['_json']['sign'] = str_repeat('0', 40);
-	paymentAssert(empty($manager->handleCallback($id, $request, array('apipass' => 'token'))['correct']), "$id accepted a bad signature");
+foreach (['EA','EAT','EAT1','BSC','BSCT','XRPA','TRA','TRAT'] as $id) {
+    $disabled=$manager->handleCallback($id, ['type'=>'in','sign'=>sha1('synthetic-unaccepted-profile')], ['apipass'=>'synthetic-key']);
+    paymentAssert($disabled['outcome']==='unsupported' && !$disabled['correct'], $id.' old contract can settle automatically');
+    paymentAssert(!$manager->has($id),$id.' retired adapter remains executable');
 }
 
-$cryptoCallback = array(
-	'cryptocurrencyapi.net' => 1,
-	'currency' => 'BTC',
-	'type' => 'in',
-	'date' => 1721815200,
-	'address' => 'address',
-	'amount' => '0.5',
-	'txid' => 'tx-cca',
-	'pos' => 0,
-	'confirmations' => 3,
-	'tag' => '45',
-);
-$cryptoCallback['sign2'] = sha1(implode(':', array(
-	$cryptoCallback['currency'], $cryptoCallback['type'], $cryptoCallback['date'],
-	$cryptoCallback['address'], $cryptoCallback['amount'], $cryptoCallback['txid'],
-	$cryptoCallback['pos'], $cryptoCallback['confirmations'], $cryptoCallback['tag'], 'token',
-)));
-$cryptoRequest = $cryptoCallback;
-$cryptoRequest['_json'] = $cryptoCallback;
-paymentAssert(!empty($manager->handleCallback('CCAB', $cryptoRequest, array('apipass' => 'token'))['correct']), 'CryptoCurrencyAPI callback validation failed');
-$cryptoRequest['_json']['sign2'] = str_repeat('0', 40);
-paymentAssert(empty($manager->handleCallback('CCAB', $cryptoRequest, array('apipass' => 'token'))['correct']), 'CryptoCurrencyAPI accepted a bad signature');
+$cryptoFixture=json_decode(file_get_contents(__DIR__.'/fixtures/ccapi_v3_native.json'),true,32,JSON_THROW_ON_ERROR);
+$cryptoRequest=['_raw_body'=>json_encode($cryptoFixture['payload'],JSON_THROW_ON_ERROR)];
+$cryptoConfig=['protocol'=>'3','v3_key'=>$cryptoFixture['secret']];
+paymentAssert(!empty($manager->handleCallback('CCAB',$cryptoRequest,$cryptoConfig)['correct']), 'CryptoCurrencyAPI v3 independent vector failed');
+$badCrypto=$cryptoFixture['payload']; $badCrypto['sign']=str_repeat('0',40);
+paymentAssert(empty($manager->handleCallback('CCAB',['_raw_body'=>json_encode($badCrypto,JSON_THROW_ON_ERROR)],$cryptoConfig)['correct']), 'CryptoCurrencyAPI v3 accepted bad signature');
+paymentAssert($manager->detectCallback(['cryptocurrencyapi.net'=>1,'currency'=>'BTC'])==='', 'Legacy CryptoCurrencyAPI was routed automatically');
 
-$xrpCallback = array(
-	'xrpapi.net' => 1,
-	'type' => 'in',
-	'date' => 1721815200,
-	'from' => 'source',
-	'to' => 'destination',
-	'tag' => '123',
-	'amount' => '3.5',
-	'fee' => '0.01',
-	'txid' => 'tx-xrp',
-	'label' => '46',
-);
-$xrpCallback['sign'] = sha1(implode(':', array(
-	$xrpCallback['type'], $xrpCallback['date'], $xrpCallback['from'], $xrpCallback['to'],
-	$xrpCallback['tag'], $xrpCallback['amount'], $xrpCallback['fee'],
-	$xrpCallback['txid'], $xrpCallback['label'], 'token',
-)));
-$xrpRequest = $xrpCallback;
-$xrpRequest['_json'] = $xrpCallback;
-paymentAssert(!empty($manager->handleCallback('XRPA', $xrpRequest, array('apipass' => 'token'))['correct']), 'XRPAPI callback validation failed');
-$xrpRequest['_json']['sign'] = str_repeat('0', 40);
-paymentAssert(empty($manager->handleCallback('XRPA', $xrpRequest, array('apipass' => 'token'))['correct']), 'XRPAPI accepted a bad signature');
-
-$outboundDb = new class extends Connection {
-	public array $updates = array();
-	public function update($table, $fields_and_values, $fields = '', $filter = '', $ph_values = null)
-	{
-		$this->updates[] = array($table, $fields_and_values, $filter, $ph_values);
-		return 1;
-	}
-};
-$outboundManager = new PaymentManager($outboundDb);
-$outboundRequest = array(
-	'bnbapi.net' => 1, 'type' => 'out', 'date' => 1721815200,
-	'from' => 'source', 'to' => 'destination', 'token' => '',
-	'amount' => '1.25', 'txid' => 'tx-out', 'confirmations' => 2, 'tag' => '44',
-	'sign' => 'invalid',
-);
-$outboundRequest['_json'] = $outboundRequest;
-$invalidOutbound = $outboundManager->handleCallback('BSC', $outboundRequest, array('apipass' => 'token'));
-paymentAssert(empty($invalidOutbound['correct']) && !empty($invalidOutbound['handled']), 'Unsigned outbound callback was not rejected');
-paymentAssert($outboundDb->updates === array(), 'Unsigned outbound callback changed an operation');
-$signedParts = array(
-	$outboundRequest['type'], $outboundRequest['date'], $outboundRequest['from'],
-	$outboundRequest['to'], $outboundRequest['amount'], $outboundRequest['txid'],
-	$outboundRequest['confirmations'], $outboundRequest['tag'], 'token',
-);
-$outboundRequest['sign'] = sha1(implode(':', $signedParts));
-$outboundRequest['_json'] = $outboundRequest;
-$validOutbound = $outboundManager->handleCallback('BSC', $outboundRequest, array('apipass' => 'token'));
-paymentAssert(!empty($validOutbound['correct']) && count($outboundDb->updates) === 1, 'Signed outbound callback was not applied');
-paymentAssert($outboundDb->updates[0][1]['oBatch'] === 'tx-out', 'Signed outbound batch changed');
-
-$coinBody = 'merchant=merchant&amount1=1.5&currency1=BTC&invoice=47&status=100&txn_id=tx-cp';
+$coinBody = 'ipn_version=1.0&ipn_id=synthetic-contract-ipn&ipn_mode=hmac&ipn_type=simple&merchant=merchant&amount1=1.5&currency1=BTC&invoice=47&status=100&txn_id=tx-cp';
 parse_str($coinBody, $coinCallback);
 $coinCallback['_raw_body'] = $coinBody;
 $coinCallback['_server'] = array('HTTP_HMAC' => hash_hmac('sha512', $coinBody, 'secret'));

@@ -3,7 +3,19 @@
 namespace HScript\Payment\Gateways;
 
 use HScript\Payment\AbstractGateway;
+use HScript\Payment\GatewayAmount;
+use HScript\Payment\GatewayBalance;
+use HScript\Payment\CallbackResult;
 use Throwable;
+use RuntimeException;
+use InvalidArgumentException;
+use HScript\Payment\FormCallbackPayload;
+use HScript\Payment\VoletMerchantClient;
+use HScript\Finance\VoletContract;
+use HScript\Finance\CallbackContract;
+use HScript\Finance\CallbackAmount;
+use HScript\Finance\CallbackValidationException;
+use HScript\Finance\DepositCheckout;
 
 /**
  * Implements AdvCash deposit, callback, balance, and withdrawal operations.
@@ -52,83 +64,155 @@ class AdvCash extends AbstractGateway
 		return array();
 	}
 
-	public function processDeposit(array $params): array
-	{
-		if ($this->isPaykassa())
-			return $this->processPaykassaDeposit($params);
+    public function processDeposit(array $params): array
+    {
+        if (\HScript\Payment\CallbackCapabilities::disabledAutomation($this->id)) return ['error'=>'automatic_payment_unsupported'];
+        if (!VoletContract::supports($this->id) || VoletContract::CURRENCIES[$this->id]!==$this->getCurrencyId()) return ['error'=>'volet_currency_contract_unsupported'];
+        $sci=(array)($params['sci'] ?? []); $api=(array)($params['api'] ?? []);
+        if (!VoletContract::configured($sci,$api)) return ['error'=>'volet_api_configuration_required'];
+        try {
+            $amount=CallbackAmount::atScale($params['sum'] ?? null,VoletContract::wireScale($this->getCurrencyId()));
+            $order=$params['tag'] ?? null;
+            if (is_int($order)) $order=(string)$order;
+            $scale=$params['callback_scale'] ?? 2;
+            if (!is_string($order) || !preg_match('/^[1-9][0-9]{0,14}$/D',$order)
+                || !is_int($scale) || $scale<0 || $scale>8 || CallbackAmount::atScale($amount,$scale)==='')
+                return ['error'=>'volet_invoice_invalid'];
+            $fees=VoletContract::localFeePolicy($params['callback_fee_policy'] ?? []);
+            $memo=$params['memo'] ?? '';
+            if (!is_string($memo) || preg_match('//u',$memo)!==1 || mb_strlen($memo,'UTF-8')>255)
+                return ['error'=>'volet_invoice_invalid'];
+            foreach (['url_ok','url_fail','url_callback'] as $field)
+                if (!is_string($params[$field] ?? '') || strlen($params[$field] ?? '')>100)
+                    return ['error'=>'volet_invoice_invalid'];
+            $sign=hash('sha256',implode(':',[$sci['name'],$sci['sci'],$amount,$this->getCurrencyId(),$sci['key'],$order]));
+            return ['url'=>VoletContract::CHECKOUT_URL,
+                'ac_account_email'=>$sci['name'],'ac_sci_name'=>$sci['sci'],'ac_amount'=>$amount,'ac_currency'=>$this->getCurrencyId(),
+                'ac_order_id'=>$order,'ac_comments'=>$params['memo'] ?? '', 'ac_ps'=>'VOLET',
+                'ac_success_url'=>$params['url_ok'] ?? '', 'ac_success_url_method'=>'POST',
+                'ac_fail_url'=>$params['url_fail'] ?? '', 'ac_fail_url_method'=>'POST',
+                'ac_status_url'=>$params['url_callback'] ?? '', 'ac_status_url_method'=>'POST','ac_sign'=>$sign,
+                // DepositCheckout encrypts these before exposing the public form.
+                'volet_profile'=>VoletContract::profile($this->id),'volet_api_email'=>$api['name'],'volet_api_name'=>$api['api'],
+                'volet_api_secret'=>$api['apipass'],'volet_wallet'=>$api['acc'],'volet_sci_key_hash'=>hash('sha256',$sci['key']),
+                'volet_amount'=>$amount,'volet_scale'=>(string)$scale,
+                'volet_local_fee_percent'=>$fees['percent'],'volet_local_fee_min'=>$fees['min'],
+                'volet_local_fee_max'=>$fees['max'],'volet_local_fee_commission'=>$fees['commission'],
+            ];
+        } catch (CallbackValidationException $error) { return ['error'=>$error->reason==='volet_local_fee_contract_unsupported' ? $error->reason : 'volet_invoice_invalid']; }
+    }
 
-		$sci = (array)$this->value($params, 'sci', array());
-		$amount = $this->normalizedAmount($this->value($params, 'sum', 0));
-		$signature = hash('sha256', implode(':', array(
-			$this->value($sci, 'name'),
-			$this->value($sci, 'sci'),
-			$amount,
-			$this->definition[4],
-			$this->value($sci, 'key'),
-			$this->value($params, 'tag'),
-		)));
-		return array(
-			'url' => 'https://account.volet.com/sci/',
-			'ac_account_email' => $this->value($sci, 'name'),
-			'ac_sci_name' => $this->value($sci, 'sci'),
-			'ac_amount' => $amount,
-			'ac_currency' => $this->definition[4],
-			'ac_order_id' => $this->value($params, 'tag'),
-			'ac_comments' => $this->value($params, 'memo'),
-			'ac_success_url' => $this->value($params, 'url_ok'),
-			'ac_success_url_method' => 'POST',
-			'ac_fail_url' => $this->value($params, 'url_fail'),
-			'ac_fail_url_method' => 'POST',
-			'ac_status_url' => $this->value($params, 'url_callback'),
-			'ac_status_url_method' => 'POST',
-			'ac_sign' => $signature,
-		);
-	}
+    public function handleCallback(array $request): array
+    {
+        if (!\HScript\Payment\CallbackCapabilities::allows($this->id,'in')) return CallbackResult::failure('unsupported','automatic_callback_unsupported');
+        if (!VoletContract::supports($this->id) || VoletContract::CURRENCIES[$this->id]!==$this->getCurrencyId())
+            return CallbackResult::failure('unsupported','volet_currency_contract_unsupported');
+        $sci=(array)($request['_config'] ?? []);
+        if (!is_string($sci['key'] ?? null) || trim($sci['key'])==='')
+            return CallbackResult::failure('authentication_failed','callback_configuration_missing');
+        try {
+            $payload=FormCallbackPayload::decode($request['_raw_body'] ?? '');
+            $signed=['ac_transfer','ac_start_date','ac_sci_name','ac_src_wallet','ac_dest_wallet','ac_order_id','ac_amount','ac_merchant_currency'];
+            foreach ($signed as $field)
+                if (!isset($payload[$field]) || $payload[$field]==='' || preg_match('/[\x00-\x1f\x7f]/',$payload[$field]))
+                    throw new InvalidArgumentException();
+            $signature=hash('sha256',implode(':',array_map(static fn($field)=>$payload[$field],$signed)).':'.$sci['key']);
+            if (!preg_match('/^[a-f0-9]{64}$/D',$payload['ac_hash'] ?? '') || !hash_equals($signature,$payload['ac_hash']))
+                return CallbackResult::failure('authentication_failed','signature_invalid');
+            if ($payload['ac_merchant_currency']!==$this->getCurrencyId() || !preg_match('/^[1-9][0-9]{0,14}$/D',$payload['ac_order_id'])
+                || !preg_match('/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/D',$payload['ac_transfer'])
+                || !preg_match('/^[A-Za-z0-9]{1,64}$/D',$payload['ac_src_wallet'])
+                || !preg_match('/^[A-Za-z0-9]{1,64}$/D',$payload['ac_dest_wallet'])) throw new InvalidArgumentException();
+            $signedAt=VoletContract::sciTime($payload['ac_start_date']);
+            // Read intent before provider I/O; final settlement re-reads it locked.
+            $operation=$this->callbackOperation((int)$payload['ac_order_id']);
+            if (!$operation || $operation['oOper']!=='CASHIN' || $operation['cCID']!==$this->id || $operation['cCurrID']!==$this->getCurrencyId())
+                throw new CallbackValidationException('callback_order_unavailable');
+            opDecodeCurrParams($operation,$pay,$currentSci,$api);
+            if (!VoletContract::configured($currentSci,$api))
+                return CallbackResult::failure('unsupported','volet_api_configuration_required',true);
+            if (($currentSci['key'] ?? null)!==$sci['key']) throw new CallbackValidationException('callback_merchant_configuration_changed');
+            $scale=CallbackContract::scale($operation);
+            $amount=CallbackAmount::atScale($payload['ac_amount'],$scale);
+            $expected=CallbackAmount::atScale($operation['oSum'],$scale);
+            if ($amount!==$expected) throw new CallbackValidationException('callback_amount_mismatch');
+            $form=DepositCheckout::storedForm($operation);
+            $intent=VoletContract::intent($operation,$form,$currentSci,$api,$scale,$expected);
+            if ($payload['ac_order_id']!==$form['ac_order_id'] || $payload['ac_sci_name']!==$form['ac_sci_name'] || $payload['ac_dest_wallet']!==$form['volet_wallet'])
+                throw new CallbackValidationException('callback_destination_mismatch');
+            $result=['outcome'=>'verified','reason'=>'volet_api_order_verified','authenticated'=>true,'correct'=>true,
+                'tag'=>$payload['ac_order_id'],'sum'=>$amount,'sum2'=>$amount,'curr'=>$this->getCurrencyId(),
+                'accto'=>$payload['ac_dest_wallet'],'accfrom'=>$payload['ac_src_wallet'],'batch'=>$payload['ac_transfer'],
+                'signed_at'=>$signedAt,'date'=>$signedAt,'volet_profile'=>VoletContract::profile($this->id)];
+            $result['volet_fee_policy_hash']=$intent['local_fee_policy_hash'];
+            $result['volet_proof_hash']=VoletContract::proofHash($intent,$result);
+            // Includes local creation/skew validation without changing any state.
+            VoletContract::validate($operation,$result,$form,$currentSci,$api,$scale,$expected,time(),(int)$operation['oState']!==3);
+        } catch (CallbackValidationException $error) {
+            return CallbackResult::failure('invalid_payload',$error->reason,true);
+        } catch (InvalidArgumentException|\TypeError) {
+            return CallbackResult::failure('invalid_payload','callback_fields_invalid');
+        }
+        $order=$this->merchantRequest($api,'findPaymentByOrderId',['order'=>$form['ac_order_id'],'sci'=>$form['ac_sci_name']]);
+        foreach (['orderId','sciName','paymentCreated','paymentStatus','transactionId','transactionStatus','transactionAmount','transactionCurrency','transactionCreated'] as $field)
+            if (!is_string($order[$field] ?? null) || $order[$field]==='') throw new RuntimeException('volet_confirmation_unavailable');
+        if ($order['orderId']!==$form['ac_order_id'] || $order['sciName']!==$form['ac_sci_name']
+            || $order['transactionId']!==$result['batch'] || $order['transactionCurrency']!==$this->getCurrencyId()
+            || CallbackAmount::atScale($order['transactionAmount'],$scale)!==$amount)
+            throw new CallbackValidationException('callback_volet_order_mismatch');
+        if ($order['paymentStatus']!=='COMPLETED' || $order['transactionStatus']!=='COMPLETED')
+            return CallbackResult::failure('unsupported','volet_payment_not_completed',true);
+        $created=VoletContract::apiTime($order['transactionCreated']);
+        if ($created!==$signedAt || VoletContract::apiTime($order['paymentCreated'])>$created
+            || isset($order['transactionCompleted']) && VoletContract::apiTime($order['transactionCompleted'])<$created)
+            throw new CallbackValidationException('callback_time_conflict');
+        $record=$this->merchantRequest($api,'findTransaction',['transaction'=>$order['transactionId']]);
+        foreach (['id','amount','amountIncome','api','currency','currencyIncome','direction','fullCommission','orderId','sci','startTime','status','transactionType','walletDestId','walletSrcId'] as $field)
+            if (!is_string($record[$field] ?? null) || $record[$field]==='') throw new RuntimeException('volet_confirmation_unavailable');
+        if ($record['status']!=='COMPLETED' || $record['transactionType']!=='SCI_PAYMENT' || $record['direction']!=='INCOMING'
+            || !in_array($record['sci'],['true','1'],true) || !in_array($record['api'],['false','0'],true))
+            return CallbackResult::failure('unsupported','volet_transaction_contract_unsupported',true);
+        if ($record['id']!==$result['batch'] || $record['orderId']!==$result['tag'] || $record['walletDestId']!==$result['accto']
+            || $record['walletSrcId']!==$result['accfrom'] || $record['currency']!==$this->getCurrencyId()
+            || isset($order['srcWalletId']) && $order['srcWalletId']!==$result['accfrom']
+            || isset($record['receiverEmail']) && $record['receiverEmail']!==$api['name'])
+            throw new CallbackValidationException('callback_volet_transaction_mismatch');
+        if (CallbackAmount::atScale($record['amount'],$scale)!==$amount)
+            throw new CallbackValidationException('callback_amount_mismatch');
+        if (!preg_match('/^0{1,12}(?:\.0{1,8})?$/D',$record['fullCommission']))
+            return CallbackResult::failure('unsupported','volet_fee_contract_unsupported',true);
+        if (CallbackAmount::atScale($record['amountIncome'],$scale)!==$amount || $record['currencyIncome']!==$this->getCurrencyId())
+            return CallbackResult::failure('unsupported','volet_income_contract_unsupported',true);
+        foreach ([$order,$record] as $proof)
+            foreach ($proof as $field=>$value)
+                if ((str_starts_with($field,'cryptoCurrency') || in_array($field,['coinName','receivedCryptoCurrencyAmount','refundAddress','parentTransactionId'],true)) && $value!=='')
+                    return CallbackResult::failure('unsupported','volet_payment_method_unsupported',true);
+        if (VoletContract::apiTime($record['startTime'])!==$signedAt
+            || isset($record['updatedTime']) && VoletContract::apiTime($record['updatedTime'])<$created)
+            throw new CallbackValidationException('callback_time_conflict');
+        // Unsigned SCI status, fee, merchant_amount and buyer email never decide
+        // settlement, financial amount, sender identity or durable proof.
+        return $result;
+    }
 
-	public function handleCallback(array $request): array
-	{
-		if ($this->isPaykassa())
-			return $this->handlePaykassaCallback($request);
+    protected function callbackOperation(int $id): array|false
+    {
+        return $this->db->fetch1Row($this->db->query('SELECT Opers.*,Currs.* FROM Opers JOIN Currs ON cID=ocID WHERE oID=?d',[$id]));
+    }
 
-		$config = (array)$this->value($request, '_config', array());
-		$result = array(
-			'sci' => $this->value($request, 'ac_sci_name'),
-			'accto' => $this->value($request, 'ac_dest_wallet'),
-			'accfrom' => $this->value($request, 'ac_buyer_email'),
-			'sum' => $this->value($request, 'ac_amount'),
-			'sum2' => (float)$this->value($request, 'ac_amount') - (float)$this->value($request, 'ac_fee'),
-			'curr' => $this->value($request, 'ac_merchant_currency'),
-			'tag' => $this->value($request, 'ac_order_id'),
-			'date' => time(),
-			'batch' => $this->value($request, 'ac_transfer'),
-			'hash' => $this->value($request, 'ac_hash'),
-		);
-		$signature = hash('sha256', implode(':', array(
-			$this->value($request, 'ac_transfer'),
-			$this->value($request, 'ac_start_date'),
-			$this->value($request, 'ac_sci_name'),
-			$this->value($request, 'ac_src_wallet'),
-			$this->value($request, 'ac_dest_wallet'),
-			$this->value($request, 'ac_order_id'),
-			$this->value($request, 'ac_amount'),
-			$this->value($request, 'ac_merchant_currency'),
-			$this->value($config, 'key'),
-		)));
-		$result['cc'] = $signature;
-		$result['correct'] = $result['curr'] === $this->definition[4]
-			&& hash_equals($signature, (string)$result['hash']);
-		return $result;
-	}
+    protected function merchantRequest(array $config, string $method, array $arguments): array
+    {
+        return VoletMerchantClient::request($config,$method,$arguments);
+    }
 
 	public function getBalance(array $config): array
 	{
-		if ($this->isPaykassa())
-			return $this->getPaykassaBalance($config);
+		if (\HScript\Payment\CallbackCapabilities::disabledAutomation($this->id)) return ['result'=>'automatic_payment_unsupported','sum'=>-1];
 		$result = array('result' => 'NoConn', 'sum' => -1);
 		try
 		{
 			$this->requireLegacy('lib/advcash/MerchantWebService.php');
-			$service = new \MerchantWebService();
+			$service = $this->merchantService();
 			$auth = new \authDTO();
 			$auth->apiName = $this->value($config, 'api');
 			$auth->accountEmail = $this->value($config, 'name');
@@ -136,12 +220,14 @@ class AdvCash extends AbstractGateway
 			$query = new \getBalances();
 			$query->arg0 = $auth;
 			$response = $service->getBalances($query);
-			$result['answer'] = print_r($response->return, true);
-			foreach ((array)$response->return as $balance)
+			$return=$response->return ?? null;
+			$result['answer'] = print_r($return, true);
+			$balances=$return===null ? [] : (is_array($return) ? $return : [$return]);
+			foreach ($balances as $balance)
 				if ($balance->id === $this->value($config, 'acc'))
 				{
 					$result['result'] = 'OK';
-					$result['sum'] = (float)$balance->amount;
+					$result['sum'] = GatewayBalance::read($balance->amount);
 					return $result;
 				}
 		}
@@ -154,20 +240,21 @@ class AdvCash extends AbstractGateway
 
 	public function processWithdrawal(array $params): array
 	{
-		if ($this->isPaykassa())
-			return $this->processPaykassaWithdrawal($params);
+        if (VoletContract::supports($this->id) && $this->id!=='AC') return ['result'=>'automatic_payment_unsupported'];
+		if (\HScript\Payment\CallbackCapabilities::disabledAutomation($this->id)) return ['result'=>'automatic_payment_unsupported'];
 		$from = (array)$this->value($params, 'from', array());
 		$to = (array)$this->value($params, 'to', array());
 		try
 		{
+			$amount=GatewayAmount::exact($this->value($params,'sum'),$this->getCurrencyId(),2);
 			$this->requireLegacy('lib/advcash/MerchantWebService.php');
-			$service = new \MerchantWebService();
+			$service = $this->merchantService();
 			$auth = new \authDTO();
 			$auth->apiName = $this->value($from, 'api');
 			$auth->accountEmail = $this->value($from, 'name');
 			$auth->authenticationToken = $service->getAuthenticationToken($this->value($from, 'apipass'));
 			$payment = new \sendMoneyRequest();
-			$payment->amount = (float)$this->value($params, 'sum');
+			$payment->amount = $amount;
 			$payment->currency = $this->definition[4];
 			$payment->email = $this->value($to, 'acc');
 			$payment->note = $this->value($params, 'memo');
@@ -189,6 +276,12 @@ class AdvCash extends AbstractGateway
 		}
 	}
 
+	/** Trusted PHP seam for the generated SDK; no request/configuration URL override. */
+	protected function merchantService(): \MerchantWebService
+	{
+		return new \MerchantWebService();
+	}
+
 	protected function requiredConfigKeys(): array
 	{
 		return $this->isPaykassa() ? array('id', 'key') : array('name', 'sci', 'key');
@@ -199,77 +292,4 @@ class AdvCash extends AbstractGateway
 		return str_starts_with($this->id, 'PK');
 	}
 
-	private function processPaykassaDeposit(array $params): array
-	{
-		$sci = (array)$this->value($params, 'sci', array());
-		$this->requireLegacy('lib/paykassa/paykassa_sci.class.php');
-		$client = new \PayKassaSCI($this->value($sci, 'id'), $this->value($sci, 'key'));
-		$response = $client->sci_create_order(
-			(float)$this->value($params, 'sum'),
-			$this->definition[4],
-			$this->value($params, 'tag'),
-			$this->value($params, 'memo'),
-			self::PAYKASSA_SYSTEM_ID
-		);
-		if (!empty($response['error']))
-			return array('error' => $response['message']);
-		return array('url' => $response['data']['url']);
-	}
-
-	private function handlePaykassaCallback(array $request): array
-	{
-		$config = (array)$this->value($request, '_config', array());
-		$this->requireLegacy('lib/paykassa/paykassa_sci.class.php');
-		$client = new \PayKassaSCI($this->value($config, 'id'), $this->value($config, 'key'));
-		$response = $client->sci_confirm_order();
-		if (!empty($response['error']))
-			return array('error' => $response['message'], 'correct' => false);
-		$data = $response['data'];
-		$lookup = json_decode((string)$this->request(
-			'https://crypto.paykassa.pro/api/0.4a/index.php/?func=api_public_get_transactions_info'
-			. '&currency=' . urlencode((string)$data['currency'])
-			. '&address=' . urlencode((string)$data['address'])
-			. '&tag=' . urlencode((string)$data['tag'])
-		), true);
-		return array(
-			'sum' => $data['amount'],
-			'curr' => $data['currency'],
-			'tag' => $data['order_id'],
-			'date' => time(),
-			'batch' => $lookup['data']['transactions'][0]['transaction'] ?? $data['transaction'],
-			'status' => 'success',
-			'correct' => true,
-			'response' => $data['order_id'] . '|success',
-		);
-	}
-
-	private function getPaykassaBalance(array $config): array
-	{
-		$this->requireLegacy('lib/paykassa/paykassa_api.class.php');
-		$client = new \PayKassaAPI($this->value($config, 'id'), $this->value($config, 'apipass'));
-		$response = $client->api_get_shop_balance($this->value($config, 'shop_id'));
-		if (!empty($response['error']))
-			return array('result' => $response['message'], 'sum' => -1);
-		$key = $this->id === 'PKAR' ? 'advcash_rub' : 'advcash_usd';
-		return array('result' => 'OK', 'sum' => $response['data'][$key]);
-	}
-
-	private function processPaykassaWithdrawal(array $params): array
-	{
-		$from = (array)$this->value($params, 'from', array());
-		$to = (array)$this->value($params, 'to', array());
-		$this->requireLegacy('lib/paykassa/paykassa_api.class.php');
-		$client = new \PayKassaAPI($this->value($from, 'id'), $this->value($from, 'apipass'));
-		$response = $client->api_payment(
-			$this->value($from, 'shop_id'),
-			self::PAYKASSA_SYSTEM_ID,
-			$this->value($to, 'acc'),
-			(float)$this->value($params, 'sum'),
-			$this->definition[4],
-			$this->value($to, 'tag')
-		);
-		if (!empty($response['error']))
-			return array('result' => $response['message']);
-		return array('result' => 'OK', 'batch' => $response['data']['transaction']);
-	}
 }

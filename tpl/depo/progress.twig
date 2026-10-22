@@ -40,7 +40,7 @@
 				</div>
 				<div>
 					<div class="mb-1 text-gray-400">{{ _t({"key": 'deposit.compound.short', "default": 'Реинвест'}) }}</div>
-					<div class="font-mono font-bold">{{ el.dCompnd|number_format(2, '.', ' ') }}%</div>
+					<div class="font-mono font-bold">{{ el.dCompnd|decimal_format(2, ' ') }}%</div>
 				</div>
 			</div>
 		</div>

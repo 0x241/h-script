@@ -1,0 +1,4471 @@
+{
+  "oracle": "Python stdlib Decimal precision160 HALF_UP, historical two-place preview and six-place list accrual",
+  "forecasts": [
+    {
+      "amount": "0.004999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.004999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.00",
+        "total_return_sum": "0.00"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "0.005",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.01",
+        "total_return_sum": "0.01"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "1.01",
+        "total_return_sum": "1.01"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.01",
+        "deposit_return_sum": "1.01",
+        "total_return_sum": "1.02"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.07",
+        "deposit_return_sum": "1.01",
+        "total_return_sum": "1.08"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "3.65",
+        "deposit_return_sum": "1.01",
+        "total_return_sum": "4.66"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "1.01",
+        "total_return_sum": "1.01"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.01",
+        "deposit_return_sum": "1.01",
+        "total_return_sum": "1.02"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.07",
+        "deposit_return_sum": "1.01",
+        "total_return_sum": "1.08"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "3.65",
+        "deposit_return_sum": "1.01",
+        "total_return_sum": "4.66"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "1.01",
+        "total_return_sum": "1.01"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.01",
+        "deposit_return_sum": "1.01",
+        "total_return_sum": "1.02"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.07",
+        "deposit_return_sum": "1.01",
+        "total_return_sum": "1.08"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "5.97",
+        "deposit_return_sum": "1.01",
+        "total_return_sum": "6.98"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.01",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.51",
+        "total_return_sum": "0.51"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.01",
+        "profit_sum": "0.01",
+        "deposit_return_sum": "0.51",
+        "total_return_sum": "0.52"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.01",
+        "profit_sum": "0.07",
+        "deposit_return_sum": "0.51",
+        "total_return_sum": "0.58"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.01",
+        "profit_sum": "3.65",
+        "deposit_return_sum": "0.51",
+        "total_return_sum": "4.16"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.01",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.51",
+        "total_return_sum": "0.51"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.01",
+        "profit_sum": "0.01",
+        "deposit_return_sum": "0.51",
+        "total_return_sum": "0.52"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.01",
+        "profit_sum": "0.07",
+        "deposit_return_sum": "0.51",
+        "total_return_sum": "0.58"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.01",
+        "profit_sum": "3.65",
+        "deposit_return_sum": "0.51",
+        "total_return_sum": "4.16"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.01",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "0.51",
+        "total_return_sum": "0.51"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.01",
+        "profit_sum": "0.01",
+        "deposit_return_sum": "0.51",
+        "total_return_sum": "0.52"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.01",
+        "profit_sum": "0.07",
+        "deposit_return_sum": "0.51",
+        "total_return_sum": "0.58"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.01",
+        "profit_sum": "83.53",
+        "deposit_return_sum": "0.51",
+        "total_return_sum": "84.04"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "-0.03",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "1.18",
+        "total_return_sum": "1.18"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "-0.03",
+        "profit_sum": "-0.01",
+        "deposit_return_sum": "1.18",
+        "total_return_sum": "1.17"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "-0.03",
+        "profit_sum": "-0.07",
+        "deposit_return_sum": "1.18",
+        "total_return_sum": "1.11"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "-0.03",
+        "profit_sum": "-3.65",
+        "deposit_return_sum": "1.18",
+        "total_return_sum": "-2.47"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "-0.03",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "1.18",
+        "total_return_sum": "1.18"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "-0.03",
+        "profit_sum": "-0.01",
+        "deposit_return_sum": "1.18",
+        "total_return_sum": "1.17"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "-0.03",
+        "profit_sum": "-0.07",
+        "deposit_return_sum": "1.18",
+        "total_return_sum": "1.11"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "-0.03",
+        "profit_sum": "-3.65",
+        "deposit_return_sum": "1.18",
+        "total_return_sum": "-2.47"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "-0.03",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "1.18",
+        "total_return_sum": "1.18"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "-0.03",
+        "profit_sum": "-0.01",
+        "deposit_return_sum": "1.18",
+        "total_return_sum": "1.17"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "-0.03",
+        "profit_sum": "-0.07",
+        "deposit_return_sum": "1.18",
+        "total_return_sum": "1.11"
+      }
+    },
+    {
+      "amount": "1.005001",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "-0.03",
+        "profit_sum": "-0.49",
+        "deposit_return_sum": "1.18",
+        "total_return_sum": "0.69"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "1234.57",
+        "total_return_sum": "1234.57"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "6.17",
+        "deposit_return_sum": "1234.57",
+        "total_return_sum": "1240.74"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "43.19",
+        "deposit_return_sum": "1234.57",
+        "total_return_sum": "1277.76"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "2252.05",
+        "deposit_return_sum": "1234.57",
+        "total_return_sum": "3486.62"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "1234.57",
+        "total_return_sum": "1234.57"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "6.17",
+        "deposit_return_sum": "1234.57",
+        "total_return_sum": "1240.74"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "43.40",
+        "deposit_return_sum": "1234.57",
+        "total_return_sum": "1277.97"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "3097.82",
+        "deposit_return_sum": "1234.57",
+        "total_return_sum": "4332.39"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "1234.57",
+        "total_return_sum": "1234.57"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "6.17",
+        "deposit_return_sum": "1234.57",
+        "total_return_sum": "1240.74"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "43.86",
+        "deposit_return_sum": "1234.57",
+        "total_return_sum": "1278.43"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "6388.28",
+        "deposit_return_sum": "1234.57",
+        "total_return_sum": "7622.85"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "15.19",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "624.88",
+        "total_return_sum": "624.88"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "15.19",
+        "profit_sum": "15.37",
+        "deposit_return_sum": "624.88",
+        "total_return_sum": "640.25"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "15.19",
+        "profit_sum": "107.59",
+        "deposit_return_sum": "624.88",
+        "total_return_sum": "732.47"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "15.19",
+        "profit_sum": "5610.05",
+        "deposit_return_sum": "624.88",
+        "total_return_sum": "6234.93"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "15.19",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "624.88",
+        "total_return_sum": "624.88"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "15.19",
+        "profit_sum": "15.37",
+        "deposit_return_sum": "624.88",
+        "total_return_sum": "640.25"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "15.19",
+        "profit_sum": "108.94",
+        "deposit_return_sum": "624.88",
+        "total_return_sum": "733.82"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "15.19",
+        "profit_sum": "12944.30",
+        "deposit_return_sum": "624.88",
+        "total_return_sum": "13569.18"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "15.19",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "624.88",
+        "total_return_sum": "624.88"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "15.19",
+        "profit_sum": "15.37",
+        "deposit_return_sum": "624.88",
+        "total_return_sum": "640.25"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "15.19",
+        "profit_sum": "111.65",
+        "deposit_return_sum": "624.88",
+        "total_return_sum": "736.53"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "15.19",
+        "profit_sum": "107067.13",
+        "deposit_return_sum": "624.88",
+        "total_return_sum": "107692.01"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "-31.48",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "1443.71",
+        "total_return_sum": "1443.71"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "-31.48",
+        "profit_sum": "-12.15",
+        "deposit_return_sum": "1443.71",
+        "total_return_sum": "1431.56"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "-31.48",
+        "profit_sum": "-85.05",
+        "deposit_return_sum": "1443.71",
+        "total_return_sum": "1358.66"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "-31.48",
+        "profit_sum": "-4434.75",
+        "deposit_return_sum": "1443.71",
+        "total_return_sum": "-2991.04"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "-31.48",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "1443.71",
+        "total_return_sum": "1443.71"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "-31.48",
+        "profit_sum": "-12.15",
+        "deposit_return_sum": "1443.71",
+        "total_return_sum": "1431.56"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "-31.48",
+        "profit_sum": "-84.21",
+        "deposit_return_sum": "1443.71",
+        "total_return_sum": "1359.50"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "-31.48",
+        "profit_sum": "-2555.27",
+        "deposit_return_sum": "1443.71",
+        "total_return_sum": "-1111.56"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "-31.48",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "1443.71",
+        "total_return_sum": "1443.71"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "-31.48",
+        "profit_sum": "-12.15",
+        "deposit_return_sum": "1443.71",
+        "total_return_sum": "1431.56"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "-31.48",
+        "profit_sum": "-82.53",
+        "deposit_return_sum": "1443.71",
+        "total_return_sum": "1361.18"
+      }
+    },
+    {
+      "amount": "1234.567891",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "-31.48",
+        "profit_sum": "-1173.50",
+        "deposit_return_sum": "1443.71",
+        "total_return_sum": "270.21"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "10000000.00",
+        "total_return_sum": "10000000.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "50000.00",
+        "deposit_return_sum": "10000000.00",
+        "total_return_sum": "10050000.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "350000.00",
+        "deposit_return_sum": "10000000.00",
+        "total_return_sum": "10350000.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "18250000.00",
+        "deposit_return_sum": "10000000.00",
+        "total_return_sum": "28250000.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "10000000.00",
+        "total_return_sum": "10000000.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "50000.00",
+        "deposit_return_sum": "10000000.00",
+        "total_return_sum": "10050000.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "351754.70",
+        "deposit_return_sum": "10000000.00",
+        "total_return_sum": "10351754.70"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "25092255.15",
+        "deposit_return_sum": "10000000.00",
+        "total_return_sum": "35092255.15"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "10000000.00",
+        "total_return_sum": "10000000.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "50000.00",
+        "deposit_return_sum": "10000000.00",
+        "total_return_sum": "10050000.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "355293.98",
+        "deposit_return_sum": "10000000.00",
+        "total_return_sum": "10355293.98"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "0",
+      "percent": "0.5",
+      "returnPercent": "100",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "0.00",
+        "profit_sum": "51746527.96",
+        "deposit_return_sum": "10000000.00",
+        "total_return_sum": "61746527.96"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "123000.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "5061500.00",
+        "total_return_sum": "5061500.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "123000.00",
+        "profit_sum": "124512.90",
+        "deposit_return_sum": "5061500.00",
+        "total_return_sum": "5186012.90"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "123000.00",
+        "profit_sum": "871590.30",
+        "deposit_return_sum": "5061500.00",
+        "total_return_sum": "5933090.30"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "123000.00",
+        "profit_sum": "45447208.50",
+        "deposit_return_sum": "5061500.00",
+        "total_return_sum": "50508708.50"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "123000.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "5061500.00",
+        "total_return_sum": "5061500.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "123000.00",
+        "profit_sum": "124512.90",
+        "deposit_return_sum": "5061500.00",
+        "total_return_sum": "5186012.90"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "123000.00",
+        "profit_sum": "882383.33",
+        "deposit_return_sum": "5061500.00",
+        "total_return_sum": "5943883.33"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "123000.00",
+        "profit_sum": "104835897.28",
+        "deposit_return_sum": "5061500.00",
+        "total_return_sum": "109897397.28"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "123000.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "5061500.00",
+        "total_return_sum": "5061500.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "123000.00",
+        "profit_sum": "124512.90",
+        "deposit_return_sum": "5061500.00",
+        "total_return_sum": "5186012.90"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "123000.00",
+        "profit_sum": "904419.46",
+        "deposit_return_sum": "5061500.00",
+        "total_return_sum": "5965919.46"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "1.23",
+      "percent": "1.23",
+      "returnPercent": "50",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "123000.00",
+        "profit_sum": "867242769.55",
+        "deposit_return_sum": "5061500.00",
+        "total_return_sum": "872304269.55"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "-255000.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "11694000.00",
+        "total_return_sum": "11694000.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "-255000.00",
+        "profit_sum": "-98424.50",
+        "deposit_return_sum": "11694000.00",
+        "total_return_sum": "11595575.50"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "-255000.00",
+        "profit_sum": "-688971.50",
+        "deposit_return_sum": "11694000.00",
+        "total_return_sum": "11005028.50"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "0",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "-255000.00",
+        "profit_sum": "-35924942.50",
+        "deposit_return_sum": "11694000.00",
+        "total_return_sum": "-24230942.50"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "-255000.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "11694000.00",
+        "total_return_sum": "11694000.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "-255000.00",
+        "profit_sum": "-98424.50",
+        "deposit_return_sum": "11694000.00",
+        "total_return_sum": "11595575.50"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "-255000.00",
+        "profit_sum": "-682052.49",
+        "deposit_return_sum": "11694000.00",
+        "total_return_sum": "11011947.51"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "33.33",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "-255000.00",
+        "profit_sum": "-20698586.73",
+        "deposit_return_sum": "11694000.00",
+        "total_return_sum": "-9004586.73"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 0,
+      "expected": {
+        "bonus_sum": "-255000.00",
+        "profit_sum": "0.00",
+        "deposit_return_sum": "11694000.00",
+        "total_return_sum": "11694000.00"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 1,
+      "expected": {
+        "bonus_sum": "-255000.00",
+        "profit_sum": "-98424.50",
+        "deposit_return_sum": "11694000.00",
+        "total_return_sum": "11595575.50"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 7,
+      "expected": {
+        "bonus_sum": "-255000.00",
+        "profit_sum": "-668443.56",
+        "deposit_return_sum": "11694000.00",
+        "total_return_sum": "11025556.44"
+      }
+    },
+    {
+      "amount": "9999999.999999",
+      "bonus": "-2.55",
+      "percent": "-1.01",
+      "returnPercent": "120",
+      "compound": "100",
+      "periods": 365,
+      "expected": {
+        "bonus_sum": "-255000.00",
+        "profit_sum": "-9505329.19",
+        "deposit_return_sum": "11694000.00",
+        "total_return_sum": "2188670.81"
+      }
+    }
+  ],
+  "profits": [
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1800,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3600,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3700,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 5400,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10800,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10900,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 43200,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86400,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86500,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 2,
+      "current": "0.000007",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1800,
+      "current": "0.006181",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3600,
+      "current": "0.012362",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3700,
+      "current": "0.012362",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 2,
+      "current": "0.000002",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 5400,
+      "current": "0.006181",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10800,
+      "current": "0.012362",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10900,
+      "current": "0.012362",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 43200,
+      "current": "0.006181",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86400,
+      "current": "0.012362",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86500,
+      "current": "0.012362",
+      "hourly": "0"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "123000"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "123000"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 2,
+      "current": "68.333333",
+      "hourly": "123000"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1800,
+      "current": "61500.000000",
+      "hourly": "123000"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3600,
+      "current": "123000.000000",
+      "hourly": "123000"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3700,
+      "current": "123000.000000",
+      "hourly": "123000"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "41000"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "41000"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 2,
+      "current": "22.777778",
+      "hourly": "41000"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 5400,
+      "current": "61500.000000",
+      "hourly": "41000"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10800,
+      "current": "123000.000000",
+      "hourly": "41000"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10900,
+      "current": "123000.000000",
+      "hourly": "41000"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "5125"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "5125"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 2,
+      "current": "2.847222",
+      "hourly": "5125"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 43200,
+      "current": "61500.000000",
+      "hourly": "5125"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86400,
+      "current": "123000.000000",
+      "hourly": "5125"
+    },
+    {
+      "scale": 0,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86500,
+      "current": "123000.000000",
+      "hourly": "5125"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1800,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3600,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3700,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 5400,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10800,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10900,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 43200,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86400,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86500,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.01"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.01"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 2,
+      "current": "0.000007",
+      "hourly": "0.01"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1800,
+      "current": "0.006181",
+      "hourly": "0.01"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3600,
+      "current": "0.012362",
+      "hourly": "0.01"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3700,
+      "current": "0.012362",
+      "hourly": "0.01"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 2,
+      "current": "0.000002",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 5400,
+      "current": "0.006181",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10800,
+      "current": "0.012362",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10900,
+      "current": "0.012362",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 43200,
+      "current": "0.006181",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86400,
+      "current": "0.012362",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86500,
+      "current": "0.012362",
+      "hourly": "0.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "123000.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "123000.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 2,
+      "current": "68.333333",
+      "hourly": "123000.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1800,
+      "current": "61500.000000",
+      "hourly": "123000.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3600,
+      "current": "123000.000000",
+      "hourly": "123000.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3700,
+      "current": "123000.000000",
+      "hourly": "123000.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "41000.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "41000.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 2,
+      "current": "22.777778",
+      "hourly": "41000.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 5400,
+      "current": "61500.000000",
+      "hourly": "41000.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10800,
+      "current": "123000.000000",
+      "hourly": "41000.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10900,
+      "current": "123000.000000",
+      "hourly": "41000.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "5125.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "5125.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 2,
+      "current": "2.847222",
+      "hourly": "5125.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 43200,
+      "current": "61500.000000",
+      "hourly": "5125.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86400,
+      "current": "123000.000000",
+      "hourly": "5125.00"
+    },
+    {
+      "scale": 2,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86500,
+      "current": "123000.000000",
+      "hourly": "5125.00"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1800,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3600,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3700,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 5400,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10800,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10900,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 43200,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86400,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86500,
+      "current": "0.000000",
+      "hourly": "0.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.012362"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.012362"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 2,
+      "current": "0.000007",
+      "hourly": "0.012362"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1800,
+      "current": "0.006181",
+      "hourly": "0.012362"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3600,
+      "current": "0.012362",
+      "hourly": "0.012362"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3700,
+      "current": "0.012362",
+      "hourly": "0.012362"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.004121"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.004121"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 2,
+      "current": "0.000002",
+      "hourly": "0.004121"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 5400,
+      "current": "0.006181",
+      "hourly": "0.004121"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10800,
+      "current": "0.012362",
+      "hourly": "0.004121"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10900,
+      "current": "0.012362",
+      "hourly": "0.004121"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.000515"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.000515"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0.000515"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 43200,
+      "current": "0.006181",
+      "hourly": "0.000515"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86400,
+      "current": "0.012362",
+      "hourly": "0.000515"
+    },
+    {
+      "scale": 6,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86500,
+      "current": "0.012362",
+      "hourly": "0.000515"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "123000.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "123000.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 2,
+      "current": "68.333333",
+      "hourly": "123000.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1800,
+      "current": "61500.000000",
+      "hourly": "123000.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3600,
+      "current": "123000.000000",
+      "hourly": "123000.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3700,
+      "current": "123000.000000",
+      "hourly": "123000.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "41000.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "41000.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 2,
+      "current": "22.777778",
+      "hourly": "41000.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 5400,
+      "current": "61500.000000",
+      "hourly": "41000.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10800,
+      "current": "123000.000000",
+      "hourly": "41000.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10900,
+      "current": "123000.000000",
+      "hourly": "41000.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "5125.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "5125.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 2,
+      "current": "2.847222",
+      "hourly": "5125.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 43200,
+      "current": "61500.000000",
+      "hourly": "5125.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86400,
+      "current": "123000.000000",
+      "hourly": "5125.000000"
+    },
+    {
+      "scale": 6,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86500,
+      "current": "123000.000000",
+      "hourly": "5125.000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1800,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3600,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3700,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 5400,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10800,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10900,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 43200,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86400,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "0.000001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86500,
+      "current": "0.000000",
+      "hourly": "0.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.01236200"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.01236200"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 2,
+      "current": "0.000007",
+      "hourly": "0.01236200"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1800,
+      "current": "0.006181",
+      "hourly": "0.01236200"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3600,
+      "current": "0.012362",
+      "hourly": "0.01236200"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3700,
+      "current": "0.012362",
+      "hourly": "0.01236200"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.00412067"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.00412067"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 2,
+      "current": "0.000002",
+      "hourly": "0.00412067"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 5400,
+      "current": "0.006181",
+      "hourly": "0.00412067"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10800,
+      "current": "0.012362",
+      "hourly": "0.00412067"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10900,
+      "current": "0.012362",
+      "hourly": "0.00412067"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "0.00051508"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "0.00051508"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 2,
+      "current": "0.000000",
+      "hourly": "0.00051508"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 43200,
+      "current": "0.006181",
+      "hourly": "0.00051508"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86400,
+      "current": "0.012362",
+      "hourly": "0.00051508"
+    },
+    {
+      "scale": 8,
+      "principal": "1.005001",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86500,
+      "current": "0.012362",
+      "hourly": "0.00051508"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "123000.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "123000.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 2,
+      "current": "68.333333",
+      "hourly": "123000.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 1800,
+      "current": "61500.000000",
+      "hourly": "123000.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3600,
+      "current": "123000.000000",
+      "hourly": "123000.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 1,
+      "elapsed": 3700,
+      "current": "123000.000000",
+      "hourly": "123000.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "41000.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "41000.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 2,
+      "current": "22.777778",
+      "hourly": "41000.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 5400,
+      "current": "61500.000000",
+      "hourly": "41000.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10800,
+      "current": "123000.000000",
+      "hourly": "41000.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 3,
+      "elapsed": 10900,
+      "current": "123000.000000",
+      "hourly": "41000.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 0,
+      "current": "0.000000",
+      "hourly": "5125.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 1,
+      "current": "0.000000",
+      "hourly": "5125.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 2,
+      "current": "2.847222",
+      "hourly": "5125.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 43200,
+      "current": "61500.000000",
+      "hourly": "5125.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86400,
+      "current": "123000.000000",
+      "hourly": "5125.00000000"
+    },
+    {
+      "scale": 8,
+      "principal": "9999999.999999",
+      "percent": "1.23",
+      "hours": 24,
+      "elapsed": 86500,
+      "current": "123000.000000",
+      "hourly": "5125.00000000"
+    }
+  ]
+}

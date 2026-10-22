@@ -1,0 +1,2093 @@
+{
+  "oracle": "Python stdlib Decimal, precision120; HALF_UP6 then currency; ordered exact tiers",
+  "cases": [
+    {
+      "id": "0:0.000001:0",
+      "scale": 0,
+      "source": "0.000001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.000001:0.000001",
+      "scale": 0,
+      "source": "0.000001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.000001:0.01",
+      "scale": 0,
+      "source": "0.000001",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.000001:1.23456789",
+      "scale": 0,
+      "source": "0.000001",
+      "percent": "1.23456789",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.000001:5",
+      "scale": 0,
+      "source": "0.000001",
+      "percent": "5",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.000001:10",
+      "scale": 0,
+      "source": "0.000001",
+      "percent": "10",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.000001:120",
+      "scale": 0,
+      "source": "0.000001",
+      "percent": "120",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.01:0",
+      "scale": 0,
+      "source": "0.01",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.01:0.000001",
+      "scale": 0,
+      "source": "0.01",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.01:0.01",
+      "scale": 0,
+      "source": "0.01",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.01:1.23456789",
+      "scale": 0,
+      "source": "0.01",
+      "percent": "1.23456789",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.01:5",
+      "scale": 0,
+      "source": "0.01",
+      "percent": "5",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.01:10",
+      "scale": 0,
+      "source": "0.01",
+      "percent": "10",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.01:120",
+      "scale": 0,
+      "source": "0.01",
+      "percent": "120",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.049995:0",
+      "scale": 0,
+      "source": "0.049995",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.049995:0.000001",
+      "scale": 0,
+      "source": "0.049995",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.049995:0.01",
+      "scale": 0,
+      "source": "0.049995",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.049995:1.23456789",
+      "scale": 0,
+      "source": "0.049995",
+      "percent": "1.23456789",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.049995:5",
+      "scale": 0,
+      "source": "0.049995",
+      "percent": "5",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.049995:10",
+      "scale": 0,
+      "source": "0.049995",
+      "percent": "10",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:0.049995:120",
+      "scale": 0,
+      "source": "0.049995",
+      "percent": "120",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:1.005001:0",
+      "scale": 0,
+      "source": "1.005001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:1.005001:0.000001",
+      "scale": 0,
+      "source": "1.005001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:1.005001:0.01",
+      "scale": 0,
+      "source": "1.005001",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:1.005001:1.23456789",
+      "scale": 0,
+      "source": "1.005001",
+      "percent": "1.23456789",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:1.005001:5",
+      "scale": 0,
+      "source": "1.005001",
+      "percent": "5",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:1.005001:10",
+      "scale": 0,
+      "source": "1.005001",
+      "percent": "10",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:1.005001:120",
+      "scale": 0,
+      "source": "1.005001",
+      "percent": "120",
+      "expected": "1.000000",
+      "error": null
+    },
+    {
+      "id": "0:100.000001:0",
+      "scale": 0,
+      "source": "100.000001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:100.000001:0.000001",
+      "scale": 0,
+      "source": "100.000001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:100.000001:0.01",
+      "scale": 0,
+      "source": "100.000001",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:100.000001:1.23456789",
+      "scale": 0,
+      "source": "100.000001",
+      "percent": "1.23456789",
+      "expected": "1.000000",
+      "error": null
+    },
+    {
+      "id": "0:100.000001:5",
+      "scale": 0,
+      "source": "100.000001",
+      "percent": "5",
+      "expected": "5.000000",
+      "error": null
+    },
+    {
+      "id": "0:100.000001:10",
+      "scale": 0,
+      "source": "100.000001",
+      "percent": "10",
+      "expected": "10.000000",
+      "error": null
+    },
+    {
+      "id": "0:100.000001:120",
+      "scale": 0,
+      "source": "100.000001",
+      "percent": "120",
+      "expected": "120.000000",
+      "error": null
+    },
+    {
+      "id": "0:9999999.999999:0",
+      "scale": 0,
+      "source": "9999999.999999",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:9999999.999999:0.000001",
+      "scale": 0,
+      "source": "9999999.999999",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "0:9999999.999999:0.01",
+      "scale": 0,
+      "source": "9999999.999999",
+      "percent": "0.01",
+      "expected": "1000.000000",
+      "error": null
+    },
+    {
+      "id": "0:9999999.999999:1.23456789",
+      "scale": 0,
+      "source": "9999999.999999",
+      "percent": "1.23456789",
+      "expected": "123457.000000",
+      "error": null
+    },
+    {
+      "id": "0:9999999.999999:5",
+      "scale": 0,
+      "source": "9999999.999999",
+      "percent": "5",
+      "expected": "500000.000000",
+      "error": null
+    },
+    {
+      "id": "0:9999999.999999:10",
+      "scale": 0,
+      "source": "9999999.999999",
+      "percent": "10",
+      "expected": "1000000.000000",
+      "error": null
+    },
+    {
+      "id": "0:9999999.999999:120",
+      "scale": 0,
+      "source": "9999999.999999",
+      "percent": "120",
+      "expected": null,
+      "error": "sum_overflow"
+    },
+    {
+      "id": "2:0.000001:0",
+      "scale": 2,
+      "source": "0.000001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.000001:0.000001",
+      "scale": 2,
+      "source": "0.000001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.000001:0.01",
+      "scale": 2,
+      "source": "0.000001",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.000001:1.23456789",
+      "scale": 2,
+      "source": "0.000001",
+      "percent": "1.23456789",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.000001:5",
+      "scale": 2,
+      "source": "0.000001",
+      "percent": "5",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.000001:10",
+      "scale": 2,
+      "source": "0.000001",
+      "percent": "10",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.000001:120",
+      "scale": 2,
+      "source": "0.000001",
+      "percent": "120",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.01:0",
+      "scale": 2,
+      "source": "0.01",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.01:0.000001",
+      "scale": 2,
+      "source": "0.01",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.01:0.01",
+      "scale": 2,
+      "source": "0.01",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.01:1.23456789",
+      "scale": 2,
+      "source": "0.01",
+      "percent": "1.23456789",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.01:5",
+      "scale": 2,
+      "source": "0.01",
+      "percent": "5",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.01:10",
+      "scale": 2,
+      "source": "0.01",
+      "percent": "10",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.01:120",
+      "scale": 2,
+      "source": "0.01",
+      "percent": "120",
+      "expected": "0.010000",
+      "error": null
+    },
+    {
+      "id": "2:0.049995:0",
+      "scale": 2,
+      "source": "0.049995",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.049995:0.000001",
+      "scale": 2,
+      "source": "0.049995",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.049995:0.01",
+      "scale": 2,
+      "source": "0.049995",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.049995:1.23456789",
+      "scale": 2,
+      "source": "0.049995",
+      "percent": "1.23456789",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.049995:5",
+      "scale": 2,
+      "source": "0.049995",
+      "percent": "5",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:0.049995:10",
+      "scale": 2,
+      "source": "0.049995",
+      "percent": "10",
+      "expected": "0.010000",
+      "error": null
+    },
+    {
+      "id": "2:0.049995:120",
+      "scale": 2,
+      "source": "0.049995",
+      "percent": "120",
+      "expected": "0.060000",
+      "error": null
+    },
+    {
+      "id": "2:1.005001:0",
+      "scale": 2,
+      "source": "1.005001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:1.005001:0.000001",
+      "scale": 2,
+      "source": "1.005001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:1.005001:0.01",
+      "scale": 2,
+      "source": "1.005001",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:1.005001:1.23456789",
+      "scale": 2,
+      "source": "1.005001",
+      "percent": "1.23456789",
+      "expected": "0.010000",
+      "error": null
+    },
+    {
+      "id": "2:1.005001:5",
+      "scale": 2,
+      "source": "1.005001",
+      "percent": "5",
+      "expected": "0.050000",
+      "error": null
+    },
+    {
+      "id": "2:1.005001:10",
+      "scale": 2,
+      "source": "1.005001",
+      "percent": "10",
+      "expected": "0.100000",
+      "error": null
+    },
+    {
+      "id": "2:1.005001:120",
+      "scale": 2,
+      "source": "1.005001",
+      "percent": "120",
+      "expected": "1.210000",
+      "error": null
+    },
+    {
+      "id": "2:100.000001:0",
+      "scale": 2,
+      "source": "100.000001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:100.000001:0.000001",
+      "scale": 2,
+      "source": "100.000001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:100.000001:0.01",
+      "scale": 2,
+      "source": "100.000001",
+      "percent": "0.01",
+      "expected": "0.010000",
+      "error": null
+    },
+    {
+      "id": "2:100.000001:1.23456789",
+      "scale": 2,
+      "source": "100.000001",
+      "percent": "1.23456789",
+      "expected": "1.230000",
+      "error": null
+    },
+    {
+      "id": "2:100.000001:5",
+      "scale": 2,
+      "source": "100.000001",
+      "percent": "5",
+      "expected": "5.000000",
+      "error": null
+    },
+    {
+      "id": "2:100.000001:10",
+      "scale": 2,
+      "source": "100.000001",
+      "percent": "10",
+      "expected": "10.000000",
+      "error": null
+    },
+    {
+      "id": "2:100.000001:120",
+      "scale": 2,
+      "source": "100.000001",
+      "percent": "120",
+      "expected": "120.000000",
+      "error": null
+    },
+    {
+      "id": "2:9999999.999999:0",
+      "scale": 2,
+      "source": "9999999.999999",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "2:9999999.999999:0.000001",
+      "scale": 2,
+      "source": "9999999.999999",
+      "percent": "0.000001",
+      "expected": "0.100000",
+      "error": null
+    },
+    {
+      "id": "2:9999999.999999:0.01",
+      "scale": 2,
+      "source": "9999999.999999",
+      "percent": "0.01",
+      "expected": "1000.000000",
+      "error": null
+    },
+    {
+      "id": "2:9999999.999999:1.23456789",
+      "scale": 2,
+      "source": "9999999.999999",
+      "percent": "1.23456789",
+      "expected": "123456.790000",
+      "error": null
+    },
+    {
+      "id": "2:9999999.999999:5",
+      "scale": 2,
+      "source": "9999999.999999",
+      "percent": "5",
+      "expected": "500000.000000",
+      "error": null
+    },
+    {
+      "id": "2:9999999.999999:10",
+      "scale": 2,
+      "source": "9999999.999999",
+      "percent": "10",
+      "expected": "1000000.000000",
+      "error": null
+    },
+    {
+      "id": "2:9999999.999999:120",
+      "scale": 2,
+      "source": "9999999.999999",
+      "percent": "120",
+      "expected": null,
+      "error": "sum_overflow"
+    },
+    {
+      "id": "3:0.000001:0",
+      "scale": 3,
+      "source": "0.000001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.000001:0.000001",
+      "scale": 3,
+      "source": "0.000001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.000001:0.01",
+      "scale": 3,
+      "source": "0.000001",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.000001:1.23456789",
+      "scale": 3,
+      "source": "0.000001",
+      "percent": "1.23456789",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.000001:5",
+      "scale": 3,
+      "source": "0.000001",
+      "percent": "5",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.000001:10",
+      "scale": 3,
+      "source": "0.000001",
+      "percent": "10",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.000001:120",
+      "scale": 3,
+      "source": "0.000001",
+      "percent": "120",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.01:0",
+      "scale": 3,
+      "source": "0.01",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.01:0.000001",
+      "scale": 3,
+      "source": "0.01",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.01:0.01",
+      "scale": 3,
+      "source": "0.01",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.01:1.23456789",
+      "scale": 3,
+      "source": "0.01",
+      "percent": "1.23456789",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.01:5",
+      "scale": 3,
+      "source": "0.01",
+      "percent": "5",
+      "expected": "0.001000",
+      "error": null
+    },
+    {
+      "id": "3:0.01:10",
+      "scale": 3,
+      "source": "0.01",
+      "percent": "10",
+      "expected": "0.001000",
+      "error": null
+    },
+    {
+      "id": "3:0.01:120",
+      "scale": 3,
+      "source": "0.01",
+      "percent": "120",
+      "expected": "0.012000",
+      "error": null
+    },
+    {
+      "id": "3:0.049995:0",
+      "scale": 3,
+      "source": "0.049995",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.049995:0.000001",
+      "scale": 3,
+      "source": "0.049995",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.049995:0.01",
+      "scale": 3,
+      "source": "0.049995",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:0.049995:1.23456789",
+      "scale": 3,
+      "source": "0.049995",
+      "percent": "1.23456789",
+      "expected": "0.001000",
+      "error": null
+    },
+    {
+      "id": "3:0.049995:5",
+      "scale": 3,
+      "source": "0.049995",
+      "percent": "5",
+      "expected": "0.003000",
+      "error": null
+    },
+    {
+      "id": "3:0.049995:10",
+      "scale": 3,
+      "source": "0.049995",
+      "percent": "10",
+      "expected": "0.005000",
+      "error": null
+    },
+    {
+      "id": "3:0.049995:120",
+      "scale": 3,
+      "source": "0.049995",
+      "percent": "120",
+      "expected": "0.060000",
+      "error": null
+    },
+    {
+      "id": "3:1.005001:0",
+      "scale": 3,
+      "source": "1.005001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:1.005001:0.000001",
+      "scale": 3,
+      "source": "1.005001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:1.005001:0.01",
+      "scale": 3,
+      "source": "1.005001",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:1.005001:1.23456789",
+      "scale": 3,
+      "source": "1.005001",
+      "percent": "1.23456789",
+      "expected": "0.012000",
+      "error": null
+    },
+    {
+      "id": "3:1.005001:5",
+      "scale": 3,
+      "source": "1.005001",
+      "percent": "5",
+      "expected": "0.050000",
+      "error": null
+    },
+    {
+      "id": "3:1.005001:10",
+      "scale": 3,
+      "source": "1.005001",
+      "percent": "10",
+      "expected": "0.101000",
+      "error": null
+    },
+    {
+      "id": "3:1.005001:120",
+      "scale": 3,
+      "source": "1.005001",
+      "percent": "120",
+      "expected": "1.206000",
+      "error": null
+    },
+    {
+      "id": "3:100.000001:0",
+      "scale": 3,
+      "source": "100.000001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:100.000001:0.000001",
+      "scale": 3,
+      "source": "100.000001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:100.000001:0.01",
+      "scale": 3,
+      "source": "100.000001",
+      "percent": "0.01",
+      "expected": "0.010000",
+      "error": null
+    },
+    {
+      "id": "3:100.000001:1.23456789",
+      "scale": 3,
+      "source": "100.000001",
+      "percent": "1.23456789",
+      "expected": "1.235000",
+      "error": null
+    },
+    {
+      "id": "3:100.000001:5",
+      "scale": 3,
+      "source": "100.000001",
+      "percent": "5",
+      "expected": "5.000000",
+      "error": null
+    },
+    {
+      "id": "3:100.000001:10",
+      "scale": 3,
+      "source": "100.000001",
+      "percent": "10",
+      "expected": "10.000000",
+      "error": null
+    },
+    {
+      "id": "3:100.000001:120",
+      "scale": 3,
+      "source": "100.000001",
+      "percent": "120",
+      "expected": "120.000000",
+      "error": null
+    },
+    {
+      "id": "3:9999999.999999:0",
+      "scale": 3,
+      "source": "9999999.999999",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "3:9999999.999999:0.000001",
+      "scale": 3,
+      "source": "9999999.999999",
+      "percent": "0.000001",
+      "expected": "0.100000",
+      "error": null
+    },
+    {
+      "id": "3:9999999.999999:0.01",
+      "scale": 3,
+      "source": "9999999.999999",
+      "percent": "0.01",
+      "expected": "1000.000000",
+      "error": null
+    },
+    {
+      "id": "3:9999999.999999:1.23456789",
+      "scale": 3,
+      "source": "9999999.999999",
+      "percent": "1.23456789",
+      "expected": "123456.789000",
+      "error": null
+    },
+    {
+      "id": "3:9999999.999999:5",
+      "scale": 3,
+      "source": "9999999.999999",
+      "percent": "5",
+      "expected": "500000.000000",
+      "error": null
+    },
+    {
+      "id": "3:9999999.999999:10",
+      "scale": 3,
+      "source": "9999999.999999",
+      "percent": "10",
+      "expected": "1000000.000000",
+      "error": null
+    },
+    {
+      "id": "3:9999999.999999:120",
+      "scale": 3,
+      "source": "9999999.999999",
+      "percent": "120",
+      "expected": null,
+      "error": "sum_overflow"
+    },
+    {
+      "id": "4:0.000001:0",
+      "scale": 4,
+      "source": "0.000001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.000001:0.000001",
+      "scale": 4,
+      "source": "0.000001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.000001:0.01",
+      "scale": 4,
+      "source": "0.000001",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.000001:1.23456789",
+      "scale": 4,
+      "source": "0.000001",
+      "percent": "1.23456789",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.000001:5",
+      "scale": 4,
+      "source": "0.000001",
+      "percent": "5",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.000001:10",
+      "scale": 4,
+      "source": "0.000001",
+      "percent": "10",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.000001:120",
+      "scale": 4,
+      "source": "0.000001",
+      "percent": "120",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.01:0",
+      "scale": 4,
+      "source": "0.01",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.01:0.000001",
+      "scale": 4,
+      "source": "0.01",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.01:0.01",
+      "scale": 4,
+      "source": "0.01",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.01:1.23456789",
+      "scale": 4,
+      "source": "0.01",
+      "percent": "1.23456789",
+      "expected": "0.000100",
+      "error": null
+    },
+    {
+      "id": "4:0.01:5",
+      "scale": 4,
+      "source": "0.01",
+      "percent": "5",
+      "expected": "0.000500",
+      "error": null
+    },
+    {
+      "id": "4:0.01:10",
+      "scale": 4,
+      "source": "0.01",
+      "percent": "10",
+      "expected": "0.001000",
+      "error": null
+    },
+    {
+      "id": "4:0.01:120",
+      "scale": 4,
+      "source": "0.01",
+      "percent": "120",
+      "expected": "0.012000",
+      "error": null
+    },
+    {
+      "id": "4:0.049995:0",
+      "scale": 4,
+      "source": "0.049995",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.049995:0.000001",
+      "scale": 4,
+      "source": "0.049995",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.049995:0.01",
+      "scale": 4,
+      "source": "0.049995",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:0.049995:1.23456789",
+      "scale": 4,
+      "source": "0.049995",
+      "percent": "1.23456789",
+      "expected": "0.000600",
+      "error": null
+    },
+    {
+      "id": "4:0.049995:5",
+      "scale": 4,
+      "source": "0.049995",
+      "percent": "5",
+      "expected": "0.002500",
+      "error": null
+    },
+    {
+      "id": "4:0.049995:10",
+      "scale": 4,
+      "source": "0.049995",
+      "percent": "10",
+      "expected": "0.005000",
+      "error": null
+    },
+    {
+      "id": "4:0.049995:120",
+      "scale": 4,
+      "source": "0.049995",
+      "percent": "120",
+      "expected": "0.060000",
+      "error": null
+    },
+    {
+      "id": "4:1.005001:0",
+      "scale": 4,
+      "source": "1.005001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:1.005001:0.000001",
+      "scale": 4,
+      "source": "1.005001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:1.005001:0.01",
+      "scale": 4,
+      "source": "1.005001",
+      "percent": "0.01",
+      "expected": "0.000100",
+      "error": null
+    },
+    {
+      "id": "4:1.005001:1.23456789",
+      "scale": 4,
+      "source": "1.005001",
+      "percent": "1.23456789",
+      "expected": "0.012400",
+      "error": null
+    },
+    {
+      "id": "4:1.005001:5",
+      "scale": 4,
+      "source": "1.005001",
+      "percent": "5",
+      "expected": "0.050300",
+      "error": null
+    },
+    {
+      "id": "4:1.005001:10",
+      "scale": 4,
+      "source": "1.005001",
+      "percent": "10",
+      "expected": "0.100500",
+      "error": null
+    },
+    {
+      "id": "4:1.005001:120",
+      "scale": 4,
+      "source": "1.005001",
+      "percent": "120",
+      "expected": "1.206000",
+      "error": null
+    },
+    {
+      "id": "4:100.000001:0",
+      "scale": 4,
+      "source": "100.000001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:100.000001:0.000001",
+      "scale": 4,
+      "source": "100.000001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:100.000001:0.01",
+      "scale": 4,
+      "source": "100.000001",
+      "percent": "0.01",
+      "expected": "0.010000",
+      "error": null
+    },
+    {
+      "id": "4:100.000001:1.23456789",
+      "scale": 4,
+      "source": "100.000001",
+      "percent": "1.23456789",
+      "expected": "1.234600",
+      "error": null
+    },
+    {
+      "id": "4:100.000001:5",
+      "scale": 4,
+      "source": "100.000001",
+      "percent": "5",
+      "expected": "5.000000",
+      "error": null
+    },
+    {
+      "id": "4:100.000001:10",
+      "scale": 4,
+      "source": "100.000001",
+      "percent": "10",
+      "expected": "10.000000",
+      "error": null
+    },
+    {
+      "id": "4:100.000001:120",
+      "scale": 4,
+      "source": "100.000001",
+      "percent": "120",
+      "expected": "120.000000",
+      "error": null
+    },
+    {
+      "id": "4:9999999.999999:0",
+      "scale": 4,
+      "source": "9999999.999999",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "4:9999999.999999:0.000001",
+      "scale": 4,
+      "source": "9999999.999999",
+      "percent": "0.000001",
+      "expected": "0.100000",
+      "error": null
+    },
+    {
+      "id": "4:9999999.999999:0.01",
+      "scale": 4,
+      "source": "9999999.999999",
+      "percent": "0.01",
+      "expected": "1000.000000",
+      "error": null
+    },
+    {
+      "id": "4:9999999.999999:1.23456789",
+      "scale": 4,
+      "source": "9999999.999999",
+      "percent": "1.23456789",
+      "expected": "123456.789000",
+      "error": null
+    },
+    {
+      "id": "4:9999999.999999:5",
+      "scale": 4,
+      "source": "9999999.999999",
+      "percent": "5",
+      "expected": "500000.000000",
+      "error": null
+    },
+    {
+      "id": "4:9999999.999999:10",
+      "scale": 4,
+      "source": "9999999.999999",
+      "percent": "10",
+      "expected": "1000000.000000",
+      "error": null
+    },
+    {
+      "id": "4:9999999.999999:120",
+      "scale": 4,
+      "source": "9999999.999999",
+      "percent": "120",
+      "expected": null,
+      "error": "sum_overflow"
+    },
+    {
+      "id": "6:0.000001:0",
+      "scale": 6,
+      "source": "0.000001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:0.000001:0.000001",
+      "scale": 6,
+      "source": "0.000001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:0.000001:0.01",
+      "scale": 6,
+      "source": "0.000001",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:0.000001:1.23456789",
+      "scale": 6,
+      "source": "0.000001",
+      "percent": "1.23456789",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:0.000001:5",
+      "scale": 6,
+      "source": "0.000001",
+      "percent": "5",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:0.000001:10",
+      "scale": 6,
+      "source": "0.000001",
+      "percent": "10",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:0.000001:120",
+      "scale": 6,
+      "source": "0.000001",
+      "percent": "120",
+      "expected": "0.000001",
+      "error": null
+    },
+    {
+      "id": "6:0.01:0",
+      "scale": 6,
+      "source": "0.01",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:0.01:0.000001",
+      "scale": 6,
+      "source": "0.01",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:0.01:0.01",
+      "scale": 6,
+      "source": "0.01",
+      "percent": "0.01",
+      "expected": "0.000001",
+      "error": null
+    },
+    {
+      "id": "6:0.01:1.23456789",
+      "scale": 6,
+      "source": "0.01",
+      "percent": "1.23456789",
+      "expected": "0.000123",
+      "error": null
+    },
+    {
+      "id": "6:0.01:5",
+      "scale": 6,
+      "source": "0.01",
+      "percent": "5",
+      "expected": "0.000500",
+      "error": null
+    },
+    {
+      "id": "6:0.01:10",
+      "scale": 6,
+      "source": "0.01",
+      "percent": "10",
+      "expected": "0.001000",
+      "error": null
+    },
+    {
+      "id": "6:0.01:120",
+      "scale": 6,
+      "source": "0.01",
+      "percent": "120",
+      "expected": "0.012000",
+      "error": null
+    },
+    {
+      "id": "6:0.049995:0",
+      "scale": 6,
+      "source": "0.049995",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:0.049995:0.000001",
+      "scale": 6,
+      "source": "0.049995",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:0.049995:0.01",
+      "scale": 6,
+      "source": "0.049995",
+      "percent": "0.01",
+      "expected": "0.000005",
+      "error": null
+    },
+    {
+      "id": "6:0.049995:1.23456789",
+      "scale": 6,
+      "source": "0.049995",
+      "percent": "1.23456789",
+      "expected": "0.000617",
+      "error": null
+    },
+    {
+      "id": "6:0.049995:5",
+      "scale": 6,
+      "source": "0.049995",
+      "percent": "5",
+      "expected": "0.002500",
+      "error": null
+    },
+    {
+      "id": "6:0.049995:10",
+      "scale": 6,
+      "source": "0.049995",
+      "percent": "10",
+      "expected": "0.005000",
+      "error": null
+    },
+    {
+      "id": "6:0.049995:120",
+      "scale": 6,
+      "source": "0.049995",
+      "percent": "120",
+      "expected": "0.059994",
+      "error": null
+    },
+    {
+      "id": "6:1.005001:0",
+      "scale": 6,
+      "source": "1.005001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:1.005001:0.000001",
+      "scale": 6,
+      "source": "1.005001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:1.005001:0.01",
+      "scale": 6,
+      "source": "1.005001",
+      "percent": "0.01",
+      "expected": "0.000101",
+      "error": null
+    },
+    {
+      "id": "6:1.005001:1.23456789",
+      "scale": 6,
+      "source": "1.005001",
+      "percent": "1.23456789",
+      "expected": "0.012407",
+      "error": null
+    },
+    {
+      "id": "6:1.005001:5",
+      "scale": 6,
+      "source": "1.005001",
+      "percent": "5",
+      "expected": "0.050250",
+      "error": null
+    },
+    {
+      "id": "6:1.005001:10",
+      "scale": 6,
+      "source": "1.005001",
+      "percent": "10",
+      "expected": "0.100500",
+      "error": null
+    },
+    {
+      "id": "6:1.005001:120",
+      "scale": 6,
+      "source": "1.005001",
+      "percent": "120",
+      "expected": "1.206001",
+      "error": null
+    },
+    {
+      "id": "6:100.000001:0",
+      "scale": 6,
+      "source": "100.000001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:100.000001:0.000001",
+      "scale": 6,
+      "source": "100.000001",
+      "percent": "0.000001",
+      "expected": "0.000001",
+      "error": null
+    },
+    {
+      "id": "6:100.000001:0.01",
+      "scale": 6,
+      "source": "100.000001",
+      "percent": "0.01",
+      "expected": "0.010000",
+      "error": null
+    },
+    {
+      "id": "6:100.000001:1.23456789",
+      "scale": 6,
+      "source": "100.000001",
+      "percent": "1.23456789",
+      "expected": "1.234568",
+      "error": null
+    },
+    {
+      "id": "6:100.000001:5",
+      "scale": 6,
+      "source": "100.000001",
+      "percent": "5",
+      "expected": "5.000000",
+      "error": null
+    },
+    {
+      "id": "6:100.000001:10",
+      "scale": 6,
+      "source": "100.000001",
+      "percent": "10",
+      "expected": "10.000000",
+      "error": null
+    },
+    {
+      "id": "6:100.000001:120",
+      "scale": 6,
+      "source": "100.000001",
+      "percent": "120",
+      "expected": "120.000001",
+      "error": null
+    },
+    {
+      "id": "6:9999999.999999:0",
+      "scale": 6,
+      "source": "9999999.999999",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "6:9999999.999999:0.000001",
+      "scale": 6,
+      "source": "9999999.999999",
+      "percent": "0.000001",
+      "expected": "0.100000",
+      "error": null
+    },
+    {
+      "id": "6:9999999.999999:0.01",
+      "scale": 6,
+      "source": "9999999.999999",
+      "percent": "0.01",
+      "expected": "1000.000000",
+      "error": null
+    },
+    {
+      "id": "6:9999999.999999:1.23456789",
+      "scale": 6,
+      "source": "9999999.999999",
+      "percent": "1.23456789",
+      "expected": "123456.789000",
+      "error": null
+    },
+    {
+      "id": "6:9999999.999999:5",
+      "scale": 6,
+      "source": "9999999.999999",
+      "percent": "5",
+      "expected": "500000.000000",
+      "error": null
+    },
+    {
+      "id": "6:9999999.999999:10",
+      "scale": 6,
+      "source": "9999999.999999",
+      "percent": "10",
+      "expected": "1000000.000000",
+      "error": null
+    },
+    {
+      "id": "6:9999999.999999:120",
+      "scale": 6,
+      "source": "9999999.999999",
+      "percent": "120",
+      "expected": null,
+      "error": "sum_overflow"
+    },
+    {
+      "id": "8:0.000001:0",
+      "scale": 8,
+      "source": "0.000001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:0.000001:0.000001",
+      "scale": 8,
+      "source": "0.000001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:0.000001:0.01",
+      "scale": 8,
+      "source": "0.000001",
+      "percent": "0.01",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:0.000001:1.23456789",
+      "scale": 8,
+      "source": "0.000001",
+      "percent": "1.23456789",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:0.000001:5",
+      "scale": 8,
+      "source": "0.000001",
+      "percent": "5",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:0.000001:10",
+      "scale": 8,
+      "source": "0.000001",
+      "percent": "10",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:0.000001:120",
+      "scale": 8,
+      "source": "0.000001",
+      "percent": "120",
+      "expected": "0.000001",
+      "error": null
+    },
+    {
+      "id": "8:0.01:0",
+      "scale": 8,
+      "source": "0.01",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:0.01:0.000001",
+      "scale": 8,
+      "source": "0.01",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:0.01:0.01",
+      "scale": 8,
+      "source": "0.01",
+      "percent": "0.01",
+      "expected": "0.000001",
+      "error": null
+    },
+    {
+      "id": "8:0.01:1.23456789",
+      "scale": 8,
+      "source": "0.01",
+      "percent": "1.23456789",
+      "expected": "0.000123",
+      "error": null
+    },
+    {
+      "id": "8:0.01:5",
+      "scale": 8,
+      "source": "0.01",
+      "percent": "5",
+      "expected": "0.000500",
+      "error": null
+    },
+    {
+      "id": "8:0.01:10",
+      "scale": 8,
+      "source": "0.01",
+      "percent": "10",
+      "expected": "0.001000",
+      "error": null
+    },
+    {
+      "id": "8:0.01:120",
+      "scale": 8,
+      "source": "0.01",
+      "percent": "120",
+      "expected": "0.012000",
+      "error": null
+    },
+    {
+      "id": "8:0.049995:0",
+      "scale": 8,
+      "source": "0.049995",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:0.049995:0.000001",
+      "scale": 8,
+      "source": "0.049995",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:0.049995:0.01",
+      "scale": 8,
+      "source": "0.049995",
+      "percent": "0.01",
+      "expected": "0.000005",
+      "error": null
+    },
+    {
+      "id": "8:0.049995:1.23456789",
+      "scale": 8,
+      "source": "0.049995",
+      "percent": "1.23456789",
+      "expected": "0.000617",
+      "error": null
+    },
+    {
+      "id": "8:0.049995:5",
+      "scale": 8,
+      "source": "0.049995",
+      "percent": "5",
+      "expected": "0.002500",
+      "error": null
+    },
+    {
+      "id": "8:0.049995:10",
+      "scale": 8,
+      "source": "0.049995",
+      "percent": "10",
+      "expected": "0.005000",
+      "error": null
+    },
+    {
+      "id": "8:0.049995:120",
+      "scale": 8,
+      "source": "0.049995",
+      "percent": "120",
+      "expected": "0.059994",
+      "error": null
+    },
+    {
+      "id": "8:1.005001:0",
+      "scale": 8,
+      "source": "1.005001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:1.005001:0.000001",
+      "scale": 8,
+      "source": "1.005001",
+      "percent": "0.000001",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:1.005001:0.01",
+      "scale": 8,
+      "source": "1.005001",
+      "percent": "0.01",
+      "expected": "0.000101",
+      "error": null
+    },
+    {
+      "id": "8:1.005001:1.23456789",
+      "scale": 8,
+      "source": "1.005001",
+      "percent": "1.23456789",
+      "expected": "0.012407",
+      "error": null
+    },
+    {
+      "id": "8:1.005001:5",
+      "scale": 8,
+      "source": "1.005001",
+      "percent": "5",
+      "expected": "0.050250",
+      "error": null
+    },
+    {
+      "id": "8:1.005001:10",
+      "scale": 8,
+      "source": "1.005001",
+      "percent": "10",
+      "expected": "0.100500",
+      "error": null
+    },
+    {
+      "id": "8:1.005001:120",
+      "scale": 8,
+      "source": "1.005001",
+      "percent": "120",
+      "expected": "1.206001",
+      "error": null
+    },
+    {
+      "id": "8:100.000001:0",
+      "scale": 8,
+      "source": "100.000001",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:100.000001:0.000001",
+      "scale": 8,
+      "source": "100.000001",
+      "percent": "0.000001",
+      "expected": "0.000001",
+      "error": null
+    },
+    {
+      "id": "8:100.000001:0.01",
+      "scale": 8,
+      "source": "100.000001",
+      "percent": "0.01",
+      "expected": "0.010000",
+      "error": null
+    },
+    {
+      "id": "8:100.000001:1.23456789",
+      "scale": 8,
+      "source": "100.000001",
+      "percent": "1.23456789",
+      "expected": "1.234568",
+      "error": null
+    },
+    {
+      "id": "8:100.000001:5",
+      "scale": 8,
+      "source": "100.000001",
+      "percent": "5",
+      "expected": "5.000000",
+      "error": null
+    },
+    {
+      "id": "8:100.000001:10",
+      "scale": 8,
+      "source": "100.000001",
+      "percent": "10",
+      "expected": "10.000000",
+      "error": null
+    },
+    {
+      "id": "8:100.000001:120",
+      "scale": 8,
+      "source": "100.000001",
+      "percent": "120",
+      "expected": "120.000001",
+      "error": null
+    },
+    {
+      "id": "8:9999999.999999:0",
+      "scale": 8,
+      "source": "9999999.999999",
+      "percent": "0",
+      "expected": "0.000000",
+      "error": null
+    },
+    {
+      "id": "8:9999999.999999:0.000001",
+      "scale": 8,
+      "source": "9999999.999999",
+      "percent": "0.000001",
+      "expected": "0.100000",
+      "error": null
+    },
+    {
+      "id": "8:9999999.999999:0.01",
+      "scale": 8,
+      "source": "9999999.999999",
+      "percent": "0.01",
+      "expected": "1000.000000",
+      "error": null
+    },
+    {
+      "id": "8:9999999.999999:1.23456789",
+      "scale": 8,
+      "source": "9999999.999999",
+      "percent": "1.23456789",
+      "expected": "123456.789000",
+      "error": null
+    },
+    {
+      "id": "8:9999999.999999:5",
+      "scale": 8,
+      "source": "9999999.999999",
+      "percent": "5",
+      "expected": "500000.000000",
+      "error": null
+    },
+    {
+      "id": "8:9999999.999999:10",
+      "scale": 8,
+      "source": "9999999.999999",
+      "percent": "10",
+      "expected": "1000000.000000",
+      "error": null
+    },
+    {
+      "id": "8:9999999.999999:120",
+      "scale": 8,
+      "source": "9999999.999999",
+      "percent": "120",
+      "expected": null,
+      "error": "sum_overflow"
+    }
+  ],
+  "tiers": [
+    {
+      "metric": "0",
+      "entries": [
+        "0-1",
+        "100-2.3456789",
+        "20000000-5"
+      ],
+      "percent": "1",
+      "level": 2
+    },
+    {
+      "metric": "99.999999",
+      "entries": [
+        "0-1",
+        "100-2.3456789",
+        "20000000-5"
+      ],
+      "percent": "1",
+      "level": 2
+    },
+    {
+      "metric": "100",
+      "entries": [
+        "0-1",
+        "100-2.3456789",
+        "20000000-5"
+      ],
+      "percent": "2.3456789",
+      "level": 3
+    },
+    {
+      "metric": "100.000001",
+      "entries": [
+        "0-1",
+        "100-2.3456789",
+        "20000000-5"
+      ],
+      "percent": "2.3456789",
+      "level": 3
+    },
+    {
+      "metric": "19999999.999998",
+      "entries": [
+        "0-1",
+        "100-2.3456789",
+        "20000000-5"
+      ],
+      "percent": "2.3456789",
+      "level": 3
+    },
+    {
+      "metric": "20000000",
+      "entries": [
+        "0-1",
+        "100-2.3456789",
+        "20000000-5"
+      ],
+      "percent": "5",
+      "level": 3
+    },
+    {
+      "metric": "20000000.000001",
+      "entries": [
+        "0-1",
+        "100-2.3456789",
+        "20000000-5"
+      ],
+      "percent": "5",
+      "level": 3
+    }
+  ]
+}

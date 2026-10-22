@@ -1,11 +1,13 @@
+{% set financial_form = true %}
 
 {% include "admin/header.twig" with {"title": 'Операция'} %}
 
 {% include "balance/_statuses.twig" %}
 
 {% if el %}
+{% if ccapi_payout_sources|default(false) %}<section class="mb-5 rounded-xl border border-gray-200 p-4 text-sm"><strong>Кошельки — источники ручной выплаты</strong><p class="mt-2 text-gray-500">Проверьте сеть реквизитов получателя перед отправкой.</p><dl class="mt-3 space-y-2">{% for source in ccapi_payout_sources %}<div><dt class="font-bold">{{ source.network }}</dt><dd class="break-all font-mono">{{ source.address }}</dd></div>{% endfor %}</dl></section>{% endif %}
 
-	<h2>{{ op_names[el['oOper']] }}</h2>
+
 	{% set b = [] %}
 	{% if el.oState <= 2 %}
 		{% set b = array_set_path(b|default([]), ['cancel'], 'Отклонить') %}
@@ -13,7 +15,7 @@
 	{% if el.oState >= 4 %}
 		{% set b = array_set_path(b|default([]), ['del'], 'Удалить') %}
 	{% endif %}
-	{% include "balance/_oper.twig" with {"bt": valueIf(el.oState <= 2, 'Выполнить', ' '), "b": b, "errors": {'oper_not_found': 'неверный статус операции', 'oper_disabled': 'операция отключена', 'low_bal1': 'недостаточно средств', 'data_date_wrong': 'неверная дата операции', 'data_sum_wrong': 'неверная сумма', 'data_batch_wrong': 'не задан batch-номер операции', 'batch_exists': 'операция с таким batch-номером уже существует', 'send_error': 'ошибка при отправке средств'}, "from_admin": true, "op_statuses": op_statuses, "op_sums": op_sums} %}
+	{% include "balance/_oper.twig" with {"bt": valueIf(el.oState <= 2, 'Выполнить', ' '), "b": b, "errors": {'ex_sum_wrong': _t({'key': 'opers.error.sum_wrong'}), 'ex_overflow': _t({'key': 'opers.error.amount_range'}), 'sum_precision': _t({'key': 'opers.error.amount_precision'}), 'sum_overflow': _t({'key': 'opers.error.amount_range'}), 'bal_precision': _t({'key': 'opers.error.amount_precision'}), 'bal_overflow': _t({'key': 'opers.error.amount_range'}), 'oper_not_found': 'неверный статус операции', 'oper_disabled': 'операция отключена', 'low_bal1': 'недостаточно средств', 'data_date_wrong': 'неверная дата операции', 'data_sum_wrong': 'неверная сумма', 'data_batch_wrong': 'не задан batch-номер операции', 'batch_exists': 'операция с таким batch-номером уже существует', 'send_error': 'ошибка при отправке средств'}, "from_admin": true, "op_statuses": op_statuses, "op_sums": op_sums} %}
 	
 {% else %}
 
@@ -42,7 +44,7 @@
 			'Sum': {
 				0: '$',
 				1: valueIf(_cfg.Const_IntCurr and in_array(oper, ['CASHOUT']), 'Сумма!!<<в ед. внутр. валюты>>', 'Сумма!!'),
-				2: {'sum_wrong': 'неверная сумма'},
+				2: {'ex_sum_wrong': _t({'key': 'opers.error.sum_wrong'}), 'ex_overflow': _t({'key': 'opers.error.amount_range'}), 'sum_precision': _t({'key': 'opers.error.amount_precision'}), 'sum_overflow': _t({'key': 'opers.error.amount_range'}), 'bal_precision': _t({'key': 'opers.error.amount_precision'}), 'bal_overflow': _t({'key': 'opers.error.amount_range'}), 'sum_wrong': 'неверная сумма'},
 				'hx_post': preview_url,
 				'hx_trigger': 'input changed delay:250ms',
 				'hx_target': '#admin-operation-preview-content',
@@ -68,7 +70,7 @@
 			'Memo': {0: 'W', 1: 'Описание', 'size': 4}
 		} %}
 		<div class="card hs-oper-card">
-		{% include "edit.twig" with {"form": 'add', "title": op_names[oper], "fields": admin_oper_fields, "errors": {'oper_disabled': 'операция отключена'}} %}
+		{% include "edit.twig" with {"form": 'add', "title": op_names[oper], "fields": admin_oper_fields, "errors": {'ex_sum_wrong': _t({'key': 'opers.error.sum_wrong'}), 'ex_overflow': _t({'key': 'opers.error.amount_range'}), 'sum_precision': _t({'key': 'opers.error.amount_precision'}), 'sum_overflow': _t({'key': 'opers.error.amount_range'}), 'bal_precision': _t({'key': 'opers.error.amount_precision'}), 'bal_overflow': _t({'key': 'opers.error.amount_range'}), 'oper_disabled': 'операция отключена'}} %}
 		</div>
 	
 	{% else %}

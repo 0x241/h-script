@@ -14,13 +14,13 @@
 	</div>
 
 	{% if list %}
-		<div class="space-y-10">
+		<div class="space-y-10" data-hs-accordion>
 			{% for category in categories %}
 				<section aria-labelledby="faq-category-{{ loop.index }}">
 					<h2 id="faq-category-{{ loop.index }}" class="mb-5 text-2xl font-bold tracking-tight text-brand dark:text-white">{% if category.name %}{{ category.name }}{% else %}{{ _t({"key": 'faq.category.general', "default": 'Общие вопросы'}) }}{% endif %}</h2>
 					<div class="space-y-4">
 						{% for l in category.items %}
-							<details class="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 open:border-blue-500 open:bg-[#EBF5FF] dark:border-gray-800 dark:bg-[#151515] dark:open:border-blue-500 dark:open:bg-blue-500/10">
+							<details name="public-faq" class="group overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-all duration-300 open:border-blue-500 open:bg-[#EBF5FF] dark:border-gray-800 dark:bg-[#151515] dark:open:border-blue-500 dark:open:bg-blue-500/10">
 								<summary class="flex cursor-pointer list-none items-center justify-between gap-6 p-6 text-xl font-bold text-brand transition-colors hover:text-blue-500 dark:text-white dark:hover:text-blue-400 [&::-webkit-details-marker]:hidden">
 									<span>{{ l.fQuestion }}</span>
 									<i class="fa-solid fa-chevron-down text-gray-400 transition-transform group-open:rotate-180 group-open:text-blue-500" aria-hidden="true"></i>

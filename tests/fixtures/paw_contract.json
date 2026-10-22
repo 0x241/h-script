@@ -1,0 +1,118 @@
+{
+  "provenance": {
+    "kind": "synthetic_only",
+    "reviewed_at": "2026-10-03",
+    "openapi_version": "2.0.0",
+    "openapi_sha256": "7fa9eb83650e422ed4e09d10b197f9d5094ac863930ef1ac4b4d829407e75e27",
+    "sources": [
+      "https://docs.pawpayments.com/api-reference/openapi.json",
+      "https://docs.pawpayments.com/billing-type",
+      "https://docs.pawpayments.com/webhooks"
+    ],
+    "notice": "Not a PAW capture, not an API response proving partner attribution, not a money-settlement acceptance vector."
+  },
+  "test_key": "sk_sandbox_synthetic_contract_key_not_a_paw_credential",
+  "create_invoice_request": {
+    "amount": "25.00",
+    "fiat_currency": "USD",
+    "billing_type": "VARY",
+    "extra": "7",
+    "notify_url": "https://hscript.example.invalid/balance/status/paw",
+    "on_paid_url": "https://hscript.example.invalid/operations",
+    "on_cancel_url": "https://hscript.example.invalid/operations",
+    "metadata": {
+      "source": "hscript",
+      "flow": "topup",
+      "operation_id": "7"
+    },
+    "webhook_format": "native_v2",
+    "fee_bearer": "client"
+  },
+  "partner_verification": {
+    "state": "information_only",
+    "documented_endpoint": null,
+    "merchant_identity_field": null,
+    "partner_identity_field": null,
+    "response_fixture": null,
+    "notice": "H-Script planning policy only. Registration information does not assert merchant attribution or gate payment processing. Cashback is manual; no automatic financial expectation is supplied.",
+    "partner_id_in_registration_link": "92483577-b00d-4cdb-b401-d33e800d908b",
+    "required_for_activation": false,
+    "scope_changed_by_user": "2026-10-04",
+    "cashback": "manual_after_transaction_reconciliation_in_paw"
+  },
+  "cases": [
+    {
+      "name": "vary_exact",
+      "delivery_channel": "webhook",
+      "raw_body": "{\"order_id\":\"000000000000000000000007\",\"external_id\":\"00000000-0000-4000-8000-000000000007\",\"status\":\"success\",\"billing_type\":\"VARY\",\"asset\":\"usdt_tron\",\"type\":\"token\",\"extra\":\"7\",\"metadata\":{\"source\":\"hscript\",\"flow\":\"topup\",\"operation_id\":\"7\"},\"fiat_currency\":\"USD\",\"fiat_amount\":25.0,\"initial_fiat_amount\":25.0,\"created_at\":1790974800,\"expires_at\":1790978400,\"processed_at\":1790974860,\"sandbox\":true,\"permanent_address_id\":null}",
+      "published_billing_terminal": true,
+      "financial_credit_expectation": "unaccepted_pending_provider_clarification",
+      "signature": "412c373e1021e54bc6bf1b63276995936834b40ff73ea3d7065d219f4c607836"
+    },
+    {
+      "name": "vary_partial",
+      "delivery_channel": "webhook",
+      "raw_body": "{\"order_id\":\"000000000000000000000007\",\"external_id\":\"00000000-0000-4000-8000-000000000007\",\"status\":\"partially_paid\",\"billing_type\":\"VARY\",\"asset\":\"usdt_tron\",\"type\":\"token\",\"extra\":\"7\",\"metadata\":{\"source\":\"hscript\",\"flow\":\"topup\",\"operation_id\":\"7\"},\"fiat_currency\":\"USD\",\"fiat_amount\":12.5,\"initial_fiat_amount\":25.0,\"created_at\":1790974800,\"expires_at\":1790978400,\"processed_at\":1790974860,\"sandbox\":true,\"permanent_address_id\":null}",
+      "published_billing_terminal": true,
+      "financial_credit_expectation": "unaccepted_pending_provider_clarification",
+      "signature": "6f132cf19cedcc2218c5854eee94f89847cbe8f023a2c16f15f9fc347f94b90a"
+    },
+    {
+      "name": "static_partial",
+      "delivery_channel": "webhook",
+      "raw_body": "{\"order_id\":\"000000000000000000000007\",\"external_id\":\"00000000-0000-4000-8000-000000000007\",\"status\":\"partially_paid\",\"billing_type\":\"STATIC\",\"asset\":\"usdt_tron\",\"type\":\"token\",\"extra\":\"7\",\"metadata\":{\"source\":\"hscript\",\"flow\":\"topup\",\"operation_id\":\"7\"},\"fiat_currency\":\"USD\",\"fiat_amount\":12.5,\"initial_fiat_amount\":25.0,\"created_at\":1790974800,\"expires_at\":1790978400,\"processed_at\":1790974860,\"sandbox\":true,\"permanent_address_id\":null}",
+      "published_billing_terminal": false,
+      "financial_credit_expectation": "unaccepted_pending_provider_clarification",
+      "signature": "fa8145187d68d416d20920457b75415992ce35676e2b9ab56d9541f16c88f27b"
+    },
+    {
+      "name": "vary_over",
+      "delivery_channel": "webhook",
+      "raw_body": "{\"order_id\":\"000000000000000000000007\",\"external_id\":\"00000000-0000-4000-8000-000000000007\",\"status\":\"paid_over\",\"billing_type\":\"VARY\",\"asset\":\"usdt_tron\",\"type\":\"token\",\"extra\":\"7\",\"metadata\":{\"source\":\"hscript\",\"flow\":\"topup\",\"operation_id\":\"7\"},\"fiat_currency\":\"USD\",\"fiat_amount\":31.25,\"initial_fiat_amount\":25.0,\"created_at\":1790974800,\"expires_at\":1790978400,\"processed_at\":1790974860,\"sandbox\":true,\"permanent_address_id\":null}",
+      "published_billing_terminal": true,
+      "financial_credit_expectation": "unaccepted_pending_provider_clarification",
+      "signature": "e637fa4ddee824bb361f7fc9010b0e5a6cb700dcc8c3de2a60d19478c7b6be98"
+    },
+    {
+      "name": "vary_expired",
+      "delivery_channel": "poll",
+      "raw_body": "{\"order_id\":\"000000000000000000000007\",\"status\":\"expired\",\"billing_type\":\"VARY\",\"asset\":\"usdt_tron\",\"type\":\"token\",\"extra\":\"7\",\"metadata\":{\"source\":\"hscript\",\"flow\":\"topup\",\"operation_id\":\"7\"},\"fiat_currency\":\"USD\",\"fiat_amount\":null,\"initial_fiat_amount\":25.0,\"created_at\":1790974800,\"expires_at\":1790978400,\"processed_at\":1790974860,\"sandbox\":true,\"permanent_address_id\":null}",
+      "published_billing_terminal": true,
+      "financial_credit_expectation": "unaccepted_pending_provider_clarification"
+    },
+    {
+      "name": "vary_refunded",
+      "delivery_channel": "poll",
+      "raw_body": "{\"order_id\":\"000000000000000000000007\",\"status\":\"refunded\",\"billing_type\":\"VARY\",\"asset\":\"usdt_tron\",\"type\":\"token\",\"extra\":\"7\",\"metadata\":{\"source\":\"hscript\",\"flow\":\"topup\",\"operation_id\":\"7\"},\"fiat_currency\":\"USD\",\"fiat_amount\":25.0,\"initial_fiat_amount\":25.0,\"created_at\":1790974800,\"expires_at\":1790978400,\"processed_at\":1790974860,\"sandbox\":true,\"permanent_address_id\":null}",
+      "published_billing_terminal": null,
+      "financial_credit_expectation": "unaccepted_pending_provider_clarification"
+    },
+    {
+      "name": "whitespace_tamper",
+      "delivery_channel": "webhook",
+      "raw_body": "{ \"order_id\":\"000000000000000000000007\",\"external_id\":\"00000000-0000-4000-8000-000000000007\",\"status\":\"success\",\"billing_type\":\"VARY\",\"asset\":\"usdt_tron\",\"type\":\"token\",\"extra\":\"7\",\"metadata\":{\"source\":\"hscript\",\"flow\":\"topup\",\"operation_id\":\"7\"},\"fiat_currency\":\"USD\",\"fiat_amount\":25.0,\"initial_fiat_amount\":25.0,\"created_at\":1790974800,\"expires_at\":1790978400,\"processed_at\":1790974860,\"sandbox\":true,\"permanent_address_id\":null}",
+      "signature": "412c373e1021e54bc6bf1b63276995936834b40ff73ea3d7065d219f4c607836",
+      "signature_valid": false
+    },
+    {
+      "name": "wrong_key",
+      "delivery_channel": "webhook",
+      "raw_body": "{\"order_id\":\"000000000000000000000007\",\"external_id\":\"00000000-0000-4000-8000-000000000007\",\"status\":\"success\",\"billing_type\":\"VARY\",\"asset\":\"usdt_tron\",\"type\":\"token\",\"extra\":\"7\",\"metadata\":{\"source\":\"hscript\",\"flow\":\"topup\",\"operation_id\":\"7\"},\"fiat_currency\":\"USD\",\"fiat_amount\":25.0,\"initial_fiat_amount\":25.0,\"created_at\":1790974800,\"expires_at\":1790978400,\"processed_at\":1790974860,\"sandbox\":true,\"permanent_address_id\":null}",
+      "signature": "fc30330fbac155ad78f1ddc12037b1370f814fdc859173bd46188dfc91ee68a3",
+      "signature_valid": false
+    },
+    {
+      "name": "missing_signature",
+      "delivery_channel": "webhook",
+      "raw_body": "{\"order_id\":\"000000000000000000000007\",\"external_id\":\"00000000-0000-4000-8000-000000000007\",\"status\":\"success\",\"billing_type\":\"VARY\",\"asset\":\"usdt_tron\",\"type\":\"token\",\"extra\":\"7\",\"metadata\":{\"source\":\"hscript\",\"flow\":\"topup\",\"operation_id\":\"7\"},\"fiat_currency\":\"USD\",\"fiat_amount\":25.0,\"initial_fiat_amount\":25.0,\"created_at\":1790974800,\"expires_at\":1790978400,\"processed_at\":1790974860,\"sandbox\":true,\"permanent_address_id\":null}",
+      "signature": "",
+      "signature_valid": false
+    }
+  ],
+  "known_contract_conflicts": [
+    "PHP documentation fiat/fiat_amount request aliases are absent from the canonical OpenAPI and are not normalised by the PHP SDK.",
+    "Webhooks generic partially_paid advice lacks the VARY terminal exception.",
+    "Webhooks initial_fiat_amount settlement advice needs clarification against VARY actual credited fiat_amount and commission/rounding policy.",
+    "Sandbox simulation includes expired/refunded, while webhooks documentation says neither is pushed."
+  ]
+}

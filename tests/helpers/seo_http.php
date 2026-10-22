@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
+
 // Shared read-only HTTP transport. BASE_URL may include an installation subdirectory.
 $base = rtrim($argv[1] ?? '', '/');
 if (!preg_match('~^https?://~', $base)) {

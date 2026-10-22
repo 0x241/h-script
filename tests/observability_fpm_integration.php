@@ -1,5 +1,7 @@
 <?php
 
+if (PHP_SAPI !== 'cli' && !(PHP_SAPI === 'fpm-fcgi' && getenv('H_SCRIPT_TEST_FPM') === '1')) { http_response_code(404); exit; }
+
 use HScript\Observability\MetricRegistry;
 use HScript\Observability\OperationalStateRepository;
 use HScript\Observability\StructuredLogger;
@@ -95,7 +97,7 @@ try
 	}
 	$socket = $root . '/fpm.sock';
 	$config = $root . '/fpm.conf';
-	file_put_contents($config, "[global]\nerror_log = $root/fpm.log\ndaemonize = no\n[probe]\nuser = www-data\ngroup = www-data\nlisten = $socket\npm = static\npm.max_children = 1\n");
+	file_put_contents($config, "[global]\nerror_log = $root/fpm.log\ndaemonize = no\n[probe]\nuser = www-data\ngroup = www-data\nlisten = $socket\nenv[H_SCRIPT_TEST_FPM] = 1\npm = static\npm.max_children = 1\n");
 	$process = proc_open(array($fpm, '-F', '-y', $config), array(
 		0 => array('file', '/dev/null', 'r'), 1 => array('file', $root . '/fpm.log', 'a'), 2 => array('file', $root . '/fpm.log', 'a'),
 	), $pipes);
