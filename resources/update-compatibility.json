@@ -6,7 +6,7 @@
     },
     "schema": {
         "minimum": "1.0.0",
-        "maximum": "1.0.11"
+        "maximum": "1.0.16"
     },
     "environment": {
         "php": {

@@ -85,4 +85,8 @@ $check(opArrayPageGet(0, 10, $rows) === range(1, 10), 'Public first page must ig
 $check(opArrayPageGet(2, 10, $rows) === array_combine(range(10, 19), range(11, 20)), 'Public explicit page');
 unset($_GS['url_locale']);
 $check(opArrayPageGet(0, 10, $rows) === array_combine(range(10, 19), range(11, 20)), 'Private session pagination retained');
+$metadata=HScript\Http\PublicSeo::metadata($router,'https://fixture.invalid','faq','faq','en',['ru'],[], '', true, [], ['ru','en']);
+$check(array_keys($metadata['languages'])===['ru','en'] && !$metadata['indexable'] && $metadata['alternates']===[], 'Missing editorial markers never block language navigation or invent SEO translations');
+$metadata=HScript\Http\PublicSeo::metadata($router,'https://fixture.invalid','faq','faq','ru',['ru'],[], '', true, [], ['ru','en']);
+$check(array_keys($metadata['languages'])===['ru','en'] && array_keys($metadata['alternates'])===['ru','x-default'], 'Language links and proven SEO alternates are independent');
 echo "Locale routing tests passed (" . count($_rwlinks) . " registered routes, $publicCount public routes).\n";

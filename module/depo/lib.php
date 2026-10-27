@@ -187,6 +187,7 @@ function opDepoCreate($uid, $cid, $sum, $compnd = 0, $pid = 0, $by_admin = false
         if (!$cid) return 'psys_empty';
         if (!isset($_currs[$cid])) return 'psys_wrong';
         useLib('balance');
+        if(!HScript\Payment\Provider\CurrencyArchive::writable($db,[(int)$cid]))return 'currency_archived';
         opDepoLockGroup($uid, $cid);
         $sum = opMoney($sum, $cid)->decimal();
         DepositPolicy::stored($sum);

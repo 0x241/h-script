@@ -23,3 +23,15 @@ archives and reports remain readable by the Configurator. The mounted policy
 and password files must be readable by that user, never world-readable.
 The default interval is one hour. Failed one-shot jobs exit nonzero; the scheduler
 retains retries. Notification delivery is bounded to five seconds.
+
+For staging CI, set the protected, environment-scoped `RECOVERY_ENABLED=1`
+only after the first successful verified bundle and isolated drill. The deploy
+job persists recovery settings in its private `.env`, including the external
+secrets path, limited drill account and shared freshness policy. Leaving the
+worker disabled does not waive production update checks: SQL backups from the
+Configurator cannot refresh the separate database/files recovery report.
+
+The scheduler repeats a drill when its previous backup is no longer retained,
+its source schema changes, or its evidence is incomplete or expired. Keep row
+bounds installation-specific; review legitimate count changes against a freshly
+verified isolated restore rather than disabling bounds or increasing age limits.

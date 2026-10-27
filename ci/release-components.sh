@@ -9,7 +9,8 @@ component_root=$(pwd)
 component_credentials=$(mktemp -d)
 trap 'rm -rf -- "$component_credentials"' EXIT HUP INT TERM
 export DOCKER_CONFIG="$component_credentials"
-printf '%s' "$CI_REGISTRY_PASSWORD" | docker login "$CI_REGISTRY" --username "$CI_REGISTRY_USER" --password-stdin
+export PATH="$component_root/ci:$PATH"
+python3 ci/docker-credential-hscript-ci configure "$DOCKER_CONFIG"
 exact="${CANDIDATE_REF%@*}@$CANDIDATE_DIGEST"
 test "$(docker buildx imagetools inspect "$exact" --format '{{.Manifest.Digest}}')" = "$CANDIDATE_DIGEST"
 mkdir -p dist
@@ -23,7 +24,7 @@ mkdir -p dist
             cd /var/www/html
             test "$(tr -d "\r\n" < VERSION)" = "$EXPECTED_APPLICATION_VERSION"
             test "$(tr -d "\r\n" < SCHEMA_VERSION)" = "$EXPECTED_SCHEMA_VERSION"
-            for suite in decimal_money decimal_exchange decimal_deposit decimal_referral decimal_output decimal_forecast decimal_aggregate decimal_plan decimal_configuration decimal_closure gateway_decimal_wire fiat_rates crypto_rates rate_update update_foundation update_activation update_runtime api_v1 job_queue telemetry domain_proof telemetry_pagination_scale backup payment_gateways gateway_webhooks gateway_callback_policy paykassa_callbacks volet_callbacks ccapi_callbacks paw_provider stripe_provider token_routes token_catalog security_redaction recovery integrity configurator_lifecycle translations configurator_translations template_runtime_helpers json_ld_output csp_policy csp_reports ndjson_retention csp_turnstile htmx_csp session_csrf cron_authentication failed_login_policy test_access; do
+            for suite in decimal_money decimal_exchange decimal_deposit decimal_referral decimal_output decimal_forecast decimal_aggregate decimal_plan decimal_configuration decimal_closure gateway_decimal_wire fiat_rates crypto_rates currency_rates rate_update update_foundation update_activation update_runtime api_v1 job_queue telemetry domain_proof telemetry_pagination_scale backup payment_gateways gateway_webhooks gateway_callback_policy paykassa_callbacks volet_callbacks ccapi_callbacks paw_provider paw_native paw_payout faq_categories locale_routing public_seo stripe_provider token_routes token_catalog security_redaction recovery integrity configurator_lifecycle translations configurator_translations template_runtime_helpers json_ld_output csp_policy csp_reports ndjson_retention csp_turnstile htmx_csp session_csrf cron_authentication failed_login_policy test_access; do
                 php "tests/$suite.php"
             done
             sh tests/recovery_scheduler.sh

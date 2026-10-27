@@ -46,6 +46,10 @@ test('preconfirmation: actual deposit/pay POST saves one protected invoice and r
   const html=await response.text();
   expect(html).not.toMatch(/<b>(?:Warning|Notice|Fatal error)<\/b>/);
   await expect.poll(()=>providerNavigations).toBe(1);
+  // A routed request is observed before its navigation commits. Wait for the
+  // intercepted checkout document before using its JavaScript context.
+  await expect(page).toHaveURL(`https://crypto.paykassa.pro/sci/index.php?hash=fixture_paykassa_${id}`);
+  await expect(page.getByText('Isolated payment form intercepted',{exact:true})).toBeVisible();
   const formData=await page.evaluate(html=>{
     const document=new DOMParser().parseFromString(html,'text/html');const form=document.querySelector('form[name="pay_form"]');
     return form?{method:form.method,action:form.action,fields:Object.fromEntries(new FormData(form))}:null;
@@ -58,7 +62,8 @@ test('preconfirmation: actual deposit/pay POST saves one protected invoice and r
   await reject(request,body(id)+'&private_hash=duplicate',400);
   await reject(request,body(id)+'&order_id=999999',400);
   await reject(request,body(id,'good',{currency:'ETH'}),400);
-  await reject(request,body(id,'good',{order_id:'999999'}),400);
+  // A well-formed unknown order has no original currency/credential route.
+  await reject(request,body(id,'good',{order_id:'999999'}),404);
   await reject(request,body(mutationCases().unknown,'good',{private_hash:'unknown'}),503);
   await reject(request,body(id).replace('private_hash=', 'private_hash%5B%5D='),400,'/balance/status?its=PKB');
   await reject(request,body(id).replace('private_hash=', 'private_hash=%GG'),400);
@@ -86,7 +91,7 @@ test('settlement: twelve concurrent callbacks and exact replay credit one invoic
   await reject(request,body(saved.id,'forged'),503);
   await reject(request,body(saved.id,'good',{currency:'ETH'}),400);
   await reject(request,body(saved.id,'good',{system:'Ethereum'}),400);
-  await reject(request,body(saved.id,'good',{order_id:'999999'}),400);
+  await reject(request,body(saved.id,'good',{order_id:'999999'}),404);
   await reject(request,saved.body+'&private_hash=duplicate',400);
 });
 
@@ -97,6 +102,6 @@ test('restart: installed callback identity replays and rejects changed immutable
   expect(queryOverride.status()).toBe(200);expect(await queryOverride.text()).toBe(saved.id+'|success');
   await reject(request,body(saved.id,'forged'),503);
   await reject(request,body(saved.id,'good',{currency:'ETH'}),400);
-  await reject(request,body(saved.id,'good',{order_id:'999999'}),400);
+  await reject(request,body(saved.id,'good',{order_id:'999999'}),404);
   await reject(request,saved.body+'&private_hash=duplicate',400);
 });

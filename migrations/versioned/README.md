@@ -89,3 +89,38 @@ registry; `APP_AUTO_INSTALL=0`. Повтор проверяет структур
 
 Контракт, тесты и оставшиеся интеграции: [ci/financial/idempotency.md](../../ci/financial/idempotency.md).
 Фаза 2 пока не завершена; реестр ещё не подключён к финансовым HTTP маршрутам.
+
+
+## Schema 1.0.13: PAW outgoing capability
+
+`202610241200_paw_payouts.php` upgrades 1.0.12 with a verified backup through the
+normal Configurator or bundled updater. Keep `APP_AUTO_INSTALL=0`. It replaces
+the exact inbound-only PAW CHECK with the native incoming/outgoing guard, adding
+the successor before dropping the predecessor. Currency IDs, balances, history,
+credentials and existing modes are preserved; it does not enable withdrawals.
+
+Configure each live PAW currency separately after migration. Users save USDT in
+TRON or USDC in Ethereum and select the destination on withdrawal. PAW converts
+the original accounting fiat and the merchant absorbs network costs. The job
+queue sends one committed request, then cron polls only its saved provider order.
+A timeout without acknowledgment requires reconciliation and never authorizes a
+second send. Sandbox keys cannot issue payouts. Downgrading to an inbound-only
+image requires the documented verified restore procedure; do not replay older
+migrations over an upgraded database.
+
+
+## Schema 1.0.14: PayKassa currency and network catalog
+
+`202610241600_paykassa_assets.php` expands the exact provider CHECK after a verified
+backup, using one atomic ALTER. No balance, operation, currency ID, credential or
+mode is changed. Apply the ordered update through Configurator with
+`APP_AUTO_INSTALL=0`; new network choices require this capability before saving.
+Each newly added network/currency pair has a separate adapter and asset key.
+Existing BTC/ETH/LTC and legacy USDT/USDC invoice histories retain their identities.
+
+PayKassa connections now support live operations only. A previously saved sandbox
+profile is blocked, never silently converted to live. Retire it with history
+preserved, disable the merchant test setting in PayKassa, and connect a live
+profile. Existing financial history is not deleted. The additional incoming
+assets use authenticated SCI confirmation and original invoice/network/tag checks;
+their outgoing automation stays disabled pending a separate payout contract.

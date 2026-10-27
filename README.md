@@ -1,6 +1,6 @@
 # H-Script
 
-H-Script 1.0.7 is a PHP CMS for financial projects. It includes user accounts,
+H-Script 1.0.8 is a PHP CMS for financial projects. It includes user accounts,
 deposits, payment gateways, a referral system, administration tools, installation
 telemetry, and a versioned REST API.
 
@@ -1022,7 +1022,7 @@ Run `php tests/volet_callbacks.php` for offline checks; the financial matrix
 includes SQL tests. The isolated HTTP runner is `tests/volet_http_isolated.sh`,
 using the same image arguments and browser environment as the Paykassa runner.
 
-Automatic inbound settlement preserves the operation's agreed gross amount and
+Automatic fixed-amount inbound settlement preserves the operation's agreed gross amount and
 local commission. Checkout commits that intent before contacting a provider;
 later percentage, minimum, maximum or amount-range policy edits apply to new
 orders, while an existing invoice retains its original fee. Changes to its
@@ -1050,12 +1050,21 @@ these captures establish local behavior, while real merchant compatibility
 remains a separate operational check. Tests and fixture files are excluded
 from release artifacts and reject HTTP execution even if mounted locally.
 
+PAW VARY top-ups preserve the original requested fiat and fixed H-Script fee in
+an immutable invoice snapshot. A verified final payment records its actual paid
+fiat in the operation and credits actual fiat minus that fixed fee. Partial
+payments at or below the fee require reconciliation. Sandbox invoices are
+simulated and have no hosted checkout; webhook delivery requires public HTTPS.
+Automated PAW payouts remain disabled.
+
 Partner registration for PAW Payments is informational and does not require
 an attribution API. H-Script cashback is
 paid manually after reconciling transactions in PAW; automatic cashback is
-outside the integration. Connect PAW through the ordinary payment-system form at `/admin/curr?add`;
-its currency connections remain disabled until native VARY settlement and
-financial acceptance are complete.
+outside the integration. Connect PAW through the ordinary payment-system form at
+`/admin/curr?add`, enter the shared key once and select the accounting currencies.
+Apply the backup-protected schema `1.0.12` update before enabling top-ups in each
+currency. New connections are disabled by default; automatic PAW payouts remain
+unavailable.
 
 To replay the populated local stand itself, capture a private read-only
 projection and supply its container path to each matrix command:
@@ -1130,6 +1139,22 @@ local/development/test `APP_ENV`, exact `hs.local` domain and a local database
 host. Keep test scripts out of the production document root; on other web
 servers apply equivalent directory-denial rules. `php tests/test_access.php`
 checks every PHP test with GET/POST even without Apache rules.
+
+### Currency selection and archive
+
+On a gateway connection page, selecting a currency enables that currency while
+leaving its payment and payout modes separately configurable. Restoring an
+archived currency retains its original ID, balances and history, and leaves all
+financial modes off. Existing modes must satisfy the same capability checks as
+an individual currency save. The global gateway must also be enabled.
+
+A network page activates only its visible selected assets; retained selections
+from other networks are preserved without activation. PayKassa places token links
+inside the corresponding coin cards and keeps its original SCI system IDs and
+shared Ethereum/TRON USDT ledger, shown on both network pages. Selected currencies
+appear first within each group. Historical duplicate manual accounts require
+choosing the original account in its own settings. CoinPayments NEW remains
+configuration-only pending verified settlement support.
 
 ### Custom template modes
 
@@ -1676,392 +1701,3 @@ is not affected by that local socket artifact.
 
 See `CHANGELOG.md` for release history. Confirm the repository license and all
 third-party gateway SDK licenses before distributing a production release.
-
-### Ручной cron и частота телеметрии
-
-На `/admin/cron` кнопка ручного вызова выполняет задания, срок которых наступил.
-Нужны права администратора и действующий CSRF-сертификат; в demo запуск доступен
-владельцу уровня 99. Одновременный запуск блокируется общей блокировкой базы.
-Начисления выполняются перед внешними курсами и доставкой сообщений. Сохранение
-переключателя cron сохраняет расписания модулей; статистика показывает время
-начала последнего вызова отдельно от следующего срока.
-
-Телеметрия автоматически повторяется раз в сутки. Кнопки регистрации/отправки
-администратора используют общий минимальный интервал **5 минут**, сохранённый
-в базе до сетевого запроса. Ошибка, параллельные запросы и перезапуск PHP этот
-лимит не сбрасывают. Повторная кнопка во время ожидания сохраняет настройки и
-показывает сообщение об ограничении.
-
-`tests/failed_login_isolated.sh` также запускает `cron_telemetry_database.php`:
-16 конкурирующих процессов, повторы после ошибки/перезапуска, недоступное
-хранилище, расписание и блокировка cron. Клиенты телеметрии фальшивые; база и
-сеть создаются отдельно. Эти тесты защищены тем же CLI/HTTP запретом, что и фейкер.
-
-### Фаза 2: реестр идемпотентности
-
-Миграция schema 1.0.4 и транзакционный реестр ключей/результатов требуют
-резервной копии перед обновлением.
-Для проверки на отдельной пустой базе из родительского Compose-каталога:
-
-```sh
-sh www/h-script-3/tests/idempotency_isolated.sh <candidate-image> mysql:8.4
-```
-
-Та же команда поддерживает MariaDB 10.11/11.4. Проверяются повтор, конфликт,
-владелец/маршрут, 16 процессов и авария после claim/operation/commit.
-Новые тесты также исключены из production образа и запрещены через HTTP.
-После установки сохраняйте `APP_AUTO_INSTALL=0`; обновления схемы выполняйте
-через явный шаг миграции после резервного копирования.
-
-### CryptoCurrencyAPI v3: native inputs
-
-For **CCAB/CCAL/CCAD/CCAG/CCAH** (BTC/LTC/DASH/DOGE/BCH), set the ordinary SCI
-fields **Protocol version = 3** and **Version 3 API key**. The separate API fields
-use the same format for balance queries. Existing `apipass` credentials and old
-URL-only invoices are not migrated: reconcile those invoices before using this
-profile. Keep each installation's callback URL distinct; invoice `uniqID` includes
-its SHA-256 namespace so two installations sharing a provider key do not overwrite
-each other's receiver callback settings. Key rotation also requires reconciling
-outstanding invoices. Native v3 payouts are unavailable.
-
-The checkout shows the saved receiver, asset and exact amount. Automatic credit
-requires one scalar positive operation label, the original receiver/gross/asset,
-empty native `token` and `tokenContract`, and the original encrypted invoice and
-fee proof. Later commission policy edits preserve the originally agreed local
-fee; the provider's network fee is separate. Confirmations 0/1 remain pending.
-Manual values **100 and 101** require reconciliation: the official
-[IPN overview](https://new.cryptocurrencyapi.net/docs/.ipn/ipn-overview) and
-[manualConfirm method](https://new.cryptocurrencyapi.net/docs/.api/method-manualConfirm)
-state different manual values, so neither triggers automatic credit.
-
-This bounded profile accepts decimal strings and safe integer JSON tokens, a
-closed set of scalar IPN fields and colon-free signed values. Array labels/IDs,
-token transfers, prefixed BCH cashaddr (`bitcoincash:`), raw fractional/scientific
-JSON numbers, extra fields and legacy callbacks require reconciliation. Unprefixed
-native BCH addresses are supported. Accepted provider time is bound across
-pending/final/replay; no undocumented maximum settlement age is imposed. Full
-`txid#pos` remains the permanent registry identity; only the legacy 40-character
-operation batch column uses a shorter storage alias, never replay authority. The
-[official signature algorithm](https://new.cryptocurrencyapi.net/ru/docs/.ipn/ipn-php)
-hashes sorted values without key names or delimiter escaping, which requires
-these restrictions. Captured merchant callbacks have not been used to claim
-broader wire compatibility.
-
-Offline verification: `php tests/ccapi_callbacks.php`. For real SQL, run from the
-parent Compose directory:
-
-```sh
-sh www/h-script-3/tests/financial_isolated.sh <candidate-image> mysql:8.4
-sh www/h-script-3/tests/ccapi_http_isolated.sh <candidate-image> mysql:8.4
-```
-
-The existing matrix also supports MariaDB 10.11/11.4. Fixtures use disposable
-internal networks and fake provider transport. Test entry points deny HTTP and
-are excluded from production images; no live merchant API is called.
-
-### Decimal commissions, exchanges and balance storage
-
-Commission calculation and shared balance mutations use `brick/math` through
-Composer. Commission rounding preserves the existing order: HALF_UP to six
-places, then the currency scale, minimum-before-maximum clamp, then the currency
-scale again. Additional operation commission is rounded separately after the
-clamp. Existing stored balances and informational receipt amounts are preserved.
-
-Current money columns remain `DECIMAL(13,6)` with a maximum of
-`9999999.999999`. A currency configured with eight decimals may use only amounts
-exactly representable in those columns; extra nonzero places or overflow are
-rejected before financial writes. No schema or existing balance conversion is
-performed. Exchange arithmetic preserves the source-scale intermediate rounding
-before target conversion. New saved quotes are fixed strings at the final target
-scale, matching the paired credit (including exchanges to the base currency).
-Later rate changes do not recalculate a saved quote; existing receipts are not
-rewritten. Nonpositive rate factors, rounded-zero outputs, storage precision loss
-and overflow are rejected before a new source operation is created. Exchange
-preview uses the base currency's commission for internal-currency withdrawals.
-
-Coinbase rates are accepted only as positive plain decimal strings (at most 36
-whole and 18 fractional digits); numeric JSON, exponents and locale notation are
-rejected. CBR XML values allow the documented decimal comma and a positive
-integer nominal. Per-unit CBR division uses HALF_UP18; cross-base fiat ratios
-retain HALF_UP4. Missing, malformed or rounded-zero fiat quotes reject the whole
-fiat group and leave its existing configuration intact. Valid enabled crypto
-quotes may still be collected independently. All validated quotes and LastUpdate
-are saved in one transaction; a failed write rolls back the whole publication.
-The existing hourly cron guard remains in place.
-
-Browser CASHIN with internal-denominated input and external registration bonuses
-now divide the raw amount by the canonical currency code's rate, then round once
-at the destination currency scale, without EXIn/EXOut adjustments. Commission
-and net previews use the same converted CASHIN amount. Missing or invalid rates,
-rounded-zero amounts, storage precision loss and overflow are refused. Bonus
-currencies remain independent; an unsupported currency is skipped. REST deposit
-amount units and existing registration-event retry semantics are unchanged.
-New API monetary fields use decimal strings; completed response snapshots retain
-their original representation.
-
-`php tests/decimal_money.php` checks the decimal types and independent rounding
-vectors. The isolated financial command above also runs
-`tests/financial_decimal_money.php`, `tests/financial_decimal_exchange.php` and
-`tests/financial_decimal_rates.php` and `tests/financial_decimal_deposit.php`
-against each supported database. `php tests/decimal_exchange.php` checks separate
-Python Decimal oracle vectors for exchange rounding at all scales. These tests
-are CLI-only and excluded from production packages. Rate response and publishing
-checks also run with `php tests/fiat_rates.php`, `php tests/crypto_rates.php` and
-`php tests/rate_update.php`; these use synthetic responses without network calls.
-
-Deposit writers use exact decimal principal, valuation and percentages. New
-bonus, profit and reinvestment amounts round HALF_UP to six places and then the
-configured currency scale; compound percentages round HALF_UP to two places.
-Opening plan eligibility, bonus and referral event basis retain the gross amount.
-The stored initial principal excludes the GIVE commission, and the active
-principal includes that net amount plus the bonus. Top-ups and reinvestment add
-only the actual GIVE net. Creation and top-ups require a positive net
-contribution, including when an opening bonus is configured. Partial withdrawals reduce principal by the gross TAKE
-amount and apply the existing commission order.
-
-Existing six-place principal is preserved on full withdrawal, administrative
-close and 100% maturity return. Other maturity percentages round the worked
-principal at the earnings boundary and add the exact compounded principal.
-Plan transition caps use the native principal minimum, with division rounded
-CEILING at the smaller of the currency scale and six storage places. Plan changes
-validate ownership, amount range, capacity, prerequisites and compound bounds;
-the current deposit is excluded from capacity counts. Active hidden plans still
-occupy their group. Hidden plans require the
-administrator path. Negative bonus/profit/return plans are now unsupported for
-new deposits or plan transitions, and negative earnings/returns refuse accrual.
-Positive returns above 100% remain supported within storage and balance limits.
-
-Every deposit writer checks the total active principal against the owner's
-locked bucket under transaction locks. Existing mismatches refuse mutation and
-require administrator reconciliation; this release does not repair old rows.
-Failed writes and unrepresentable amounts roll back the entire financial unit,
-including the accrual boundary and idempotency receipt.
-
-`php tests/decimal_deposit.php` checks 200 independent Python Decimal vectors.
-Regenerate them with `python3 tests/fixtures/decimal_deposit_oracle.py`. The SQL
-suite checks commissions, historical principal, plan transitions, precision,
-overflow, failed writes, nested transactions and boundary retries. Run it through
-the same disposable three-database matrix above. Tests and fixture generators
-remain excluded from release images and archives; PHP entry points deny HTTP.
-
-Referral rewards calculate the exact source amount times the configured rate,
-round HALF_UP to six places, then to the receiving currency scale. CASHIN uses
-settled net or the saved target quote after conversion; deposit opening retains
-gross basis and deposit earnings use gross profit. Rates retain their configured
-precision. Numeric settings accept leading/trailing decimal points and bounded
-scientific notation without floats; percentage input allows up to 36 integer
-and 18 fractional places, independently of request-money precision.
-Nonpositive rates, rounded-zero rewards and inactive sponsors receive
-no payout; the flat chain continues to higher ancestors. A short personal rate
-override skips absent absolute levels instead of shifting another rate upward.
-
-Tier thresholds compare exact decimal aggregates, including totals above the
-range of an individual stored amount. Configured order and duplicate thresholds
-are preserved; lookup stops at the first higher threshold. Every entry is
-validated before any payout; a signed exponent does not act as the
-threshold/percentage separator. Type 3 includes all
-deposit states of direct referrals, and type 4 includes the sponsor's active
-principal. Both preserve the existing sum across currencies without conversion.
-Malformed rates/tiers, unrepresentable rewards and failed writes abort all levels
-and the originating financial transaction, including queued notifications.
-Existing rows are not rewritten. CASHIN completion, deposit opening and each
-accrual period now bind the source identity, owner, currency, basis and original
-REF operation IDs in a durable receipt within the source transaction. Exact
-retries keep that receipt despite later rate or sponsor configuration changes.
-A changed basis conflicts. First issuance requires the actual source transition;
-a bare event for an unbound historical source returns `ref_source_unbound`, even
-inside a caller transaction. Review such history instead of inferring payouts
-from matching sponsor tags or sums. There is no automatic historical backfill.
-
-Sponsor eligibility, ancestry, personal overrides and tier metrics use current
-locked SQL rows inside the financial transaction, including nested callers with
-an earlier read snapshot. Request configuration and rates keep their existing
-request scope.
-
-The configured flat traversal rejects a repeated user, including an inactive
-sponsor, before paying that user twice. A cycle rolls back the original source,
-earlier rewards, receipt and queued notifications. Tier mode pays one sponsor
-and rejects a self-reference. These rules apply to the configured traversal;
-they do not perform a global inventory of every account's referral graph.
-
-`php tests/decimal_referral.php` checks 252 Python Decimal vectors. Regenerate
-them with `python3 tests/fixtures/decimal_referral_oracle.py`. The isolated matrix
-also runs `tests/financial_decimal_referral.php`, covering actual event basis,
-overrides, threshold boundaries, inactive sponsors, SQL failures and rollback.
-
-`tests/financial_referral_once.php` adds 90 seeded graphs with an independent
-Python Decimal issuance oracle, real concurrent PHP workers under REPEATABLE
-READ and READ COMMITTED, separate deposit periods, fresh-process replay, source
-cycles, nested caller rollback and genuine late SQL failures. Each scenario
-reconciles exact expected audit findings and verifies the source plus rewards.
-Regenerate its offline cases with
-`python3 tests/fixtures/financial_referral_oracle.py`; the generator has no
-network or database access. Set `H_SCRIPT_FINANCIAL_REFERRAL_LEGACY_IMAGE` to an
-immutable image from before these bindings to exercise a genuine old producer
-and the candidate on the same disposable database. Use
-`H_SCRIPT_FINANCIAL_CANDIDATE=1` to test installed candidate runtime with only
-tests supplied externally. The legacy registration cutover option can run in
-the same matrix. Test files and generators stay excluded from releases and
-PHP entry points refuse HTTP.
-
-The shared `_z` template formatter rounds HALF_UP only at display time and
-escapes localized currency text. API serialization does not perform display
-rounding. `php tests/decimal_output.php` checks 162 Python Decimal formatting
-vectors; regenerate with `python3 tests/fixtures/decimal_output_oracle.py`.
-The isolated financial matrix also checks exact SQL projections and old/new
-receipt replay in `tests/financial_decimal_output.php`. To exercise installed
-API output and actual app restart, run from the Compose root:
-
-```sh
-H_SCRIPT_FINANCIAL_BROWSER_IMAGE=hscript-lifecycle-browser:local \
-  sh www/h-script-3/tests/decimal_output_http_isolated.sh CANDIDATE_IMAGE mysql:8.4
-```
-
-That runner bootstraps only a disposable internal database and uses synthetic
-read fixtures, including wide totals and a negative historical net. Those
-fixtures test serialization, without claiming a reconciled economic state.
-Tests remain excluded from release images/archives and PHP test entry points
-deny HTTP even when web-server rules are absent.
-
-The deposit calculator uses exact decimal strings and preserves its historical
-two-place HALF_UP rounding at every step. It is a preview of plan percentages,
-bonus, compound and return; it does not simulate settlement fees, conversions or
-calendar accruals. Compounding is limited to 0–100%, calculation work to 10,000
-periods and intermediate amounts to 36 whole digits. Unsupported forecasts show
-an unavailable message without writing any financial rows. Deposit list current
-profit rounds HALF_UP at six places; hourly profit uses the receiving currency
-scale. The `decimal_format` Twig filter groups fixed decimal text without floats.
-
-Run `php tests/decimal_forecast.php` for 180 Python Decimal forecast cases and
-regenerate the fixture with `python3 tests/fixtures/decimal_forecast_oracle.py`.
-The installed isolated financial matrix also runs
-`tests/financial_decimal_forecast.php`: 216 SQL list projections, controller input
-fallbacks, nullable historical amounts and checks that reading a forecast never
-mutates financial tables. Existing SQL NULL amounts are interpreted as zero at
-read boundaries; stored rows are not rewritten.
-
-The actual browser calculator, grouped decimal output, escaping, bounded work
-and unchanged stored rows across restart can be checked from the Compose root:
-
-```sh
-H_SCRIPT_FINANCIAL_BROWSER_IMAGE=hscript-lifecycle-browser:local \
-  sh www/h-script-3/tests/decimal_forecast_http_isolated.sh CANDIDATE_IMAGE mysql:8.4
-```
-
-This runner creates only synthetic data in a disposable internal database.
-
-Read-only deposit statistics, administrator totals and cabinet currency groups
-use exact decimal sums. SQL totals keep six places; valued deposit statistics
-retain rate/offset precision until HALF_UP display rounding. Existing gross/net,
-operation-state, Auto memo, date and disabled-system rules remain in place.
-The filtered cash flow is calculated with exact six-place subtraction before Twig.
-Missing/NULL/non-numeric read values mean zero without rewriting stored rows;
-this fallback is not used for financial writes. Wallet allocation rounds HALF_UP
-to one place, and balances sort by exact value. Fixed-format computed display
-values are bounded to 80 whole and 36 fractional digits; scientific input keeps
-the existing 36/18 bounds. Public telemetry uses its own fixed-eight-place string
-contract, described under Decimal provider and public-statistics boundaries below.
-
-Run `php tests/decimal_aggregate.php` for independent Python portfolio and valued
-sum vectors; regenerate with `python3 tests/fixtures/decimal_aggregate_oracle.py`.
-The isolated installed financial matrix runs `tests/financial_decimal_aggregate.php`
-on synthetic SQL sums, nullable rows and exact rates/offsets and verifies that
-reads leave all financial tables unchanged. Actual administrator statistics,
-period/system selection and cabinet reads are checked across app restart:
-
-```sh
-H_SCRIPT_FINANCIAL_BROWSER_IMAGE=hscript-lifecycle-browser:local \
-  sh www/h-script-3/tests/decimal_aggregate_http_isolated.sh CANDIDATE_IMAGE mysql:8.4
-```
-
-Run from the Compose root. This runner only creates a disposable internal
-synthetic database with the administrator login-mail recipient disabled for this
-read-only projection check; all queued rows remain part of the fingerprint.
-PHP test entry points deny HTTP and release artifacts exclude
-the test directory.
-
-Administrator plan money guards can be checked with `php tests/decimal_plan.php`;
-regenerate the independent Python vectors with
-`python3 tests/fixtures/decimal_plan_oracle.py`. The installed isolated financial
-matrix also checks actual SQL storage, manual accrual receipts and late scheduler
-write failures with `tests/financial_decimal_plan.php` on disposable databases.
-For native plan/manual forms and receipt replay after an application restart,
-run from the Docker Compose project root:
-
-```sh
-H_SCRIPT_FINANCIAL_BROWSER_IMAGE=hscript-lifecycle-browser:local \
-  sh www/h-script-3/tests/decimal_plan_http_isolated.sh CANDIDATE_IMAGE mysql:8.4
-```
-
-This runner uses an internal network and a fresh synthetic database; no source
-or production database is mounted. Tests are CLI-only, denied by HTTP and excluded
-from the installed release. Never copy the test directory to a public web root.
-
-Currency/calendar exact storage guards are tested with
-`php tests/decimal_configuration.php` and the installed isolated financial matrix.
-Independent Python cases can be regenerated with
-`python3 tests/fixtures/decimal_configuration_oracle.py`.
-From the Compose root, native forms and restart reads use the same disposable
-fixture isolation and release/HTTP test restrictions described above:
-
-```sh
-H_SCRIPT_FINANCIAL_BROWSER_IMAGE=hscript-lifecycle-browser:local \
-  sh www/h-script-3/tests/decimal_configuration_http_isolated.sh CANDIDATE_IMAGE mysql:8.4
-```
-
-Decimal provider and public-statistics boundaries
-------------------------------------------------
-
-Provider requests carry plain decimal strings. New payouts preserve the reserved
-amount exactly: YooMoney and Volet/USD require cents; the supported legacy
-CoinPayments and Paykassa paths accept at most eight places within H-Script's
-12-whole-digit envelope. These are application guards, not a claim that every
-provider asset has the same precision. Excess precision, zero, negative values,
-float arguments and overflow are rejected before loading a network client.
-Existing saved invoices, financial receipts and callback proofs are unchanged.
-WebMoney's new checkout retains explicit HALF_UP cent rounding; YooMoney/YMC
-checkout requires an exact cent amount. YooMoney uses the documented
-`https://yoomoney.ru` API origin and stops after a refused request-payment.
-`amount_due` still denotes the amount received; its fee/debit semantics are
-unchanged. Legacy Paykassa payout API compatibility must be verified with the
-merchant before enabling it; offline wire tests do not prove live acceptance.
-
-The Docker image includes PHP SOAP for the existing Volet generated SDK. Shared
-hosting needs `ext-soap` when using Volet balance queries or payouts. Its current
-[WSDL](https://account.volet.com/wsm/apiWebService?wsdl) declares `xs:decimal`;
-SOAP request and response amounts remain text, including single-wallet and
-empty balance responses. PAW stays installed through Composer; its read-only
-profile checks and manual partner cashback do not enable automated payments.
-
-Public telemetry **schema 2** represents monetary fields as canonical unsigned
-strings with exactly eight decimal places, with the existing per-field maximum
-`1000000000000000.00000000`. Counters remain integers. Public read aggregates and
-`processed` metrics also return decimal strings; their sum may exceed that
-individual-report maximum. SQL aggregation/display retains explicit HALF_UP8;
-local valued statistics retain their full precision until this boundary.
-Deploy the collector accepting schemas 1 and 2 **before upgrading reporters**.
-No database migration is needed for this JSON contract. Previously stored
-schema 1 numeric reports keep their validated bytes, hashes and exact retry
-behavior; an existing same-day reporter cache is reused unchanged. Old numeric
-cache ingress cannot restore digits that were already lost upstream.
-
-The simple deposit form/AJAX preview computes principal × plan percentage ×
-period count exactly, then formats the display. It does not simulate compound,
-calendar, return percentages or fees. Monetary templates use decimal grouping
-and subtraction rather than Twig's numeric coercion.
-
-Run from the Docker Compose root on an installed candidate:
-
-```sh
-H_SCRIPT_FINANCIAL_CANDIDATE=1 \
-  sh www/h-script-3/tests/financial_isolated.sh CANDIDATE_IMAGE mysql:8.4
-H_SCRIPT_FINANCIAL_BROWSER_IMAGE=hscript-lifecycle-browser:local \
-  sh www/h-script-3/tests/decimal_closure_http_isolated.sh CANDIDATE_IMAGE mysql:8.4
-```
-
-The suite includes actual SDK form/HMAC captures and native SOAP with closed
-transports, without payment-network requests. Its sanitized WSDL fixture has
-no external imports. Regenerate independent transport/preview/public vectors
-with `python3 tests/fixtures/decimal_closure_oracle.py`; the schema 1 goldens came
-from a previous installed image. Tests stay outside release artifacts and all
-PHP test entry points refuse HTTP execution.

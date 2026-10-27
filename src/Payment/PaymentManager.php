@@ -88,8 +88,15 @@ class PaymentManager
 			return $this->rejectDepositForm($gatewayId);
 		if (!array_key_exists('url', $result))
 			return $result;
-		if (!is_string($result['url']) || !SafeUrl::paymentAction($result['url']))
-			return $this->rejectDepositForm($gatewayId);
+        $sandboxReturn=false;
+        if($gatewayId==='PAW' && ($result['formkind']??null)==='paw_sandbox' && is_string($result['url'])
+            && $result['url']===($params['url_ok']??null) && SafeUrl::redirect($result['url'])){
+            try{$proof=\HScript\Finance\PawContract::form($params['callback_fee_policy']??[],$result);$sandboxReturn=$proof['environment']==='sandbox';}
+            catch(Throwable){return $this->rejectDepositForm($gatewayId);}
+        }
+        // PAW sandbox has no external checkout; its exact internal return may use local HTTP.
+        if (!$sandboxReturn && (!is_string($result['url']) || !SafeUrl::paymentAction($result['url'])))
+            return $this->rejectDepositForm($gatewayId);
 		foreach ($result as $name => $value)
 		{
             if($name==='payment_route') {
@@ -126,7 +133,7 @@ class PaymentManager
 		if (count($request) > 68 || (isset($request['_raw_body']) && !is_string($request['_raw_body']))
 			|| strlen($request['_raw_body'] ?? '') > 65536)
 			return CallbackResult::failure('invalid_payload', 'callback_body_invalid');
-        if ($gatewayId==='ST') {
+        if (in_array($gatewayId,['ST','PAW'],true)) {
             $request['_config']=$config;
             return CallbackResult::normalize($this->execute('callback',$gatewayId,fn(): array=>$this->gateway($gatewayId)->handleCallback($request)));
         }
@@ -218,6 +225,7 @@ class PaymentManager
 				'litecoin_ltc' => 'PKL',
                 'tron_trc20_usdt'=>'PKTU','ethereum_erc20_usdt'=>'PKTU','ethereum_erc20_usdc'=>'PKTC',
 			);
+            foreach(PaykassaAssets::ASSETS as $id=>[$currency,$system,$wire])$paykassa[$wire.'_'.strtolower($currency)]=$id;
 			return $paykassa[$key] ?? '';
 		}
 
@@ -264,6 +272,8 @@ class PaymentManager
 			'BW' => BankWire::class,
 			'CP' => CoinPayments::class, 'CPE' => CoinPayments::class,
 			'CPL' => CoinPayments::class, 'CPR' => CoinPayments::class,
+            'CPN' => \HScript\Payment\Gateways\CoinPaymentsNew::class,
+            ...array_fill_keys(array_keys(PaykassaAssets::ASSETS),Paykassa::class),
 			'PKB' => Paykassa::class, 'PKL' => Paykassa::class, 'PKE' => Paykassa::class,
             'CCT'=>CryptoCurrencyApi::class,'CCTU'=>CryptoCurrencyApi::class,'CCTC'=>CryptoCurrencyApi::class,'PKTU'=>Paykassa::class,'PKTC'=>Paykassa::class,
 			'CCAB' => CryptoCurrencyApi::class, 'CCAL' => CryptoCurrencyApi::class,
@@ -299,31 +309,33 @@ class PaymentManager
 			'YM' => array('YooMoney', 'RUB', 1, 1, 643, 'operation_id'),
 			'YMC' => array('YooMoney (cards)', 'RUB', 1, 0, 643, 'operation_id'),
 			'WM' => array('WebMoney', 'USD', 1, 0, 'USD', 'LMI_PAYEE_PURSE'),
-			'CCT'=>array('Token (CryptoCurrencyAPI v3)','',1,0,'','?'),
+			'CCT'=>array('Token (CryptoCurrencyAPI v3)','',1,1,'','?'),
             'CCTU'=>array('Tether (CryptoCurrencyAPI v3)','USDT',1,0,'USDT','?'),
-            'CCTC'=>array('USD Coin (CryptoCurrencyAPI v3)','USDC',1,0,'USDC','?'),
+            'CCTC'=>array('USD Coin (CryptoCurrencyAPI v3)','USDC',1,1,'USDC','?'),
             'PKTU'=>array('Tether (Paykassa.pro)','USDT',1,0,'USDT','?'),
             'PKTC'=>array('USD Coin (Paykassa.pro)','USDC',1,0,'USDC','?'),
-            'CCAB' => array('Bitcoin (CryptoCurrencyAPI v3)', 'BTC', 1, 0, 'BTC', 'cryptocurrencyapi.net'),
-			'CCAL' => array('Litecoin (CryptoCurrencyAPI v3)', 'LTC', 1, 0, 'LTC', 'cryptocurrencyapi.net'),
-			'CCAD' => array('Dash (CryptoCurrencyAPI v3)', 'DASH', 1, 0, 'DASH', 'cryptocurrencyapi.net'),
-			'CCAG' => array('Dogecoin (CryptoCurrencyAPI v3)', 'DOGE', 1, 0, 'DOGE', 'cryptocurrencyapi.net'),
-			'CCAH' => array('BitcoinCash (CryptoCurrencyAPI v3)', 'BCH', 1, 0, 'BCH', 'cryptocurrencyapi.net'),
-            'CCAE'=>array('Ethereum (CryptoCurrencyAPI v3)','ETH',1,0,'ETH','cryptocurrencyapi.net'),
-            'CCAM'=>array('Polygon (CryptoCurrencyAPI v3)','MATIC',1,0,'MATIC','cryptocurrencyapi.net'),
-            'CCAN'=>array('BSC (CryptoCurrencyAPI v3)','BNB',1,0,'BNB','cryptocurrencyapi.net'),
-            'CCAT'=>array('TRON (CryptoCurrencyAPI v3)','TRX',1,0,'TRX','cryptocurrencyapi.net'),
-            'CCAX'=>array('Ripple (CryptoCurrencyAPI v3)','XRP',1,0,'XRP','cryptocurrencyapi.net'),
-            'CCAO'=>array('TON (CryptoCurrencyAPI v3)','TON',1,0,'TON','cryptocurrencyapi.net'),
-            'CCAS'=>array('Solana (CryptoCurrencyAPI v3)','SOL',1,0,'SOL','cryptocurrencyapi.net'),
+            'CCAB' => array('Bitcoin (CryptoCurrencyAPI v3)', 'BTC', 1, 1, 'BTC', 'cryptocurrencyapi.net'),
+			'CCAL' => array('Litecoin (CryptoCurrencyAPI v3)', 'LTC', 1, 1, 'LTC', 'cryptocurrencyapi.net'),
+			'CCAD' => array('Dash (CryptoCurrencyAPI v3)', 'DASH', 1, 1, 'DASH', 'cryptocurrencyapi.net'),
+			'CCAG' => array('Dogecoin (CryptoCurrencyAPI v3)', 'DOGE', 1, 1, 'DOGE', 'cryptocurrencyapi.net'),
+			'CCAH' => array('BitcoinCash (CryptoCurrencyAPI v3)', 'BCH', 1, 1, 'BCH', 'cryptocurrencyapi.net'),
+            'CCAE'=>array('Ethereum (CryptoCurrencyAPI v3)','ETH',1,1,'ETH','cryptocurrencyapi.net'),
+            'CCAM'=>array('Polygon (CryptoCurrencyAPI v3)','MATIC',1,1,'MATIC','cryptocurrencyapi.net'),
+            'CCAN'=>array('BSC (CryptoCurrencyAPI v3)','BNB',1,1,'BNB','cryptocurrencyapi.net'),
+            'CCAT'=>array('TRON (CryptoCurrencyAPI v3)','TRX',1,1,'TRX','cryptocurrencyapi.net'),
+            'CCAX'=>array('Ripple (CryptoCurrencyAPI v3)','XRP',1,1,'XRP','cryptocurrencyapi.net'),
+            'CCAO'=>array('TON (CryptoCurrencyAPI v3)','TON',1,1,'TON','cryptocurrencyapi.net'),
+            'CCAS'=>array('Solana (CryptoCurrencyAPI v3)','SOL',1,1,'SOL','cryptocurrencyapi.net'),
 			'CP' => array('Bitcoin (Coinpayments.net)', 'BTC', 1, 1, 'BTC', 'txn_id'),
 			'CPE' => array('Ether (Coinpayments.net)', 'ETH', 1, 1, 'ETH', 'txn_id'),
 			'CPL' => array('Litecoin (Coinpayments.net)', 'LTC', 1, 1, 'LTC', 'txn_id'),
 			'CPR' => array('Ripple (Coinpayments.net)', 'XRP', 1, 1, 'XRP', 'txn_id'),
+            'CPN' => array('CoinPayments NEW','',0,0,'','?'),
+            ...array_map(static fn($a)=>[$a[0].' · '.$a[3].' (Paykassa.pro)',$a[0],1,0,$a[0],'private_hash'],PaykassaAssets::ASSETS),
 			'PKB' => array('Bitcoin (Paykassa.pro)', 'BTC', 1, 1, 'BTC', 'private_hash'),
 			'PKL' => array('Litecoin (Paykassa.pro)', 'LTC', 1, 1, 'LTC', 'private_hash'),
 			'PKE' => array('Ethereum (Paykassa.pro)', 'ETH', 1, 1, 'ETH', 'private_hash'),
-			'PAW' => array('PAW Payments', '', 0, 0, '', '?'),
+			'PAW' => array('PAW Payments', '', 2, 1, '', '?'),
             'ST'=>array('Stripe','',1,0,'','?'),
 		);
 	}

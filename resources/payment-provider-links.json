@@ -1,4 +1,6 @@
 {
-    "PAW": "https://pawpayments.com/?partner=92483577-b00d-4cdb-b401-d33e800d908b",
-    "CCAPI": "https://new.cryptocurrencyapi.net/?inviter=BF2A4B22"
+  "PAW": "https://pawpayments.com/?partner=92483577-b00d-4cdb-b401-d33e800d908b",
+  "CCAPI": "https://new.cryptocurrencyapi.net/?inviter=BF2A4B22",
+  "PAYKASSA": "https://paykassa.pro/en/?rid=66608",
+  "VOLET": "https://volet.onelink.me/jJs2?pid=User_invite&deep_link_value=hnXVmIHc"
 }

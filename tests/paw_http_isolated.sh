@@ -28,13 +28,13 @@ php_admin_value[auto_prepend_file] = /fixture/paw_http_prepend.php
 EOF
 cat > "$temporary/paw-http.config.cjs" <<'EOF'
 const {defineConfig}=require('@playwright/test');
-module.exports=defineConfig({testDir:'.',testMatch:'paw-http.spec.cjs',outputDir:'/tmp/paw-http-results',reporter:'line',workers:1,retries:0,timeout:60000,use:{baseURL:'http://fixture.invalid',trace:'off',screenshot:'off',video:'off'},projects:[{name:'chromium',use:{browserName:'chromium'}}]});
+module.exports=defineConfig({testDir:'.',testMatch:'paw-http.spec.cjs',outputDir:'/tmp/paw-http-results',reporter:'line',workers:1,retries:0,timeout:60000,use:{baseURL:'http://fixture.invalid',trace:'off',screenshot:'off',video:'off'},projects:[{name:process.env.H_SCRIPT_PAW_BROWSER_NAME||'chromium',use:{browserName:process.env.H_SCRIPT_PAW_BROWSER_NAME||'chromium'}}]});
 EOF
 docker network create --internal "$name" >/dev/null
 network_created=1
 docker create --name "$database" --network "$name" --network-alias database --tmpfs /var/lib/mysql:rw,size=512m \
     --env MYSQL_ROOT_PASSWORD=synthetic-login-root --env MYSQL_DATABASE=fixture \
-    --env MYSQL_USER=fixture --env MYSQL_PASSWORD=synthetic-login-password "$2" >/dev/null
+    --env MYSQL_USER=fixture --env MYSQL_PASSWORD=synthetic-login-password "$2" --log-bin-trust-function-creators=1 >/dev/null
 database_created=1
 docker start "$database" >/dev/null
 docker create --platform "$application_platform" --name "$application" --network "$name" --network-alias fixture.invalid --entrypoint /bin/sh -w /var/www/html \
@@ -89,7 +89,7 @@ wait_application() {
 }
 run_browser() {
     phase=$1
-    docker create --name "$browser" --network "$name" --init --shm-size=1g \
+    docker create --name "$browser" --network "$name" --init --shm-size=1g --env "H_SCRIPT_PAW_BROWSER_NAME=${H_SCRIPT_PAW_BROWSER_NAME:-chromium}" \
         -v "$root/tests/browser/paw-http.spec.cjs:/tests/paw-http.spec.cjs:ro" \
     -v "$root/tests/browser/capture-callbacks.cjs:/tests/capture-callbacks.cjs:ro" \
         "$H_SCRIPT_FINANCIAL_BROWSER_IMAGE" npx --no-install playwright test --config=paw-http.config.cjs --grep "$phase" >/dev/null
@@ -98,32 +98,68 @@ run_browser() {
     if [ -n "${paw_original_file:-}" ]; then
         browser_restore_fixture "$browser" "$paw_original_file" /tmp/paw-http-public.json
     fi
+    if [ -n "${paw_native_file:-}" ]; then
+        browser_restore_fixture "$browser" "$paw_native_file" /tmp/paw-native-http-public.json
+    fi
     docker start -a "$browser" || :
-    test "$(docker inspect "$browser" --format '{{.State.ExitCode}}')" = 0
+    if [ "$(docker inspect "$browser" --format '{{.State.ExitCode}}')" != 0 ]; then
+        docker cp "$browser:/tmp/paw-http-results" "$capture_directory/failure" >/dev/null 2>&1 || :
+        docker logs --tail 60 "$application" > "$capture_directory/application-failure.log" 2>&1
+        exit 1
+    fi
 }
 docker start "$application" >/dev/null
 wait_application
 gateway_capture_begin "$1"
 docker logs --tail 12 "$application"
-run_browser creation
+run_browser '(^| )creation:'
 docker exec "$application" php /fixture/paw_http_prepend.php --verify created
 gateway_capture_phase created "$browser"
 docker exec "$application" php /fixture/paw_http_prepend.php --history
 docker cp "$browser:/tmp/paw-http-public.json" "$temporary/public.json"
 docker rm -fv "$browser" >/dev/null; browser_created=0
 paw_original_file="$temporary/public.json"
-run_browser management
+run_browser '(^| )management:'
+if [ -n "${H_SCRIPT_PAW_UI_ARTIFACTS:-}" ]; then docker cp "$browser:/tmp/paw-currency-settings.png" "$H_SCRIPT_PAW_UI_ARTIFACTS/paw-currency-settings.png"; fi
+docker exec "$application" php /fixture/paw_http_prepend.php --history-close
+docker rm -fv "$browser" >/dev/null; browser_created=0
+run_browser '(^| )retirement:'
 docker exec "$application" php /fixture/paw_http_prepend.php --verify managed
 gateway_capture_phase managed "$browser"
 docker rm -fv "$browser" >/dev/null; browser_created=0
 docker restart "$application" >/dev/null
 wait_application
-run_browser restart
+run_browser '(^| )restart:'
 docker exec "$application" php /fixture/paw_http_prepend.php --verify restart
 gateway_capture_phase restart "$browser"
 docker rm -fv "$browser" >/dev/null; browser_created=0
+run_browser '(^| )native:'
+docker exec "$application" php /fixture/paw_http_prepend.php --native-verify
+gateway_capture_phase native "$browser"
+docker cp "$browser:/tmp/paw-native-http-public.json" "$temporary/native-public.json"
+paw_native_file="$temporary/native-public.json"
+docker rm -fv "$browser" >/dev/null; browser_created=0
+docker restart "$application" >/dev/null
+wait_application
+run_browser '(^| )native-restart:'
+docker exec "$application" php /fixture/paw_http_prepend.php --native-verify
+gateway_capture_phase native-restart "$browser"
+docker rm -fv "$browser" >/dev/null; browser_created=0
+docker exec "$application" php /fixture/paw_http_prepend.php --wallet-setup
+run_browser '(^| )wallets-rates:'
+docker exec "$application" php /fixture/paw_http_prepend.php --wallet-verify
+gateway_capture_phase wallets-rates "$browser"
+docker rm -fv "$browser" >/dev/null; browser_created=0
+docker exec "$application" php /fixture/paw_http_prepend.php --wallet-fault
+run_browser '(^| )wallet-fault:'
+docker exec "$application" php /fixture/paw_http_prepend.php --wallet-fault-verify
+gateway_capture_phase wallet-fault "$browser"
+docker rm -fv "$browser" >/dev/null; browser_created=0
+run_browser '(^| )content:'
+gateway_capture_phase content "$browser"
+docker rm -fv "$browser" >/dev/null; browser_created=0
 docker exec "$application" php /fixture/paw_http_prepend.php --schema-down
-run_browser schema
+run_browser '(^| )schema:'
 docker exec "$application" php /fixture/paw_http_prepend.php --verify schema
 gateway_capture_phase schema "$browser"
 echo 'Installed-candidate PAW common setup isolated HTTP suite passed, including restart and old-schema guard.'

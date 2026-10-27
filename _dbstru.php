@@ -283,6 +283,7 @@ $_dbstru = array(
   cCurrID varchar(10) default '',
   cProviderID int unsigned NULL DEFAULT NULL,
   cProviderSelected tinyint unsigned NOT NULL DEFAULT 0,
+  cArchivedAt bigint unsigned NULL DEFAULT NULL,
   cName varchar(120) default '',
   cCurr varchar(60) default '',
   cParams text,

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 if (PHP_SAPI!=='cli') { http_response_code(404); exit; }
 require __DIR__.'/fixtures/financial_runtime.php';
+require __DIR__.'/fixtures/currency_archive_checks.php';
 putenv('APP_DATA_KEY=synthetic-ccapi-contract-key');
 use HScript\Finance\CallbackValidationException;
 use HScript\Finance\DepositCheckout;
@@ -117,6 +118,7 @@ foreach (CryptoCurrencyApi::NATIVE as $gateway=>[$chain,$asset]) {
     financialAssert(financialValue("SELECT oComis FROM Opers WHERE oID=$id")==='10.000000','Network fee/current policy does not replace local original fee');
     financialAssert(financialValue("SELECT oBatch FROM Opers WHERE oID=$id")===HScript\Finance\CcapiV3Contract::batchAlias(ccapiVerified($id)['batch']),'Legacy bounded alias derives from full txid and position zero');
     $before=ccapiState(); financialAssert(ccapiSettle($id)->replayed && ccapiState()===$before,'Native completed exact replay unchanged');
+    financialArchivedReplay(ccapiOperation($id)['cCID'],2,ccapiVerified($id));
     ccapiReject(fn()=>ccapiSettle($id,['pos'=>1]),'callback_invoice_identity_mismatch');
     financialAssert(FinancialNativeGateway::$calls===1,'One give call, including readonly reopen/pending/replay');
     $receipt=strToArray(financialValue("SELECT oParams2 FROM Opers WHERE oID=$id"));

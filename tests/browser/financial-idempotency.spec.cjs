@@ -99,7 +99,10 @@ test('WebMoney preflight checks order and HASH2 concurrent callbacks settle one 
   const validPre=await send(pre); expect(validPre.status()).toBe(200); expect(await validPre.text()).toBe('YES');
   expect((await send({...pre,LMI_PAYMENT_AMOUNT:'24.00'})).status()).toBe(400);
   expect((await send({...pre,LMI_PAYEE_PURSE:'Z111111111111'})).status()).toBe(400);
-  expect((await send({...pre,LMI_PAYMENT_NO:'999999'})).status()).toBe(400);
+  // An unknown order cannot select a currency or its callback credentials.
+  const unknownOrder=await send({...pre,LMI_PAYMENT_NO:'999999'});
+  expect(unknownOrder.status()).toBe(404);
+  expect(await unknownOrder.text()).toBe('Callback unavailable');
   const wrongDescription=await send({...pre,LMI_PAYMENT_DESC:'another invoice'});
   expect(wrongDescription.status()).toBe(400); expect(await wrongDescription.text()).not.toBe('YES');
   const callback={LMI_PAYEE_PURSE:pre.LMI_PAYEE_PURSE,LMI_PAYMENT_AMOUNT:pre.LMI_PAYMENT_AMOUNT,LMI_PAYMENT_NO:pre.LMI_PAYMENT_NO,

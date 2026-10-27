@@ -102,6 +102,24 @@ try
 	file_put_contents($temporary . '/backup-result.json', json_encode($freshSql, JSON_THROW_ON_ERROR));
 	$recovery->bundleFromBackupResult($temporary . '/backup-result.json');
 	$assertReady();
+	// Filesystem order is not publication order. Make the previous bundle look
+	// newer, then require the exact latest report ID without a fallback.
+	$previousBundlePath = $temporary . '/backups/recovery/bundles/' . $backup['id'] . '/' . $backup['id'] . '.bundle.json';
+	$previousBundleTime = filemtime($previousBundlePath);
+	touch($previousBundlePath, time() + 3600);
+	try
+	{
+		if (($recovery->drill()['bundle_id'] ?? '') !== $freshSql['id'])
+			throw new RuntimeException('Filesystem timestamps overrode the latest published bundle');
+	}
+	finally { touch($previousBundlePath, $previousBundleTime); }
+	$publishedBackup = file_get_contents($backupReportPath);
+	$failedBackup = json_decode($publishedBackup, true, 32, JSON_THROW_ON_ERROR);
+	$failedBackup['status'] = 'failed';
+	file_put_contents($backupReportPath, json_encode($failedBackup, JSON_THROW_ON_ERROR));
+	try { productionIntegrationReject(fn() => $recovery->drill(), 'Failed latest publication fell back to an older bundle'); }
+	finally { file_put_contents($backupReportPath, $publishedBackup); }
+	$recovery->drill();
 	$backup = $freshSql;
 	$path = $temporary . '/backups/recovery/reports/latest-drill.json';
 	$reportBytes = file_get_contents($path);
@@ -120,6 +138,44 @@ try
 	// bundle rather than whichever ID wins the default latest tie-breaker.
 	productionIntegrationReject(fn() => $recovery->drill($backup['id']), 'Partial local bundle accepted for restore');
 	rename($runtimePath . '.saved', $runtimePath);
+	$recovery->drill($backup['id']);
+	$successfulDrill = file_get_contents($path);
+	if (($recovery->drillIfDue()['status'] ?? '') !== 'not_due' || file_get_contents($path) !== $successfulDrill)
+		throw new RuntimeException('Valid retained drill was needlessly replaced');
+	foreach (array('future', 'incomplete', 'pruned', 'corrupt') as $case)
+	{
+		$invalid = json_decode($successfulDrill, true, 32, JSON_THROW_ON_ERROR);
+		if ($case === 'future') $invalid['completed_at'] = gmdate('Y-m-d\TH:i:s\Z', time() + 3600);
+		if ($case === 'incomplete') $invalid['components'] = array('local_bundle');
+		if ($case === 'pruned') $invalid['bundle_id'] = str_repeat('f', 32);
+		file_put_contents($path, json_encode($invalid, JSON_THROW_ON_ERROR));
+		$originalRuntime = file_get_contents($runtimePath);
+		if ($case === 'corrupt') file_put_contents($runtimePath, 'corrupt archive');
+		try
+		{
+			if ($case === 'corrupt')
+				productionIntegrationReject(fn() => $recovery->drillIfDue(), 'Corruption was hidden by a recent drill');
+			elseif (($recovery->drillIfDue()['report']['status'] ?? '') !== 'success')
+				throw new RuntimeException('Unusable recent drill was not replaced: ' . $case);
+		}
+		finally { file_put_contents($runtimePath, $originalRuntime); }
+	}
+	$sourceSchema = $schemaState->currentVersion();
+	try
+	{
+		$schemaState->setCurrentVersion('1.0.987');
+		$next = $backups->create('plain');
+		file_put_contents($temporary . '/backup-result.json', json_encode($next, JSON_THROW_ON_ERROR));
+		$recovery->bundleFromBackupResult($temporary . '/backup-result.json');
+		// A recent successful drill of the old schema must not suppress a new one.
+		file_put_contents($path, $successfulDrill);
+		if (($recovery->drillIfDue()['bundle_id'] ?? '') !== $next['id'])
+			throw new RuntimeException('Previous-schema drill prevented current-schema verification');
+	}
+	finally { $schemaState->setCurrentVersion($sourceSchema); }
+	$backup = $backups->create('plain');
+	file_put_contents($temporary . '/backup-result.json', json_encode($backup, JSON_THROW_ON_ERROR));
+	$recovery->bundleFromBackupResult($temporary . '/backup-result.json');
 	$recovery->drill($backup['id']);
 	putenv('REDIS_PORT=1');
 	productionIntegrationReject($assertReady, 'Unavailable enabled Redis accepted');

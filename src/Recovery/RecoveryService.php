@@ -8,6 +8,9 @@ use HScript\Backup\BackupSettings;
 use HScript\Backup\DatabaseCredentials;
 use HScript\Backup\DatabaseRestoreService;
 use HScript\Database\Connection;
+use HScript\Update\RecoveryPreflight;
+use HScript\Update\SchemaStateRepository;
+use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 
@@ -84,7 +87,18 @@ final class RecoveryService
 		$targetCreated = false;
 		try
 		{
-			$bundleId = $requestedId === 'latest' ? $this->bundles->latestId() : $requestedId;
+			$bundleId = $requestedId;
+			if ($requestedId === 'latest')
+			{
+				// Publication order is recorded atomically. File timestamps can tie
+				// or be changed by copying/restoring files; never fall back to an
+				// older bundle when the most recently published one is unavailable.
+				$backup = $this->reports->latest('backup');
+				if (($backup['format'] ?? null) !== 1 || ($backup['type'] ?? '') !== 'backup'
+					|| ($backup['status'] ?? '') !== 'success' || !is_string($backup['bundle_id'] ?? null))
+					throw new RecoveryException('local_bundle_missing', 'Latest recovery bundle is unavailable or failed');
+				$bundleId = $backup['bundle_id'];
+			}
 			if (!preg_match('/^[a-f0-9]{32}$/', $bundleId))
 				throw new RecoveryException('bundle_id_invalid', 'Recovery bundle ID is invalid');
 			$restoreRoot = $this->settings->stateDirectory() . '/.drill-' . bin2hex(random_bytes(8));
@@ -151,11 +165,23 @@ final class RecoveryService
 	public function drillIfDue(): array
 	{
 		$latest = $this->reports->latest('drill');
-		$completed = is_array($latest) && ($latest['status'] ?? '') === 'success'
-			? strtotime((string)($latest['completed_at'] ?? '')) : false;
-		if ($completed !== false && time() - $completed < $this->settings->drillMaximumAgeSeconds())
-			return array('status' => 'not_due', 'last_completed_at' => $latest['completed_at']);
-		return $this->drill('latest');
+		try
+		{
+			RecoveryPreflight::assertReport($latest, 'drill', $this->settings->drillMaximumAgeSeconds(), array(
+				'local_bundle', 'bundle_checksums', 'runtime_checksums', 'database_restore',
+				'versions', 'row_bounds', 'read_only_login', 'financial_invariants', 'queue',
+				'installation_telemetry', 'service_token_metadata', 'isolated_cleanup',
+			));
+			// A recent report is unusable after retention removes its archive or
+			// an update changes the source schema. Run a real drill of the new bundle.
+			$this->backups->verifyForUpdate($latest['bundle_id'], (new SchemaStateRepository($this->database))->currentVersion());
+			$this->bundles->find($latest['bundle_id'])->verifyFiles($this->settings->backupDirectory());
+		}
+		catch (RuntimeException | InvalidArgumentException)
+		{
+			return $this->drill('latest');
+		}
+		return array('status' => 'not_due', 'last_completed_at' => $latest['completed_at']);
 	}
 
 	public function policy(): array

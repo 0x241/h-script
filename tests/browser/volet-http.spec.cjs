@@ -49,6 +49,9 @@ test('preconfirmation: actual deposit/pay POST saves protected full USD intent a
   expect(response.status(),await response.text()).toBe(200); const html=await response.text();
   expect(html).not.toMatch(/<b>(?:Warning|Notice|Fatal error)<\/b>/);
   await expect.poll(()=>providerNavigations).toBe(1);
+  // Request interception alone does not mean the checkout document is ready.
+  await expect(page).toHaveURL('https://account.volet.com/api/public/payment-gateway');
+  await expect(page.getByText('Isolated Volet checkout intercepted',{exact:true})).toBeVisible();
   const form=await page.evaluate(html=>{
     const doc=new DOMParser().parseFromString(html,'text/html'); const form=doc.querySelector('form[name="pay_form"]');
     return form?{method:form.method,action:form.action,fields:Object.fromEntries(new FormData(form))}:null;

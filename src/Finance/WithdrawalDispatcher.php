@@ -19,6 +19,8 @@ final class WithdrawalDispatcher
 
     public static function enqueue(Connection $db, int $operationId, array $apiOverride = []): void
     {
+        $gateway=(string)$db->fetch1($db->query('SELECT cCID FROM Opers JOIN Currs ON cID=ocID WHERE oID=?d',[$operationId]));
+        if(($gateway==='PAW' || \HScript\Payment\Gateways\CryptoCurrencyApi::supports($gateway)) && $apiOverride)throw new FinancialOperationException('payout_configuration_invalid');
         if ($apiOverride) {
             if (self::wasAttempted($db, $operationId)) throw new FinancialOperationException('payout_reconciliation_required');
             $json = json_encode($apiOverride, JSON_THROW_ON_ERROR);
@@ -40,7 +42,14 @@ final class WithdrawalDispatcher
     {
         $statement = $db->link->prepare('SELECT ikID FROM IdempotencyKeys WHERE ikNamespace=? AND ikKeyHash=? FOR UPDATE');
         $statement->execute(['payout:attempt', hash('sha256', "0\0" . $operationId)]);
-        return (bool)$statement->fetchColumn();
+        if($statement->fetchColumn())return true;
+        $footprint=$db->link->prepare("SELECT ikID FROM IdempotencyKeys WHERE ikOperationID=? AND (ikNamespace LIKE 'ccapi:payout:%' OR ikNamespace LIKE 'paw:payout:%') LIMIT 1 FOR UPDATE");
+        $footprint->execute([$operationId]);
+        if($footprint->fetchColumn())return true;
+        // A surviving committed capsule after a partial restore still fences
+        // cancellation/receipt edits. Missing registry rows are not a refund.
+        $params=strToArray($db->fetch1($db->query('SELECT oParams FROM Opers WHERE oID=?d FOR UPDATE',[$operationId])));
+        return array_key_exists('ccapi_payout',$params) || array_key_exists('paw_payout',$params);
     }
 
     public static function callbackProof(Connection $db, int $operationId): array
@@ -58,13 +67,17 @@ final class WithdrawalDispatcher
     public static function dispatch(Connection $db, int $operationId, ?callable $send = null): array
     {
         if ($db->link->inTransaction()) throw new LogicException('Payout network I/O requires a committed transaction');
+        $gateway=(string)$db->fetch1($db->query('SELECT cCID FROM Opers JOIN Currs ON cID=ocID WHERE oID=?d',[$operationId]));
+        if($gateway==='PAW')return PawPayout::dispatch($db,$operationId,$send);
+        if(\HScript\Payment\Gateways\CryptoCurrencyApi::supports($gateway))return CcapiPayout::dispatch($db,$operationId,$send);
         $store = new IdempotencyStore($db);
         $prepared = [];
         $intent = $store->execute('payout:attempt', (string)$operationId, 0, self::fingerprint($operationId), static function () use ($db, $operationId, $send, &$prepared): IdempotencyResult {
             $o = $db->fetch1Row($db->query('SELECT *,oSum-oComis AS callbackNetAmount FROM Opers WHERE oID=?d FOR UPDATE', [$operationId]));
             if (!$o || $o['oOper'] !== 'CASHOUT' || (int)$o['oState'] !== 2)
                 return new IdempotencyResult(['send' => false], 200, $o ? $operationId : null);
-            $currency = $db->fetch1Row($db->select('Currs', '*', 'cID=?d', [(int)$o['ocID']]));
+            $currency = $db->fetch1Row($db->query('SELECT * FROM Currs WHERE cID=?d FOR UPDATE', [(int)$o['ocID']]));
+            if(!$currency||ArchivedReplay::inactive($currency))throw new FinancialOperationException('currency_archived');
             if (\HScript\Payment\CallbackCapabilities::disabledAutomation($currency['cCID']))
                 throw new FinancialOperationException('automatic_payment_unsupported');
             opDecodeCurrParams($currency, $pay, $sci, $api);
@@ -74,6 +87,9 @@ final class WithdrawalDispatcher
                 if ($decoded === null) throw new FinancialOperationException('payout_configuration_invalid');
                 $api = json_decode($decoded, true, 32, JSON_THROW_ON_ERROR);
             }
+            if(\HScript\Payment\Provider\ProviderCatalog::kind($currency['cCID'])==='PAYKASSA'
+                && (!is_array($api) || !\HScript\Payment\PaykassaAssets::liveConfiguration($api) || !\HScript\Payment\PaykassaAssets::liveConfiguration($sci)))
+                throw new FinancialOperationException('paykassa_sandbox_removed');
             $manager = new PaymentManager($db);
             $definition = $manager->definitions($currency['cCID']);
             // Configuration errors happen before committing a network attempt.

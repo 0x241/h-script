@@ -168,4 +168,15 @@ docker run --rm --network "$name" --entrypoint /bin/sh \
         php tests/menu_pins.php
         php tests/financial_token_routes.php
         php tests/financial_token_catalog.php
+        php tests/faq_categories_sql.php
+        php tests/financial_paw_native.php
+        php tests/financial_ccapi_payout.php
+        php tests/financial_currency_rates.php
+        php tests/financial_paw_payout.php
+        php tests/financial_paykassa_assets.php
+        php tests/financial_coinpayments_new.php
+        php tests/financial_legacy_provider.php
+        php tests/financial_legacy_account.php
+        php tests/financial_currency_archive.php
+        php tests/financial_currency_activation.php
     '

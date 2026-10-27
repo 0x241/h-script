@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "checked_at": "2026-10-16",
+  "checked_at": "2026-10-25",
   "scope": "Application bounded automatic callback profiles; no live merchant compatibility claim",
   "source_network_policy": "Source IP allowlisting is optional defense in depth; never replaces cryptographic authentication. No provider IP list is guessed.",
   "outcomes": [
@@ -134,7 +134,17 @@
       "automatic_in": true,
       "automatic_out": false
     },
+    "CPN": {
+      "profile": "coinpayments_new_configuration",
+      "automatic_in": false,
+      "automatic_out": false
+    },
     "PKB": {
+      "profile": "paykassa_sci_order",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKE": {
       "profile": "paykassa_sci_order",
       "automatic_in": true,
       "automatic_out": false
@@ -144,8 +154,103 @@
       "automatic_in": true,
       "automatic_out": false
     },
-    "PKE": {
-      "profile": "paykassa_sci_order",
+    "PKDG": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKDA": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKBC": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKXR": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKTR": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKXL": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKBN": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKBB": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKBE": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKBD": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKBT": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKBZ": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKEZ": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKBU": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKBO": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKBA": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKBS": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKES": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKTN": {
+      "profile": "paykassa_fixed_network",
+      "automatic_in": true,
+      "automatic_out": false
+    },
+    "PKTT": {
+      "profile": "paykassa_fixed_network",
       "automatic_in": true,
       "automatic_out": false
     },
@@ -235,8 +340,8 @@
       "automatic_out": false
     },
     "PAW": {
-      "profile": "paw_native_off",
-      "automatic_in": false,
+      "profile": "paw_v2_vary",
+      "automatic_in": true,
       "automatic_out": false
     },
     "ST": {
@@ -474,15 +579,19 @@
       "preservation": "Manual operations, review and historical data retained",
       "sources": []
     },
-    "paw_native_off": {
+    "paw_v2_vary": {
       "ids": [
         "PAW"
       ],
-      "automatic_in": false,
-      "reason": "Shared provider administration exists; native monetary profile awaits separate acceptance and enforced schema guard",
-      "preservation": "Common admin connection and informational partner/manual cashback blocks retained",
+      "automatic_in": true,
+      "signature": "HMAC-SHA256 exact raw body, constant-time before JSON decoding; explicit profile/version route and sandbox payload/header binding",
+      "identity": "One final VARY order_id per fiat connection; original requested fiat, actual paid fiat and fixed local fee remain separately bound",
+      "destination": "Encrypted original checkout/attempt pins provider public ID, retained credential version and environment; no cross-fiat routing",
+      "limits": "No automatic payouts or refund reversal; no live hosted checkout or provider webhook delivery acceptance claim from sandbox-only tests",
       "sources": [
-        "https://docs.pawpayments.com/overview"
+        "https://docs.pawpayments.com/webhooks",
+        "https://docs.pawpayments.com/billing-type",
+        "https://docs.pawpayments.com/sandbox"
       ]
     },
     "stripe_checkout": {
@@ -607,6 +716,73 @@
       ],
       "verification_work": "Original protected invoice/current key/profile preflight before I/O; fixed merchant/key budget default10 per minute (validated env1..1000), per-order cooldown30seconds, verified-token SHA256 cache7days; failed/uncertain work consumes quota; exact cached retry rechecks original proof and performs zero I/O",
       "route_binding": "Immutable invoice route: accounting asset, network and token contract/system. Same-asset only, no automatic token payout."
+    },
+    "paykassa_fixed_network": {
+      "ids": [
+        "PKDG",
+        "PKDA",
+        "PKBC",
+        "PKXR",
+        "PKTR",
+        "PKXL",
+        "PKBN",
+        "PKBB",
+        "PKBE",
+        "PKBD",
+        "PKBT",
+        "PKBZ",
+        "PKEZ",
+        "PKBU",
+        "PKBO",
+        "PKBA",
+        "PKBS",
+        "PKES",
+        "PKTN",
+        "PKTT"
+      ],
+      "automatic_in": true,
+      "authentication": "Exact private_hash confirmed through authenticated SCI0.4 order API",
+      "canonicalization": [
+        "Exact once-decoded notification token",
+        "Strict provider JSON confirmation envelope"
+      ],
+      "transaction": "Authenticated transaction tied to original merchant/order/invoice",
+      "amount": "Authenticated exact full amount equals original encrypted invoice gross",
+      "currency": "Exact fixed gateway binds accounting currency and SCI system/network, including same-symbol assets on separate ledgers",
+      "receiver": "Original encrypted SCI invoice address and mandatory nonempty tag/memo for XRP, Stellar and TON; authenticated confirmation must match every original field",
+      "timestamp": "No signed callback timestamp; permanent transaction-ID idempotency",
+      "status": "Confirmed complete order; partial unsupported",
+      "unsupported": [
+        "PKAU",
+        "PKAR",
+        "partial",
+        "old URL-only invoice",
+        "missing original immutable invoice proof",
+        "sandbox",
+        "automatic payouts for newly added fixed networks",
+        "missing required payment tag/memo"
+      ],
+      "sources": [
+        "https://paykassa.pro/en/developers/",
+        "https://paykassa.pro/docs/",
+        "https://github.com/paykassa-dev/paykassa-modules/blob/1b3b4d4a0dcda0769b9bca7fef5bb131c923fbb8/src/PaykassaSCI.php"
+      ],
+      "verification_work": "Original protected invoice/current key/profile preflight before I/O; fixed merchant/key budget default10 per minute (validated env1..1000), per-order cooldown30seconds, verified-token SHA256 cache7days; failed/uncertain work consumes quota; exact cached retry rechecks original proof and performs zero I/O",
+      "catalog_provenance": "Official SCI system identities plus supplied merchant options for BUSD; contract callbacks remain synthetic, not a paid live capture"
+    },
+    "coinpayments_new_configuration": {
+      "ids": [
+        "CPN"
+      ],
+      "automatic_in": false,
+      "automatic_out": false,
+      "reason": "NEW catalog/configuration phase only; every financial mode is prohibited by SQL. Original completed Sandbox invoices, fees and ToBalance merchant settlement must be verified before a separately reviewed financial migration.",
+      "preservation": "Instance/full currency ID and encrypted credential versions remain separate from Legacy; no invoice, payout or callback authority.",
+      "sources": [
+        "https://docs.coinpayments.net/api/migration-guide/",
+        "https://docs.coinpayments.net/api/invoices/statuses/",
+        "https://docs.coinpayments.net/api/invoices/payment-settings/"
+      ]
     }
   }
 }

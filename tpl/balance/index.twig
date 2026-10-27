@@ -4,7 +4,7 @@
 {% set in_ops = ['BONUS', 'CASHIN', 'EXIN', 'TRIN', 'SELL', 'REF', 'TAKE', 'CALCIN'] %}
 {% set out_ops = ['PENALTY', 'CASHOUT', 'EX', 'TR', 'BUY', 'GIVE', 'CALCOUT'] %}
 
-<div class="mx-auto w-full max-w-6xl">
+<div class="w-full min-w-0">
 	{% if isset(_GET.fail) %}
 		<div class="rounded-[1.5rem] border border-red-200 bg-red-50 p-6 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100">
 			<div class="flex gap-4">
@@ -25,28 +25,49 @@
 			</div>
 		</div>
 
-		<div class="mb-10 grid grid-cols-1 gap-8 lg:grid-cols-3">
-			<div class="flex flex-col overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515] lg:col-span-2">
-				<div class="flex items-center justify-between border-b border-gray-100 p-6 dark:border-gray-800">
+		<div class="mb-10 space-y-4">
+			<nav class="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="{{ _t({"key": 'balance.hero.title', "default": 'Финансы и операции'}) }}">
+				<a href="{{ _link('balance/oper', false, 0) }}?add=CASHIN" class="group flex min-h-16 items-center justify-center gap-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 px-4 py-3 text-sm text-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-emerald-500/20">
+					<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/20 text-base transition-transform group-hover:scale-110"><i class="fa-solid fa-arrow-down" aria-hidden="true"></i></div>
+					<span class="font-bold">{{ _t({"key": 'balance.action.cashin', "default": 'Пополнить'}) }}</span>
+				</a>
+				<a href="{{ _link('balance/oper', false, 0) }}?add=CASHOUT" class="group flex min-h-16 items-center justify-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 text-sm transition-all hover:border-brand dark:border-gray-800 dark:bg-[#151515] dark:hover:border-white">
+					<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-base text-brand transition-colors group-hover:bg-brand group-hover:text-white dark:bg-[#202020] dark:text-white dark:group-hover:bg-white dark:group-hover:text-brand"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></div>
+					<span class="font-bold text-brand dark:text-white">{{ _t({"key": 'balance.action.cashout', "default": 'Вывести'}) }}</span>
+				</a>
+				{% if not _cfg.Const_IntCurr %}
+					<a href="{{ _link('balance/oper', false, 0) }}?add=EX" class="group flex min-h-16 items-center justify-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 text-sm transition-all hover:border-brand dark:border-gray-800 dark:bg-[#151515] dark:hover:border-white">
+						<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-base text-brand transition-colors group-hover:bg-brand group-hover:text-white dark:bg-[#202020] dark:text-white dark:group-hover:bg-white dark:group-hover:text-brand"><i class="fa-solid fa-right-left" aria-hidden="true"></i></div>
+						<span class="font-bold text-brand dark:text-white">{{ _t({"key": 'balance.action.exchange', "default": 'Обменять'}) }}</span>
+					</a>
+				{% endif %}
+				<a href="{{ _link('balance/oper', false, 0) }}?add=TR" class="group flex min-h-16 items-center justify-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 text-sm transition-all hover:border-brand dark:border-gray-800 dark:bg-[#151515] dark:hover:border-white">
+					<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-base text-brand transition-colors group-hover:bg-brand group-hover:text-white dark:bg-[#202020] dark:text-white dark:group-hover:bg-white dark:group-hover:text-brand"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></div>
+					<span class="font-bold text-brand dark:text-white">{{ _t({"key": 'balance.action.transfer', "default": 'Перевести'}) }}</span>
+				</a>
+			</nav>
+
+			<div class="flex flex-col overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
+				<div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-4 dark:border-gray-800">
 					<h3 class="text-lg font-bold text-brand dark:text-white">{{ _t({"key": 'balance.current.title', "default": 'Текущие балансы'}) }}</h3>
 					<span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-400 dark:bg-gray-800">{{ currs|count }} {{ _t({"key": 'balance.current.accounts_count', "default": 'активных счетов'}) }}</span>
 				</div>
 				<div class="overflow-x-auto">
-					<table class="w-full border-collapse text-left">
+					<table class="w-full min-w-[640px] border-collapse text-left">
 						<thead>
 							<tr class="bg-gray-50/50 text-[10px] font-bold uppercase tracking-wider text-gray-500 dark:bg-[#1A1A1A]">
-								<th class="px-6 py-3">{{ _t({"key": 'balance.col.psys', "default": 'Плат. система'}) }}</th>
-								<th class="px-6 py-3 text-right">{{ _t({"key": 'balance.col.available', "default": 'Доступно'}) }}</th>
-								<th class="px-6 py-3 text-right">{{ _t({"key": 'balance.col.locked', "default": 'Занято'}) }}</th>
-								<th class="px-6 py-3 text-right">{{ _t({"key": 'balance.col.pending', "default": 'Ожидает'}) }}</th>
+								<th class="px-5 py-3">{{ _t({"key": 'balance.col.psys', "default": 'Плат. система'}) }}</th>
+								<th class="px-5 py-3 text-right">{{ _t({"key": 'balance.col.available', "default": 'Доступно'}) }}</th>
+								<th class="px-5 py-3 text-right">{{ _t({"key": 'balance.col.locked', "default": 'Занято'}) }}</th>
+								<th class="px-5 py-3 text-right">{{ _t({"key": 'balance.col.pending', "default": 'Ожидает'}) }}</th>
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-gray-100 text-sm dark:divide-gray-800">
 							{% for cid, c in currs %}
 								<tr class="transition-colors hover:bg-gray-50 dark:hover:bg-[#1A1A1A]">
-									<td class="px-6 py-4">
+									<td class="px-5 py-3">
 										<div class="flex items-center gap-3">
-											<div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-500 dark:bg-gray-800">
+											<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-500 dark:bg-gray-800">
 												{% if c.cCurrID == 'BTC' %}
 													<i class="fa-brands fa-bitcoin text-orange-500" aria-hidden="true"></i>
 												{% else %}
@@ -59,9 +80,9 @@
 											</div>
 										</div>
 									</td>
-									<td class="px-6 py-4 text-right font-mono text-lg font-bold text-brand dark:text-white">{{ _z(c.wBal|default(0), c.cID, -1) }}</td>
-									<td class="px-6 py-4 text-right font-mono font-bold {% if c.wLock > 0 %}text-amber-500{% else %}text-gray-400{% endif %}">{{ _z(c.wLock|default(0), c.cID, -1) }}</td>
-									<td class="px-6 py-4 text-right font-mono font-bold {% if c.wOut > 0 %}text-blue-500{% else %}text-gray-400{% endif %}">{{ _z(c.wOut|default(0), c.cID, -1) }}</td>
+									<td class="px-5 py-3 text-right whitespace-nowrap font-mono text-base font-bold text-brand dark:text-white">{{ _z(c.wBal|default(0), c.cID, -1) }}</td>
+									<td class="px-5 py-3 text-right whitespace-nowrap font-mono font-bold {% if c.wLock > 0 %}text-amber-500{% else %}text-gray-400{% endif %}">{{ _z(c.wLock|default(0), c.cID, -1) }}</td>
+									<td class="px-5 py-3 text-right whitespace-nowrap font-mono font-bold {% if c.wOut > 0 %}text-blue-500{% else %}text-gray-400{% endif %}">{{ _z(c.wOut|default(0), c.cID, -1) }}</td>
 								</tr>
 							{% else %}
 								<tr>
@@ -72,28 +93,9 @@
 					</table>
 				</div>
 			</div>
-
-			<div class="grid content-start grid-cols-2 gap-4 self-start">
-				<a href="{{ _link('balance/oper', false, 0) }}?add=CASHIN" class="group flex min-h-32 flex-col items-center justify-center gap-3 rounded-[1.5rem] bg-gradient-to-br from-emerald-500 to-emerald-600 p-6 text-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-emerald-500/20">
-					<div class="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-xl transition-transform group-hover:scale-110"><i class="fa-solid fa-arrow-down" aria-hidden="true"></i></div>
-					<span class="font-bold">{{ _t({"key": 'balance.action.cashin', "default": 'Пополнить'}) }}</span>
-				</a>
-				<a href="{{ _link('balance/oper', false, 0) }}?add=CASHOUT" class="group flex min-h-32 flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-gray-100 bg-white p-6 transition-all hover:border-brand dark:border-gray-800 dark:bg-[#151515] dark:hover:border-white">
-					<div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-brand transition-colors group-hover:bg-brand group-hover:text-white dark:bg-[#202020] dark:text-white dark:group-hover:bg-white dark:group-hover:text-brand"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></div>
-					<span class="font-bold text-brand dark:text-white">{{ _t({"key": 'balance.action.cashout', "default": 'Вывести'}) }}</span>
-				</a>
-				{% if not _cfg.Const_IntCurr %}
-					<a href="{{ _link('balance/oper', false, 0) }}?add=EX" class="group flex min-h-32 flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-gray-100 bg-white p-6 transition-all hover:border-brand dark:border-gray-800 dark:bg-[#151515] dark:hover:border-white">
-						<div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-brand transition-colors group-hover:bg-brand group-hover:text-white dark:bg-[#202020] dark:text-white dark:group-hover:bg-white dark:group-hover:text-brand"><i class="fa-solid fa-right-left" aria-hidden="true"></i></div>
-						<span class="font-bold text-brand dark:text-white">{{ _t({"key": 'balance.action.exchange', "default": 'Обменять'}) }}</span>
-					</a>
-				{% endif %}
-				<a href="{{ _link('balance/oper', false, 0) }}?add=TR" class="group flex min-h-32 flex-col items-center justify-center gap-3 rounded-[1.5rem] border border-gray-100 bg-white p-6 transition-all hover:border-brand dark:border-gray-800 dark:bg-[#151515] dark:hover:border-white">
-					<div class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-brand transition-colors group-hover:bg-brand group-hover:text-white dark:bg-[#202020] dark:text-white dark:group-hover:bg-white dark:group-hover:text-brand"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></div>
-					<span class="font-bold text-brand dark:text-white">{{ _t({"key": 'balance.action.transfer', "default": 'Перевести'}) }}</span>
-				</a>
-			</div>
 		</div>
+
+        {% include 'balance/archived.holdings.twig' %}
 
 		<div class="mb-6 flex flex-col items-center justify-between gap-4 md:flex-row">
 			<h3 class="text-xl font-bold text-brand dark:text-white">{{ _t({"key": 'balance.history.title', "default": 'История транзакций'}) }}</h3>
@@ -177,7 +179,7 @@
 						{% else %}
 							<tr>
 								<td colspan="7" class="px-6 py-12 text-center">
-									<div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl text-gray-400 dark:bg-[#1A1A1A]">
+									<div class="mx-auto mb-4 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xl text-gray-400 dark:bg-[#1A1A1A]">
 										<i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
 									</div>
 									<div class="font-bold text-brand dark:text-white">{{ _t({"key": 'balance.history.empty', "default": 'Операций пока нет'}) }}</div>

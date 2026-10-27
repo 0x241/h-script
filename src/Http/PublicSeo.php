@@ -128,19 +128,21 @@ final class PublicSeo
         return $paths;
     }
 
-    public static function metadata(LocaleRouter $router, string $httpsRoot, string $module, string $path, string $locale, array $available, array $query = [], string $referralKey = '', bool $eligible = true, array $paths = []): array
+    public static function metadata(LocaleRouter $router, string $httpsRoot, string $module, string $path, string $locale, array $available, array $query = [], string $referralKey = '', bool $eligible = true, array $paths = [], ?array $navigationLocales = null): array
     {
         $root = rtrim($httpsRoot, '/') . '/';
         $indexable = $eligible && $router->isIndexable($module) && in_array($locale, $available, true);
         $canonical = $root . $router->url($module, $paths[$locale] ?? $path, $locale, $query, $referralKey, true);
         $alternates = [];
         $languages = [];
-        foreach ($available as $language) {
+        // Navigation remains usable when editorial content has no translation.
+        // Only proven translations are advertised to search engines.
+        foreach ($navigationLocales ?? $available as $language) {
             if (!$router->supports($language)) {
                 continue;
             }
             $languages[$language] = $router->url($module, $paths[$language] ?? $path, $language, $query, $referralKey);
-            if ($indexable) {
+            if ($indexable && in_array($language, $available, true)) {
                 $alternates[$language] = $root . $router->url($module, $paths[$language] ?? $path, $language, $query, $referralKey, true);
             }
         }

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 if (PHP_SAPI!=='cli') { http_response_code(404);exit; }
 require __DIR__.'/fixtures/financial_runtime.php';
+require __DIR__.'/fixtures/currency_archive_checks.php';
 use HScript\Finance\{DepositCheckout,GatewaySettlement,IdempotencyResult,IdempotencyStore,StripeContract};
 use HScript\Payment\{PaymentManager,CallbackResult};
 use HScript\Payment\Provider\{PaymentProviderSchema,ProviderConnectionSchema,ProviderCatalogSchema,ProviderCatalog,ProviderRepository,ProviderService,ProviderException,PawProviderRepository,PawProviderService};
@@ -12,7 +13,7 @@ putenv('APP_DATA_KEY=synthetic-shared-provider-fixture-key');
 set_exception_handler(static function(Throwable $e): void { fwrite(STDERR,$e::class.': '.$e->getMessage().' at '.basename($e->getFile()).':'.$e->getLine()."\n");exit(1); });
 function sharedReject(callable $f,string $reason): void { try {$f();throw new LogicException('Expected '.$reason);} catch (ProviderException $e) { financialAssert($e->reason===$reason,'rejection '.$reason); } }
 function sharedSnapshot(): string { global $pdo;$out=[];foreach (['Users','Wallets','Opers','Deps','Hist'] as $t) $out[$t]=$pdo->query('SELECT * FROM '.$t.' ORDER BY 1')->fetchAll(PDO::FETCH_ASSOC);return hash('sha256',serialize($out)); }
-function sharedInput(int $id,int $revision,array $credentials,array $currencies,array $bindings=[]): array { return ['profile_id'=>(string)$id,'revision'=>(string)$revision,'credentials'=>$credentials,'currencies'=>$currencies,'bindings'=>$bindings,'enabled'=>'1']; }
+function sharedInput(int $id,int $revision,array $credentials,array $currencies,array $bindings=[]): array { return ['form_complete'=>'1','profile_id'=>(string)$id,'revision'=>(string)$revision,'credentials'=>$credentials,'currencies'=>$currencies,'bindings'=>$bindings,'enabled'=>'1']; }
 function sharedCurrency(int $id,int $profile,int $revision,array $extra=[]): array {
     return array_replace(HScript\Finance\CurrencyInput::normalize([]),['cID'=>(string)$id,'profile_id'=>(string)$profile,'revision'=>(string)$revision,'cName'=>'Configured currency','cCurr'=>'unit','cNumDec'=>'2','cDisabled'=>'0','cHidden'=>'0','cBalMin'=>'3.100000',
         'cCASHINMode'=>'3','cCASHOUTMode'=>'1','cCASHOUTLimitPer'=>'0','cEXMode'=>'0','cTRMode'=>'0','cBUYMode'=>'0','cSELLMode'=>'0','cBUY2Mode'=>'0','cSELL2Mode'=>'0','cGIVEMode'=>'0','cTAKEMode'=>'0'],$extra);
@@ -38,11 +39,11 @@ financialAssert((new PawProviderRepository($db))->key($pawId,1)==='sk_sandbox_pr
 financialAssert($identities===$pdo->query('SELECT cID,cCID,cCurrID FROM Currs ORDER BY cID')->fetchAll(PDO::FETCH_ASSOC),'historical currency identities preserved');
 financialAssert((int)financialValue('SELECT cDisabled FROM Currs WHERE cID='.$ep)===1 && financialValue('SELECT cParamsSCI FROM Currs WHERE cID='.$ep)==='','ePayCore retired with credentials removed');
 ProviderConnectionSchema::ensure($db);ProviderCatalogSchema::ensure($db);financialAssert(sharedSnapshot()===$before,'repeat ensure no monetary change');
-$catalog=new ProviderCatalog($db);financialAssert(count($catalog->available())===10 && $catalog->available()['PAYKASSA']['name']==='PayKassa','one DB row per installed provider');
-$pdo->exec("UPDATE PaymentGatewayCatalog SET pgAvailable=0 WHERE pgCode='STRIPE'");ProviderCatalogSchema::ensure($db);financialAssert(count($catalog->available())===9,'repeat seed preserves operator availability');$pdo->exec("UPDATE PaymentGatewayCatalog SET pgAvailable=1 WHERE pgCode='STRIPE'");
+$catalog=new ProviderCatalog($db);financialAssert(count($catalog->available())===11 && $catalog->available()['PAYKASSA']['name']==='PayKassa','one DB row per installed provider');
+$pdo->exec("UPDATE PaymentGatewayCatalog SET pgAvailable=0 WHERE pgCode='STRIPE'");ProviderCatalogSchema::ensure($db);financialAssert(count($catalog->available())===10,'repeat seed preserves operator availability');$pdo->exec("UPDATE PaymentGatewayCatalog SET pgAvailable=1 WHERE pgCode='STRIPE'");
 financialReset();$repository=new ProviderRepository($db);$calls=0;
 $probe=static function($kind,$credentials,$currencies,$wallets) use ($pdo,&$calls): array { financialAssert(!$pdo->inTransaction(),'probe outside SQL locks');$calls++;return $kind==='STRIPE'?['account_id'=>'acct_fixture']:[]; };
-$service=new ProviderService($db,$probe);$input=sharedInput(0,0,['v3_key'=>'syntheticccapisecret'],['BTC']);
+HScript\Payment\Provider\CurrencyArchiveSchema::ensure($db);$service=new ProviderService($db,$probe);$input=sharedInput(0,0,['v3_key'=>'syntheticccapisecret'],['BTC']);
 sharedReject(static fn()=>$service->save(89,'CCAPI',$input),'forbidden');financialAssert($calls===0,'auth before provider I/O');
 $legacy=$db->insert('Currs',['cCID'=>'CCAB','cCurrID'=>'BTC','cName'=>'Existing BTC','cNumDec'=>6,'cDisabled'=>0]);
 $before=sharedSnapshot();sharedReject(static fn()=>$service->save(90,'CCAPI',$input),'binding_required');financialAssert(sharedSnapshot()===$before && !$repository->current('CCAPI'),'unbound native row requires explicit choice, full rollback');
@@ -62,7 +63,7 @@ sharedReject(static fn()=>$service->saveCurrency(90,'CCAPI',$legacy,sharedCurren
 $pdo->exec('UPDATE Opers SET oState=4 WHERE oID='.$op);$service->save(90,'CCAPI',$rotate);
 financialAssert((int)$repository->find($pid)['ppCurrentKeyVersion']===2 && (int)financialValue('SELECT COUNT(*) FROM PaymentProviderCredentials WHERE ppcProviderID='.$pid)===2,'immutable rotation retains old version');
 try {(new PawProviderService(new PawProviderRepository($db)))->disable(90,$pid,3,true);throw new LogicException('Cross-kind PAW');} catch (HScript\Payment\Provider\PawProviderException $e) {financialAssert($e->reason==='configuration_changed','PAW cannot retire other provider');}
-$service->disable(90,'CCAPI',$pid,3,true);$new=$service->save(90,'CCAPI',sharedInput(0,0,['v3_key'=>'newprofilekey'],['BTC']));financialAssert($new!==$pid,'retire and reconnect keeps old profile/history');
+sharedReject(static fn()=>$service->disable(90,'CCAPI',$pid,3,true),'currency_archive_invoice');$pdo->exec('UPDATE Opers SET oState=3 WHERE oID='.$op);$service->disable(90,'CCAPI',$pid,3,true);$new=$service->save(90,'CCAPI',sharedInput(0,0,['v3_key'=>'newprofilekey'],['BTC']));financialAssert($new!==$pid,'retire and reconnect keeps old profile/history');
 $volet=$service->save(90,'VOLET',sharedInput(0,0,['email'=>'merchant@fixture.invalid','sci_name'=>'Fixture SCI','sci_secret'=>'sci-secret','api_name'=>'Fixture API','api_secret'=>'api-secret'],['USD'])+['wallets'=>['USD'=>'U1234567']]);
 $v=$repository->connections($volet)[0];$service->saveCurrency(90,'VOLET',(int)$v['cID'],sharedCurrency((int)$v['cID'],$volet,1));
 $v=$repository->connections($volet)[0];opDecodeCurrParams($v,$pay,$sci,$api);financialAssert($api['acc']==='U1234567' && $api['apipass']==='api-secret' && $sci['sci']==='Fixture SCI','currency save preserves local wallet across stamp change');
@@ -87,6 +88,7 @@ $verified=sharedStripeEvent($issued,$sci);$paid=GatewaySettlement::settle($db,'S
 financialWallet(1,$usd,'1.000000');$after=sharedSnapshot();
 $retry=GatewaySettlement::settle($db,'ST',$usd,sharedStripeEvent($issued,$sci,'evt_different','checkout.session.async_payment_succeeded'));
 financialAssert($retry->replayed && sharedSnapshot()===$after,'different events for same session have one effect');
+financialArchivedReplay('ST',$usd,$verified);
 $wrong=$issued;$wrong['amount_total']=102;
 try {GatewaySettlement::settle($db,'ST',$usd,sharedStripeEvent($wrong,$sci,'evt_bad'));throw new LogicException('Wrong amount');} catch (HScript\Finance\IdempotencyConflict|HScript\Finance\CallbackValidationException) {financialAssert(sharedSnapshot()===$after,'wrong amount never changes money');}
 $batch=financialValue('SELECT oBatch FROM Opers WHERE oID='.$oid);financialAssert(strlen($batch)<=39 && $batch===StripeContract::batchAlias($issued['id']),'short legacy batch, full durable session identity');

@@ -22,6 +22,13 @@ if (($argv[1] ?? '') === '--worker') {
     echo (new TelemetryAttemptGate($db))->claim(true)['allowed'] ? '1' : '0';
     exit;
 }
+if (($argv[1] ?? '') === '--cron-worker') {
+    if (!(new ModuleSchedule($db))->acquire()) exit(3);
+    echo $db->fetch1($db->query('SELECT CONNECTION_ID()')), "\n";
+    fflush(STDOUT);
+    fgets(STDIN); // The parent kills this process without releasing its lock.
+    exit(4);
+}
 $checks = 0;
 $assert = static function (bool $condition, string $message) use (&$checks): void {
     $checks++;
@@ -86,9 +93,41 @@ $assert($first->claim('probe', '20261003000000', '20261003000500'), 'New schedul
 $assert(!$first->claim('probe', '20261003000000', '20261003000500'), 'Claim ignored its stored future deadline');
 $first->release();
 $assert($second->acquire(), 'Completed worker did not release its lock');
-$otherDb->close(); // PDO disconnect releases MySQL advisory locks after worker death.
-$assert($first->acquire(), 'Worker crash left a permanent cron lock');
-$first->release();
+$second->release();
+$otherDb->close();
+// A client disconnect is processed asynchronously by the server. Exercise a
+// real worker death and observe server ownership before the next acquisition.
+$process = proc_open([PHP_BINARY, __FILE__, '--cron-worker'], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+if (!is_resource($process)) throw new RuntimeException('Cron crash worker unavailable');
+try {
+    stream_set_timeout($pipes[1], 5);
+    $owner = trim((string)fgets($pipes[1]));
+    $assert(ctype_digit($owner), 'Cron worker did not acquire its lock');
+    $lock = (string)$db->fetch1($db->query("SELECT CONCAT('hscript-cron-', LEFT(SHA2(DATABASE(),256),40))"));
+    $lockOwner = static fn() => $db->fetch1($db->query('SELECT IS_USED_LOCK(?)', [$lock]));
+    $assert((string)$lockOwner() === $owner && !$first->acquire(), 'Live cron worker did not retain exclusive ownership');
+    $assert(proc_terminate($process, 9), 'Cron crash could not be injected');
+    $deadline = microtime(true) + 5;
+    do {
+        $remainingOwner = $lockOwner();
+        if ($remainingOwner === null) break;
+        usleep(10000);
+    } while (microtime(true) < $deadline);
+    $assert($remainingOwner === null, 'Dead cron worker retained its server lock');
+    $assert($first->acquire(), 'Worker crash left a permanent cron lock');
+    $first->release();
+} finally {
+    if (proc_get_status($process)['running']) proc_terminate($process, 9);
+    foreach ($pipes as $pipe) fclose($pipe);
+    proc_close($process);
+}
+
+// The runner now includes a read-only PAW payout poll. Supply its real empty
+// schema, rather than skipping that production branch or using a fake adapter.
+require dirname(__DIR__) . '/_dbstru.php';
+foreach (['PaymentProviders','PaymentProviderCredentials','Currs','Opers','IdempotencyKeys'] as $table)
+    $db->link->exec('CREATE TABLE IF NOT EXISTS `' . $table . '` (' . $_dbstru[$table] . ') ENGINE=InnoDB');
+$assert((int)$db->link->query('SELECT COUNT(*) FROM Opers')->fetchColumn() === 0, 'Cron fixture must not contain payout work');
 
 // Exercise runner order and per-module failures without any external providers.
 require dirname(__DIR__) . '/module/cron/lib.php';
@@ -96,7 +135,7 @@ function useLib($module): void {}
 function smsUpdateDeliveryStatuses($count): void { $GLOBALS['runs'][] = 'jobs'; }
 if (!defined('HS2_UNIX_MINUTE')) define('HS2_UNIX_MINUTE', 60);
 $temporary = sys_get_temp_dir() . '/cron-fixture-' . bin2hex(random_bytes(8));
-$_GS = ['module_dir' => $temporary . '/'];
+$_GS = ['module_dir' => $temporary . '/', 'module' => 'cron'];
 $_cfg = ['Cron_Enabled' => 1, 'SMS_UpdateCount' => 1];
 $_currs = [];
 $_oncron = ['balance' => 5, 'depo' => 1, 'integrity' => 1440, 'telemetry' => 1440];
@@ -119,6 +158,7 @@ try {
     $assert($failed && $runs === ['depo', 'integrity', 'telemetry', 'balance', 'jobs'], 'Failure or rate provider starved later modules');
     $runs = [];
     $assert(opCronRun() === 'success' && $runs === ['jobs'], 'Repeat manual run ignored module schedule');
+    $assert((int)$db->link->query('SELECT COUNT(*) FROM IdempotencyKeys')->fetchColumn() === 0, 'Idle payout poll must not claim or send payments');
 } finally {
     foreach ($_oncron as $module => $interval) { unlink($temporary . '/' . $module . '/oncron.php'); rmdir($temporary . '/' . $module); }
     rmdir($temporary);

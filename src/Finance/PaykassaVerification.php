@@ -12,6 +12,7 @@ final class PaykassaVerification
 {
     public const COOLDOWN=30;
     public const CACHE_TTL=604800;
+    public const LEASE=120;
     private const MERCHANT='verification:paykassa:merchant';
     private const ORDER='verification:paykassa:order';
 
@@ -41,7 +42,7 @@ final class PaykassaVerification
             }
             InboundProfile::assertBinding($profile,$verified);
             PaykassaContract::validate($operation,$verified,$form,$sci,$intent['scale'],$intent['gross']);
-            return ['operation_id'=>$id,'owner_id'=>(int)$operation['ouID'],'profile'=>$profile,'verified'=>$verified,
+            return ['operation_id'=>$id,'owner_id'=>(int)$operation['ouID'],'archived'=>ArchivedReplay::inactive($operation),'profile'=>$profile,'verified'=>$verified,
                 'account'=>hash('sha256',$sci['id']."\0".$profile['key_hash']),
                 'binding'=>IdempotencyRequest::fingerprint(['intent'=>$intent,'profile'=>$profile,
                     'invoice'=>$form['paykassa_invoice'],'invoice_hash'=>$form['paykassa_hash'],
@@ -97,13 +98,15 @@ final class PaykassaVerification
     public static function claim(Connection $db,array $context,string $token): array
     {
         $now=time(); $budget=self::budget(); $tokenHash=hash('sha256',$token);
-        // Cleanup owns no financial/account locks. Narrow primary-key deletes
-        // avoid a namespace range lock across unrelated invoices.
-        $expired=$db->link->prepare('SELECT ikID FROM IdempotencyKeys FORCE INDEX (ix_idempotency_expiry) WHERE ikNamespace=? AND ikExpiresAt BETWEEN 1 AND ? LIMIT 100');
-        $expired->execute([self::ORDER,$now-1]);
-        $delete=$db->link->prepare('DELETE FROM IdempotencyKeys WHERE ikID=? AND ikNamespace=? AND ikExpiresAt BETWEEN 1 AND ?');
-        foreach($expired->fetchAll(\PDO::FETCH_COLUMN) as $id) $delete->execute([$id,self::ORDER,$now-1]);
-        return self::transaction($db,static function() use($db,$context,$now,$budget,$tokenHash): array {
+        return self::transaction($db,static function() use($db,$context,$token,$now,$budget,$tokenHash): array {
+            $q=$db->link->prepare('SELECT Currs.* FROM Currs JOIN Opers ON ocID=cID WHERE oID=? FOR UPDATE');$q->execute([$context['operation_id']]);$currency=$q->fetch(\PDO::FETCH_ASSOC);
+            if(!$currency)throw new CallbackValidationException('callback_order_unavailable');
+            if(ArchivedReplay::inactive($currency))return self::readOnly($db,$context,$token);
+            // Narrow primary-key cleanup and verification claim share the currency fence.
+            $expired=$db->link->prepare('SELECT ikID FROM IdempotencyKeys FORCE INDEX (ix_idempotency_expiry) WHERE ikNamespace=? AND ikExpiresAt BETWEEN 1 AND ? LIMIT 100');
+            $expired->execute([self::ORDER,$now-1]);
+            $delete=$db->link->prepare('DELETE FROM IdempotencyKeys WHERE ikID=? AND ikNamespace=? AND ikExpiresAt BETWEEN 1 AND ?');
+            foreach($expired->fetchAll(\PDO::FETCH_COLUMN)as$id)$delete->execute([$id,self::ORDER,$now-1]);
             $merchant=self::row($db,self::MERCHANT,$context['account'],['version'=>1,'window'=>0,'count'=>0],$now,null);
             $order=self::row($db,self::ORDER,(string)$context['operation_id'],['version'=>1,'binding'=>$context['binding'],
                 'last'=>0,'claim'=>'','inflight'=>false,'token_hash'=>'','verified_at'=>0],$now,$context['operation_id']);
@@ -116,7 +119,7 @@ final class PaykassaVerification
                 || $o['binding']!==$context['binding']) throw new RuntimeException('paykassa_verification_unavailable');
             if ($o['token_hash']!=='' && $o['verified_at']>$now-self::CACHE_TTL && hash_equals($o['token_hash'],$tokenHash))
                 return ['cached'=>true];
-            if ($o['last']>$now-self::COOLDOWN) throw new RuntimeException('paykassa_verification_throttled');
+            if (($o['inflight']&&$o['last']>$now-self::LEASE)||$o['last']>$now-self::COOLDOWN) throw new RuntimeException('paykassa_verification_throttled');
             $window=intdiv($now,60)*60;
             if ($m['window']!==$window) $m=['version'=>1,'window'=>$window,'count'=>0];
             if ($m['count']>=$budget) throw new RuntimeException('paykassa_verification_throttled');
@@ -127,6 +130,18 @@ final class PaykassaVerification
         });
     }
 
+    private static function readOnly(Connection $db,array $context,string $token): array
+    {
+        $q=$db->link->prepare('SELECT ikOperationID,ikState,ikResponse,ikExpiresAt FROM IdempotencyKeys WHERE ikNamespace=? AND ikKeyHash=?');
+        $q->execute([self::ORDER,hash('sha256',"0\0".(string)$context['operation_id'])]);$row=$q->fetch(\PDO::FETCH_ASSOC);
+        try{$data=$row?json_decode($row['ikResponse'],true,16,JSON_THROW_ON_ERROR):null;}catch(\Throwable){$data=null;}
+        if(!$row||$row['ikState']!=='completed'||(int)$row['ikOperationID']!==$context['operation_id']||(int)$row['ikExpiresAt']<=time()
+            ||!is_array($data)||($data['version']??null)!==1||($data['binding']??null)!==$context['binding']||!(($data['inflight']??null)===false||(($data['inflight']??null)===true&&is_int($data['last']??null)&&$data['last']<=time()-self::LEASE))
+            ||!is_string($data['token_hash']??null)||!hash_equals($data['token_hash'],hash('sha256',$token))
+            ||!is_int($data['verified_at']??null)||$data['verified_at']<=time()-self::CACHE_TTL)throw new CallbackValidationException('archived_callback_reconciliation_required');
+        return ['cached'=>true];
+    }
+
     /** Save no raw token, provider address, credential or unvalidated response. */
     public static function complete(Connection $db,array $context,array $claim,array $verified): void
     {
@@ -135,12 +150,13 @@ final class PaykassaVerification
                 throw new CallbackValidationException('callback_paykassa_original_mismatch');
         self::transaction($db,static function() use($db,$context,$claim): void {
             $current=self::intent($db,$context['profile']['gateway'],$context['operation_id'],self::configuration($db,$context['operation_id']));
+            if(!empty($current['archived']))throw new CallbackValidationException('archived_callback_reconciliation_required');
             if ($current['binding']!==$context['binding']) throw new CallbackValidationException('callback_paykassa_original_mismatch');
             $statement=$db->link->prepare('SELECT ikResponse FROM IdempotencyKeys WHERE ikID=? AND ikNamespace=? FOR UPDATE');
             $statement->execute([$claim['id'],self::ORDER]);
             try { $data=json_decode($statement->fetchColumn(),true,16,JSON_THROW_ON_ERROR); }
             catch(\Throwable) { throw new RuntimeException('paykassa_verification_unavailable'); }
-            if (($data['binding'] ?? null)!==$context['binding'] || ($data['claim'] ?? null)!==$claim['claim'] || ($data['inflight'] ?? null)!==true)
+            if (($data['binding'] ?? null)!==$context['binding'] || ($data['claim'] ?? null)!==$claim['claim'] || ($data['inflight'] ?? null)!==true || !is_int($data['last']??null) || $data['last']<=time()-self::LEASE)
                 throw new RuntimeException('paykassa_verification_unavailable');
             $data['inflight']=false; $data['token_hash']=$claim['token_hash']; $data['verified_at']=time();
             self::save($db,$claim['id'],$data,time()+self::CACHE_TTL);

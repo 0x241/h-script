@@ -27,6 +27,9 @@ try
 		$preserve_empty = isset($setup_preserve_empty) && is_array($setup_preserve_empty)
 			? $setup_preserve_empty
 			: array();
+		if(isset($setup_saver) && is_callable($setup_saver)) {
+			$setup_saver($current_setup,$_IN);
+		} else {
 		$db->delete('Cfg', 'Module=?', array($setup_module));
 		foreach ($_IN as $p => $v)
 			if (substr($p, -4) != '_btn')
@@ -39,6 +42,7 @@ try
 					'Val' => $v
 				));
 			}
+		}
 		View::showInfo('Saved');
 	}
 

@@ -33,6 +33,12 @@ foreach (array(
     'balance/index.twig', 'balance/oper.twig', 'depo/index.twig', 'depo/admin/stat.twig',
     'message/show.twig', 'message/admin/message.twig', 'tickets/ticket.twig',
     'tickets/admin/ticket.twig', 'account/admin/user.twig', '_read_receipt.twig',
+    'balance/admin/curr.provider.twig', 'balance/admin/curr.paw.twig',
+    'balance/admin/curr.legacy.twig', 'balance/admin/curr.coinpayments.twig',
+    'balance/admin/curr.settings.twig', 'balance/admin/currency.card.twig',
+    'balance/admin/currs.twig', 'balance/admin/paw.form.twig',
+    'balance/admin/paw.referral.twig', 'balance/admin/provider.referral.twig',
+    'balance/admin/provider.tokens.twig',
 ) as $template) {
     $environment->load($template);
 }

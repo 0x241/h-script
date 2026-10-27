@@ -2232,8 +2232,8 @@
 .hs-provider-input:focus { outline:3px solid #dbeafe; outline-offset:1px; border-color:#3b82f6; }
 .hs-provider select.hs-provider-input { padding-right:38px; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; }
 .hs-provider-enabled { display:flex; align-items:center; gap:10px; padding:16px; border:1px solid #e2e8f0; border-radius:12px; font-size:14px; font-weight:600; }
-.hs-provider-currencies { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
-.hs-provider-currency { min-width:0; padding:18px; border:1px solid #e2e8f0; border-radius:14px; background:#fff; transition:border-color .15s,background-color .15s; }
+.hs-provider-currencies { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); grid-auto-rows:1fr; align-items:stretch; gap:12px; }
+.hs-provider-currency { display:flex; flex-direction:column; min-width:0; padding:18px; border:1px solid #e2e8f0; border-radius:14px; background:#fff; transition:border-color .15s,background-color .15s; }
 .hs-provider-currency:hover,.hs-provider-currency:focus-within { border-color:#93c5fd; }
 .hs-provider-currency:has(input[name="currencies[]"]:checked) { border-color:#60a5fa; background:#f5f9ff; }
 .hs-provider input[type="checkbox"] { box-sizing:border-box; width:19px; height:19px; min-width:19px; padding:0; margin:0; border:1.5px solid #94a3b8; border-radius:5px; background:#fff; -webkit-appearance:none; appearance:none; cursor:pointer; }
@@ -2249,7 +2249,7 @@
 .dark .hs-provider-currency:has(input:checked) { background:#17243a; border-color:#3b82f6; }
 .dark .hs-provider-note { background:#1e293b; color:#cbd5e1; }
 @media(max-width:900px) { .hs-provider-currencies { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-@media(max-width:640px) { .hs-provider-fields,.hs-provider-currencies { grid-template-columns:minmax(0,1fr); } .hs-provider-panel { padding:18px; } .hs-provider-heading { flex-wrap:wrap; } .hs-provider-heading h2 { font-size:1.3rem; } .hs-provider-badge { margin-left:0; } .hs-provider-button { width:100%; } }
+@media(max-width:640px) { .hs-provider-fields,.hs-provider-currencies { grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; } .hs-provider-panel { padding:18px; } .hs-provider-heading { flex-wrap:wrap; } .hs-provider-heading h2 { font-size:1.3rem; } .hs-provider-badge { margin-left:0; } .hs-provider-button { width:100%; } }
 
 .hs-provider-fields:has(> label:only-child) { grid-template-columns:minmax(0,1fr); }
 @supports selector(:has(*)) { .hs-provider-currency:not(:has(input[name="currencies[]"]:checked)) .hs-provider-wallet { display:none; } }
@@ -2337,10 +2337,15 @@
 .hs-payment-progress [data-payment-confirmations][hidden] { display:none; }
 @media(max-width:640px) { .hs-operation-cancel,.hs-payment-progress button { width:100%; } .hs-payment-progress { flex-wrap:wrap; } }
 /* Gateway connections and the scope of individual currency settings. */
-.hs-provider-connections{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-.hs-provider-connections>a{display:flex;align-items:center;gap:12px;min-width:240px;padding:14px 18px;border:1px solid #dbe4ef;border-radius:16px;background:#fff;color:#1e293b;text-decoration:none}
+.hs-provider-connections{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.hs-provider-connections>a{display:flex;align-items:center;gap:10px;min-width:0;padding:14px 16px;border:1px solid #dbe4ef;border-radius:16px;background:#fff;color:#1e293b;text-decoration:none}
 .hs-provider-connections>a:hover{border-color:#93b4f7;background:#f5f8ff}
+.hs-provider-connections>a>span{min-width:0;flex:1;overflow-wrap:anywhere}
 .hs-provider-connections strong,.hs-provider-connections small{display:block}
+@media(max-width:1599px){.hs-provider-connections{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:1199px){.hs-provider-connections{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.hs-provider-connections{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.hs-provider-connections{grid-template-columns:minmax(0,1fr)}}
 .hs-provider-connections small{margin-top:3px;font-size:12px;color:#64748b}
 .hs-provider-connections>a>i:last-child{margin-left:auto;font-size:12px;color:#64748b}
 .hs-provider-scope{display:flex;align-items:flex-start;gap:16px;padding:24px;border:1px solid #cddffb;border-radius:20px;background:#f1f6ff;color:#334155}
@@ -2362,6 +2367,8 @@
 
 /* Currency limits and network wallets are separate destinations. */
 .hs-provider-currency-actions { display:grid; gap:8px; margin-top:14px; }
+.hs-provider-currency-item { display:flex; min-width:0; flex-direction:column; }
+.hs-provider-currency-item > .hs-provider-currency { flex:1; height:100%; }
 .hs-provider-currency-actions a { display:flex; align-items:center; gap:10px; min-width:0; padding:11px 12px; border:1px solid #dbeafe; border-radius:10px; background:#eff6ff; color:#1d4ed8; text-decoration:none; transition:background .15s,border-color .15s; }
 .hs-provider-currency-actions a > span { flex:1; min-width:0; }
 .hs-provider-currency-actions strong { display:block; font-size:13px; line-height:1.45; font-weight:750; }
@@ -2385,3 +2392,14 @@
 .dark .hs-provider-button--remove { border-color:#7f1d1d; background:#1a1a1a; color:#fca5a5; }
 .dark .hs-provider-button--remove:hover { background:#301919; color:#fecaca; }
 @media(max-width:640px) { .hs-provider-actions { flex-direction:column; align-items:stretch; gap:12px; } .hs-provider-actions > form { width:100%; } }
+
+/* Recipient fields belong to one ledger currency, within its network. */
+.hs-wallet-currency{min-width:0;overflow:hidden;border:1px solid #e2e8f0;border-radius:16px;background:#fff}
+.hs-wallet-currency>header{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;padding:14px 20px;border-bottom:1px solid #e2e8f0;background:#f8fafc}
+.hs-wallet-currency>div:has(>div:only-child){grid-template-columns:minmax(0,1fr)}
+.hs-wallet-currency h5{font-size:15px;font-weight:750;color:#172033}
+.hs-wallet-currency>header>span{min-width:0;font-size:12px;line-height:1.5;color:#64748b;overflow-wrap:anywhere}
+.dark .hs-wallet-currency{border-color:#334155;background:#151515}
+.dark .hs-wallet-currency>header{border-color:#334155;background:#1e293b}
+.dark .hs-wallet-currency h5{color:#f1f5f9}
+.dark .hs-wallet-currency>header>span{color:#94a3b8}

@@ -17,7 +17,14 @@ if ($method === 'GET')
 		if ((int)$currency['cCASHOUTMode'] > 0 && (int)$currency['cID'] !== 1 && empty($currency['cHidden']))
 		{
 			$item = apiV1Currency($currency, 'CASHOUT');
-			$item['destination_configured'] = !empty(opDecodeUserCurrParams($currency)['acc']);
+			$wallet=opDecodeUserCurrParams($currency);
+            $item['destination_configured'] = !empty($wallet['acc']) || ($currency['cCID']==='BW'
+                && (int)$currency['cCASHOUTMode']===1 && HScript\Payment\Gateways\BankWire::hasDestination($wallet));
+            if($currency['cCID']==='PAW') {
+                $item['payout_assets']=[];
+                foreach(\HScript\Finance\PawPayoutTarget::ASSETS as $asset=>$metadata)if(\HScript\Finance\PawPayoutTarget::valid($asset,$wallet[$asset]??null))$item['payout_assets'][]=$asset;
+                $item['destination_configured']=(bool)$item['payout_assets'];
+            }
 			$currencies[] = $item;
 		}
 	ApiResponse::success(array('currencies' => $currencies));
@@ -25,8 +32,9 @@ if ($method === 'GET')
 
 $input = apiV1Input();
 $currencyId = apiV1RequirePositiveInt($input, 'currency_id');
-apiV1FinancialFields($input, ['currency_id', 'amount', 'memo', 'pin']);
+apiV1FinancialFields($input, ['currency_id', 'amount', 'memo', 'pin', 'payout_asset']);
 $amount = apiV1FinancialDecimal($input, 'amount');
+$payoutAsset = apiV1String($input,'payout_asset',40);
 $memo = apiV1String($input, 'memo', 120);
 if (!empty($_cfg['Bal_NeedPIN']))
 {
@@ -42,15 +50,18 @@ if (!empty($_cfg['SMS_CASHOUT']))
 		409
 	);
 
-apiV1FinancialWrite('rest:withdraw', ['currency_id' => $currencyId, 'amount' => $amount, 'memo' => $memo], static function () use ($currencyId, $amount, $memo): IdempotencyResult {
+apiV1FinancialWrite('rest:withdraw', ['currency_id' => $currencyId, 'amount' => $amount, 'memo' => $memo,'payout_asset'=>$payoutAsset], static function () use ($currencyId, $amount, $memo,$payoutAsset): IdempotencyResult {
     global $db, $_cfg, $_currs, $apiAuth;
     $currency = $_currs[$currencyId] ?? null;
     if (!$currency || (int)$currency['cCASHOUTMode'] <= 0 || $currencyId === 1)
         throw new FinancialOperationException('currency_unavailable');
-    if (empty(opDecodeUserCurrParams($currency)['acc'])) throw new FinancialOperationException('wallet_not_defined');
+    $recipient=opDecodeUserCurrParams($currency);
+    $bankDestination=$currency['cCID']==='BW' && (int)$currency['cCASHOUTMode']===1
+        && HScript\Payment\Gateways\BankWire::hasDestination($recipient);
+    if ($currency['cCID']!=='PAW' && empty($recipient['acc']) && !$bankDestination) throw new FinancialOperationException('wallet_not_defined');
     $operation = empty($_cfg['Const_IntCurr']) ? 'CASHOUT' : 'EX';
     $operationCurrencyId = $operation === 'EX' ? 1 : $currencyId;
-    $params = $operation === 'EX' ? ['cid2' => $currencyId] : [];
+    $params = ($operation === 'EX' ? ['cid2' => $currencyId] : [])+['payout_asset'=>$payoutAsset];
     $operationId = FinancialOperationException::check(opOperCreate($apiAuth['user_id'], $operation, $operationCurrencyId, $amount, $params, $memo));
     FinancialOperationException::check(opOperConfirm($apiAuth['user_id'], $operationId));
     if ((int)($_currs[$operationCurrencyId]['c' . $operation . 'Mode'] ?? 0) === 2)

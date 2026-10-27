@@ -8,6 +8,7 @@ use HScript\Payment\GatewayBalance;
 use HScript\Payment\CallbackResult;
 use HScript\Payment\FormCallbackPayload;
 use HScript\Payment\PaykassaSciClient;
+use HScript\Payment\PaykassaAssets;
 use HScript\Finance\RequestDecimal;
 use HScript\Finance\PaykassaVerification;
 use InvalidArgumentException;
@@ -20,7 +21,7 @@ use HScript\Finance\CallbackValidationException;
  */
 class Paykassa extends AbstractGateway
 {
-	private const SYSTEM_IDS = array('PKB' => 11, 'PKE' => 12, 'PKL' => 14);
+	private const PAYOUT_IDS = array('PKB' => 11, 'PKE' => 12, 'PKL' => 14);
 	private const BALANCE_KEYS = array(
 		'PKB' => 'bitcoin_btc',
 		'PKE' => 'ethereum_eth',
@@ -32,6 +33,7 @@ class Paykassa extends AbstractGateway
 		if ($type === 'pay')
 		{
             if(isset(PaymentRoutes::GATEWAYS[$this->id]))return ['acc'=>['Address']];
+            if(isset(PaykassaAssets::ASSETS[$this->id]))return ['acc'=>['Address'],...(PaykassaAssets::ASSETS[$this->id][4]?['tag'=>['Tag / Memo']]:[])];
 			if ($this->id === 'PKB')
 				return array('acc' => array('Bitcoin-address', '[1-9A-Za-z]{27,34}'));
 			if ($this->id === 'PKE')
@@ -57,10 +59,10 @@ class Paykassa extends AbstractGateway
         $config = (array)($params['sci'] ?? []);
         $token=isset(PaymentRoutes::GATEWAYS[$this->id]);
         try {
-            if (!self::configuration($config) || (!$token && !isset(self::SYSTEM_IDS[$this->id])))
+            if (!self::configuration($config) || (!$token && !isset(PaykassaAssets::ASSETS[$this->id][1])))
                 return ['error'=>'payment_configuration_invalid'];
             $route=$token?PaymentRoutes::assertSnapshot($this->id,$params['payment_route']??null):null;
-            $system=$route!==null?(int)$route['wire']:self::SYSTEM_IDS[$this->id];
+            $system=$route!==null?(int)$route['wire']:PaykassaAssets::ASSETS[$this->id][1];
             $amount = self::decimal($params['sum'] ?? null);
             $order = self::positiveId($params['tag'] ?? null);
             $comment = $params['memo'] ?? '';
@@ -80,9 +82,11 @@ class Paykassa extends AbstractGateway
                 return ['error'=>'paykassa_invoice_invalid'];
             $invoice = self::positiveId($data['invoice'] ?? null);
             $address = self::address($data['wallet'] ?? null);
-            $destinationTag = self::destinationTag($data['tag'] ?? null);
+            $destinationTag = self::destinationTag($data['tag'] ?? null,$this->id);
             $url = $data['url'] ?? null;
+            if(!self::environmentMatches($data))return ['error'=>'paykassa_invoice_invalid'];
             $hash = self::paymentLinkHash($url);
+            if(isset($data['invoice_id']) && self::positiveId($data['invoice_id'])!==$invoice)return ['error'=>'paykassa_invoice_invalid'];
             // Stored by DepositCheckout before browser fields are stripped.
             return ['url'=>$url,'get'=>true,'hash'=>$hash,'psysorder'=>$invoice,
                 'paykassa_merchant_id'=>(string)$config['id'],
@@ -128,6 +132,7 @@ class Paykassa extends AbstractGateway
         if ($response['error'])
             return CallbackResult::failure('authentication_failed','paykassa_confirmation_failed');
         $data = $response['data'];
+        if(!self::environmentMatches($data))return CallbackResult::failure('invalid_payload','paykassa_environment_mismatch',true);
         try {
             $merchant = self::positiveId($data['shop_id'] ?? null);
             if (!hash_equals((string)$config['id'],$merchant))
@@ -142,7 +147,7 @@ class Paykassa extends AbstractGateway
             $amount = self::decimal($data['amount'] ?? null);
             $batch = self::positiveId($data['transaction'] ?? null);
             $address = self::address($data['address'] ?? null);
-            $destinationTag = self::destinationTag($data['tag'] ?? null);
+            $destinationTag = self::destinationTag($data['tag'] ?? null,$this->id);
             $invoiceHash = self::opaqueHash($data['hash'] ?? null);
         } catch (InvalidArgumentException) {
             return CallbackResult::failure('invalid_payload','paykassa_confirmation_invalid',true);
@@ -181,14 +186,14 @@ class Paykassa extends AbstractGateway
 
     private static function configuration(array $config): bool
     {
-        return is_string($config['id'] ?? null) && preg_match('/^[1-9][0-9]{0,14}$/D',$config['id'])
+        return PaykassaAssets::liveConfiguration($config) && is_string($config['id'] ?? null) && preg_match('/^[1-9][0-9]{0,14}$/D',$config['id'])
             && is_string($config['key'] ?? null) && trim($config['key']) !== '' && strlen($config['key']) <= 8192;
     }
 
     private static function matchesSystem(string $id, mixed $system): bool
     {
         if(isset(PaymentRoutes::GATEWAYS[$id])) {foreach(PaymentRoutes::catalog($id) as $r)if(is_string($system) && strtolower($system)===PaymentRoutes::paykassaSystem($r))return true;return false;}
-        return is_string($system) && strtolower($system) === ['PKB'=>'bitcoin','PKE'=>'ethereum','PKL'=>'litecoin'][$id];
+        return is_string($system) && strtolower($system) === (PaykassaAssets::ASSETS[$id][2]??null);
     }
 
     private static function positiveId(mixed $value): string
@@ -208,16 +213,19 @@ class Paykassa extends AbstractGateway
 
     private static function address(mixed $value): string
     {
-        if (!is_string($value) || !preg_match('/^[A-Za-z0-9]{20,128}$/D',$value))
+        if (!is_string($value) || !preg_match('/^[A-Za-z0-9:_-]{20,128}$/D',$value))
             throw new InvalidArgumentException();
         return $value;
     }
 
-    private static function destinationTag(mixed $value): string
+    private static function destinationTag(mixed $value,string $gateway): string
     {
-        // These three supported assets do not use destination tags.
-        if ($value !== '' && $value !== false) throw new InvalidArgumentException();
-        return '';
+        if(!(PaykassaAssets::ASSETS[$gateway][4]??false)){
+            if($value==='' || $value===false)return '';
+            throw new InvalidArgumentException();
+        }
+        if(!is_string($value) || trim($value)==='' || !preg_match('/^[A-Za-z0-9 ._:-]{1,128}$/D',$value))throw new InvalidArgumentException();
+        return $value;
     }
 
     private static function opaqueHash(mixed $value): string
@@ -225,6 +233,11 @@ class Paykassa extends AbstractGateway
         if (!is_string($value) || !preg_match('/^[A-Za-z0-9_-]{1,128}$/D',$value))
             throw new InvalidArgumentException();
         return $value;
+    }
+
+    private static function environmentMatches(array $data): bool
+    {
+        return !array_key_exists('test_mode',$data) || $data['test_mode']===false;
     }
 
     private static function paymentLinkHash(mixed $url): string
@@ -243,7 +256,8 @@ class Paykassa extends AbstractGateway
 
 	public function getBalance(array $config): array
 	{
-        if(isset(PaymentRoutes::GATEWAYS[$this->id]))return ['result'=>'token_balance_unsupported','sum'=>-1];
+        if(!PaykassaAssets::liveConfiguration($config))return ['result'=>'paykassa_sandbox_removed','sum'=>-1];
+        if(!isset(self::BALANCE_KEYS[$this->id]))return ['result'=>'balance_unsupported','sum'=>-1];
 		$this->requireLegacy('lib/paykassa/paykassa_api.class.php');
 		$client = new \PayKassaAPI($this->value($config, 'id'), $this->value($config, 'apipass'));
 		$response = $client->api_get_shop_balance($this->value($config, 'shop_id'));
@@ -254,7 +268,8 @@ class Paykassa extends AbstractGateway
 
 	public function processWithdrawal(array $params): array
 	{
-        if(isset(PaymentRoutes::GATEWAYS[$this->id]))return ['result'=>'token_payout_unsupported'];
+        if(!isset(self::PAYOUT_IDS[$this->id]))return ['result'=>'automatic_payout_unsupported'];
+        if(!PaykassaAssets::liveConfiguration($params) || !is_array($params['from']??[]) || !PaykassaAssets::liveConfiguration($params['from']??[]))return ['result'=>'paykassa_sandbox_removed'];
 		$from = (array)$this->value($params, 'from', array());
 		$to = (array)$this->value($params, 'to', array());
 		$amount=GatewayAmount::exact($this->value($params,'sum'),$this->getCurrencyId(),8);
@@ -262,7 +277,7 @@ class Paykassa extends AbstractGateway
 		$client = new \PayKassaAPI($this->value($from, 'id'), $this->value($from, 'apipass'));
 		$response = $client->api_payment(
 			$this->value($from, 'shop_id'),
-			self::SYSTEM_IDS[$this->id],
+			self::PAYOUT_IDS[$this->id],
 			$this->value($to, 'acc'),
 			$amount,
 			$this->definition[4],

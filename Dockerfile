@@ -124,7 +124,8 @@ RUN apk upgrade --no-cache --available \
         apache2 \
         apache2-proxy \
         ca-certificates \
-        curl \
+        'curl>=8.23.0-r0' \
+        'libcurl>=8.23.0-r0' \
         freetype \
         libjpeg-turbo \
         libpng \

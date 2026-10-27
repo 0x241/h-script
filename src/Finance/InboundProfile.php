@@ -15,7 +15,7 @@ final class InboundProfile
 
     public static function required(string $gateway): bool
     {
-        return in_array($gateway,['YM','YMC','WM','PKB','PKE','PKL','PKTU','PKTC'],true);
+        return isset(PaykassaContract::SYSTEMS[$gateway]) || in_array($gateway,['YM','YMC','WM'],true);
     }
 
     public static function managed(string $gateway): bool
@@ -35,7 +35,7 @@ final class InboundProfile
         opDecodeCurrParams($operation,$pay,$sci,$api);
         if (!is_string($sci['key'] ?? null) || trim($sci['key'])==='')
             throw new CallbackValidationException('callback_configuration_missing');
-        $coin=in_array($operation['cCID'],['CP','CPE','CPL','CPR','PKB','PKE','PKL','PKTU','PKTC'],true);
+        $coin=isset(PaykassaContract::SYSTEMS[$operation['cCID']]) || in_array($operation['cCID'],['CP','CPE','CPL','CPR'],true);
         $receiver=$operation['cCID']==='WM' ? ($pay['acc'] ?? null) : ($sci[$coin ? 'id' : 'acc'] ?? null);
         if (!is_string($receiver) || ($coin ? $receiver==='' || strlen($receiver)>256
             : !preg_match($operation['cCID']==='WM' ? '/^Z[0-9]{12}$/D' : '/^[0-9]{13,16}$/D',$receiver)))

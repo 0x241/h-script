@@ -39,11 +39,29 @@ foreach (array($root . '/module', $root . '/src') as $phpRoot)
 		if (!$file->isFile() || $file->getExtension() !== 'php')
 			continue;
 		$content = (string)file_get_contents($file->getPathname());
-		if (!preg_match_all('/\$(?:[A-Za-z]+Translate|translate)\(\s*["\']([^"\']+)["\']/', $content, $matches))
-			continue;
+		preg_match_all('/\$(?:[A-Za-z]+Translate|translate)\(\s*["\']([^"\']+)["\']/', $content, $matches);
 		foreach ($matches[1] as $key)
 			$keys[$key] = true;
+		// Gateway controllers and field definitions also use direct View::_t keys.
+		preg_match_all('/["\'](gateway\.(?:admin|field|error)\.[a-z0-9_.]+)["\']/', $content, $gatewayMatches);
+		foreach ($gatewayMatches[1] as $key)
+			$keys[$key] = true;
 	}
+}
+
+// Catalog parity cannot detect plain untranslated text. Guard the gateway UI
+// being localized, allowing Russian fallback values only inside explicit _t calls.
+foreach (array(
+	'curr.provider', 'curr.paw', 'curr.legacy', 'curr.coinpayments', 'curr.settings',
+	'currency.card', 'currs', 'paw.form', 'paw.referral', 'provider.referral', 'provider.tokens',
+) as $name)
+{
+	$path = $root . '/tpl/balance/admin/' . $name . '.twig';
+	$content = (string)file_get_contents($path);
+	$content = preg_replace('/\{#.*?#\}/s', '', $content);
+	$content = preg_replace('/_t\(\s*\{.*?\}\s*\)/s', '', $content);
+	if (preg_match('/[А-Яа-яЁё]/u', $content))
+		throw new RuntimeException('Gateway UI contains text without a translation key: ' . $name);
 }
 
 $missing = array();

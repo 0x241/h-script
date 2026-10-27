@@ -11,7 +11,8 @@ final class ProviderReferral
     {
         $hosts=match($kind) {
             'CCAPI'=>['new.cryptocurrencyapi.net','cryptocurrencyapi.net','h-script.com'],
-            'PAW'=>['pawpayments.com','h-script.com'],default=>[]
+            'PAW'=>['pawpayments.com','h-script.com'],'PAYKASSA'=>['paykassa.pro','h-script.com'],
+            'VOLET'=>['volet.onelink.me','volet.com','h-script.com'],default=>[]
         };
         if (!$hosts) return null;
         $url=getenv($kind.'_PARTNER_URL');

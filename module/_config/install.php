@@ -43,6 +43,11 @@ if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) === 'POST' && isse
     HScript\Payment\Routing\PaymentRouteSchema::ensure($db);
     HScript\Payment\Routing\TokenCatalogSchema::ensure($db);
     HScript\Payment\CheckoutProgressSchema::ensure($db);
+    HScript\Payment\Provider\PawNativeSchema::ensure($db);
+    HScript\Payment\Provider\PawPayoutSchema::ensure($db);
+    HScript\Payment\Provider\PaykassaAssetSchema::ensure($db);
+    HScript\Payment\Provider\CoinPaymentsNewSchema::ensure($db);
+    HScript\Payment\Provider\CurrencyArchiveSchema::ensure($db);
 
 	$psalt = substr(md5(uniqid(rand(), true).time()), 0, rand(6, 10));
 	clearstatcache();

@@ -19,6 +19,8 @@ try
 		
 		$a = $_IN;
 		$a['fCTS'] = timeToStamp();
+        $categories=HScript\Content\FaqCategories::parse($_cfg['FAQ__Cats']??[]);
+        if(!is_string($a['fCat']??'') || !in_array($a['fCat']??'', $categories,true))$a['fCat']='';
 		if (!$a['fQuestion'])
 			View::setError('question_empty');
 		if (!$a['fAnswer'])
@@ -48,10 +50,8 @@ if (!isset($_GET['add']))
 	View::setPage('el', $el, 0);
 }
 
-$cats = array();
-foreach ((array)$_cfg['FAQ__Cats'] as $c)
-	$cats[$c] = $c;
-View::setPage('cats', $cats);
+$cats=HScript\Content\FaqCategories::options(HScript\Content\FaqCategories::parse($_cfg['FAQ__Cats']??[]),$_GS['lang'],$_cfg['UI__Langs'][0]??'en');
+View::setPage('cats',$cats);
 
 View::showPage();
 

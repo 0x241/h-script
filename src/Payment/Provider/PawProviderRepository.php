@@ -11,7 +11,7 @@ use PDO;
 final class PawProviderRepository
 {
     public readonly PDO $pdo;
-    public function __construct(Connection $database) { $this->pdo = $database->link; }
+    public function __construct(public readonly Connection $database) { $this->pdo = $database->link; }
     public function current(): ?array
     {
         return $this->one("SELECT * FROM PaymentProviders WHERE ppSlot='PAW' AND ppKind='PAW'");
@@ -22,7 +22,7 @@ final class PawProviderRepository
     }
     public function connections(int $id, bool $lock = false): array
     {
-        $s=$this->pdo->prepare('SELECT cID,cCID,cCurrID,cName,cDisabled,cCASHINMode,cCASHOUTMode,cProviderSelected FROM Currs WHERE cProviderID=? ORDER BY cID' . ($lock ? ' FOR UPDATE' : ''));
+        $s=$this->pdo->prepare('SELECT * FROM Currs WHERE cProviderID=? ORDER BY cID' . ($lock ? ' FOR UPDATE' : ''));
         $s->execute([$id]); return $s->fetchAll(PDO::FETCH_ASSOC);
     }
     /** Key versions are retained for immutable invoice intent; no deletion API exists. */
@@ -35,6 +35,16 @@ final class PawProviderRepository
         $key=SecretCipher::decrypt($credential['ppcEncryptedKey'], self::context($profile['ppPublicID'],$version));
         if ($key === null || $key === '') throw new PawProviderException('credential_unavailable');
         return $key;
+    }
+    /** New checkouts use a validated profile; retained callbacks use key() directly. */
+    public function configuration(array $currency): array
+    {
+        $p=$this->find((int)$currency['cProviderID']);
+        if(!$p)
+            throw new PawProviderException('configuration_changed');
+        return ['_provider_enabled'=>$p['ppState']==='enabled' && $p['ppValidationState']==='valid' && (int)$currency['cProviderSelected']===1,'key'=>$this->key((int)$p['ppID'],(int)$p['ppCurrentKeyVersion']),
+            '_provider_id'=>(int)$p['ppID'],'_provider_public'=>$p['ppPublicID'],
+            '_provider_version'=>(int)$p['ppCurrentKeyVersion'],'_provider_environment'=>$p['ppEnvironment']];
     }
     public static function context(string $publicId, int $version): string
     {

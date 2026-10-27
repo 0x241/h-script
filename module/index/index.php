@@ -33,8 +33,7 @@ if (!$publicMetrics)
 		$publicMetrics = $storedMetrics;
 }
 
-// Monetary formatting stays exact, including previously cached schema1 JSON numbers.
-$processed = HScript\Telemetry\TelemetryAmount::landing($publicMetrics['processed'] ?? null);
+$currencyCount = count(HScript\Finance\CurrencyRateCatalog::currencies());
 $platformCount = max(0, (int)($publicMetrics['platforms'] ?? 0));
 $gatewayCount = count((new \HScript\Payment\Provider\ProviderCatalog($db))->available());
 $metricForm = static function (int $count): string
@@ -55,11 +54,12 @@ $metricForm = static function (int $count): string
 };
 $metricLabel = static fn(string $key, int $count): string => View::_t($key . '.' . $metricForm($count));
 View::setPage('public_metrics', array(
-	'processed' => $processed,
 	'platforms' => number_format($platformCount, 0, '.', ','),
 	'platforms_label' => $metricLabel('home.metric.platforms', $platformCount),
 	'gateways' => number_format($gatewayCount, 0, '.', ','),
 	'gateways_label' => $metricLabel('home.metric.gateways', $gatewayCount),
+	'currencies' => number_format($currencyCount, 0, '.', ','),
+	'currencies_label' => $metricLabel('home.metric.currencies', $currencyCount),
 ), 0);
 
 View::showPage();

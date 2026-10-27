@@ -57,15 +57,24 @@ if ($selected_provider !== 'ALL') {
 	$filter .= ' AND cID ?i';
 	$filter_values = [$provider_currency_ids[$selected_provider]];
 }
+$archiveColumn=(bool)$db->link->query("SHOW COLUMNS FROM Currs LIKE 'cArchivedAt'")->fetch();
+$archiveState=is_string($_GET['state']??null)?$_GET['state']:'active';
+if(!in_array($archiveState,['active','archived','all'],true))$archiveState='active';
+if($archiveColumn&&$archiveState!=='all')$filter.=$archiveState==='archived'?" AND (cArchivedAt IS NOT NULL OR EXISTS(SELECT 1 FROM PaymentProviders WHERE ppID=cProviderID AND ppState='retired'))":" AND cArchivedAt IS NULL AND NOT EXISTS(SELECT 1 FROM PaymentProviders WHERE ppID=cProviderID AND ppState='retired')";
+View::setPage('currency_filter_state',$archiveState,0);
 View::setPage('provider_filters', $provider_filters, 0);
 View::setPage('selected_provider', $selected_provider, 0);
-View::setPage('provider_filter_params', '&provider=' . rawurlencode($selected_provider), 0);
+View::setPage('provider_filter_params', '&provider=' . rawurlencode($selected_provider).'&state='.$archiveState, 0);
 $provider_connections=[];
 foreach($db->link->query('SELECT ppKind,ppState FROM PaymentProviders WHERE ppSlot IS NOT NULL ORDER BY ppKind')->fetchAll(PDO::FETCH_ASSOC) as $profile){
     $kind=$profile['ppKind'];
     if(!isset(HScript\Payment\Provider\ProviderCatalog::GROUPS[$kind]))continue;
     if($selected_provider!=='ALL' && $selected_provider!==$kind)continue;
     $provider_connections[$kind]=['name'=>HScript\Payment\Provider\ProviderCatalog::GROUPS[$kind][0],'enabled'=>$profile['ppState']==='enabled'];
+}
+foreach(HScript\Payment\Provider\LegacyProviderService::KINDS as$kind){
+    if($selected_provider!=='ALL' && $selected_provider!==$kind)continue;
+    if($rows=HScript\Payment\Provider\LegacyProviderService::rows($db,$kind))$provider_connections[$kind]=['name'=>HScript\Payment\Provider\ProviderCatalog::GROUPS[$kind][0],'enabled'=>count(array_filter($rows,static fn($r)=>(int)$r['cDisabled']===0))>0];
 }
 View::setPage('provider_connections',$provider_connections,0);
 
@@ -76,6 +85,7 @@ $list = opPageGet(_GETN('page') ?: (isset($_GET['provider']) ? 1 : 0), 20, $tabl
 	_GET('sort'), $id_field
 );
 $currency_manager = new HScript\Payment\PaymentManager($db);
+$list = HScript\Payment\Provider\CurrencyPresentation::annotate($db, $list);
 foreach ($list as $id => $r) {
     $api_configured = false;
     if (empty($r['cProviderID']) && !empty($r['cParamsAPI']) && isset($currency_manager->fields($r['cCID'], 'api')['apipass'])) {

@@ -92,13 +92,13 @@ pawCheck(PawProviderService::number('0')===0 && PawProviderService::number('4294
 
 $manager=new PaymentManager(new Connection());
 pawCheck($manager->gateway('PAW') instanceof AbstractGateway,'PAW uses the ordinary gateway interface');
-pawCheck($manager->definitions('PAW')===['PAW Payments','',0,0,'','?'],'PAW registry advertises native finance disabled');
-pawCheck($manager->fields('PAW')===[] && $manager->fields('PAW','sci')===[] && $manager->fields('PAW','api')===[],'shared key is not duplicated in legacy Currs fields');
-pawCheck($manager->processDeposit('PAW',['sum'=>'25.00','api_key'=>'KEY_CANARY'])===['result'=>'paw_native_integration_unavailable','error'=>'paw_native_integration_unavailable'],'deposit explicitly unavailable without I/O');
-pawCheck($manager->processWithdrawal('PAW',['sum'=>'25.00'])===['result'=>'paw_native_integration_unavailable'],'withdrawal explicitly unavailable without I/O');
-pawCheck($manager->getBalance('PAW',['api_key'=>'KEY_CANARY'])===['result'=>'paw_native_integration_unavailable','sum'=>-1],'GET balance explicitly unavailable without I/O');
+pawCheck($manager->definitions('PAW')===['PAW Payments','',2,1,'','?'],'PAW registry advertises controlled outgoing capability');
+pawCheck(array_keys($manager->fields('PAW'))===['usdt_tron','usdc_eth'] && $manager->fields('PAW','sci')===[] && $manager->fields('PAW','api')===[],'two recipient fields do not duplicate shared keys in legacy Currs fields');
+pawCheck($manager->processDeposit('PAW',['sum'=>'25.00','api_key'=>'KEY_CANARY'])===['error'=>'paw_invoice_unavailable'],'deposit explicitly unavailable without I/O');
+pawCheck($manager->processWithdrawal('PAW',['sum'=>'25.00'])===['result'=>'paw_payout_reconciliation_required'],'withdrawal without frozen request remains unavailable without I/O');
+pawCheck($manager->getBalance('PAW',['api_key'=>'KEY_CANARY'])===['result'=>'paw_balance_unavailable','sum'=>-1],'GET balance explicitly unavailable without I/O');
 foreach ([[],['key'=>'KEY_CANARY'],['api_key'=>'KEY_CANARY']] as $config)
-    pawCheck($manager->handleCallback('PAW',['_raw_body'=>'{broken','amount'=>['untrusted']],$config)===['outcome'=>'unsupported','reason'=>'automatic_callback_unsupported','authenticated'=>false,'correct'=>false],'unsupported callback precedes configuration and payload parsing');
+    pawCheck(!$manager->handleCallback('PAW',['_raw_body'=>'{broken','amount'=>['untrusted']],$config)['correct'],'unauthenticated or malformed callback fails closed');
 pawCheck($manager->detectCallback(['order_id'=>'untrusted','fiat_amount'=>'25','status'=>'success','X-Paw-Signature'=>'untrusted'])==='','PAW is never auto-detected from untrusted JSON fields');
 pawCheck(!$manager->gateway('PAW')->validateConfig(['api_key'=>'KEY_CANARY']),'configuration does not imply finance enabled');
 
@@ -113,15 +113,17 @@ $_SERVER['REQUEST_METHOD']='GET';$_IN=['paw_profile_save_btn'=>'1'];
 pawCheck(!View::sendedForm('','paw_profile_save'),'GET cannot submit provider form');
 $_SERVER['REQUEST_METHOD']='POST';pawCheck(View::sendedForm('','paw_profile_save'),'POST button matches guarded form');
 
-$twig=new Environment(new ChainLoader([new ArrayLoader(['admin/header.twig'=>'','admin/footer.twig'=>'']),new FilesystemLoader(dirname(__DIR__).'/tpl')]),['autoescape'=>'html','strict_variables'=>true]);
+$twig=new Environment(new ChainLoader([new ArrayLoader(['admin/header.twig'=>'','admin/footer.twig'=>'','balance/admin/curr.settings.twig'=>'CURRENCY_FORM']),new FilesystemLoader(dirname(__DIR__).'/tpl')]),['autoescape'=>'html','strict_variables'=>true]);
+$_GS['lang']='ru';
+$twig->addFunction(new TwigFunction('_t',[View::class,'tplTranslate']));
 $twig->addFunction(new TwigFunction('_link',static fn()=>'/admin/curr'));
 $twig->addFunction(new TwigFunction('_getFormSecurity',static fn()=>'<input name="__Cert" value="synthetic" type="hidden">',['is_safe'=>['html']]));
-$base=['paw_referral_url'=>HScript\Payment\Provider\ProviderReferral::link('PAW'),'paw_url'=>'/admin/curr?id=6','paw_currency'=>'USD','paw_schema_ready'=>true,'paw_profile'=>['id'=>1,'revision'=>3,'state'=>'enabled','has_key'=>true,'environment'=>'sandbox','validated_at'=>null,'connections'=>[['cID'=>6,'cCurrID'=>'<script>alert(1)</script>','cProviderSelected'=>1]],'api_key'=>'KEY_CANARY','ppcEncryptedKey'=>'CIPHER_CANARY'],'paw_selected'=>['USD'],'paw_fiats'=>['USD','EUR'],'paw_error'=>null];
+$base=['paw_referral_url'=>HScript\Payment\Provider\ProviderReferral::link('PAW'),'paw_url'=>'/admin/curr?provider=PAW','paw_connection_url'=>'/admin/curr?provider=PAW','paw_currency'=>'','paw_schema_ready'=>true,'paw_profile'=>['id'=>1,'revision'=>3,'state'=>'enabled','has_key'=>true,'environment'=>'sandbox','validated_at'=>null,'connections'=>[['cID'=>6,'cCurrID'=>'USD','cProviderSelected'=>1],['cID'=>7,'cCurrID'=>'<script>alert(1)</script>','cProviderSelected'=>1]],'api_key'=>'KEY_CANARY','ppcEncryptedKey'=>'CIPHER_CANARY'],'paw_selected'=>['USD'],'paw_fiats'=>['USD','EUR'],'paw_error'=>null];
 foreach (['setup','currencies','info'] as $tab) {
     $html=$twig->render('balance/admin/curr.paw.twig',$base+['paw_tab'=>$tab]);
     pawCheck(!str_contains($html,'KEY_CANARY') && !str_contains($html,'CIPHER_CANARY'),'view does not reveal key/ciphertext');
-    pawCheck(!str_contains($html,'<script>alert') && str_contains($html,'&lt;script&gt;'),'connection labels escaped');
-    pawCheck(str_contains($html,'Пополнение отключено'),'safe disabled status visible');
+    pawCheck(!str_contains($html,'<script>alert'),'connection labels escaped');
+    pawCheck(!str_contains($html,'name="cCASHINMode"'),'main connection has no duplicate currency modes');
     pawCheck(!str_contains($html,'/admin/paw') && str_contains($html,'/admin/curr?id=6'),'profile actions and connections use the common route');
     if ($tab!=='currencies') {
         pawCheck(str_contains($html,'Кешбек выплачивается вручную после сверки транзакций в PAW.'),'same authorized manual-cashback notice');
@@ -130,10 +132,13 @@ foreach (['setup','currencies','info'] as $tab) {
     if ($tab==='setup') pawCheck(str_contains($html,'name="api_key" value=""'),'saved key never repopulates');
 }
 foreach (['setup','currencies','info'] as $tab) {
-    $html=$twig->render('balance/admin/curr.paw.twig',['paw_referral_url'=>HScript\Payment\Provider\ProviderReferral::link('PAW'),'paw_url'=>'/admin/curr?provider=PAW','paw_currency'=>'','paw_schema_ready'=>false,'paw_profile'=>['id'=>0],
+    $html=$twig->render('balance/admin/curr.paw.twig',['paw_referral_url'=>HScript\Payment\Provider\ProviderReferral::link('PAW'),'paw_url'=>'/admin/curr?provider=PAW','paw_currency'=>'','paw_schema_ready'=>false,'paw_profile'=>['id'=>0,'state'=>'new'],
         'paw_error'=>'Требуется обновление базы данных до версии 1.0.5.','paw_tab'=>$tab]);
     pawCheck(str_contains($html,'Требуется обновление базы данных'),'pre-migration explanation visible');
     pawCheck(!str_contains($html,'<form') && !str_contains($html,'name="api_key"'),'pre-migration page has no provider form');
     pawCheck(!str_contains($html,'__Cert'),'pre-migration page issues no form token');
 }
+$child=$twig->render('balance/admin/curr.paw.twig',array_replace($base,['paw_currency'=>'USD','paw_currency_values'=>['cDisabled'=>1,'cCurrID'=>'USD','cMTS'=>'']]));
+pawCheck(!str_contains($child,'name="api_key"') && !str_contains($child,'Регистрация PAW Payments'),'currency page contains neither shared key nor duplicate referral');
+pawCheck(str_contains($child,'CURRENCY_FORM') && str_contains($child,'странице подключения'),'currency page links to shared connection and renders separate settings');
 echo "PAW provider component tests passed ($checks checks).\n";

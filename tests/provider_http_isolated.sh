@@ -93,7 +93,7 @@ run_browser() {
     docker create --name "$browser" --network "$name" --init --shm-size=1g --env H_SCRIPT_PROVIDER_BROWSER="$provider_browser" \
         -v "$root/tests/browser/provider-http.spec.cjs:/tests/provider-http.spec.cjs:ro" \
     -v "$root/tests/browser/capture-callbacks.cjs:/tests/capture-callbacks.cjs:ro" \
-        "$H_SCRIPT_FINANCIAL_BROWSER_IMAGE" npx --no-install playwright test --config=provider-http.config.cjs --grep "$phase" >/dev/null
+        "$H_SCRIPT_FINANCIAL_BROWSER_IMAGE" npx --no-install playwright test --config=provider-http.config.cjs --grep "$phase:" >/dev/null
     browser_created=1
     browser_restore_fixture "$browser" "$temporary/provider-http.config.cjs" /tests/provider-http.config.cjs
     if [ -n "${provider_original_file:-}" ]; then
@@ -113,6 +113,9 @@ wait_application
 run_browser creation
 proof_directory="$root/dist/provider-ui/$name"
 mkdir -p "$proof_directory"
+for screenshot in provider-connections-grid legacy-currencies wallets-currencies wallets-currencies-mobile paykassa-unified-cards; do
+    docker cp "$browser:/tmp/$screenshot.png" "$proof_directory/$provider_browser-$screenshot.png"
+done
 docker cp "$browser:/tmp/token-discovery.png" "$proof_directory/$provider_browser-token-discovery.png"
 docker cp "$browser:/tmp/provider-ccapi.png" "$proof_directory/$provider_browser-ccapi.png"
 docker cp "$browser:/tmp/provider-volet.png" "$proof_directory/$provider_browser-volet.png"

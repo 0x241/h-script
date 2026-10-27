@@ -3,11 +3,13 @@
 	{{ l.cID }}
 </td>
 <td class="nowrap">
-	{{ l.presentation.code|default(l.cCID) }} {{ l.cCurrID }}
+	{{ l.presentation.code|default(l.cCID) }} {{ l.presentation.asset|default(l.cCurrID) }}
+    {% if l.currency_status == 'retired' %}<small class="mt-1 block font-semibold text-gray-500">{{ _t({'key':'currency.archived','default':'Архив'}) }} · #{{ l.cID }}</small>{% endif %}
     {% if l.presentation.contract|default(false) %}<small class="mt-1 block font-mono text-gray-500" title="{{ l.presentation.contract }}">{{ l.presentation.contract|slice(0,8) }}…{{ l.presentation.contract|slice(-6) }}</small>{% endif %}
 </td>
 <td>
 	<a href="{{ _link('balance/admin/curr', false, 0) }}?id={{ l.cID }}">{{ l.cName }}</a>
+    {% if l.currency_status == 'retired' %}<a class="mt-1 block text-sm" href="{{ _link('balance/admin/opers',false,0) }}?currency_id={{ l.cID }}">{{ _t({'key':'currency.operations','default':'Операции этой валюты'}) }}</a>{% endif %}
 </td>
 <td>
 	{{ l.cCurr }}

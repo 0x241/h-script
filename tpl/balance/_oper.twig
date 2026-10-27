@@ -22,7 +22,7 @@
 	</dl>
 </section>
 
-{% if el.oState <= 2 or el.oState >= 4 %}
+{% if (el.oState <= 2 or el.oState >= 4) and not ccapi_payout_attempted|default(false) %}
 <div class="hs-admin-oper-layout">
 	{% if el.oOper in ['CASHIN','CASHOUT'] and el.oState <= 2 %}
 	<section class="hs-admin-oper-manual">

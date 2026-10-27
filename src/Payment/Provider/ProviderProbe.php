@@ -21,11 +21,11 @@ final class ProviderProbe
                 $choices=ProviderSettings::choices($kind);
                 // One key covers every chain. One read authenticates the connection
                 // within the provider's 10 requests / 2 seconds budget.
-                $asset=$currencies[0];
+                $asset=$currencies[0]??'ETH';
                 CcapiV3Client::request(CryptoCurrencyApi::NATIVE[$choices[$asset]['gateway']][0]??'ethereum','balance',['protocol'=>'3','v3_key'=>$credentials['v3_key']]);
             } elseif ($kind==='PAYKASSA') {
                 $body=http_build_query(['func'=>'api_get_shop_balance','shop_id'=>$credentials['merchant_id'],
-                    'api_id'=>$credentials['api_id'],'api_key'=>$credentials['api_secret'],'test'=>'0','domain'=>''],'','&',PHP_QUERY_RFC3986);
+                    'api_id'=>$credentials['api_id'],'api_key'=>$credentials['api_secret'],'test'=>'false','domain'=>''],'','&',PHP_QUERY_RFC3986);
                 $r=JsonCallbackPayload::object(ProviderHttp::request('https://paykassa.app/api/0.9/index.php',['Content-Type: application/x-www-form-urlencoded','Accept: application/json'],$body));
                 if (($r->error??null)!==false || !isset($r->data) || (!$r->data instanceof stdClass && !is_array($r->data))) throw new ProviderException('provider_unavailable');
             } elseif ($kind==='VOLET') {

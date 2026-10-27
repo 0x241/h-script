@@ -18,7 +18,7 @@ final class GatewaySettlement
             throw new CallbackValidationException('callback_prerequest_invalid');
         TransactionScope::run($db->link, static function () use ($db, $gateway, $currency, $request, $id): void {
             $o = self::operation($db, $id);
-            if (!$o || $o['oOper'] !== 'CASHIN' || (int)$o['ocID'] !== $currency || !in_array((int)$o['oState'], [0,1,2], true))
+            if (!$o || ArchivedReplay::inactive($o) || $o['oOper'] !== 'CASHIN' || (int)$o['ocID'] !== $currency || !in_array((int)$o['oState'], [0,1,2], true))
                 throw new CallbackValidationException('callback_order_unavailable');
             CallbackContract::validate($db, $gateway, $o, $request, time());
         });
@@ -33,6 +33,7 @@ final class GatewaySettlement
             || (array_key_exists('wait',$verified) && !is_bool($verified['wait']))
             || (($verified['outcome']==='pending')!==($verified['wait'] ?? false)))
             throw new CallbackValidationException('callback_authentication_required');
+        if($gateway==='PAW')return PawSettlement::settle($db,$currency,$verified);
         $batch = $verified['batch'] ?? null;
         if (in_array($gateway,['CP','CPE','CPL','CPR','YM','YMC'],true) && is_string($batch) && strlen($batch)>39)
             throw new CallbackValidationException('callback_transaction_id_unsupported');
@@ -54,14 +55,54 @@ final class GatewaySettlement
         ]);
         $store = new IdempotencyStore($db);
         $now ??= time();
+        $archived=ArchivedReplay::gateway($db,$gateway,$currency,$verified,$fingerprint,$namespace,$key,$storedBatch,
+            static function(IdempotencyResult $identity,array $o)use($db,$gateway,$operationId,$currency,$outbound,$verified,$now):void{
+                self::assertIdentity($db,$gateway,$operationId,$currency,$outbound,$verified,$identity);
+                self::validateStage($db,$gateway,$currency,$o,$verified,$identity,$now);
+            });
+        if($archived!==null)return $archived;
         // A provider may first acknowledge pending and later confirm settlement.
         // Both stages share a permanent identity binding; neither can redirect it.
         $identity = $store->execute($namespace . ':identity', $key, 0, $fingerprint, static function () use ($db, $gateway, $operationId, $currency, $outbound, $verified, $now): IdempotencyResult {
             $o = self::operation($db, $operationId);
             if (!$o || $o['oOper'] !== ($outbound ? 'CASHOUT' : 'CASHIN') || (int)$o['ocID'] !== $currency) throw new FinancialOperationException('oper_not_found');
+            if(ArchivedReplay::inactive($o))throw new CallbackValidationException('archived_callback_reconciliation_required');
             $proof = CallbackContract::validate($db, $gateway, $o, $verified, $now);
             return new IdempotencyResult(['bound' => true, 'contract'=>$proof], 200, $operationId);
         });
+        self::assertIdentity($db,$gateway,$operationId,$currency,$outbound,$verified,$identity);
+        $pending = !empty($verified['wait']);
+        return $store->execute($namespace . ($pending ? ':pending' : ':settled'), $key, 0, $fingerprint, static function () use ($db, $gateway, $operationId, $currency, $verified, $pending, $storedBatch, $identity, $now): IdempotencyResult {
+            $o = self::operation($db, $operationId);
+            if (!$o) throw new FinancialOperationException('oper_not_found');
+            if(ArchivedReplay::inactive($o))throw new CallbackValidationException('archived_callback_reconciliation_required');
+            self::validateStage($db, $gateway, $currency, $o, $verified, $identity, $now);
+            if ((int)$o['oState'] === 3) {
+                if (!hash_equals((string)$o['oBatch'], $storedBatch)) throw new IdempotencyConflict('gateway_operation_already_settled');
+                return new IdempotencyResult(['settled' => true], 200, $operationId);
+            }
+            $params = $verified;
+            $params['batch'] = $storedBatch;
+            unset($params['profile_key_hash'],$params['profile_timezone']);
+            unset($params['response'], $params['correct'], $params['handled'], $params['description_hash']);
+            unset($params['merchant_id'], $params['provider_invoice_hash'], $params['volet_profile'], $params['volet_proof_hash'], $params['volet_fee_policy_hash']);
+            foreach (array_keys($params) as $field) if (str_starts_with($field,'ccapi_') || str_starts_with($field,'stripe_')) unset($params[$field]);
+            $params['cid'] = $currency;
+            // Validated provider gross is evidence, not a replacement receipt.
+            // This keeps the originally agreed oComis instead of recalculating
+            // an existing invoice using the current min/max/commission policy.
+            unset($params['sum']);
+            $params['date'] = $identity->data['contract']['signed_at'] ?? time();
+            if (!$params['date']) $params['date'] = time();
+            $params['acc'] = $params['accfrom'] ?? '';
+            FinancialOperationException::check(opOperConfirm(-1, $operationId, $params));
+            if (!$pending) FinancialOperationException::check(opOperComplete(-1, $operationId));
+            return new IdempotencyResult(['settled' => !$pending], 200, $operationId);
+        });
+    }
+
+    private static function assertIdentity(Connection $db,string $gateway,int $operationId,int $currency,bool $outbound,array $verified,IdempotencyResult $identity): void
+    {
         // Older completed stages replay without executing validateStage. Their
         // identity lacks the newly required description proof; do not infer it
         // from an editable receipt or acknowledge an unvalidated WM replay.
@@ -92,33 +133,6 @@ final class GatewaySettlement
         if (!$outbound && InboundProfile::managed($gateway))
             InboundProfile::assertReplay($db,$operationId,$identity->data['contract']['inbound_profile'] ?? null,$verified);
         if (isset($identity->data['contract'])) CallbackContract::assertBinding($identity->data['contract'], $verified);
-        $pending = !empty($verified['wait']);
-        return $store->execute($namespace . ($pending ? ':pending' : ':settled'), $key, 0, $fingerprint, static function () use ($db, $gateway, $operationId, $currency, $verified, $pending, $storedBatch, $identity, $now): IdempotencyResult {
-            $o = self::operation($db, $operationId);
-            if (!$o) throw new FinancialOperationException('oper_not_found');
-            self::validateStage($db, $gateway, $currency, $o, $verified, $identity, $now);
-            if ((int)$o['oState'] === 3) {
-                if (!hash_equals((string)$o['oBatch'], $storedBatch)) throw new IdempotencyConflict('gateway_operation_already_settled');
-                return new IdempotencyResult(['settled' => true], 200, $operationId);
-            }
-            $params = $verified;
-            $params['batch'] = $storedBatch;
-            unset($params['profile_key_hash'],$params['profile_timezone']);
-            unset($params['response'], $params['correct'], $params['handled'], $params['description_hash']);
-            unset($params['merchant_id'], $params['provider_invoice_hash'], $params['volet_profile'], $params['volet_proof_hash'], $params['volet_fee_policy_hash']);
-            foreach (array_keys($params) as $field) if (str_starts_with($field,'ccapi_') || str_starts_with($field,'stripe_')) unset($params[$field]);
-            $params['cid'] = $currency;
-            // Validated provider gross is evidence, not a replacement receipt.
-            // This keeps the originally agreed oComis instead of recalculating
-            // an existing invoice using the current min/max/commission policy.
-            unset($params['sum']);
-            $params['date'] = $identity->data['contract']['signed_at'] ?? time();
-            if (!$params['date']) $params['date'] = time();
-            $params['acc'] = $params['accfrom'] ?? '';
-            FinancialOperationException::check(opOperConfirm(-1, $operationId, $params));
-            if (!$pending) FinancialOperationException::check(opOperComplete(-1, $operationId));
-            return new IdempotencyResult(['settled' => !$pending], 200, $operationId);
-        });
     }
 
     private static function operation(Connection $db, int $id): array|false

@@ -43,7 +43,7 @@ $clients=static function(string $key,int $timeout) use ($pdo,&$calls): PawValida
 };
 $service=new PawProviderService($repository,$clients,static function() use (&$invalidations): void { $invalidations++; });
 function pawInput(int $id,int $revision,string $key='',array $fiats=['USD','EUR'],string $enabled='1'): array {
-    return ['profile_id'=>(string)$id,'revision'=>(string)$revision,'api_key'=>$key,'fiats'=>$fiats,'enabled'=>$enabled];
+    return ['form_complete'=>'1','profile_id'=>(string)$id,'revision'=>(string)$revision,'api_key'=>$key,'fiats'=>$fiats,'enabled'=>$enabled];
 }
 function pawFail(callable $call,string $reason): void {
     try { $call();throw new LogicException('Expected provider failure: '.$reason); }
@@ -74,6 +74,7 @@ PaymentProviderSchema::ensure($db);
 $first=pawStorage();PaymentProviderSchema::ensure($db);financialAssert(pawStorage()===$first,'fresh schema verification is repeatable');
 // Model interrupted upgrade from 1.0.4 with a table and nullable reference already created.
 $drop=str_contains((string)$pdo->query('SELECT VERSION()')->fetchColumn(),'MariaDB')?'DROP CONSTRAINT ':'DROP CHECK ';
+if((int)$pdo->query("SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND CONSTRAINT_NAME='chk_currency_archived'")->fetchColumn())$pdo->exec('ALTER TABLE Currs '.$drop.'chk_currency_archived');
 foreach (['chk_currency_provider','chk_paw_configuration_only'] as $c) $pdo->exec('ALTER TABLE Currs '.$drop.$c);
 $pdo->exec('ALTER TABLE Currs DROP FOREIGN KEY fk_currency_provider');
 $pdo->exec('ALTER TABLE Currs DROP INDEX uq_currency_provider_fiat');
@@ -96,6 +97,7 @@ $row=$state->migration($migration['id']);
 financialAssert($row['smStatus']==='applied' && $row['smChecksum']===$plan[0]->checksum(),'migration audit/checksum recorded');
 PaymentProviderSchema::ensure($db);
 financialAssert((int)financialValue('SELECT COUNT(*) FROM Currs')===3,'resumed upgrade preserves legacy currencies');
+HScript\Payment\Provider\CurrencyArchiveSchema::ensure($db);
 $before=pawStorage();pawFail(static fn()=>$service->save(89,pawInput(0,0,'sk_sandbox_synthetic-key')),'forbidden');financialAssert($calls===0 && pawStorage()===$before,'authorization before API and SQL writes');
 foreach ([['api_key'=>"bad\nheader"],['fiats'=>['RUB']],['fiats'=>['USD','USD']],['enabled'=>'yes'],['revision'=>[]]] as $change) {
     $input=array_replace(pawInput(0,0,'sk_sandbox_synthetic-key'),$change);

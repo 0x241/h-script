@@ -188,6 +188,19 @@ try {
     $pdo->exec("UPDATE IdempotencyKeys SET ikExpiresAt=".(time()-1)." WHERE ikNamespace='verification:paykassa:order'");
     verificationCallback($id); financialAssert(verificationCalls()===2,'Expired cached token requires fresh bounded verification');
     financialAssert((int)financialValue("SELECT COUNT(*) FROM IdempotencyKeys WHERE ikNamespace='verification:paykassa:order'")===1,'Expired row removed/replaced without permanent token namespaces');
+    // Archive fences intent→claim races and bounds an abandoned verification lease.
+    verificationSetup();$id=verificationInvoice();$verified=verificationCallback($id);GatewaySettlement::settle($db,'PKB',2,$verified);
+    HScript\Payment\Provider\CurrencyArchiveSchema::ensure($db);
+    $config=['id'=>'122','key'=>'synthetic-verification-secret'];$context=PaykassaVerification::intent($db,'PKB',$id,$config);
+    verificationOrderData($id,static fn($data)=>array_replace($data,['last'=>time()-PaykassaVerification::COOLDOWN-1]));
+    $unverified=PaykassaVerification::claim($db,$context,'synthetic-unverified-token');financialAssert(!$unverified['cached'],'verification lease begins before I/O');
+    $archive=static function()use($db,$pdo):void{HScript\Database\TransactionScope::run($pdo,static fn()=>HScript\Payment\Provider\CurrencyArchive::archive($db,$db->fetch1Row($db->query('SELECT * FROM Currs WHERE cID=2 FOR UPDATE'))));};
+    try{$archive();throw new LogicException('Active verification archived');}catch(HScript\Payment\Provider\ProviderException$e){financialAssert($e->reason==='currency_archive_invoice','active bounded verification blocks archive');}
+    verificationOrderData($id,static fn($data)=>array_replace($data,['last'=>time()-PaykassaVerification::LEASE-1]));$archive();
+    $snapshot=static function()use($pdo):string{$out=[];foreach(['Currs','Opers','Wallets','Hist','Jobs','IdempotencyKeys']as$t)$out[$t]=$pdo->query('SELECT * FROM '.$t.' ORDER BY 1')->fetchAll(PDO::FETCH_ASSOC);return hash('sha256',serialize($out));};
+    $before=$snapshot();$calls=verificationCalls();financialAssert(verificationCallback($id)['correct']&&verificationCalls()===$calls&&$snapshot()===$before,'expired abandoned lease retains old authenticated digest read-only');
+    try{PaykassaVerification::claim($db,$context,'synthetic-new-forged-token');throw new LogicException('Stale prearchive context claimed');}catch(CallbackValidationException$e){financialAssert($e->reason==='archived_callback_reconciliation_required'&&$before===$snapshot()&&verificationCalls()===$calls,'intent→claim barrier rechecks current archive before any mutation or I/O');}
+    try{PaykassaVerification::complete($db,$context,$unverified,$verified);throw new LogicException('Late verification wrote archive');}catch(CallbackValidationException$e){financialAssert($before===$snapshot(),'late expired/archived response cannot complete old claim');}
     // Twelve first requests eventually converge, then a fresh process has zero IO.
     verificationSetup(); $id=verificationInvoice(); $workers=[];
     for($i=0;$i<12;++$i) {

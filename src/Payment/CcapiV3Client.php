@@ -7,7 +7,7 @@ use RuntimeException;
 use stdClass;
 use Throwable;
 
-/** Fixed native v3 give/balance calls, never retain response keys or retry give. */
+/** Bounded v3 calls. Mutating requests are never retried by this transport. */
 final class CcapiV3Client
 {
     public const CONNECT_TIMEOUT_MS=1500;
@@ -99,7 +99,7 @@ final class CcapiV3Client
 
     public static function options(string $chain,string $method,array $config,array $arguments): array
     {
-        if (!in_array($chain,self::CHAINS,true) || !in_array($method,['give','balance','tokens'],true)) throw new RuntimeException('ccapi_method_unsupported');
+        if (!in_array($chain,self::CHAINS,true) || !in_array($method,['give','balance','tokens','send','status'],true)) throw new RuntimeException('ccapi_method_unsupported');
         if($method==='tokens' && !isset(\HScript\Payment\Routing\TokenCatalog::NETWORKS[$chain]))throw new RuntimeException('ccapi_method_unsupported');
         if (!self::configured($config)) throw new RuntimeException('ccapi_configuration_missing');
         if ($method==='give') {
@@ -115,6 +115,21 @@ final class CcapiV3Client
                 || !in_array(parse_url($arguments['statusURL'],PHP_URL_SCHEME),['http','https'],true)
                 || parse_url($arguments['statusURL'],PHP_URL_USER)!==null || parse_url($arguments['statusURL'],PHP_URL_PASS)!==null
                 || preg_match('/[\x00-\x20\x7f]/',$arguments['statusURL'])) throw new RuntimeException('ccapi_request_invalid');
+        } elseif ($method==='send') {
+            $required=['to','amount','label','uniqID','statusURL'];
+            if(array_diff($required,array_keys($arguments)) || array_diff(array_keys($arguments),[...$required,'from','token'])
+                || !is_string($arguments['to']) || !\HScript\Payment\Routing\CcapiWallets::validAddress($chain,$arguments['to'])
+                || !is_string($arguments['amount']) || !preg_match('/^\d{1,12}(?:\.\d{1,8})?$/D',$arguments['amount'])
+                || !is_string($arguments['label']) || !preg_match('/^[1-9][0-9]{0,9}$/D',$arguments['label'])
+                || !is_string($arguments['uniqID']) || !preg_match('/^hscript-out:[a-f0-9]{64}$/D',$arguments['uniqID'])
+                || !is_string($arguments['statusURL']) || strlen($arguments['statusURL'])>250
+                || !\HScript\Security\SafeUrl::redirect($arguments['statusURL'])
+                || !in_array(parse_url($arguments['statusURL'],PHP_URL_SCHEME),['http','https'],true)
+                || (isset($arguments['from']) && (!is_string($arguments['from']) || !\HScript\Payment\Routing\CcapiWallets::validAddress($chain,$arguments['from'])))
+                || (isset($arguments['token']) && (!isset(\HScript\Payment\Routing\TokenCatalog::NETWORKS[$chain]) || !\HScript\Payment\Routing\TokenCatalog::symbol($arguments['token'])))) throw new RuntimeException('ccapi_request_invalid');
+            \HScript\Finance\CallbackAmount::atScale($arguments['amount'],8);
+        } elseif ($method==='status') {
+            if(array_keys($arguments)!==['uniqID'] || !is_string($arguments['uniqID']) || !preg_match('/^hscript-out:[a-f0-9]{64}$/D',$arguments['uniqID']))throw new RuntimeException('ccapi_request_invalid');
         } elseif ($arguments!==[]) throw new RuntimeException('ccapi_request_invalid');
         if(isset($forward))$arguments['to']=$forward;
         $options=[CURLOPT_URL=>'https://new.cryptocurrencyapi.net/api/'.$chain.'/.'.$method,
@@ -132,6 +147,21 @@ final class CcapiV3Client
         try {
             $object=JsonCallbackPayload::object($raw,$method==='tokens'?1048576:65536); $envelope=get_object_vars($object);
             if (array_keys($envelope)!==['result']) throw new RuntimeException();
+            if($method==='send') {
+                if(!is_string($object->result) || !preg_match('/^[1-9][0-9]{0,19}$/D',$object->result))throw new RuntimeException();
+                return ['queue_id'=>$object->result];
+            }
+            if($method==='status') {
+                if(!$object->result instanceof stdClass)throw new RuntimeException();
+                $result=get_object_vars($object->result);
+                foreach(['id','from','to','token','amount','fee','label','state','result','txid'] as $field) {
+                    if(!array_key_exists($field,$result))throw new RuntimeException();
+                    if($result[$field]===null && in_array($field,['from','token','result','txid'],true))$result[$field]='';
+                    if(!is_string($result[$field]) || strlen($result[$field])>512 || preg_match('/[\x00-\x1f\x7f]/',$result[$field]))throw new RuntimeException();
+                }
+                if(!preg_match('/^[1-9][0-9]{0,19}$/D',$result['id']) || !preg_match('/^[0-9]$/D',$result['state']))throw new RuntimeException();
+                return array_intersect_key($result,array_flip(['id','from','to','token','amount','fee','label','state','result','txid']));
+            }
             if($method==='tokens'){
                 if(!$object->result instanceof stdClass || $chain===null)throw new RuntimeException();
                 return ['tokens'=>\HScript\Payment\Routing\TokenCatalog::normalize($chain,get_object_vars($object->result))];

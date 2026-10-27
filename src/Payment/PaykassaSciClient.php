@@ -18,6 +18,8 @@ final class PaykassaSciClient
 
     public static function request(string $merchant, string $secret, array $fields): array
     {
+        // PHP otherwise silently ignores a removed fourth sandbox argument.
+        if(func_num_args()!==3)throw new InvalidArgumentException('paykassa_sandbox_removed');
         if (!preg_match('/^[1-9][0-9]{0,14}$/D', $merchant) || trim($secret) === '' || strlen($secret) > 8192)
             throw new InvalidArgumentException('callback_configuration_missing');
         if (!in_array($fields['func'] ?? null, ['sci_confirm_order','sci_create_order_get_data'], true))
@@ -68,6 +70,7 @@ final class PaykassaSciClient
         try {
             if ($body === '' || strlen($body) > self::MAX_RESPONSE_BYTES || !str_starts_with(ltrim($body), '{'))
                 throw new RuntimeException();
+            JsonCallbackPayload::object($body); // Reject duplicate decoded keys before selecting financial fields.
             $result = json_decode($body, true, 16, JSON_THROW_ON_ERROR);
             if (!is_array($result) || !is_bool($result['error'] ?? null)
                 || !is_array($result['data'] ?? null) || array_is_list($result['data']) && $result['data'] !== []

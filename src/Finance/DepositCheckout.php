@@ -23,7 +23,7 @@ final class DepositCheckout
         $prepared=[];
         $intent = $store->execute('invoice:attempt', (string)$operationId, $owner, $fingerprint, static function () use ($db, $owner, $operationId, &$prepared, $routeCode): IdempotencyResult {
             $o = $db->fetch1Row($db->query('SELECT Opers.*,Currs.* FROM Opers JOIN Currs ON cID=ocID WHERE oID=?d FOR UPDATE', [$operationId]));
-            if (!$o || (int)$o['ouID'] !== $owner || $o['oOper'] !== 'CASHIN' || (int)$o['oState'] > 2)
+            if (!$o || ArchivedReplay::inactive($o) || (int)$o['ouID'] !== $owner || $o['oOper'] !== 'CASHIN' || (int)$o['oState'] > 2)
                 throw new FinancialOperationException('oper_state_wrong');
             if (\HScript\Payment\CallbackCapabilities::disabledAutomation($o['cCID']))
                 throw new CallbackValidationException('automatic_payment_unsupported');
@@ -32,8 +32,10 @@ final class DepositCheckout
             if (!empty($o['cProviderID']) && ((int)$o['cDisabled']!==0 || (int)$o['cProviderSelected']!==1)) throw new CallbackValidationException('callback_configuration_missing');
             $route=\HScript\Payment\Routing\PaymentRoutes::select($o,$routeCode);
             $wallets=\HScript\Payment\Routing\CcapiWallets::capture($db,$o,$route);
+            $paw=null;
+            if($o['cCID']==='PAW'){opDecodeCurrParams($o,$pay,$sci,$api);$paw=PawContract::capture($o,$sci);$o['_paw_config']=$sci;}
             $prepared=$o; $prepared['_payment_route']=$route;$prepared['_ccapi_wallets']=$wallets;
-            return new IdempotencyResult(['started' => true,'contract'=>InboundIntent::capture($o),'profile'=>InboundProfile::capture($o)]+($route!==null?['payment_route'=>$route]:[])+($wallets!==null?['ccapi_wallets'=>$wallets]:[]), 202, $operationId);
+            return new IdempotencyResult(['started' => true,'contract'=>InboundIntent::capture($o),'profile'=>InboundProfile::capture($o)]+($paw!==null?['paw_profile'=>$paw]:[])+($route!==null?['payment_route'=>$route]:[])+($wallets!==null?['ccapi_wallets'=>$wallets]:[]), 202, $operationId);
         });
         InboundIntent::assertProof($intent->data['contract'] ?? null,'callback_invoice_intent_missing');
         if (!$intent->replayed) {
@@ -63,6 +65,10 @@ final class DepositCheckout
                 if ($o['cCID']==='ST') {
                     opDecodeCurrParams($o,$pay,$sci,$api);
                     if (StripeContract::invoice($o,$form)!==StripeContract::capture($o,$sci)) throw new CallbackValidationException('stripe_profile_mismatch');
+                }
+                if($o['cCID']==='PAW'){
+                    $paw=PawContract::form($o,$form);unset($paw['order_id'],$paw['created_at'],$paw['expires_at']);
+                    if($paw!==($intent->data['paw_profile']??null))throw new CallbackValidationException('paw_profile_mismatch');
                 }
                 InboundIntent::assertOperation($intent->data['contract'],$o);
                 $form['inbound_intent']=$intent->data['contract'];
@@ -96,14 +102,16 @@ final class DepositCheckout
                 CcapiV3Contract::invoice($operation,$form,$sci);
             }
             if ($operation['cCID']==='ST') StripeContract::invoice($operation,$form);
+            if ($operation['cCID']==='PAW') PawContract::attempt($db,$operation,$form);
             InboundIntent::assertOperation($intent->data['contract'],$operation);
             InboundIntent::assertForm($intent->data['contract'],$form);
             return $form;
         });
         if(isset($form['ccapi_token_contract']))$form['payment_contract']=$form['ccapi_token_contract'];
+        if(($form['formkind']??'')==='paw_sandbox')$form['payment_reference']=$form['paw_order'];
         unset($form['psysorder'],$form['payment_route']);
         foreach (array_keys($form) as $field)
-            if (str_starts_with($field,'paykassa_') || str_starts_with($field,'volet_') || str_starts_with($field,'inbound_') || str_starts_with($field,'ccapi_') || str_starts_with($field,'stripe_')) unset($form[$field]);
+            if (str_starts_with($field,'paykassa_') || str_starts_with($field,'volet_') || str_starts_with($field,'inbound_') || str_starts_with($field,'ccapi_') || str_starts_with($field,'stripe_') || str_starts_with($field,'paw_')) unset($form[$field]);
         return $form;
     }
 

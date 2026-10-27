@@ -31,3 +31,7 @@ static/js/modal.js export-ignore
 static/js/owl.carousel.min.js export-ignore
 static/js/script.js export-ignore
 static/js/hs-local-home.js export-ignore
+
+# Reference documents stay in Git; development documentation is not shipped.
+docs export-ignore
+docs/** export-ignore

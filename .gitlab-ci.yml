@@ -142,7 +142,7 @@ scan:source:
     paths: [dist/evidence/source.report.json, dist/evidence/source.cdx.json]
     expire_in: 30 days
 
-validate:compose:
+validate:application:
   stage: validate
   rules:
     - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
@@ -151,23 +151,11 @@ validate:compose:
   script:
     - docker compose --env-file docker/env.example config --quiet
     - sh tests/recovery_compose.sh
+    - sh tests/staging_recovery_env.sh
+    - sh tests/release_browser_logging.sh
+    - H_SCRIPT_DOCKER_AUTH_TEST=1 python3 -B -m unittest discover -s tests -p 'ci_tools_test.py'
 
-validate:frontend:
-  stage: validate
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
-    - if: '$CI_COMMIT_BRANCH == "release/public"'
-    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
-  script:
     - docker build --target frontend-build --tag "h-script-frontend:${CI_COMMIT_SHORT_SHA}" .
-
-validate:version:
-  stage: validate
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "stage/docker-release"'
-    - if: '$CI_COMMIT_BRANCH == "release/public"'
-    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
-  script:
     - APP_VERSION="$(tr -d '\r\n' < VERSION)"
     - SCHEMA_VERSION="$(tr -d '\r\n' < SCHEMA_VERSION)"
     - test -n "${APP_VERSION}"
@@ -406,7 +394,7 @@ test:release-migrations:
     - sh ci/release-migrations.sh
   artifacts:
     when: always
-    paths: [dist/release-migrations.txt]
+    paths: [dist/release-migrations.txt, dist/release-migrations/]
     expire_in: 30 days
 
 test:release-browser:
@@ -422,7 +410,7 @@ test:release-browser:
     - sh ci/release-browser.sh
   artifacts:
     when: always
-    paths: [dist/release-browser.txt]
+    paths: [dist/release-browser.txt, dist/release-browser/]
     expire_in: 30 days
 
 package:shared-candidate:
@@ -625,6 +613,9 @@ deploy:staging:
         printf 'SESSION_COOKIE_SECURE=%s\n' "${SESSION_COOKIE_SECURE:-1}"
         printf 'SESSION_COOKIE_SAMESITE=%s\n' "${SESSION_COOKIE_SAMESITE:-Lax}"
         printf 'SESSION_GC_MAXLIFETIME=%s\n' "${SESSION_GC_MAXLIFETIME:-2592000}"
+        # Persist recovery configuration too: later Compose operations must not
+        # silently disable the worker or fall back to checkout-local secrets.
+        sh ci/staging-recovery-env.sh
       } > .env
     - docker compose --env-file .env config --quiet
     - docker compose --env-file .env pull app cron

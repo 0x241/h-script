@@ -7,6 +7,7 @@ use HScript\Template\View;
 $_auth = 1;
 require_once('module/auth.php');
 
+View::setPage('archived_holdings',HScript\Finance\ArchivedHoldings::forUser($db,(int)_uid()));
 $portfolio = WalletPortfolio::project($_currs);
 $dashboard_currs = $portfolio['currencies'];
 $currency_balances = $portfolio['groups'];

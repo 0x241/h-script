@@ -243,3 +243,39 @@ document.addEventListener('input', (event) => {
     item.style.display = item.hidden ? 'none' : '';
   });
 });
+
+// A PAW withdrawal binds exactly one saved asset/address before reserving money.
+(() => {
+    const bind = () => document.querySelectorAll('[data-paw-payout]').forEach(panel => {
+        if (panel.dataset.bound) return;
+        panel.dataset.bound = '1';
+        const form = panel.closest('form');
+        const source = form?.querySelector('[name="PSys"]');
+        const exchange = panel.dataset.pawExchange === '1';
+        const currency = exchange ? form?.querySelector('[name="PSys2"]') : source;
+        const select = panel.querySelector('[name="payout_asset"]');
+        if (!currency || !select) return;
+        let choices;
+        try { choices = JSON.parse(panel.dataset.pawOptions); } catch { return; }
+        const placeholder = select.options[0].textContent;
+        const update = () => {
+            const prior = select.value || panel.dataset.selectedAsset;
+            const options = choices[currency.value];
+            panel.hidden = options === undefined || (exchange && source?.value !== '1');
+            select.disabled = panel.hidden;
+            select.required = !panel.hidden;
+            select.replaceChildren(new Option(placeholder, ''));
+            if (options) Object.entries(options).forEach(([asset,label]) => {
+                if (['usdt_tron','usdc_eth'].includes(asset)) select.add(new Option(label,asset));
+            });
+            if (prior && options && Object.hasOwn(options,prior)) select.value = prior;
+            panel.dataset.selectedAsset = '';
+        };
+        currency.addEventListener('change', update);
+        if (exchange) source?.addEventListener('change', update);
+        update();
+    });
+    document.addEventListener('DOMContentLoaded', bind);
+    document.addEventListener('htmx:load', bind);
+    bind();
+})();

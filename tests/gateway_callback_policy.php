@@ -40,7 +40,7 @@ $definitions = $manager->definitions();
 policyAssert(array_keys($inventory['gateways']) === array_keys($definitions), 'Independent inventory must cover the exact registered ID set');
 policyAssert($inventory['live_provider_capture'] === false, 'Inventory must not claim merchant captures');
 policyAssert(str_contains($inventory['source_network_policy'], 'never replaces'), 'Network provenance cannot replace cryptographic authentication');
-$disabled = ['ACR','PKAU','PKAR','EA','EAT','EAT1','BSC','BSCT','XRPA','TRA','TRAT'];
+$disabled = ['CPN','ACR','PKAU','PKAR','EA','EAT','EAT1','BSC','BSCT','XRPA','TRA','TRAT'];
 foreach ($inventory['gateways'] as $id=>$policy) {
     $profile = $inventory['profiles'][$policy['profile']];
     policyAssert(in_array($id, $profile['ids'], true), $id.' missing documented profile');

@@ -38,8 +38,8 @@
 		{% set can_confirm = (el.oState <= 1) and ((el.oOper != 'CASHIN') or dfields or (_cfg.Bal_AFMMode > 0)) %}
 		{% set can_cancel = el.oState <= 2 %}
 		{% set can_delete = el.oState >= 5 %}
-		{% set can_pay = el.oOper == 'CASHIN' and el.oState <= 2 and el.cCASHINMode in [2, 3] and pform.formkind|default('') != 'native_address' %}
-		{% set watch_payment = el.oOper == 'CASHIN' and el.oState <= 2 and (pform.formkind|default('') == 'native_address' or isset(_GET.check)) %}
+		{% set can_pay = el.oOper == 'CASHIN' and el.oState <= 2 and el.cCASHINMode in [2, 3] and not pform.error|default(false) and pform.formkind|default('') not in ['native_address','paw_sandbox'] %}
+		{% set watch_payment = el.oOper == 'CASHIN' and el.oState <= 2 and (pform.formkind|default('') in ['native_address','paw_sandbox'] or isset(_GET.check) or (el.cCID == 'PAW' and el.oParams.psysorder|default(''))) %}
 		{% set view_errors = {'ex_sum_wrong': _t({'key': 'opers.error.sum_wrong'}), 'ex_overflow': _t({'key': 'opers.error.amount_range'}), 'sum_precision': _t({'key': 'opers.error.amount_precision'}), 'sum_overflow': _t({'key': 'opers.error.amount_range'}), 'bal_precision': _t({'key': 'opers.error.amount_precision'}), 'bal_overflow': _t({'key': 'opers.error.amount_range'}), 'oper_not_found': _t({"key": "opers.error.state", "default": "Неверный статус операции"}), 'oper_disabled': _t({"key": "opers.error.disabled", "default": "Данная операция временно отключена"}), 'low_bal1': _t({"key": "opers.error.low_bal", "default": "Недостаточно средств на балансе"}), 'data_date_wrong': _t({"key": "opers.error.date", "default": "Неверная дата транзакции"}), 'data_sum_wrong': _t({"key": "opers.error.sum", "default": "Указана неверная сумма"}), 'data_batch_wrong': _t({"key": "opers.error.batch_empty", "default": "Не задан batch-номер операции"}), 'batch_exists': _t({"key": "opers.error.batch_exists", "default": "Транзакция с таким batch-номером уже зарегистрирована"}), 'afmacc_wrong': _t({"key": "opers.error.afmacc_wrong", "default": "Неверное значение кошелька"}), 'afmbatch_wrong': _t({"key": "opers.error.afmbatch_wrong", "default": "Неверный batch-номер"})} %}
 		<div class="mb-8 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
 			<div>
@@ -92,6 +92,11 @@
 					</div>
 				{% endif %}
 
+                {% if pform.error|default('') == 'paw_reconciliation_required' %}<p role="alert" class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-950">{{ _t({'key':'payment.paw.reconcile','default':'PAW не подтвердил создание счёта. Автоматически повторять запрос небезопасно. Обратитесь в поддержку для сверки заявки; деньги не зачислены.'}) }}</p>{% endif %}
+                {% if pform.error|default('') == 'invoice_reconciliation_required' %}<p role="alert" class="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-amber-950"><i class="fa-solid fa-circle-info mr-2" aria-hidden="true"></i>{{ _t({'key':'payment.invoice.reconcile','default':'Не удалось подтвердить создание счёта в платёжной системе. Обратитесь в поддержку и укажите номер операции. Повторная отправка запроса приостановлена до сверки.'}) }}</p>{% endif %}
+                {% if el.cCID == 'PAW' and el.oOper == 'CASHIN' and el.oState <= 2 %}
+                <section class="card border border-blue-200 bg-blue-50 p-6 dark:border-blue-900 dark:bg-blue-950"><h3 class="font-bold">{{ _t({'key':'payment.paw.vary_title','default':'Пополнение через PAW · VARY'}) }}</h3><p class="mt-2 text-sm">{{ _t({'key':'payment.paw.vary_hint','default':'Счёт завершается после первой оплаты. На баланс поступит фактически оплаченная сумма за вычетом фиксированной комиссии H-Script, указанной в заявке.'}) }}</p>{% if paw_sandbox|default(false) %}<p class="mt-3 text-sm font-bold">{{ _t({'key':'payment.paw.sandbox_hint','default':'Песочница: реальные средства не принимаются. Страница оплаты PAW недоступна; используйте симуляцию в тестовом кабинете PAW.'}) }}</p>{% if pform.payment_reference|default(paw_order|default('')) %}<p class="mt-2 break-all font-mono">{{ pform.payment_reference|default(paw_order|default('')) }}</p>{% endif %}{% endif %}</section>
+                {% endif %}
 				{% if el.oOper == 'CASHIN' and el.oState <= 2 and pform.formkind|default('') == 'native_address' %}
 					{% include 'balance/native.payment.twig' %}
 				{% endif %}
@@ -149,6 +154,9 @@
 								<div class="font-mono font-bold text-emerald-500 sm:col-span-2">{% if el.oOper in ['EX', 'EXIN'] %}{{ exchange_quote.amount|default('—') }} <small>{{ exchange_quote.currency }}</small>{% else %}{{ _z(el.oParams.sum2, exValue(el.ocID, el.oParams.cid2), 1) }}{% endif %}</div>
 							</div>
 						{% endif %}
+                        {% if el.cCID == 'PAW' and el.oOper == 'CASHOUT' %}
+                        <div class="grid gap-2 p-5 sm:grid-cols-3"><div class="text-sm font-bold text-gray-500">{{ _t({'key':'payment.paw.payout_asset','default':'Получить выплату в'}) }}</div><div class="font-bold sm:col-span-2">{% if el.oParams2.payout_asset == 'usdt_tron' %}USDT · TRON (TRC-20){% elseif el.oParams2.payout_asset == 'usdc_eth' %}USDC · Ethereum (ERC-20){% else %}—{% endif %}{% if el.oState == 3 and el.oParams2.crypto_amount|default('') %}<span class="mt-1 block font-mono">{{ el.oParams2.crypto_amount }}</span>{% endif %}</div></div>
+                        {% endif %}
 						{% if el.oParams2.acc %}
 							<div class="grid gap-2 p-5 sm:grid-cols-3">
 								<div class="text-sm font-bold text-gray-500">{{ _t({"key": "balance.account", "default": "Счет"}) }}</div>
@@ -185,7 +193,7 @@
 					{% if can_confirm or can_cancel or can_delete or can_pay %}
 						<div class="hs-operation-actions border-t border-gray-100 bg-gray-50 p-5 dark:border-gray-800 dark:bg-[#1A1A1A]">
 							{% if can_pay %}
-								<button form="deposit-payment-form" {% if not pform.url %}name="pay_btnpay" value="1"{% endif %} {% if payment_route_required|default(false) and not payment_route_choices and not pform.url %}disabled{% endif %} type="submit" class="hs-payment-button">{{ _t({'key': 'payment.goto', 'default': 'Перейти к оплате'}) }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+								<button form="deposit-payment-form" {% if not pform.url %}name="pay_btnpay" value="1"{% endif %} {% if payment_route_required|default(false) and not payment_route_choices and not pform.url %}disabled{% endif %} type="submit" class="hs-payment-button">{% if paw_sandbox|default(false) %}{{ _t({'key':'payment.paw.sandbox_create','default':'Создать тестовый счёт PAW'}) }}{% else %}{{ _t({'key': 'payment.goto', 'default': 'Перейти к оплате'}) }}{% endif %} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
 							{% endif %}
 							<div class="hs-operation-secondary">
 							{% if can_cancel %}
@@ -205,7 +213,9 @@
 				{% if el.oOper == 'CASHIN' and el.oState <= 2 and (el.cCASHINMode in [2, 3] or pform.formkind|default('') == 'native_address') %}
 					{% if pform.formkind|default('') == 'native_address' %}
 						{# Saved native details are shown above the operation summary. #}
-					{% elseif pform.url %}
+					{% elseif pform.formkind|default('') == 'paw_sandbox' %}
+                        {# Sandbox has no hosted checkout; never invent a payment URL. #}
+                    {% elseif pform.url %}
 						<form id="deposit-payment-form" method="{% if pform.get %}get{% else %}post{% endif %}" action="{{ pform.url }}" name="pay_form" hx-boost="false" data-hs-auto-submit="1" hidden>
 							{% for f, v in pform %}
 								{% if (f != 'url') and (f != 'get') %}
@@ -224,6 +234,10 @@
 				{% if watch_payment and pform.formkind|default('') != 'native_address' %}
 					{% include 'balance/payment.progress.twig' %}
 				{% endif %}
+
+                {% if el.oOper == 'CASHIN' and el.oState <= 2 and el.cCID in ['BW','SB'] and el.cCASHINMode in [1,3] %}
+                    {% include 'balance/bank.details.twig' %}
+                {% endif %}
 
 				{% if el.oOper == 'CASHIN' and (isset(pvalues.acc) or dfields) %}
 					<form method="post" action="{{ _selfLink }}?id={{ el.oID }}" name="{{ data_form_name }}" class="overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-[#151515]">
@@ -306,6 +320,7 @@
 	{% else %}
 		{% set add_form_name = getFormName('add') %}
 		{% set add_errors = {'ex_sum_wrong': _t({'key': 'opers.error.sum_wrong'}), 'ex_overflow': _t({'key': 'opers.error.amount_range'}), 'sum_precision': _t({'key': 'opers.error.amount_precision'}), 'sum_overflow': _t({'key': 'opers.error.amount_range'}), 'bal_precision': _t({'key': 'opers.error.amount_precision'}), 'bal_overflow': _t({'key': 'opers.error.amount_range'}), 'psys_empty': _t({"key": "opers.error.psys_empty", "default": "плат.система не указана"}), 'psys2_empty': _t({"key": "opers.error.psys2_empty", "default": "плат.система не указана"}), 'psys2_equal_psys': _t({"key": "opers.error.psys_equal", "default": "плат.системы должны различаться"}), 'ex_rate_not_set': _t({"key": "opers.error.ex_rate", "default": "Курс валюты не задан"}), 'sum_wrong': _t({"key": "opers.error.sum_wrong", "default": "неверная сумма"}), 'limit_exceeded': _t({"key": "opers.error.limit", "default": "превышен лимит"}), 'pin_wrong': _t({"key": "opers.error.pin_wrong", "default": "неверный код"}), 'plan_wrong': _t({"key": "opers.error.plan_wrong", "default": "неверный план"}), 'compnd_wrong': _t({"key": "opers.error.compnd_wrong", "default": "неверное значение"}), 'compnd_wrong1': _t({"key": "opers.error.compnd_plan_wrong", "default": "неверное значение для плана"}), 'user2_empty': _t({"key": "opers.error.user2_empty", "default": "пользователь не найден"}), 'user2_equal_user': _t({"key": "opers.error.user2_equal", "default": "пользователи должны различаться"}), 'wallet_not_defined': _t({"key": "opers.error.wallet_not_defined", "default": "платежные реквизиты не заданы"}), 'low_bal1': _t({"key": "opers.error.low_bal", "default": "недостаточно средств"}), 'oper_disabled': _t({"key": "opers.error.disabled", "default": "операция отключена"})} %}
+		{% set add_errors=add_errors|merge({'paw_payout_destination_required':_t({'key':'payment.paw.payout_missing','default':'Сохраните адрес выбранной валюты в реквизитах.'}),'paw_payout_sandbox_unsupported':_t({'key':'payment.paw.payout_sandbox','default':'Выплаты PAW недоступны в Sandbox.'})}) %}
 		{% set selected_psys = user.aDefCurr|default(0) %}
 		{% if isset_IN('PSys') %}{% set selected_psys = _IN('PSys') %}{% endif %}
 		{% set selected_psys2 = 0 %}
@@ -409,7 +424,15 @@
 						</div>
 					{% endif %}
 
-					{% if oper == 'CASHOUT' and _cfg.Bal_NeedPIN %}
+                    {% if (oper == 'CASHOUT' or (oper == 'EX' and _cfg.Const_IntCurr)) and paw_payout_choices %}
+                    <section data-paw-payout data-paw-exchange="{{ oper == 'EX' ? '1':'0' }}" data-paw-options="{{ paw_payout_choices|json_encode }}" data-selected-asset="{{ _IN('payout_asset')|default('') }}" class="rounded-2xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-900 dark:bg-blue-950" hidden>
+                        <label class="{{ label_class }}" for="paw-payout-asset">{{ _t({'key':'payment.paw.payout_asset','default':'Получить выплату в'}) }}</label>
+                        <select id="paw-payout-asset" name="payout_asset" class="{{ input_class }}" disabled><option value="">{{ _t({'key':'payment.paw.payout_choose','default':'Выберите валюту и сеть'}) }}</option></select>
+                        <p class="mt-3 text-sm">{% if _cfg.Const_IntCurr %}{{ _t({'key':'payment.paw.payout_conversion_internal','default':'Сначала внутренняя валюта обменивается на валюту выбранного баланса по настроенному курсу с комиссиями обмена. Затем PAW конвертирует сумму заявки на вывод в выбранный стейблкоин по своему курсу. Сетевые расходы оплачивает мерчант.'}) }}{% else %}{{ _t({'key':'payment.paw.payout_conversion','default':'После комиссии H-Script сумма в валюте баланса передаётся PAW. PAW конвертирует её в выбранный стейблкоин по своему курсу при создании выплаты. Сетевые расходы оплачивает мерчант; точная сумма криптовалюты появится после выполнения.'}) }}{% endif %}</p>
+                        <a href="{{ _link('balance/wallets') }}" class="mt-3 inline-block font-bold underline">{{ _t({'key':'payment.paw.payout_wallets','default':'Сохранить адрес USDT или USDC в реквизитах'}) }}</a>
+                    </section>
+                    {% endif %}
+					{% if (oper == 'CASHOUT' or (oper == 'EX' and _cfg.Const_IntCurr)) and _cfg.Bal_NeedPIN %}
 						<div>
 							<label class="{{ label_class }}" for="{{ add_form_name }}_PIN">{{ _t({"key": "account.security.pin", "default": "Введите PIN-код"}) }}</label>
 							{% include "external/auth.password.twig" with {"password_name": "PIN", "password_id": add_form_name ~ '_PIN', "password_placeholder": "••••", "password_autocomplete": "one-time-code"} %}

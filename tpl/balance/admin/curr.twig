@@ -2,7 +2,11 @@
 {% include "admin/header.twig" with {"title": 'Платежная система'} %}
 
 {% if retired_currency|default(false) %}
-    <h2>Платёжный провайдер удалён</h2><p class="info">Это архивная валюта. Балансы и история операций сохранены; подключение и изменение настроек недоступны.</p>
+    <section class="card hs-provider-panel"><h2>{{ archived_currency.cName|default('Платёжный провайдер удалён') }}</h2><p class="hs-provider-note">Это архивная валюта. Балансы и история операций сохранены; изменение настроек недоступно. Вернуть валюту можно на странице общего подключения.</p>{% if archived_currency.cID|default(false) %}<a class="hs-provider-button" href="{{ _link('balance/admin/opers',false,0) }}?currency_id={{ archived_currency.cID }}">Операции этой валюты · #{{ archived_currency.cID }}</a>{% endif %}{% if archived_connection_url|default(false) %}<a class="ml-4 font-bold text-blue-600" href="{{ archived_connection_url }}">Общее подключение</a>{% endif %}</section>
+{% elseif legacy_setup|default(false) %}
+    {% include 'balance/admin/curr.legacy.twig' %}
+{% elseif coinnew_mode|default(false) %}
+    {% include 'balance/admin/curr.coinpayments.twig' %}
 {% elseif provider_mode|default(false) %}
     {% include 'balance/admin/curr.provider.twig' %}
 {% elseif paw_mode|default(false) %}
@@ -11,7 +15,11 @@
 
 {% elseif el %}
 
-	<h2>{% if el.cCID == '*' %}Внутренняя платежная система{% else %}Платежная система [{{ el.cCID }}]{% endif %}</h2>
+    {% if legacy_receiving|default(false) %}
+    {% if legacy_receiving.setup_url %}<a class="mb-6 inline-block font-bold text-blue-600" href="{{ legacy_receiving.setup_url }}">← Подключение {{ legacy_receiving.name }}</a>{% endif %}
+    <div class="hs-provider-heading"><span class="hs-provider-icon"><i class="fa-solid fa-plug" aria-hidden="true"></i></span><h2>{{ legacy_receiving.name }} · {{ el.cCurrID }}</h2><span class="hs-provider-badge {{ el.cDisabled ? 'is-disabled':'is-enabled' }}"><i class="fa-solid {{ el.cDisabled ? 'fa-circle-pause':'fa-circle-check' }}" aria-hidden="true"></i>{{ el.cDisabled ? 'Валюта выключена':'Валюта включена' }}</span></div>
+    <aside class="hs-provider-note hs-provider-network-note mb-6"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><div>{% if legacy_receiving.incoming_auto %}<strong>Приём через платёжную систему</strong><p class="mt-2">Для автоматического зачисления настройте уведомления и секрет проверки. Переход пользователя на страницу успешной оплаты не подтверждает платёж.</p>{% if legacy_receiving.callback %}<p class="mt-2 font-bold">Адрес уведомлений</p><code class="block break-all">{{ legacy_receiving.callback }}</code>{% endif %}{% else %}<strong>Ручной банковский перевод</strong><p class="mt-2">Зачисление подтверждает администратор после сверки банковской выписки, суммы и номера операции. Автоматическая проверка для этого подключения недоступна.</p>{% endif %}{% if legacy_receiving.kind == 'SBERBANK' %}<p class="mt-2">Это перевод по реквизитам. SberPay и СБП требуют отдельного подключения интернет-эквайринга банка.</p>{% endif %}</div></aside>
+    {% else %}<h2>{% if el.cCID == '*' %}Внутренняя платежная система{% else %}Платежная система [{{ el.cCID }}]{% endif %}</h2>{% endif %}
 
     {% if legacy_provider_kind|default(false) %}<p class="info">Для {{ cName }} доступно общее подключение. <a href="{{ _link('balance/admin/curr',false,0) }}?provider={{ legacy_provider_kind }}" class="underline">Подключение и валюты</a></p>{% endif %}
 	{% if isset(_GET.testapi) %}
@@ -29,14 +37,14 @@
 	{% endif %}
 
 	{% if sfields %}
-		{% set sfields = merge_arrays({1: 'SCI <small>(пополнение)</small>'}, sfields) %}
+		{% set sfields = merge_arrays({1: 'Приём платежей · SCI'}, sfields) %}
 	{% endif %}
 	{% if afields %}
-		{% set afields = merge_arrays({2: 'API <small>(вывод)</small>'}, afields) %}
+		{% set afields = merge_arrays({2: 'Доступ к API'}, afields) %}
 	{% endif %}
 
 	<div class="card hs-curr-card">
-	{% include "balance/admin/curr.settings.twig" with {"fields": merge_arrays(merge_arrays(merge_arrays({'cID': [], 'cCID': [], 'cDisabled': {0: 'C', 1: 'Отключена', 'default': 1}, 'cHidden': {0: 'C', 1: 'Скрыта', 'default': 1}, 'cMTS': {0: 'X', 1: 'Исправлено', 'skip': not el.cMTS}, 99: 'Вид', 'cName': {0: 'T', 1: 'Наименование', 'size': 30, 'comment': cName}, 'cCurr': {0: 'T', 1: 'Валюта', 'comment': el.cCurrID}, 'cNumDec': ['I', 'Кол-во знаков после запятой (0-6) <<0 - по умолчанию>>']}, pfields), sfields), afields), "values": el, "errors": {"currency_decimal_invalid": "Проверьте суммы, комиссии и корректировки: недопустимая точность или слишком большое значение."}} %}
+	{% include "balance/admin/curr.settings.twig" with {"fields": merge_arrays(merge_arrays(merge_arrays({'cID': [], 'cCID': [], 'cDisabled': {0: 'C', 1: 'Отключена', 'default': 1}, 'cHidden': {0: 'C', 1: 'Скрыта', 'default': 1}, 'cMTS': {0: 'X', 1: 'Исправлено', 'skip': not el.cMTS}, 99: 'Вид', 'cName': {0: 'T', 1: 'Наименование', 'size': 30, 'comment': cName}, 'cCurr': {0: 'T', 1: 'Валюта', 'comment': el.cCurrID}, 'cNumDec': ['I', 'Кол-во знаков после запятой (0-6) <<0 - по умолчанию>>']}, pfields), sfields), afields), "values": el, "errors": {"currency_decimal_invalid": "Проверьте суммы, комиссии и корректировки: недопустимая точность или слишком большое значение.", "automatic_payment_unsupported": "Для этого подключения автоматический режим недоступен. Выберите ручной режим."}} %}
 	</div>
 	
 {% else %}

@@ -116,7 +116,7 @@
         "line": 32,
         "kind": "script_tag",
         "count": 1,
-        "sha256": "8460374317dcffedacee9c42a7fc6f3af247b6a71769a9390b3f5d01a4a95a2e"
+        "sha256": "80987b11fb768b96e6fb6f1f032f08128a4dc0cc6a4c3314e7879f9c3c4f0440"
     },
     {
         "path": "tpl/admin/list.block.twig",
@@ -151,7 +151,7 @@
         "line": 22,
         "kind": "script_tag",
         "count": 1,
-        "sha256": "8460374317dcffedacee9c42a7fc6f3af247b6a71769a9390b3f5d01a4a95a2e"
+        "sha256": "80987b11fb768b96e6fb6f1f032f08128a4dc0cc6a4c3314e7879f9c3c4f0440"
     },
     {
         "path": "tpl/edit.field.twig",
@@ -291,7 +291,7 @@
         "line": 38,
         "kind": "script_tag",
         "count": 1,
-        "sha256": "8460374317dcffedacee9c42a7fc6f3af247b6a71769a9390b3f5d01a4a95a2e"
+        "sha256": "80987b11fb768b96e6fb6f1f032f08128a4dc0cc6a4c3314e7879f9c3c4f0440"
     },
     {
         "path": "tpl/news/show.twig",

@@ -1,0 +1,18 @@
+{
+  "provenance": "Redacted shape of an authorized unpaid sandbox SCI response captured 2026-10-24; IDs, recipient and hash replaced with synthetic values. No payment was made.",
+  "source": "https://paykassa.pro/docs/#api-SCI-sci_create_order_get_data",
+  "data": {
+    "invoice": 579206,
+    "order_id": "42",
+    "wallet": "bc1qsyntheticinvoice42receiverabcdef1234",
+    "amount": "1.23000000",
+    "system": "BitCoin",
+    "currency": "BTC",
+    "url": "https://paykassa.app/sci/redir_test.php?hash=fixture_paykassa_sandbox_42",
+    "tag": false,
+    "test_mode": true,
+    "invoice_id": "579206",
+    "is_tag": false,
+    "tag_name": ""
+  }
+}

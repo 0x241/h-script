@@ -212,5 +212,51 @@ namespace {
     PaykassaSciClient::request('122',$config['key'],['func'=>'sci_confirm_order','private_hash'=>'x','sci_id'=>'999','sci_key'=>'override','test'=>'true']);
     parse_str($GLOBALS['paykassaWire']['options'][CURLOPT_POSTFIELDS],$sent);
     pkAssert($sent['sci_id']==='122' && $sent['sci_key']===$config['key'] && $sent['test']==='false','caller fields override credentials or enable test mode');
+    foreach([['test'=>'1'],['test_mode'=>'1'],['_provider_environment'=>'sandbox'],['environment'=>'sandbox']] as $flags){
+        pkWire(pkResponse(pkData()));
+        pkAssert($gateway->getBalance($flags)['result']==='paykassa_sandbox_removed','legacy balance silently switched to live');
+        pkAssert($gateway->processWithdrawal(['from'=>$flags])['result']==='paykassa_sandbox_removed','legacy outgoing silently switched to live');
+        pkAssert($GLOBALS['paykassaWire']['init']===0,'removed sandbox reached provider');
+    }
+    pkWire(pkResponse(pkData()));
+    try{PaykassaSciClient::request('122',$config['key'],['func'=>'sci_confirm_order','private_hash'=>'x'],true);throw new LogicException('Removed positional SCI test flag silently enabled live');}catch(InvalidArgumentException){pkAssert($GLOBALS['paykassaWire']['init']===0,'removed positional flag reached SCI API');}
+    require_once dirname(__DIR__).'/lib/paykassa/paykassa_api.class.php';
+    try{new \PayKassaAPI('123','synthetic-key',true);throw new LogicException('Removed positional API test flag silently enabled live');}catch(InvalidArgumentException){pkAssert(true,'removed legacy API flag rejected');}
+    // The real unpaid sandbox capture is retained as a negative production fixture.
+    $sandboxFixture=json_decode(file_get_contents(__DIR__.'/fixtures/paykassa_sandbox_invoice.json'),true,16,JSON_THROW_ON_ERROR)['data'];
+    $sandboxParams=$params;$sandboxParams['sci']=$config+['test'=>'1'];
+    pkWire(pkResponse($sandboxFixture));pkAssert(!isset($gateway->processDeposit($sandboxParams)['url']) && $GLOBALS['paykassaWire']['init']===0,'removed sandbox must fail before I/O');
+    pkWire(pkResponse($sandboxFixture));pkAssert(!isset($gateway->processDeposit($params)['url']),'sandbox invoice accepted by live configuration');
+    foreach([true,null,'true',1] as $flag){pkWire(pkResponse(pkData()+['test_mode'=>$flag]));pkAssert(!$gateway->handleCallback($request)['correct'],'sandbox/ambiguous confirmation accepted by live profile');}
+    pkWire(pkResponse(pkData()+['test_mode'=>false]));pkAssert($gateway->handleCallback($request)['correct'],'explicit live flag rejected');
+    foreach(\HScript\Payment\PaykassaAssets::ASSETS as $id=>[$currency,$systemId,$system,$network,$hasTag]) {
+        $other=new OfflinePaykassa($id,[$network,$currency,1,0,$currency,'private_hash'],[],new Connection());
+        $tag=$hasTag?'123456':'';
+        pkWire(pkResponse(array_replace($created,['currency'=>$currency,'system'=>$system,'tag'=>$tag])));
+        $form=$other->processDeposit($params);
+        pkAssert(($form['paykassa_currency']??null)===$currency && $form['paykassa_tag']===$tag,'catalog invoice currency/network/tag mismatch: '.$id);
+        parse_str($GLOBALS['paykassaWire']['options'][CURLOPT_POSTFIELDS],$sent);
+        pkAssert($sent['system']===(string)$systemId && $sent['test']==='false','catalog SCI system/test mismatch: '.$id);
+        $req=['_raw_body'=>http_build_query(['private_hash'=>'synthetic-token','system'=>$system,'currency'=>$currency,'order_id'=>'42']),'_config'=>$config];
+        pkWire(pkResponse(pkData(['currency'=>$currency,'system'=>$system,'tag'=>$tag])));
+        $result=$other->handleCallback($req);
+        pkAssert($result['correct'] && $result['destination_tag']===$tag,'catalog authenticated callback/tag mismatch: '.$id);
+        if($hasTag)foreach(['',false,null,0] as $missingTag){
+            pkWire(pkResponse(array_replace($created,['currency'=>$currency,'system'=>$system,'tag'=>$missingTag])));
+            pkAssert(!isset($other->processDeposit($params)['url']),'tag-required invoice omitted payment tag: '.$id);
+            pkWire(pkResponse(pkData(['currency'=>$currency,'system'=>$system,'tag'=>$missingTag])));
+            pkAssert(!$other->handleCallback($req)['correct'],'tag-required callback omitted payment tag: '.$id);
+        }
+        $wrong=$system==='bitcoin'?'binancesmartchain_bep20':'bitcoin';
+        pkWire(pkResponse(pkData(['currency'=>$currency,'system'=>$wrong,'tag'=>$tag])));
+        pkAssert(!$other->handleCallback($req)['correct'],'cross-network confirmation accepted: '.$id);
+        $detected=(new \HScript\Payment\PaymentManager(new Connection()))->detectCallback(['private_hash'=>'x','system'=>$system,'currency'=>$currency],[]);
+        pkAssert($detected===$id,'catalog callback detection mismatch: '.$id);
+        pkAssert(isset(\HScript\Finance\PaykassaContract::SYSTEMS[$id]) && \HScript\Payment\CallbackCapabilities::allows($id),'catalog is missing original invoice/receiver proof: '.$id);
+        if(!in_array($id,['PKB','PKE','PKL'],true))pkAssert($other->processWithdrawal([])['result']==='automatic_payout_unsupported','new incoming catalog enabled unreviewed outgoing: '.$id);
+    }
+    pkWire('{"error":false,"data":{"amount":"1.23","amount":"1.24"}}');
+    try{PaykassaSciClient::request('122',$config['key'],['func'=>'sci_confirm_order','private_hash'=>'x']);throw new LogicException('Duplicate JSON accepted');}
+    catch(RuntimeException $e){if($e instanceof LogicException)throw $e;pkAssert($e->getMessage()==='paykassa_confirmation_unavailable','duplicate JSON is not reflected');}
     echo "Paykassa offline adapter/transport checks passed ($checks checks).\n";
 }

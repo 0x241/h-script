@@ -23,6 +23,7 @@ try
 		foreach (array('uLogin', 'oOper', 'ocID', 'oBatch', 'oState', 'oMemo') as $f)
 			$_SESSION[$fform][$f] = _IN($f);
 		opPageReset();
+		if (isset($_GET['currency_id'])) goToURL(moduleToLink());
 		goToURL();
 	}
 
@@ -32,6 +33,7 @@ try
 		
 		unset($_SESSION[$fform]);
 		opPageReset();
+		if (isset($_GET['currency_id'])) goToURL(moduleToLink());
 		goToURL();
 	}
 
@@ -86,9 +88,17 @@ else
 {
 	$flt = '1';
 	$fp = array();
-	if (isset($_SESSION[$fform]))
+	$effectiveFilters=$_SESSION[$fform]??[];
+	$currencyFilter=filter_var($_GET['currency_id']??null,FILTER_VALIDATE_INT,['options'=>['min_range'=>1,'max_range'=>2147483647]]);
+	if ($currencyFilter!==false && $currencyFilter!==null) {
+		$effectiveFilters=['ocID'=>(string)$currencyFilter];
+		View::setPage('linkparams','&currency_id='.$currencyFilter,0);
+		View::setPage('sort_linkparams','&currency_id='.$currencyFilter,0);
+	}
+	View::setPage('effective_filters',$effectiveFilters);
+	if ($effectiveFilters)
 		foreach (array('uLogin' => '', 'oOper' => '0', 'ocID' => '0', 'oBatch' => '', 'oState' => '9', 'oMemo' => '') as $f => $v0)
-			if (($v = $_SESSION[$fform][$f]) != $v0)
+			if (($v = $effectiveFilters[$f]??$v0) != $v0)
 			{
 				if ($f == 'uLogin')
 				{
@@ -101,7 +111,7 @@ else
 			}
 }
 
-$list = opPageGet(_GETN('page'), 20,
+$list = opPageGet(_GETN('page') ?: (isset($_GET['currency_id']) ? 1 : 0), 20,
 	"$table LEFT JOIN Users on uID=ouID LEFT JOIN Currs on cID=ocID",
 	"$table.*, uLogin, cName, cCurr, (oState=2) AS _Marked", 
 	$flt, $fp,
@@ -113,6 +123,7 @@ $list = opPageGet(_GETN('page'), 20,
 	_GET('sort'), $id_field
 );
 View::stampTableToStr($list, 'oCTS, oTS');
+$list=HScript\Payment\Provider\CurrencyPresentation::annotate($db,$list);
 foreach ($list as $id => $r)
 {
 	$list[$id]['oParams'] = strToArray($r['oParams']);
@@ -122,7 +133,7 @@ foreach ($list as $id => $r)
 View::setPage('list', $list);
 
 $currs = array();
-foreach ($_currs as $id => $c)
+foreach (HScript\Payment\Provider\CurrencyPresentation::annotate($db,$db->fetchIDRows($db->select('Currs','*'),false,'cID')) as $id => $c)
 	$currs[$id] = $c['cName'];
 View::setPage('currs', $currs);
 

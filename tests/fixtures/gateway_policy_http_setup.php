@@ -20,8 +20,12 @@ foreach ($gateways as $offset=> $asset) {
     $db->insert('Wallets',['wuID'=>$uid,'wcID'=>$cid,'wBal'=>'1000','wMTS'=>timeToStamp($salt),
         'wParams'=>encodeArrayToStr(['acc'=>'synthetic-policy-destination'],$cid.$uid.$salt)]);
 }
-$db->insert('Opers',['oID'=>42,'ouID'=>$uid,'ocID'=>2,'oOper'=>'CASHIN','oState'=>0,'oSum'=>'100',
-    'oCTS'=>timeToStamp(time()),'oComis'=>'0','oParams2'=>arrayToStr(['memo'=>'Synthetic policy original order'])]);
+// Each provider must have its own original order so negative adapter checks
+// reach the intended policy guard rather than fail at currency routing.
+foreach ([42=>2,43=>4] as $operation=>$currency) {
+    $db->insert('Opers',['oID'=>$operation,'ouID'=>$uid,'ocID'=>$currency,'oOper'=>'CASHIN','oState'=>0,'oSum'=>'100',
+        'oCTS'=>timeToStamp(time()),'oComis'=>'0','oParams2'=>arrayToStr(['memo'=>'Synthetic policy original order'])]);
+}
 // Remove the explicit UTC in the common positive fixture for this negative
 // policy case. No callback may infer a zone from server/user settings.
 $wm=$db->fetch1Row($db->query('SELECT * FROM Currs WHERE cID=4'));

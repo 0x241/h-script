@@ -13,17 +13,18 @@ final class ProviderSettings
     public static function fields(string $kind): array
     {
         return match($kind) {
-            'CCAPI'=>['v3_key'=>['API-ключ v3',true]],
-            'VOLET'=>['email'=>['E-mail аккаунта',false],'sci_name'=>['Название SCI',false],
-                'sci_secret'=>['Пароль SCI',true],'api_name'=>['Название API',false],'api_secret'=>['Пароль API',true]],
-            'PAYKASSA'=>['merchant_id'=>['Merchant / SCI ID',false],'merchant_secret'=>['Пароль SCI',true],
-                'api_id'=>['API ID',false],'api_secret'=>['Пароль API',true]],
-            'STRIPE'=>['secret_key'=>['Secret API key',true],'webhook_secret'=>['Webhook signing secret',true]],
+            'CCAPI'=>['v3_key'=>['gateway.field.api_key_v3',true]],
+            'VOLET'=>['email'=>['gateway.field.account_email',false],'sci_name'=>['gateway.field.sci_name',false],
+                'sci_secret'=>['gateway.field.sci_password',true],'api_name'=>['gateway.field.api_name',false],'api_secret'=>['gateway.field.api_password',true]],
+            'PAYKASSA'=>['merchant_id'=>['gateway.field.merchant_sci_id',false],'merchant_secret'=>['gateway.field.sci_password',true],
+                'api_id'=>['gateway.field.api_id',false],'api_secret'=>['gateway.field.api_password',true]],
+            'STRIPE'=>['secret_key'=>['gateway.field.secret_api_key',true],'webhook_secret'=>['gateway.field.webhook_signing_secret',true]],
             default=>throw new RuntimeException('provider_unsupported'),
         };
     }
     public static function choices(string $kind): array
     {
+        if ($kind==='PAYKASSA') return \HScript\Payment\PaykassaAssets::choices();
         if ($kind==='STRIPE') {
             $choices=[];
             foreach (['USD','EUR','GBP','CAD','AUD','CHF','JPY','NZD','SGD','HKD','ILS','RON','MXN','PLN','BRL','THB'] as $fiat)
@@ -44,6 +45,7 @@ final class ProviderSettings
     }
     public static function credentials(string $kind,array $input,array $old=[]): array
     {
+        if($kind==='PAYKASSA' && ((isset($input['test_mode']) && $input['test_mode']!=='0') || ($old['test_mode']??'0')!=='0'))throw new RuntimeException('paykassa_sandbox_removed');
         $result=[];
         foreach (self::fields($kind) as $field=>[$label,$secret]) {
             $v=$input[$field]??'';
@@ -64,10 +66,12 @@ final class ProviderSettings
     }
     public static function environment(string $kind,array $credentials): string
     {
+        if ($kind==='PAYKASSA') return 'live';
         return $kind==='STRIPE' && preg_match('/^(?:sk|rk)_test_/',$credentials['secret_key']) ? 'sandbox' : 'live';
     }
     public static function configuration(string $kind,array $c,array $localApi=[]): array
     {
+        if($kind==='PAYKASSA' && ($c['test_mode']??'0')!=='0')throw new RuntimeException('paykassa_sandbox_removed');
         return match($kind) {
             'CCAPI'=>['sci'=>['protocol'=>'3','v3_key'=>$c['v3_key']],'api'=>['protocol'=>'3','v3_key'=>$c['v3_key']]],
             'VOLET'=>['sci'=>['name'=>$c['email'],'sci'=>$c['sci_name'],'key'=>$c['sci_secret']],

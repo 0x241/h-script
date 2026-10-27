@@ -33,6 +33,7 @@ $jobQueue->registerHandler('financial.withdraw', static function (array $payload
 $jobQueue->recoverStale(10 * HS2_UNIX_MINUTE);
 $jobQueue->retryFailed(10, HS2_UNIX_MINUTE);
 $jobQueue->processBatch(10);
+HScript\Finance\PawPayout::poll($db);
 smsUpdateDeliveryStatuses(
 	(int)StringHelper::valueIf($_cfg['SMS_UpdateCount'] > 0, $_cfg['SMS_UpdateCount'], 20)
 );

@@ -2,10 +2,12 @@
     class PayKassaAPI {
         public $version = "0.4";
         public function __construct ($api_id, $api_key)  {
+            if (func_num_args() !== 2) throw new \InvalidArgumentException('paykassa_sandbox_removed');
             $this->domain = $_SERVER['SERVER_NAME'];
             $this->params = [];
             $this->params["api_id"] = $api_id;
             $this->params["api_key"] = $api_key;
+            $this->params["test"] = "false";
             $this->params["domain"] = $this->domain;
 
             $this->url = "https://paykassa.pro/api/".$this->version."/index.php";

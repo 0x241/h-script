@@ -17,6 +17,16 @@ $out_link = moduleToLink('balance/admin/currs');
 $el = null;
 if ($requestedCurrency = _GETN('id'))
     $el = $db->fetch1Row($db->select($table, '*', "$id_field=?d", array($requestedCurrency)));
+if ($el) {
+    $displayCurrency=HScript\Payment\Provider\CurrencyPresentation::annotate($db,[$el])[0];
+    $networkArchiveView=_GET('tab')==='network' && !empty($el['cProviderID']) && isset(HScript\Payment\Gateways\CryptoCurrencyApi::NATIVE[$el['cCID']]) && ($el['cArchivedAt']??null)!==null;
+    if ($displayCurrency['currency_status']==='retired' && !$networkArchiveView) {
+        View::setPage('retired_currency',true);
+        View::setPage('archived_connection_url',moduleToLink('balance/admin/curr').'?provider='.(ProviderCatalog::kind($el['cCID'])??''),0);
+        View::setPage('archived_currency',array_intersect_key($displayCurrency,array_flip(['cID','cCID','cName'])));
+        View::showPage();return;
+    }
+}
 if (_GET('provider') === 'PAW' || ($el && $el['cCID'] === 'PAW'))
 {
     // PAW uses the same payment-system route and encrypted shared profile.
@@ -27,12 +37,15 @@ if (_GET('provider') === 'PAW' || ($el && $el['cCID'] === 'PAW'))
 
 $providerKind=_GET('provider');
 if ($el && !empty($el['cProviderID'])) $providerKind=ProviderCatalog::kind($el['cCID']);
+if(!$el && in_array($providerKind,HScript\Payment\Provider\LegacyProviderService::KINDS,true)){require __DIR__.'/curr.legacy.php';return;}
+if($providerKind==='COINNEW'){require __DIR__.'/curr.coinpayments.php';return;}
 if (is_string($providerKind) && in_array($providerKind,ProviderCatalog::SHARED,true)) {
     require __DIR__.'/curr.provider.php';return;
 }
 if ($el && in_array($el['cCID'],PaymentManager::DEPRECATED_IDS,true)) {
     // Retired rows remain financial references, never editable connections.
-    http_response_code(410);View::setPage('retired_currency',true);View::showPage();return;
+    http_response_code(410);View::setPage('retired_currency',true);
+        View::setPage('archived_connection_url',moduleToLink('balance/admin/curr').'?provider='.(ProviderCatalog::kind($el['cCID'])??''),0);View::showPage();return;
 }
 $providerCatalog=(new ProviderCatalog($db))->available();
 
@@ -47,7 +60,7 @@ try
 
         $selected=_IN('PSys');
         if (!is_string($selected) || !isset($providerCatalog[$selected])) View::setError('psys_not_selected','add');
-        if ($selected==='PAW' || in_array($selected,ProviderCatalog::SHARED,true)) goToURL(moduleToLink().'?provider='.$selected);
+        if ($selected==='PAW' || in_array($selected,[...ProviderCatalog::SHARED,...HScript\Payment\Provider\LegacyProviderService::KINDS],true)) goToURL(moduleToLink().'?provider='.$selected);
         $gateway=_IN('Gateway');
         if (!is_string($gateway) || !in_array($gateway,$providerCatalog[$selected]['gateways'],true)) goToURL(moduleToLink().'?add&provider='.$selected);
         $c=$cids[$gateway];
@@ -75,22 +88,33 @@ try
 
 		if (($cid = _INN('cID')) and (_IN('cCID')))
 		{
-			$existing = $db->fetch1Row($db->select($table, '*', 'cID=?d', array($cid)));
-			if (!$existing || !empty($existing['cProviderID']) || $existing['cCID'] === 'PAW' || $existing['cCID'] !== _IN('cCID') || !$paymentManager->has($existing['cCID']) && $existing['cCID']!=='*')
+            $id=HScript\Database\TransactionScope::run($db->link,static function()use($db,$paymentManager,$cid,$table,$id_field){
+                global $_IN;
+                HScript\Payment\Provider\LegacyProviderService::lock($db,(string)_IN('cCID'));
+			$existing = $db->fetch1Row($db->query('SELECT * FROM Currs WHERE cID=?d FOR UPDATE',[$cid]));
+			if (!$existing || ($existing['cArchivedAt']??null)!==null || !empty($existing['cProviderID']) || $existing['cCID'] === 'PAW' || $existing['cCID'] !== _IN('cCID') || !$paymentManager->has($existing['cCID']) && $existing['cCID']!=='*')
 				View::setError('provider_profile_only');
             if ($existing['cCID']!=='*' && (int)($_IN['cDisabled']??0)===0) {
-                $other=$db->fetch1Row($db->select('Currs','cID','cCID=? AND cDisabled=0 AND cID<>?d',[$existing['cCID'],$cid]));
+                $other=HScript\Payment\Provider\LegacyProviderService::enabledConflict($db,$existing);
                 if ($other) View::setError('provider_profile_only');
             }
 			$a = $_IN;
 			try { $a = CurrencyInput::normalize($a); }
 			catch (InvalidArgumentException $e) { View::setError($e->getMessage()); }
+            $definition=$paymentManager->definitions($existing['cCID']);
+            if ($existing['cCID']!=='*' && ((in_array((int)$a['cCASHINMode'],[2,3],true) && empty($definition[2]))
+                || ((int)$a['cCASHOUTMode']===2 && empty($definition[3])))) View::setError('automatic_payment_unsupported');
+            $accountDefinition=HScript\Payment\Provider\LegacyAccountSettings::definition($existing['cCID']);
+            if($accountDefinition){
+                $prefix=$accountDefinition['type']==='pay'?'P':'PAPI';
+                if(is_array($_IN[$prefix]??null)&&array_intersect_key($_IN[$prefix],$accountDefinition['fields']))View::setError('provider_profile_only');
+            }
 			opDecodeCurrParams($db->fetch1Row($db->select($table, '*', 'cID=?d', array($cid))), $p, $p_sci, $p_api);
 			$t = time();
 			$key = $cid . $a['cCID'] . $t;
-			View::setError($p = opEditToCurrParams($paymentManager->fields($a['cCID']), $p, (array)_IN('P'), 'P'));
-			View::setError($p_sci = opEditToCurrParams($paymentManager->fields($a['cCID'], 'sci'), $p_sci, (array)_IN('PSCI'), 'PSCI'));
-			View::setError($p_api = opEditToCurrParams($paymentManager->fields($a['cCID'], 'api'), $p_api, (array)_IN('PAPI'), 'PAPI'));
+			View::setError($p = HScript\Payment\Provider\LegacyAccountSettings::editCurrencyParams($a['cCID'],'pay',$paymentManager->fields($a['cCID']), $p, (array)_IN('P'), 'P'));
+			View::setError($p_sci = HScript\Payment\Provider\LegacyAccountSettings::editCurrencyParams($a['cCID'],'sci',$paymentManager->fields($a['cCID'], 'sci'), $p_sci, (array)_IN('PSCI'), 'PSCI'));
+			View::setError($p_api = HScript\Payment\Provider\LegacyAccountSettings::editCurrencyParams($a['cCID'],'api',$paymentManager->fields($a['cCID'], 'api'), $p_api, (array)_IN('PAPI'), 'PAPI'));
 			$a['cParams'] = encodeArrayToStr($p, $key);
 			$a['cParamsSCI'] = encodeArrayToStr($p_sci, $key, 2);
 			$a['cParamsAPI'] = encodeArrayToStr($p_api, $key, 3);
@@ -108,7 +132,10 @@ try
 				'cGIVEMode, ' .
 				'cTAKEMode, ' .
 				'cParams, cParamsSCI, cParamsAPI, cMTS', $id_field))
-				View::showInfo('Saved', $out_link . "?id=$id");
+				return (int)$id;
+            throw new RuntimeException('currency_save_failed');
+            });
+            if($id){$catalogCache->invalidate(HScript\Cache\CatalogCache::CURRENCIES);View::showInfo('Saved',$out_link."?id=$id");}
 		}
 		View::showInfo('*Error');
 	}
@@ -129,9 +156,18 @@ if (!isset($_GET['add']))
 	View::setPage('el', $el, 2);
     View::setPage('legacy_provider_kind',in_array(ProviderCatalog::kind($el['cCID']),ProviderCatalog::SHARED,true)?ProviderCatalog::kind($el['cCID']):'');
 	View::setPage('cName', isset($cids[$el['cCID']]) ? $cids[$el['cCID']][0] : $el['cName']);
-	View::setPage('pfields', opCurrParamsToEdit($paymentManager->fields($el['cCID']), 'P'), 1);
-	View::setPage('sfields', opCurrParamsToEdit($paymentManager->fields($el['cCID'], 'sci'), 'PSCI'), 1);
-	View::setPage('afields', opCurrParamsToEdit($paymentManager->fields($el['cCID'], 'api'), 'PAPI'), 1);
+    $legacyKind=ProviderCatalog::kind($el['cCID']);
+    if (in_array($legacyKind,['BANKWIRE','WEBMONEY','YOOMONEY','SBERBANK','COINPAY'],true)) {
+        View::setPage('legacy_receiving',[
+            'kind'=>$legacyKind,'name'=>ProviderCatalog::GROUPS[$legacyKind][0],
+            'setup_url'=>in_array($legacyKind,HScript\Payment\Provider\LegacyProviderService::KINDS,true)?moduleToLink().'?provider='.$legacyKind:null,
+            'incoming_auto'=>!empty($cids[$el['cCID']][2]),'outgoing_auto'=>!empty($cids[$el['cCID']][3]),
+            'callback'=>HScript\Payment\CallbackCapabilities::allows($el['cCID'])?fullURL(moduleToLink('balance/status')).'?its='.$el['cCID']:null
+        ]);
+    }
+	View::setPage('pfields', opCurrParamsToEdit(HScript\Payment\Provider\LegacyAccountSettings::currencyFields($el['cCID'],'pay',$paymentManager->fields($el['cCID'])), 'P'), 1);
+	View::setPage('sfields', opCurrParamsToEdit(HScript\Payment\Provider\LegacyAccountSettings::currencyFields($el['cCID'],'sci',$paymentManager->fields($el['cCID'], 'sci')), 'PSCI'), 1);
+	View::setPage('afields', opCurrParamsToEdit(HScript\Payment\Provider\LegacyAccountSettings::currencyFields($el['cCID'],'api',$paymentManager->fields($el['cCID'], 'api')), 'PAPI'), 1);
 	if (isset($_GET['testapi']))
 	{
 		$res = $paymentManager->getBalance($el['cCID'], $el['PAPI']);

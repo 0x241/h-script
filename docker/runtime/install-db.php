@@ -162,6 +162,11 @@ HScript\Payment\Provider\ProviderCatalogSchema::ensure($db);
     HScript\Payment\Routing\PaymentRouteSchema::ensure($db);
     HScript\Payment\Routing\TokenCatalogSchema::ensure($db);
     HScript\Payment\CheckoutProgressSchema::ensure($db);
+    HScript\Payment\Provider\PawNativeSchema::ensure($db);
+    HScript\Payment\Provider\PawPayoutSchema::ensure($db);
+    HScript\Payment\Provider\PaykassaAssetSchema::ensure($db);
+    HScript\Payment\Provider\CoinPaymentsNewSchema::ensure($db);
+    HScript\Payment\Provider\CurrencyArchiveSchema::ensure($db);
 
 $adminMail = hs_install_env('INSTALL_ADMIN_MAIL', hs_install_env('APP_SYS_MAIL', $_cfg['sys_mail']));
 $adminLogin = hs_install_env('INSTALL_ADMIN_LOGIN', 'admin');

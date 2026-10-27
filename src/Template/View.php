@@ -859,7 +859,7 @@ public static function showPage($templ = "", $module = false, $exit_after = true
             && !isset($_GET['awating']) && empty($_cfg['Sys_LockSite']);
         self::$context['public_seo'] = PublicSeo::metadata(
             $_localeRouter, getRootURL(true), $_GS['module'], $_GS['locale_route']['path'],
-            $_GS['url_locale'], $available, $_GET, (string)($_cfg['Ref_Word'] ?? ''), $eligible, $_GS['public_paths'] ?? []
+            $_GS['url_locale'], $available, $_GET, (string)($_cfg['Ref_Word'] ?? ''), $eligible, $_GS['public_paths'] ?? [], $_cfg['UI__Langs']
         );
         if (!self::$context['public_seo']['indexable'] && !headers_sent()) {
             header('X-Robots-Tag: noindex, follow');

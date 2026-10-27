@@ -61,17 +61,50 @@ final class TokenCatalogService
         foreach($routes as $code=>$route)if(PaymentRoutes::assertSnapshot('CCT',$route)['code']!==$code || $route['network']!==$catalog['ptNetwork'])throw new ProviderException('configuration_changed');
         return $routes;
     }
-    public function add(int $level,int $id,int $revision,string $network,int $catalogRevision,mixed $selected): array
+    /** Select only existing, single-network token ledgers; never merge or create them. */
+    public function select(int $level,int $id,int $revision,string $network,mixed $selected,mixed $complete,mixed $activation=null): void
+    {
+        if($this->repository->pdo->inTransaction())throw new ProviderException('configuration_busy');
+        \HScript\Payment\Provider\CurrencyArchive::requireReady($this->db);
+        if($complete!=='1'||!is_array($selected)||!array_is_list($selected)||count($selected)>5000||count(array_unique($selected,SORT_REGULAR))!==count($selected))throw new ProviderException('input_invalid');
+        TransactionScope::run($this->repository->pdo,function()use($level,$id,$revision,$network,$selected,$activation):void{
+            UsdtOwnership::lock($this->db);
+            $p=$this->profile($level,$id,$revision,true);
+            if(!isset(TokenCatalog::NETWORKS[$network]))throw new ProviderException('input_invalid');
+            $known=[];$parent=false;
+            foreach($this->repository->connections($id,true)as$row){
+                if((\HScript\Payment\Gateways\CryptoCurrencyApi::NATIVE[$row['cCID']][0]??null)===$network)$parent=true;
+                if(!isset(PaymentRoutes::GATEWAYS[$row['cCID']]))continue;
+                $routes=PaymentRoutes::catalog($row['cCID'],$row);
+                if(count($routes)===1 && reset($routes)['network']===$network)$known[(string)$row['cID']]=$row;
+            }
+            if(!$parent)throw new ProviderException('network_not_selected');
+            foreach($selected as$cid)if(!is_string($cid)||!isset($known[$cid]))throw new ProviderException('input_invalid');
+            $scope=$activation===null?[]:\HScript\Payment\Provider\CurrencySelection::scope(['activation_scope'=>$activation],array_map('strval',array_keys($known)),array_map('strval',array_keys($known)));
+            foreach($known as$cid=>$row){
+                if(in_array((string)$cid,$selected,true)){
+                    $restored=\HScript\Payment\Provider\CurrencyArchive::restore($this->db,$row);
+                    if(in_array((string)$cid,$scope,true)&&$p['ppState']==='enabled'){
+                        $q=$this->repository->pdo->prepare('SELECT * FROM Currs WHERE cID=?');$q->execute([$cid]);
+                        (new ProviderService($this->db))->activateToken($p,$q->fetch(PDO::FETCH_ASSOC),$restored);
+                    }
+                }else \HScript\Payment\Provider\CurrencyArchive::archive($this->db,$row);
+            }
+            $q=$this->repository->pdo->prepare('UPDATE PaymentProviders SET ppRevision=ppRevision+1,ppUpdatedAt=? WHERE ppID=?');$q->execute([time(),$id]);
+        });
+        if($this->invalidate)($this->invalidate)();
+    }
+    public function add(int $level,int $id,int $revision,string $network,int $catalogRevision,mixed $selected,bool $activate=false): array
     {
         if($this->repository->pdo->inTransaction())throw new ProviderException('configuration_busy');
         if(!is_array($selected) || !array_is_list($selected) || !$selected || count($selected)>100 || count(array_unique($selected,SORT_REGULAR))!==count($selected))throw new ProviderException('input_invalid');
-        $result=TransactionScope::run($this->repository->pdo,function()use($level,$id,$revision,$network,$catalogRevision,$selected){
+        $result=TransactionScope::run($this->repository->pdo,function()use($level,$id,$revision,$network,$catalogRevision,$selected,$activate){
             $pdo=$this->repository->pdo;
             // Serialize first USDT additions before taking profile and currency locks.
             UsdtOwnership::lock($this->db);
             $p=$this->profile($level,$id,$revision,true);$this->network($p,$network,true);$catalog=$this->catalog($id,$network,true);
             if(!$catalog || (int)$catalog['ptRevision']!==$catalogRevision)throw new ProviderException('configuration_changed');
-            $routes=self::routes($catalog,$p);$pdo=$this->repository->pdo;$result=[];
+            $routes=self::routes($catalog,$p);$pdo=$this->repository->pdo;$result=[];$reveal=[];
             foreach($selected as $code){
                 if(!is_string($code) || !isset($routes[$code]))throw new ProviderException('input_invalid');$route=$routes[$code];
                 // Validate curated symbols/contracts; retain the old USDC receipt domain.
@@ -88,11 +121,17 @@ final class TokenCatalogService
                     if($curated){$s=$pdo->prepare('SELECT cID FROM Currs WHERE cCID=? AND cProviderID IS NULL LIMIT 1 FOR UPDATE');$s->execute([$gateway]);if($s->fetchColumn()!==false)throw new ProviderException('binding_required');}
                     $s=$pdo->prepare('INSERT INTO Currs(cCID,cCurrID,cName,cCurr,cNumDec,cProviderID,cProviderKeyVersion,cProviderSelected,cDisabled,cCASHINMode,cCASHOUTMode,cAssetKey,cTokenRoute,cPaymentRoutes) VALUES(?,?,?,?,6,?,?,1,1,0,0,?,?,?)');
                     $s->execute([$gateway,$route['asset'],'CryptoCurrencyAPI.net '.$route['asset'].($curated?'':' · '.$route['label']),$route['asset'],$id,(int)$p['ppCurrentKeyVersion'],$key,$curated?null:json_encode($route,JSON_THROW_ON_ERROR),json_encode([$route['code']],JSON_THROW_ON_ERROR)]);
-                    $result[]=(int)$pdo->lastInsertId();
+                    $result[]=$newId=(int)$pdo->lastInsertId();$reveal[$newId]=true;
                 }else{
+                    if(\HScript\Payment\Provider\CurrencyArchive::restore($this->db,$c)){$result[]=(int)$c['cID'];$reveal[(int)$c['cID']]=true;continue;}
                     $enabled=array_keys(PaymentRoutes::enabled($c));if(!in_array($route['code'],$enabled,true))$enabled[]=$route['code'];
                     $s=$pdo->prepare('UPDATE Currs SET cProviderSelected=1,cPaymentRoutes=? WHERE cID=?');$s->execute([json_encode($enabled,JSON_THROW_ON_ERROR),(int)$c['cID']]);$result[]=(int)$c['cID'];
                 }
+            }
+            if($activate && $p['ppState']==='enabled')foreach($result as$cid){
+                \HScript\Payment\Provider\CurrencyArchive::requireReady($this->db);
+                $q=$pdo->prepare('SELECT * FROM Currs WHERE cID=?');$q->execute([$cid]);
+                (new ProviderService($this->db))->activateToken($p,$q->fetch(PDO::FETCH_ASSOC),isset($reveal[$cid]));
             }
             $s=$pdo->prepare('UPDATE PaymentProviders SET ppRevision=ppRevision+1,ppUpdatedAt=? WHERE ppID=?');$s->execute([time(),$id]);return $result;
         });if($this->invalidate)($this->invalidate)();return $result;

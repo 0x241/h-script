@@ -7,7 +7,7 @@ namespace HScript\Finance;
 /** Credentialed order confirmation must match the originally created invoice. */
 final class PaykassaContract
 {
-    public const SYSTEMS = ['PKB'=>'bitcoin','PKE'=>'ethereum','PKL'=>'litecoin','PKTU'=>'routes','PKTC'=>'routes'];
+    public const SYSTEMS = ['PKB'=>'bitcoin','PKE'=>'ethereum','PKL'=>'litecoin','PKDG'=>'dogecoin','PKDA'=>'dash','PKBC'=>'bitcoincash','PKXR'=>'ripple','PKTR'=>'tron','PKXL'=>'stellar','PKBN'=>'binancecoin','PKBB'=>'binancesmartchain_bep20','PKBE'=>'binancesmartchain_bep20','PKBD'=>'binancesmartchain_bep20','PKBT'=>'binancesmartchain_bep20','PKBU'=>'binancesmartchain_bep20','PKBZ'=>'binancesmartchain_bep20','PKEZ'=>'ethereum_erc20','PKBO'=>'binancesmartchain_bep20','PKBA'=>'binancesmartchain_bep20','PKBS'=>'binancesmartchain_bep20','PKES'=>'ethereum_erc20','PKTN'=>'ton','PKTT'=>'ton','PKTU'=>'routes','PKTC'=>'routes'];
 
     public static function validate(array $operation, array $verified, ?array $form, array $sci, int $scale, string $expected): array
     {

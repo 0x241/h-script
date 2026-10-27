@@ -36,19 +36,32 @@ final class RateUpdater
         });
     }
 
-    /** @return array<string, string> Base-currency value per currency unit. */
-    public function quotes(array $config, array $currencies): array
+    public static function baseCurrency(array $currencies): string
     {
         $row = $currencies[1] ?? ($currencies ? reset($currencies) : []);
         $base = is_array($row) ? strtoupper(trim((string)($row['cCurrID'] ?? ''))) : '';
-        if (!in_array($base, ['USD', 'EUR', 'RUB'], true)) $base = 'USD';
+        return isset(CurrencyRateCatalog::currencies()[$base]) ? $base : 'USD';
+    }
+
+    /** @return array<string, string> Base-currency value per currency unit. */
+    public function quotes(array $config, array $currencies): array
+    {
+        $base = self::baseCurrency($currencies);
+        $catalog = CurrencyRateCatalog::currencies();
         $quotes = [];
         foreach (['BTC', 'ETH', 'XRP', 'LTC'] as $code) {
             if (empty($config["Bal_Update{$code}Rate"])) continue;
             $value = $this->crypto->rate($code, $base);
             if ($value !== null) $quotes[$code] = $value;
         }
+        $extra=[];
+        foreach($catalog as$code=>$metadata)if(!in_array($code,['USD','EUR','RUB','BTC','ETH','XRP','LTC'],true) && !empty($config['Bal_Update'.$code.'Rate']))$extra[]=$code;
+        if($extra)$quotes+=$this->crypto->rates($extra,$base);
         if (empty($config['Bal_UpdateRates'])) return $quotes;
+        if(!in_array($base,['USD','EUR','RUB'],true)){
+            $fiat=$this->crypto->rates(['USD','EUR','RUB'],$base);
+            return count($fiat)===3 ? $quotes+$fiat : $quotes;
+        }
         $rates = $this->fiat->rates(['USD', 'EUR']);
         if ($rates === null) return $quotes;
         try {

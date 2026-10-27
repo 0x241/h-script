@@ -43,6 +43,7 @@ final class ProviderRepository
     {
         $profile=$this->find((int)$currency['cProviderID']);
         if (!$profile || ProviderCatalog::kind($currency['cCID'])!==$profile['ppKind']) throw new RuntimeException('provider_currency_mismatch');
+        if($profile['ppKind']==='PAYKASSA' && $profile['ppEnvironment']!=='live')throw new RuntimeException('paykassa_sandbox_removed');
         $credentials=$this->credentials($profile,(int)($currency['cProviderKeyVersion']??0));
         return ProviderSettings::configuration($profile['ppKind'],$credentials,$localApi)+[
             'profile_id'=>(int)$profile['ppID'],'public_id'=>$profile['ppPublicID'],'key_version'=>(int)$currency['cProviderKeyVersion'],

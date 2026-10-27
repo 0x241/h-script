@@ -475,7 +475,7 @@ if ($_smode < 2) // user mode
 	View::setPage('session_csrf', SessionCsrf::token(), 0);
 
 		$cabinet_menu_allowed = array(
-			'overview', 'cashin', 'operations', 'wallets', 'invest', 'deposits',
+			'overview', 'cashin', 'cashout', 'exchange', 'transfer', 'operations', 'wallets', 'invest', 'deposits',
 			'calc', 'refsys', 'account', 'messages', 'tickets'
 		);
 		if ($_user['uLevel'] >= 90)

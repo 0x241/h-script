@@ -63,6 +63,18 @@ try {
     }
     $config = json_decode(stream_get_contents(STDIN), true, 64, JSON_THROW_ON_ERROR);
     if (!is_array($config) || !policyValid($config, ($argv[1] ?? '') === '--overrides')) throw new RuntimeException();
+    if (($argv[1] ?? '') === '--persisted-staging') {
+        if (!policyValid($config, true)) throw new RuntimeException();
+        $worker = $config['services']['recovery']['environment'];
+        foreach (array('RECOVERY_ENABLED'=>'1', 'RECOVERY_BACKUP_INTERVAL_SECONDS'=>'1800',
+            'RECOVERY_DRILL_DB_ADMIN_USER'=>'synthetic_drill_operator',
+            'RECOVERY_DRILL_DB_ADMIN_PASSWORD_FILE'=>'/run/secrets/hscript-recovery/drill-db-password') as $key=>$value)
+            if ((string)($worker[$key] ?? '') !== $value) throw new RuntimeException();
+        $mounts = array_filter($config['services']['recovery']['volumes'],
+            static fn(array $mount): bool => ($mount['target'] ?? '') === '/run/secrets/hscript-recovery');
+        if (count($mounts) !== 1 || reset($mounts)['source'] !== '/srv/synthetic-recovery'
+            || (reset($mounts)['read_only'] ?? false) !== true) throw new RuntimeException();
+    }
 } catch (Throwable) {
     // Compose input may contain live CI secrets: never echo it or raw exceptions.
     fwrite(STDERR, "Recovery Compose policy or web/drill secret isolation check failed.\n");

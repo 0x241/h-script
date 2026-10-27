@@ -16,7 +16,7 @@ use RuntimeException;
 use HScript\Payment\Routing\PaymentRoutes;
 use HScript\Finance\CallbackValidationException;
 
-/** Explicit v3 native single-label invoices; legacy keys and payouts unsupported. */
+/** Explicit v3 single-label invoices and queued payouts with exact money. */
 class CryptoCurrencyApi extends AbstractGateway
 {
     public const NATIVE=['CCAB'=>['bitcoin','BTC'],'CCAL'=>['litecoin','LTC'],'CCAD'=>['dash','DASH'],
@@ -84,8 +84,11 @@ class CryptoCurrencyApi extends AbstractGateway
         try {
             $payload=JsonCallbackPayload::scalars($request['_raw_body'] ?? '');
             if (($payload['cryptocurrencyapi.net'] ?? null)!=='3') return CallbackResult::failure('unsupported','ccapi_protocol_unsupported');
-            if (($payload['type'] ?? null)!=='in') return CallbackResult::failure('unsupported','ccapi_type_unsupported');
-            if (array_diff(self::FIELDS,array_keys($payload)) || array_diff(array_keys($payload),self::FIELDS)) throw new InvalidArgumentException();
+            $out=($payload['type']??null)==='out';
+            if($out && ($config['_ccapi_payout_context']??null)!==true)return CallbackResult::failure('unsupported','ccapi_type_unsupported');
+            if (!$out && ($payload['type'] ?? null)!=='in') return CallbackResult::failure('unsupported','ccapi_type_unsupported');
+            $fields=$out?[...self::FIELDS,'id']:self::FIELDS;
+            if (array_diff($fields,array_keys($payload)) || array_diff(array_keys($payload),$fields)) throw new InvalidArgumentException();
             foreach ($payload as $field=>$value) {
                 if ($value===null && in_array($field,['from','token','tokenContract'],true)) $payload[$field]=$value='';
                 if (!is_string($value) || (str_contains($value,':') && !in_array($field,['from','to'],true)) || preg_match('/[\x00-\x1f\x7f]/',$value)) throw new InvalidArgumentException();
@@ -94,6 +97,7 @@ class CryptoCurrencyApi extends AbstractGateway
             $sign=$payload['sign']; unset($payload['sign']); ksort($payload,SORT_STRING);
             if (!hash_equals(sha1(implode(':',array_values($payload)).':'.md5($config['v3_key'])),$sign))
                 return CallbackResult::failure('authentication_failed','signature_invalid');
+            if($out && !preg_match('/^[1-9][0-9]{0,19}$/D',$payload['id']))throw new InvalidArgumentException();
             $route=isset(PaymentRoutes::GATEWAYS[$this->id])?PaymentRoutes::ccapi($this->id,$payload):null;
             [$chain,$asset]=$route!==null?[$route['network'],$route['asset']]:self::NATIVE[$this->id];
             if ($route===null && ($payload['chain']!==$chain || $payload['currency']!==$asset)) return CallbackResult::failure('invalid_payload','callback_currency_mismatch',true);
@@ -117,7 +121,8 @@ class CryptoCurrencyApi extends AbstractGateway
                 'tag'=>$payload['label'],'sum'=>$amount,'sum2'=>$amount,'curr'=>$asset,'accto'=>$route!==null?$event['to']:$payload['to'],'accfrom'=>$route!==null?$event['from']:$payload['from'],
                 'signed_at'=>(int)$payload['date'],'date'=>(int)$payload['date'],'batch'=>($route!==null?hash('sha256',$chain."\0".$route['contract']."\0".$event['txid']):$payload['txid']).'#'.$payload['pos'],'response'=>'OK',
                 'ccapi_profile'=>$route!==null?CcapiV3Contract::TOKEN_PROFILE:CcapiV3Contract::PROFILE,'ccapi_route_hash'=>$route!==null?PaymentRoutes::hash($route):null,'ccapi_chain'=>$chain,'ccapi_position'=>$payload['pos'],'ccapi_network_fee'=>$fee,
-                'ccapi_confirmations'=>$confirmation,'ccapi_key_hash'=>hash('sha256',$config['v3_key']),'ccapi_event_hash'=>hash('sha256',json_encode($event,JSON_THROW_ON_ERROR))];
+                'ccapi_confirmations'=>$confirmation,'ccapi_key_hash'=>hash('sha256',$config['v3_key']),'ccapi_event_hash'=>hash('sha256',json_encode($event,JSON_THROW_ON_ERROR))]
+                +($out?['outbound'=>true,'ccapi_payout_id'=>$payload['id']]:[]);
         } catch (CallbackValidationException $e) {return CallbackResult::failure('invalid_payload',$e->reason,true);}
         catch (InvalidArgumentException) { return CallbackResult::failure('invalid_payload','callback_fields_invalid'); }
     }
@@ -130,5 +135,13 @@ class CryptoCurrencyApi extends AbstractGateway
         catch (RuntimeException) { return ['result'=>'ccapi_unavailable','sum'=>-1]; }
     }
 
-    public function processWithdrawal(array $params): array { return ['result'=>'ccapi_payout_unsupported']; }
+    public function processWithdrawal(array $params): array
+    {
+        // Only the durable dispatcher constructs this closed request after its
+        // original intent has committed. A queue id is not a completed payout.
+        try {
+            if(!\HScript\Finance\CcapiPayout::validRequest($this->id,$params))throw new RuntimeException();
+            return $this->apiRequest($params['ccapi_chain'],'send',$params['from'],$params['ccapi_arguments'])+['result'=>'OK'];
+        } catch(\Throwable) {return ['result'=>'ccapi_payout_reconciliation_required'];}
+    }
 }

@@ -3,7 +3,7 @@ const crypto = require('node:crypto');
 require('./capture-callbacks.cjs').captureCallbacks(test, 'capability_policy');
 const gateways = ['EA','EAT','EAT1','BSC','BSCT','XRPA','TRA','TRAT','ACR','PKAU','PKAR'];
 // Removed adapters and the old Volet RUR shape no longer have a detector.
-// Retained PayKassa profiles are still detected and explicitly denied.
+// Retained PayKassa fiat shapes are detected, but have no supported order route.
 const unknownCallbacks = new Set(['EA','EAT','EAT1','BSC','BSCT','XRPA','TRA','TRAT','ACR']);
 const send = (request, fields, headers = {}, route = '/balance/status') => request.post(route, {
   data: new URLSearchParams(fields).toString(), headers: {'Content-Type':'application/x-www-form-urlencoded', ...headers},
@@ -32,8 +32,8 @@ test('retired and disabled callbacks reject old signed shapes; stale automation 
     const response=!['ACR','PKAU','PKAR'].includes(id)
       ? await request.post('/balance/status',{data:JSON.stringify(fields),headers:{'Content-Type':'application/json'}})
       : await send(request,fields);
-    expect(response.status(),id+' callback').toBe(unknownCallbacks.has(id) ? 400 : 422);
-    if (unknownCallbacks.has(id)) expect(await response.text()).toBe('Unknown callback');
+    expect(response.status(),id+' callback').toBe(400);
+    expect(await response.text()).toBe(unknownCallbacks.has(id) ? 'Unknown callback' : 'Invalid transaction');
     for (const action of ['deposit','withdraw']) {
       const failed=await request.post('/api/v1/'+action,{headers:{Authorization:'Bearer hs_'+'1'.repeat(64),'Idempotency-Key':'policy-'+id+'-'+action},
         data:{currency_id:10+index,amount:'25',memo:'Synthetic unsupported dispatch'}});
@@ -55,7 +55,7 @@ test('signed long transaction IDs and unknown IPN versions are refused before cl
 });
 
 test('unconfigured WebMoney timezone cannot reply YES or settle; fixtures are inaccessible', async ({ request }) => {
-  const fields={LMI_PREREQUEST:'1',LMI_PAYEE_PURSE:'Z123456789012',LMI_PAYMENT_AMOUNT:'100.00',LMI_PAYMENT_NO:'42',LMI_MODE:'0',LMI_PAYMENT_DESC:'Synthetic policy original order'};
+  const fields={LMI_PREREQUEST:'1',LMI_PAYEE_PURSE:'Z123456789012',LMI_PAYMENT_AMOUNT:'100.00',LMI_PAYMENT_NO:'43',LMI_MODE:'0',LMI_PAYMENT_DESC:'Synthetic policy original order'};
   const response=await send(request,fields);
   expect(response.status()).toBe(422);
   expect(await response.text()).not.toBe('YES');

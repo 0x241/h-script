@@ -88,16 +88,19 @@ try
 			'Login2' => '',
 			'Plan' => 0,
 			'Compnd' => 0,
-			'Memo' => ''
+			'Memo' => '',
+            'payout_asset' => ''
 		);
+        if(!is_string($a['payout_asset']))$a['payout_asset']=$_IN['payout_asset']='';
 		cn($a['Sum']);
-		if (($a['Oper'] == 'CASHOUT') and $_cfg['Bal_NeedPIN'] and !verifyPasswordWithLegacyDigest($a['PIN'], $_user['uPIN'], $_cfg['Const_Salt'], false))
+		if (($a['Oper'] === 'CASHOUT' || (!empty($_cfg['Const_IntCurr']) && $a['Oper']==='EX' && (int)$a['PSys']===1)) and $_cfg['Bal_NeedPIN'] and !verifyPasswordWithLegacyDigest($a['PIN'], $_user['uPIN'], $_cfg['Const_Salt'], false))
 			View::setError('pin_wrong', 'add');
 		$id = FinancialForm::execute('balance:add', [
 			'operation'=>(string)$a['Oper'], 'currency_id'=>(int)$a['PSys'],
 			'amount'=>RequestDecimal::normalize($a['Sum']), 'peer_login'=>(string)$a['Login2'],
 			'target_currency_id'=>(int)$a['PSys2'], 'plan_id'=>(int)$a['Plan'],
-			'compound'=>RequestDecimal::normalize($a['Compnd'] ?: 0, true), 'memo'=>$a['Memo'],
+			'payout_asset'=>is_string($a['payout_asset'])?$a['payout_asset']:'',
+            'compound'=>RequestDecimal::normalize($a['Compnd'] ?: 0, true), 'memo'=>$a['Memo'],
 		], static function () use ($a) {
 		global $db, $_cfg, $_currs;
 		if ($_cfg['Const_IntCurr'] and ($a['Oper'] == 'CASHIN') and $_cfg['Bal_SumInInternal'])
@@ -109,7 +112,10 @@ try
 		if ($a['Oper'] == 'CASHOUT')
 		{
 			$udata = opDecodeUserCurrParams($_currs[$a['PSys']]);
-			if (!$udata['acc'])
+            $bankDestination=($_currs[$a['PSys']]['cCID']??null)==='BW'
+                && (int)($_currs[$a['PSys']]['cCASHOUTMode']??0)===1
+                && HScript\Payment\Gateways\BankWire::hasDestination($udata);
+			if (($_currs[$a['PSys']]['cCID']??null)!=='PAW' && empty($udata['acc']) && !$bankDestination)
 				View::setError('wallet_not_defined', 'add');
 		}
 		if ($_cfg['Depo_AutoDepo'] and ($a['Oper'] == 'CASHIN'))
@@ -125,7 +131,8 @@ try
 			'uid2' => $db->fetch1($db->select('Users', 'uID', 'uLogin=?', array($a['Login2']))),
 			'cid2' => $a['PSys2'],
 			'pid' => $a['Plan'],
-			'compnd' => $a['Compnd']
+			'compnd' => $a['Compnd'],
+            'payout_asset' => $a['payout_asset']
 		);
 		$cid = $a['PSys'];
 		if ($_cfg['Const_IntCurr'] and ($a['Oper'] == 'CASHOUT'))
@@ -198,7 +205,7 @@ try
 						if (!$a['acc'] = _IN('AFMAccount'))
 							View::setError('afmacc_wrong');
 						elseif ($c = $paymentManager->fields($_currs[$o['ocID']]['cCID']))
-							if ($c['acc'][1] and !preg_match('/^' . $c['acc'][1] . '$/', $a['acc']))
+							if (!empty($c['acc'][1]) and !preg_match('/^' . $c['acc'][1] . '$/', $a['acc']))
 								View::setError('afmacc_wrong');
 					if ($_cfg['Bal_AFMMode'] & 2)
 						if (!$a['batch'] = _IN('AFMBatch'))
@@ -261,6 +268,7 @@ if (!isset($_GET['add']))
 		$el = $db->fetch1Row($db->select("$table LEFT JOIN Users on uID=ouID LEFT JOIN Currs on cID=ocID", '*', "$id_field=?d and $uid_field=?d", array($id, _uid())));
 	if (!$el)
 		goToURL($out_link);
+	$el = HScript\Payment\Provider\CurrencyPresentation::annotate($db, [$el])[0];
 	if (isset($_GET['check']) && $el['oOper'] === 'CASHIN' && (int)$el['oState'] === 3)
 		goToURL(moduleToLink('cabinet'));
 	View::stampArrayToStr($el, 'oCTS, oTS, oNTS');
@@ -275,6 +283,10 @@ if (!isset($_GET['add']))
         View::setPage('payment_route_required',isset(HScript\Payment\Routing\PaymentRoutes::GATEWAYS[$el['cCID']]));
         View::setPage('payment_route_choices',HScript\Payment\Routing\PaymentRoutes::enabled($el));
 		opDecodeCurrParams($el, $p, $p_sci, $p_api);
+        if($el['cCID']==='PAW'){
+            View::setPage('paw_sandbox',($p_sci['_provider_environment']??'')==='sandbox');
+            View::setPage('paw_order',$el['oParams']['psysorder']??'');
+        }
 		if ($pay_requested and in_array($el['cCASHINMode'], array(2, 3)))
 		{
             try {
@@ -307,11 +319,14 @@ if (!isset($_GET['add']))
             } catch (HScript\Finance\CallbackValidationException $e) {
                 if(!str_starts_with($e->reason,'payment_route_'))throw $e;
                 http_response_code(400);header('Content-Type: text/plain; charset=UTF-8');exit('Select an enabled payment network and retry.');
+            } catch (RuntimeException $e) {
+                if($e->getMessage()!=='invoice_reconciliation_required')throw $e;
+                http_response_code(503);$pf=['error'=>$el['cCID']==='PAW'?'paw_reconciliation_required':'invoice_reconciliation_required'];
             }
 			View::setPage('pform', $pf, 0);
 			if (($pf['formkind'] ?? '') === 'native_address')
 				View::setPage('native_details', HScript\Payment\NativePaymentDetails::present($el['cCID'], $pf), 0);
-			if (!empty($pf['url']) && ($pf['formkind'] ?? '') !== 'native_address')
+			if (!empty($pf['url']) && !in_array($pf['formkind']??'',['native_address','paw_sandbox'],true))
 				View::setPage('pay_auto_submit', true, 0);
 		}
 		elseif (!$pay_requested && HScript\Payment\Gateways\CryptoCurrencyApi::supports($el['cCID']))
@@ -395,6 +410,14 @@ else
 	}
 }
 
+$pawPayoutChoices=[];
+foreach($_currs as $currencyId=>$currency)if($currency['cCID']==='PAW') {
+    $wallet=opDecodeUserCurrParams($currency);$choices=[];
+    foreach(HScript\Finance\PawPayoutTarget::ASSETS as $asset=>$metadata)
+        if(HScript\Finance\PawPayoutTarget::valid($asset,$wallet[$asset]??null))$choices[$asset]=$metadata['label'];
+    $pawPayoutChoices[$currencyId]=$choices;
+}
+View::setPage('paw_payout_choices',$pawPayoutChoices,0);
 View::setPage('currs', $_currs);
 
 $_GS['vmodule'] = 'balance';

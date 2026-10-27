@@ -17,7 +17,8 @@ function paymentAssert(bool $condition, string $message): void
 $manager = new PaymentManager(new Connection());
 $expected = array(
 	'AC', 'VEUR', 'VUST', 'VUSC', 'VBTC', 'VETH', 'VSOL', 'VTRX', 'VXRP', 'VTON', 'VLTC', 'ACR', 'PKAU', 'PKAR', 'WM', 'YM', 'YMC', 'SB', 'BW',
-	'CP', 'CPE', 'CPL', 'CPR', 'PKB', 'PKL', 'PKE',
+	'CP', 'CPE', 'CPL', 'CPR', 'CPN', 'PKB', 'PKE', 'PKL',
+    'PKDG', 'PKDA', 'PKBC', 'PKXR', 'PKTR', 'PKXL', 'PKBN', 'PKBB', 'PKBE', 'PKBD', 'PKBT', 'PKBZ', 'PKEZ', 'PKBU', 'PKBO', 'PKBA', 'PKBS', 'PKES', 'PKTN', 'PKTT',
 	'CCT','CCTU','CCTC','PKTU','PKTC','CCAB', 'CCAL', 'CCAD', 'CCAG', 'CCAH',
 	'CCAE', 'CCAM', 'CCAN', 'CCAT', 'CCAX', 'CCAO', 'CCAS', 'PAW', 'ST',
 );

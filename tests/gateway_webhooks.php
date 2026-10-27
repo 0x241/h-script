@@ -15,12 +15,12 @@ function webhookAssert(bool $ok, string $message): void { global $checks; if (!$
 $manager=new PaymentManager(new Connection());
 foreach ($manager->definitions() as $id=>$definition) {
     $result=$manager->handleCallback($id, [], []);
-    webhookAssert($result['outcome'] === (in_array($id,['BW','SB','PKAU','PKAR','ACR','EA','EAT','EAT1','BSC','BSCT','XRPA','TRA','TRAT','PAW'],true) ? 'unsupported' : 'authentication_failed'), $id.' accepts missing config');
+    webhookAssert($result['outcome'] === (in_array($id,['BW','SB','CPN','PKAU','PKAR','ACR','EA','EAT','EAT1','BSC','BSCT','XRPA','TRA','TRAT'],true) ? 'unsupported' : 'authentication_failed'), $id.' accepts missing config');
     foreach (['','   '] as $secret) {
         $result=$manager->handleCallback($id, [], ['key'=>$secret,'apipass'=>$secret]);
         webhookAssert(!$result['correct'], $id.' accepts empty secret');
     }
-    if ($id!=='ST' && !in_array($id,['BW','SB','PKAU','PKAR','ACR','EA','EAT','EAT1','BSC','BSCT','XRPA','TRA','TRAT','PAW'],true))
+    if (!in_array($id,['ST','PAW'],true) && !in_array($id,['BW','SB','CPN','PKAU','PKAR','ACR','EA','EAT','EAT1','BSC','BSCT','XRPA','TRA','TRAT'],true))
         webhookAssert($manager->handleCallback($id, ['amount'=>['nested']], ['key'=>'fixture','apipass'=>'fixture','protocol'=>'3','v3_key'=>'fixture'])['outcome']==='invalid_payload', $id.' accepts nested fields');
 }
 $fixture=json_decode(file_get_contents(__DIR__.'/fixtures/gateway_callbacks.json'),true,32,JSON_THROW_ON_ERROR);

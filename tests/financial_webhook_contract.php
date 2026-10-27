@@ -3,6 +3,7 @@
 declare(strict_types=1);
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require __DIR__ . '/fixtures/financial_runtime.php';
+require __DIR__.'/fixtures/currency_archive_checks.php';
 
 use HScript\Finance\CallbackAmount;
 use HScript\Finance\CallbackContract;
@@ -88,6 +89,7 @@ financialAssert(GatewaySettlement::settle($db,'CP',2,$valid)->data===['settled'=
 financialWallet(1,2,'100.000000');
 financialAssert(financialValue("SELECT oSum FROM Opers WHERE oID=$id")==='100.000000','callback cannot substitute original requested amount');
 financialAssert(GatewaySettlement::settle($db,'CP',2,$valid)->replayed,'exact authenticated replay retains the one effect');
+financialArchivedReplay('CP',2,$valid);
 contractReject(fn()=>GatewaySettlement::settle($db,'CP',2,array_replace($valid,['accto'=>'fixture-other-merchant'])),'callback_destination_mismatch');
 contractReject(fn()=>GatewaySettlement::settle($db,'CP',2,array_replace($valid,['curr'=>'ETH'])),'callback_currency_mismatch');
 foreach ([0,2,6,8] as $scale) {
@@ -161,6 +163,7 @@ contractReject(fn()=>GatewaySettlement::settle($db,'YM',3,contractYoo($id,$now+1
 contractReject(fn()=>GatewaySettlement::settle($db,'YM',3,array_replace($final,['accto'=>'fixture-other-receiver']),$now),'callback_destination_mismatch');
 financialAssert(GatewaySettlement::settle($db,'YM',3,$final,$now+172800)->data===['settled'=>true],'known pending transaction can finish after initial age window');
 financialAssert(GatewaySettlement::settle($db,'YM',3,$final,$now+259200)->replayed,'known final replay remains stable after window');
+financialArchivedReplay('YM',3,$final);
 financialWallet(1,3,'50.000000');
 foreach ($pdo->query("SELECT ikResponse FROM IdempotencyKeys WHERE ikNamespace LIKE '%:identity'")->fetchAll(PDO::FETCH_COLUMN) as $snapshot)
     foreach (['410111222333444','fixture-yoo-sender','fixture-yoo-key',$final['batch']] as $private)
@@ -230,6 +233,7 @@ financialWallet(1,3,'50.000000');
 contractReject(fn()=>GatewaySettlement::preflight($db,'WM',3,$pre),'callback_order_unavailable');
 contractReject(fn()=>GatewaySettlement::settle($db,'WM',3,array_replace($wm,['signed_at'=>$wm['signed_at']+1])),'callback_time_conflict');
 financialAssert(GatewaySettlement::settle($db,'WM',3,$wm)->replayed,'WebMoney exact signed callback replay is stable');
+financialArchivedReplay('WM',3,$wm);
 contractReject(fn()=>GatewaySettlement::settle($db,'WM',3,array_replace($wm,['description_hash'=>hash('sha256','changed')])),'callback_description_mismatch');
 $identity=$pdo->query("SELECT ikID,ikResponse FROM IdempotencyKeys WHERE ikNamespace='gateway:wm:currency:3:identity'")->fetch();
 foreach (['description_hash','contract'] as $missingProof) {

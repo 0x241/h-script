@@ -219,7 +219,10 @@ function opOperChkAWD($o)
 
 function opOperCreateInfo($uid, $oper, $cid, $sum, $params = array(), $memo = '')
 {
+	global $db;
+	return TransactionScope::run($db->link, static function()use($uid,$oper,$cid,$sum,$params,$memo){
 	global $db, $_currs;
+	if(!HScript\Payment\Provider\CurrencyArchive::writable($db,[(int)$cid]))return 'currency_archived';
 	$params = asArray($params);
 	try {
 		// Informational receipts retain their exact stored six-place value, even
@@ -268,6 +271,7 @@ function opOperCreateInfo($uid, $oper, $cid, $sum, $params = array(), $memo = ''
 	opEvent('Oper', $uid, $params);
 	opOperChkAWD($a);
 	return $oid;
+	});
 }
 
 function opOperCreate($uid, $oper, $cid, $sum, $params = array(), $memo = '', $and_complete = false, $by_admin = false, $preserve_stored = false)
@@ -292,6 +296,8 @@ function opOperCreate($uid, $oper, $cid, $sum, $params = array(), $memo = '', $a
 		return 'psys_empty';
 	if (!isset($_currs[$cid]))
 		return 'psys_wrong';
+	$archiveCurrencies=[(int)$cid];if($oper==='EX'&&!empty($params['cid2']))$archiveCurrencies[]=(int)$params['cid2'];
+	if(!HScript\Payment\Provider\CurrencyArchive::writable($db,$archiveCurrencies))return 'currency_archived';
 	try {
 		// Locked deposit principal and paired stored quotes retain their original scale.
 		if ($preserve_stored && (!$sum instanceof Decimal
@@ -309,6 +315,28 @@ function opOperCreate($uid, $oper, $cid, $sum, $params = array(), $memo = '', $a
 		if (\HScript\Payment\CallbackCapabilities::disabledAutomation((string)$gateway))
 			return 'automatic_payment_unsupported';
 	}
+    $pawDestination=null;
+    $payoutCurrency=$oper==='CASHOUT'?$cid:($oper==='EX' && !empty($_cfg['Const_IntCurr']) && $cid==1?(int)($params['cid2']??0):0);
+    if($payoutCurrency>0) {
+        $payoutRow=$db->fetch1Row($db->select('Currs','*','cID=?d',[$payoutCurrency]));
+        if(($payoutRow['cCID']??null)==='PAW') {
+            try {
+                if(!\HScript\Payment\Provider\PawPayoutSchema::ready($db->link,true) || (int)$payoutRow['cDisabled'] || !(int)$payoutRow['cCASHOUTMode'])return 'oper_disabled';
+                $configuration=(new \HScript\Payment\Provider\PawProviderRepository($db))->configuration($payoutRow);
+                if(!$configuration['_provider_enabled'])return 'oper_disabled';
+                if($configuration['_provider_environment']!=='live')return 'paw_payout_sandbox_unsupported';
+                $wallet=$db->fetch1Row($db->select('Wallets','*','wuID=?d AND wcID=?d',[$uid,$payoutCurrency]));
+                if($oper==='CASHOUT' && isset($params['paw_destination'])) {
+                    $frozen=$params['paw_destination'];
+                    if(!is_array($frozen) || ($frozen['payout_asset']??null)!==($params['payout_asset']??null)
+                        || !\HScript\Finance\PawPayoutTarget::valid($params['payout_asset'],$frozen['acc']??null))return 'paw_payout_destination_required';
+                    $pawDestination=['payout_asset'=>$frozen['payout_asset'],'acc'=>$frozen['acc']];
+                } else $pawDestination=\HScript\Finance\PawPayoutTarget::select($params['payout_asset']??null,opDecodeUserCurrParams($wallet?:[]));
+                // An internal exchange carries the exact selected destination to its child.
+                $params['paw_destination']=$pawDestination;
+            } catch(\HScript\Finance\FinancialOperationException $error) { return $error->getMessage(); }
+        }
+    }
 	if (!$by_admin and empty($_currs[$cid]['c' . $oper . 'Mode']) and ($oper != 'EXIN') and ($oper != 'TRIN'))
 		return 'oper_disabled';
 	if ($sum <= 0)
@@ -378,7 +406,7 @@ function opOperCreate($uid, $oper, $cid, $sum, $params = array(), $memo = '', $a
 	{
 		$w = $db->fetch1Row($db->select('Users LEFT JOIN Wallets ON (wcID=?d AND wuID=uID)', 
 			'*', 'uID=?d', array($cid, $uid)));
-		$params2 = opDecodeUserCurrParams($w);
+		$params2 = $oper==='CASHOUT' && $pawDestination!==null ? $pawDestination : opDecodeUserCurrParams($w);
 		$params2['date'] = timeToStamp();
 		$params2['memo'] = StringHelper::textVarReplace(
 				StringHelper::exValue('Invoice ##id#, #user#', StringHelper::textLangFilter(StringHelper::exValue(isset($_cfg['Bal_' . $oper . 'Text']) ? $_cfg['Bal_' . $oper . 'Text'] : '', $memo), isset($w['uLang']) ? $w['uLang'] : '')),
@@ -563,6 +591,14 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 	$o = $db->fetch1Row($db->select('Opers LEFT JOIN Currs ON cID=ocID LEFT JOIN Users ON uID=ouID', 
 		'Opers.*, Currs.*, Users.uLogin', 'oID=?d' . StringHelper::valueIf($uid > 0, ' and ouID=?d'), array($oid, $uid)));
 	if (!$o) return 'oper_not_found';
+	if ($o['oOper']==='CASHOUT' && \HScript\Payment\Gateways\CryptoCurrencyApi::supports($o['cCID']) && WithdrawalDispatcher::wasAttempted($db,(int)$oid)) {
+        try { \HScript\Finance\CcapiPayout::assertCompletion($db,(int)$oid); }
+        catch (\Throwable) { return 'ccapi_payout_reconciliation_required'; }
+    }
+    if($o['oOper']==='CASHOUT' && $o['cCID']==='PAW' && WithdrawalDispatcher::wasAttempted($db,(int)$oid)) {
+        try { \HScript\Finance\PawPayout::assertCompletion($db,(int)$oid); }
+        catch(\Throwable) { return 'paw_payout_reconciliation_required'; }
+    }
 	if ($o['oState'] == 3) return true;
 	if ($o['oState'] != 2)
 		return 'oper_state_wrong';
@@ -611,7 +647,7 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 		if (($o['oOper'] == 'EXIN') and !empty($_cfg['Const_IntCurr']) and isset($oparams['cid2']) and ($oparams['cid2'] == 1))
 		{
 			if (is_string($res)) return $res;
-			$woid = opOperCreate($uid, 'CASHOUT', $cid, $sum, array(), 'Auto', false, $by_admin);
+			$woid = opOperCreate($uid, 'CASHOUT', $cid, $sum, array_intersect_key($oparams,array_flip(['payout_asset','paw_destination'])), 'Auto', false, $by_admin);
 			if (is_string($woid)) return $woid;
 			if (is_string($err = opOperConfirm($uid, $woid, array(), $by_admin))) return $err;
 			if (isset($o['cCASHOUTMode']) && $o['cCASHOUTMode'] == 2)
@@ -680,7 +716,7 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 					$w = $db->fetch1Row($db->select('AddInfo LEFT JOIN Wallets ON (wcID=?d AND wuID=auID)', 
 						'AddInfo.aDefCurr, Wallets.*', 'auID=?d', array($cid, $uid)));
 					$p = opDecodeUserCurrParams($w);
-					if (empty($p['acc'])) // first time ('acc' empty)
+					if (!in_array($o['cCID'],['PAW','BW'],true) && empty($p['acc'])) // Receipts never replace manually saved PAW or bank payout details.
 					{
 						$t = time();
 						$key = $cid . $uid . $t;
@@ -729,7 +765,7 @@ function opOperComplete($uid, $oid, $params = array(), $by_admin = false, $apara
 			$n['psys2'] = isset($_currs[$cid2]['cName']) ? $_currs[$cid2]['cName'] : '';
 			$n['curr2'] = isset($_currs[$cid2]['cCurr']) ? $_currs[$cid2]['cCurr'] : '';
 			$child = opOperCreate($uid, 'EXIN', $cid2, DecimalInput::read($sum2),
-				array('oid' => $oid, 'sum2' => $sum, 'cid2' => $cid, 'batch' => $batch, 'initid' => isset($params['initid']) ? $params['initid'] : 0), isset($o['oMemo']) ? $o['oMemo'] : '', true, true, true);
+				array('oid' => $oid, 'sum2' => $sum, 'cid2' => $cid, 'batch' => $batch, 'initid' => isset($params['initid']) ? $params['initid'] : 0)+array_intersect_key($oparams,array_flip(['payout_asset','paw_destination'])), isset($o['oMemo']) ? $o['oMemo'] : '', true, true, true);
 			if (is_string($child)) return $child;
 		}
 		break;
@@ -954,6 +990,10 @@ function opDecodeCurrParams($crec, &$p, &$p_sci, &$p_api)
 	$p = decodeArrayFromStr(isset($crec['cParams']) ? $crec['cParams'] : '', $key);
 	$p_sci = decodeArrayFromStr(isset($crec['cParamsSCI']) ? $crec['cParamsSCI'] : '', $key, 2);
 	$p_api = decodeArrayFromStr(isset($crec['cParamsAPI']) ? $crec['cParamsAPI'] : '', $key, 3);
+    if (!empty($crec['cProviderID']) && ($crec['cCID']??'')==='PAW') {
+        global $db;
+        $p_sci=(new \HScript\Payment\Provider\PawProviderRepository($db))->configuration($crec);
+    }
     if (!empty($crec['cProviderID']) && ($crec['cCID'] ?? '') !== 'PAW') {
         global $db;
         $resolved=(new \HScript\Payment\Provider\ProviderRepository($db))->configuration($crec,$p_api);

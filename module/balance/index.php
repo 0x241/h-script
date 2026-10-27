@@ -9,6 +9,7 @@ $table = 'Opers';
 $id_field = 'oID';
 $uid_field = 'ouID';
 
+View::setPage('archived_holdings',HScript\Finance\ArchivedHoldings::forUser($db,(int)_uid()));
 View::setPage('currs', $_currs);
 
 $operationTypes = array('all' => array(), 'in' => array('CASHIN'),
@@ -33,6 +34,7 @@ $list = opPageGet(max(1, _GETN('page')), 10, "$table LEFT JOIN Users on uID=ouID
 	_GET('sort'), $id_field
 );
 View::stampTableToStr($list, 'oCTS, oTS, oNTS');
+$list = HScript\Payment\Provider\CurrencyPresentation::annotate($db, $list);
 foreach ($list as $id => $r)
 	$list[$id]['oParams'] = strToArray($r['oParams']);
 View::setPage('list', $list);

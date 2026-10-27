@@ -54,7 +54,7 @@ foreach (CryptoCurrencyApi::NATIVE as $id=>[$chain,$asset]) {
     if ($chain==='ton') $native['to']='0:'.str_repeat('a',64);
     ccaAssert($send($sign($native),$id)['correct'],$id.' native mapping');
     ccaAssert($manager->detectCallback($native)===$id,$id.' v3 routing');
-    ccaAssert($manager->definitions()[$id][3]===0,$id.' v3 payout advertised');
+    ccaAssert($manager->definitions()[$id][3]===1,$id.' v3 payout advertised');
 }
 foreach ([0=>'pending',1=>'pending',2=>'verified',99=>'verified',100=>'unsupported',101=>'unsupported',102=>'verified'] as $confirmation=>$outcome) {
     $changed=$payload; $changed['confirmation']=$confirmation;
@@ -131,7 +131,7 @@ $form=$gateway->processDeposit(['sci'=>$config,'tag'=>42,'sum'=>'1.23','callback
 ccaAssert($form['formkind']==='native_address' && $form['payment_address']===$payload['to'] && $form['payment_amount']==='1.230000','Usable native checkout form');
 ccaAssert(!str_contains(json_encode($form),'dummy-private') && !str_contains(json_encode($form),'dummy-public') && !str_contains(json_encode($form),$fixture['secret']),'Give retained key material');
 ccaAssert($ccapi_calls===1,'Give transparently retries');
-ccaAssert($gateway->processWithdrawal([])===['result'=>'ccapi_payout_unsupported'] && $ccapi_calls===1,'Native payout made I/O');
+ccaAssert($gateway->processWithdrawal([])===['result'=>'ccapi_payout_reconciliation_required'] && $ccapi_calls===1,'Native payout made I/O');
 $public=$manager->processDeposit('CCAB',['sci'=>$config,'tag'=>42,'sum'=>'1.23','callback_scale'=>6,'url_callback'=>'http://fixture.invalid/status','url_ok'=>'http://fixture.invalid/operation?id=42&check']);
 ccaAssert(($public['url'] ?? '')==='/operation?id=42' && ($public['formkind'] ?? '')==='native_address','Own HTTP return URL passes unchanged shared payment action policy');
 $ccapi_reply='{"result":"12.34000000"}';
@@ -173,9 +173,34 @@ ccaAssert(str_contains(HScript\Payment\Provider\ProviderReferral::link('PAW')??'
 // The ordinary currency form must offer only payout modes accepted by service.
 $templates=new Twig\Environment(new Twig\Loader\ChainLoader([new Twig\Loader\ArrayLoader(['edit.twig'=>'{{ fields.cCASHOUTMode[3]|keys|join(",") }}']),new Twig\Loader\FilesystemLoader(dirname(__DIR__).'/tpl')]),['strict_variables'=>true]);
 $templates->addFunction(new Twig\TwigFunction('merge_arrays',static fn($a,$b)=>array_replace($a,$b)));
+$templates->addFunction(new Twig\TwigFunction('_t',[HScript\Template\View::class,'tplTranslate']));
 foreach (HScript\Finance\VoletContract::CURRENCIES as $cid=>$asset) {
     $modes=trim($templates->render('balance/admin/curr.settings.twig',['fields'=>[],'values'=>['cCID'=>$cid],'provider_kind'=>'VOLET','currency_shared_provider'=>true]));
     ccaAssert($modes===($cid==='AC'?'0,1,2':'0,1'),'Volet UI payout capability matches supported currency');
 }
+foreach(['CCAE'=>'0,1,2','CCT'=>'0,1,2','CCTC'=>'0,1,2','CCTU'=>'0,1']as$cid=>$expected){
+    $modes=trim($templates->render('balance/admin/curr.settings.twig',['fields'=>[],'values'=>['cCID'=>$cid],'provider_kind'=>'CCAPI','currency_shared_provider'=>true]));
+    ccaAssert($modes===$expected,'CCAPI unambiguous payout modes '.$cid);
+}
+$outArgs=['to'=>'0x'.str_repeat('2',40),'amount'=>'0.12345678','label'=>'42','uniqID'=>'hscript-out:'.str_repeat('a',64),'statusURL'=>'https://fixture.invalid/status?its=CCAPI_OUT','from'=>'0x'.str_repeat('1',40)];
+$ccapi_reply='{"result":"12345"}';$previousCalls=$ccapi_calls;
+ccaAssert(CcapiV3Client::request('ethereum','send',$config,$outArgs)===['queue_id'=>'12345'] && $ccapi_calls===$previousCalls+1,'send returns queue id and makes one request');
+parse_str($ccapi_options[CURLOPT_POSTFIELDS],$posted);
+ccaAssert($posted===$outArgs && str_ends_with($ccapi_options[CURLOPT_URL],'/ethereum/.send'),'exact decimal and closed outgoing form body');
+ccaAssert(!str_contains($ccapi_options[CURLOPT_URL],$config['v3_key']) && in_array('CCAPI-KEY: '.$config['v3_key'],$ccapi_options[CURLOPT_HTTPHEADER],true),'payout key stays in header');
+foreach(['{"result":1.2}','{"result":true}','{"result":"0"}','{"result":{"id":"12345"}}','{"error":"secret"}','{"result":"12345","result":"12346"}']as$reply)ccaThrows(static fn()=>CcapiV3Client::decode($reply,'send'),'ccapi_unavailable');
+foreach([['amount'=>'1e3'],['amount'=>'0'],['amount'=>0.1],['to'=>'https://evil.invalid'],['from'=>''],['uniqID'=>'42'],['token'=>[]],['tag'=>'123'],['statusURL'=>'https://user:pass@fixture.invalid/status']]as$change)
+    ccaThrows(static fn()=>CcapiV3Client::options('ethereum','send',$config,array_replace($outArgs,$change)));
+$out=$payload;$out['type']='out';$out['id']='12345';$out['from']=$payload['to'];
+$out=$sign($out);$outConfig=$config+['_ccapi_payout_context'=>true];
+$v=$send($out,'CCAB',$outConfig);ccaAssert($v['correct'] && $v['outbound'] && $v['ccapi_payout_id']==='12345','out only accepted with explicit frozen outgoing context');
+ccaAssert($send($out)['outcome']==='unsupported','incoming path cannot route outgoing settlement');
+foreach(['id'=>'12346','amount'=>'1.24','to'=>str_repeat('a',40)]as$field=>$value){$changed=$out;$changed[$field]=$value;ccaAssert(!$send($changed,'CCAB',$outConfig)['correct'],'out signature binds '.$field);}
+$status=['id'=>'12345','from'=>$outArgs['from'],'to'=>$outArgs['to'],'token'=>'','amount'=>'0.12345678','fee'=>'0.000001','label'=>'42','state'=>'7','result'=>'','txid'=>str_repeat('b',64)];
+ccaAssert(CcapiV3Client::decode(json_encode(['result'=>$status],JSON_THROW_ON_ERROR),'status')===$status,'exact status decimal strings');
+$status['amount']=0.12345678;ccaThrows(static fn()=>CcapiV3Client::decode(json_encode(['result'=>$status],JSON_THROW_ON_ERROR),'status'),'ccapi_unavailable');
+$ccapi_transport_failure=true;$previousCalls=$ccapi_calls;
+ccaThrows(static fn()=>CcapiV3Client::request('ethereum','send',$config,$outArgs),'ccapi_unavailable');
+ccaAssert($ccapi_calls===$previousCalls+1,'timed-out outgoing request never automatically retries');
 echo "CryptoCurrencyAPI v3 component tests passed ($checks checks, no external transport).\n";
 }
