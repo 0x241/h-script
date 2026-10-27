@@ -1,6 +1,6 @@
 # H-Script
 
-H-Script 1.0.8 is a PHP CMS for financial projects. It includes user accounts,
+H-Script 1.0.9 is a PHP CMS for financial projects. It includes user accounts,
 deposits, payment gateways, a referral system, administration tools, installation
 telemetry, and a versioned REST API.
 
@@ -24,8 +24,8 @@ telemetry, and a versioned REST API.
 
 For most installations, use the published image. It is reproducible and already
 contains Composer dependencies and compiled CSS. Pin an exact version such as
-`1.0.7`; do not use a floating `latest` tag in production. This source tree targets
-`1.0.7`; the image examples below require that release to have been published.
+`1.0.9`; do not use a floating `latest` tag in production. This source tree targets
+`1.0.9`; the image examples below require that release to have been published.
 Until then, use an existing published tag or build this source for staging.
 
 ## Docker with a published image
@@ -54,7 +54,7 @@ Select the published image in `.env`:
 
 ```env
 APP_IMAGE=docker.io/0x241/h-script
-APP_IMAGE_TAG=1.0.7
+APP_IMAGE_TAG=1.0.9
 APP_PULL_POLICY=always
 
 APP_ENV=production
@@ -73,7 +73,7 @@ TURNSTILE_SITE_KEY=change-me-site-key
 TURNSTILE_SECRET_KEY=change-me-secret-key
 ```
 
-The release workflow publishes the same digest as `ghcr.io/0x241/h-script:1.0.7`.
+The release workflow publishes the same digest as `ghcr.io/0x241/h-script:1.0.9`.
 Both public packages should allow end users to pull without `docker login`. A private GHCR
 package requires a token with `read:packages` permission.
 
@@ -334,7 +334,7 @@ checksum:
 ```bash
 docker buildx build \
   --target shared-release \
-  --build-arg APP_VERSION=1.0.7 \
+  --build-arg APP_VERSION=1.0.9 \
   --output type=local,dest=dist \
   .
 (cd dist && sha256sum -c SHA256SUMS)
@@ -374,7 +374,7 @@ The complete reference is `docker/env.example`.
 | --- | --- |
 | `APP_ENV`, `APP_DEBUG` | Environment and diagnostic output; use `production` and `0` in production. |
 | `APP_IMAGE` | Local image name, Docker Hub repository, or GHCR package. |
-| `APP_IMAGE_TAG` | Exact release tag, for example `1.0.7`. |
+| `APP_IMAGE_TAG` | Exact release tag, for example `1.0.9`. |
 | `APP_IMAGE_REF` | Optional `repository@sha256:...`; overrides the image/tag pair. Staging always sets it. |
 | `APP_PULL_POLICY` | `build` for source builds or `always` for registry images. |
 | `APP_DOMAIN` | Public domain without a scheme; keep it stable after installation. |
@@ -476,7 +476,7 @@ are never published. `RESTORE_DB_PASSWORD` and `RESTORE_DB_PASSWORD_FILE` apply
 only to the explicitly named restore target and are not application settings.
 
 Backup storage contains sensitive SQL and may contain protected configuration.
-The `1.0.7` runtime uses owner-only directories (`0700`) and files (`0600`);
+Since `1.0.7`, the runtime uses owner-only directories (`0700`) and files (`0600`);
 Docker startup tightens existing files in `/var/www/shared/backup`. Run manual
 backup/recovery commands as the application user (`--user www-data` in Docker),
 not root, so the web updater can read its private archives. Apache denies both
@@ -1385,10 +1385,10 @@ Published references:
 
 ```text
 registry.gitlab.com/0x241/h-script:tree-<tree-sha>
-docker.io/0x241/h-script:1.0.7
+docker.io/0x241/h-script:1.0.9
 docker.io/0x241/h-script:1.0
 docker.io/0x241/h-script:1
-ghcr.io/0x241/h-script:1.0.7
+ghcr.io/0x241/h-script:1.0.9
 ghcr.io/0x241/h-script:1.0
 ghcr.io/0x241/h-script:1
 ```
@@ -1434,7 +1434,7 @@ GitHub Container Registry creates the first personal-account package as private
 even when its source repository is public. After the first successful image
 promotion, open the `h-script` package on GitHub, select **Package settings**, and
 under **Danger Zone** change its visibility to **Public**. This one-time change
-enables anonymous `docker pull ghcr.io/0x241/h-script:1.0.7`; GitHub does not
+enables anonymous `docker pull ghcr.io/0x241/h-script:1.0.9`; GitHub does not
 allow a public package to be made private again.
 
 ## GitLab staging and GitHub promotion

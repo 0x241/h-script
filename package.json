@@ -1,6 +1,6 @@
 {
   "name": "h-script",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "private": true,
   "description": "H-Script application packaged for Docker Compose.",
   "type": "module",

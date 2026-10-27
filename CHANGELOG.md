@@ -5,8 +5,28 @@ on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-Current source target: application `1.0.8`, schema `1.0.16`. This is the unreleased
-source target; apply explicit backup-protected migrations through the Configurator.
+No changes recorded after the 1.0.9 release candidate.
+
+## [1.0.9] - 2026-10-27
+
+Release candidate: application `1.0.9`, schema `1.0.16`. The application version,
+npm metadata and source compatibility range are aligned. The schema target is
+unchanged from the tested staging branch; upgrading the published 1.0.8 release
+from schema `1.0.11` still requires its bundled backup-protected migrations through
+the Configurator. Existing installations must keep `APP_AUTO_INSTALL=0`.
+
+### Release verification
+
+- Verify the same complete release suites using at most two independent fixtures:
+  ten browser families and five database families on MySQL 8.4, MariaDB 10.11 and
+  MariaDB 11.4. Preserve all release gates, failure codes, cleanup and per-suite logs.
+- Test real cron-worker death and server-side advisory-lock release rather than
+  assuming an immediate release after closing client PDO. Production locking is unchanged.
+- Use a job-scoped Docker credential helper in the three release test jobs;
+  config files contain no registry token. Real Docker CLI/Buildx and signal cleanup
+  are covered by synthetic regression tests.
+- Combine Compose, frontend and version checks under their existing rules to reduce
+  runner handoffs.
 
 ### Recovery scheduling
 
@@ -20,7 +40,7 @@ source target; apply explicit backup-protected migrations through the Configurat
   than filesystem timestamps. Tied or changed file times cannot select an older
   archive; a failed latest publication is rejected without a fallback.
 
-### Added in 1.0.8
+### Added
 
 - Add 321 RU/EN keys across eleven gateway connection, currency, token and account
   templates, including credential labels and validation messages. Translation
@@ -132,7 +152,7 @@ source target; apply explicit backup-protected migrations through the Configurat
 - Saved menu pins per account, a local QR code and payment status polling, gateway
   filters, and a structured manual operation confirmation form.
 
-### Fixed in 1.0.8
+### Fixed
 
 - Separate gateway connection and currency pages, with one global enable control,
   no repeated PAW information panels and direct links to currency settings.
@@ -143,18 +163,41 @@ source target; apply explicit backup-protected migrations through the Configurat
 - Correct restore-test selection when backups share a timestamp, clarify expired
   recovery evidence, and preserve strict migration/restore gates.
 
-### Security in 1.0.8
+### Security
 
 - Runtime curl/libcurl require patched 8.23.0 or later (CVE-2026-92392). Source
-  archives exclude reference documentation while retaining it in the repository;
+  archives exclude development documentation;
   the artifact path and secret-file policy remains unchanged.
-- Update PHP runtime to 8.4.27, the Composer builder to PHP 8.5.12/Composer 2.10.3,
-  and Node tooling to 24.22.1 LTS. Bundle fonts/icons locally and remove
+- Retain the patched PHP 8.4.27, PHP 8.5.12/Composer 2.10.3 builder and
+  Node 24.22.1 LTS baseline from 1.0.8. Bundle fonts/icons locally and remove
   unconditional third-party CSP permissions.
 - Use exact decimal money, immutable fee and invoice snapshots, and atomic
   financial writes with concurrency, replay and failure recovery coverage.
 
-### Earlier staging changes
+### Compatibility and verification notes
+
+Currency membership and financial modes are separate settings. Selecting a visible
+currency enables that currency under an enabled gateway, subject to capability
+checks. Adding or restoring a currency leaves its financial modes off. Deselection
+archives the original ledger only after pending work has been resolved; it does
+not move balances or rewrite historical operations.
+
+The historical PayKassa USDT account retains one shared Ethereum/TRON balance and
+appears on both network pages. Its network links do not split the ledger or change
+SCI identifiers. CoinPayments NEW remains configuration-only until its settlement
+and fee contracts have been verified.
+
+Gateway validation covers isolated SQL suites, authenticated Chromium/WebKit
+flows, signed callback replay after application restart, and RU/EN/RU switching
+with unchanged form controls. These checks are separate from merchant acceptance
+and staging deployment. Apply schema updates through the Configurator after a
+verified backup; do not use automatic installation to migrate an existing database.
+
+## Earlier release and staging notes
+
+The following historical entries are retained separately from the 1.0.9 release
+summary. They include existing behavior and earlier staging work; a complete
+version-by-version history audit remains separate.
 
 ### Security
 
@@ -316,25 +359,6 @@ source target; apply explicit backup-protected migrations through the Configurat
 - Added responsive, dependency-free H-Script pages for unknown routes, active
   maintenance, and update states that genuinely require a traffic gate, with
   Russian/English switching and the shared product logo and copyright.
-
-### 1.0.8 compatibility and verification notes
-
-Currency membership and financial modes are separate settings. Selecting a visible
-currency enables that currency under an enabled gateway, subject to capability
-checks. Adding or restoring a currency leaves its financial modes off. Deselection
-archives the original ledger only after pending work has been resolved; it does
-not move balances or rewrite historical operations.
-
-The historical PayKassa USDT account retains one shared Ethereum/TRON balance and
-appears on both network pages. Its network links do not split the ledger or change
-SCI identifiers. CoinPayments NEW remains configuration-only until its settlement
-and fee contracts have been verified.
-
-Gateway validation covers isolated SQL suites, authenticated Chromium/WebKit
-flows, signed callback replay after application restart, and RU/EN/RU switching
-with unchanged form controls. These checks are separate from merchant acceptance
-and staging deployment. Apply schema updates through the Configurator after a
-verified backup; do not use automatic installation to migrate an existing database.
 
 ### Ручной cron и частота телеметрии
 
