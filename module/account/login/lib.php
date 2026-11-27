@@ -4,6 +4,21 @@ use HScript\Util\StringHelper;
 use HScript\Security\FailedLoginPolicy;
 
 use HScript\Template\View;
+
+if (!function_exists('loginReturnUrl'))
+{
+	function loginReturnUrl($url): string
+	{
+		$url = (string)$url;
+		if (preg_match('/[\x00-\x1f\x7f]/', $url))
+			return '';
+		$url = trim($url);
+		$parts = parse_url($url);
+		if ($url === '' || !is_array($parts) || isset($parts['scheme']) || isset($parts['host']) || str_starts_with($url, '//') || str_contains($url, '\\'))
+			return '';
+		return $url;
+	}
+}
 /* 
 	Module: account/login
 */
@@ -137,7 +152,7 @@ function opLogin($uid, $url, $set_new_ip = false, $from_admin = false, $remember
 				opUserConsts($usr)
 			);
 	}
-	View::showInfo('LogIn', StringHelper::exValue(moduleToLink('cabinet'), $url));
+	View::showInfo('LogIn', StringHelper::exValue(moduleToLink('cabinet'), loginReturnUrl($url)));
 }
 
 function opLoginOut($text)
