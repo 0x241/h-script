@@ -38,6 +38,7 @@ final class VerificationPaykassa extends Paykassa
                 'tag'=>false,'hash'=>$hash,'partial'=>'no'];
         if (!$create && self::$mutation==='amount') $data['amount']='99.000000';
         if (!$create && self::$mutation==='configuration') verificationConfig(['key'=>'changed-after-remote']);
+        if (!$create && (self::$mutation==='rejected' || str_ends_with($fields['private_hash'],'-forged'))) return ['error'=>true,'message'=>'Invalid private_hash'];
         return ['error'=>false,'data'=>$data];
     }
 }
@@ -221,5 +222,26 @@ try {
     $output=stream_get_contents($pipes[1]); $error=stream_get_contents($pipes[2]); fclose($pipes[1]); fclose($pipes[2]);
     financialAssert(proc_close($process)===0 && json_decode($output,true,32,JSON_THROW_ON_ERROR)===['settled'=>true],'Fresh process exact retry succeeds: '.$error);
     financialAssert(verificationCalls()===1 && verificationMoney()===$before,'Fresh process cache replay preserves one effect and zero IO');
+    // Unverified failed provider checks release order lease and do not exhaust merchant budget.
+    verificationSetup(); $id=verificationInvoice();
+    $failed=verificationCallback($id,'forged');
+    financialAssert($failed['outcome']==='authentication_failed' && $failed['reason']==='paykassa_confirmation_failed','Forged token rejected by provider');
+    $orderData=json_decode(financialValue("SELECT ikResponse FROM IdempotencyKeys WHERE ikNamespace='verification:paykassa:order' AND ikOperationID=$id"),true,32,JSON_THROW_ON_ERROR);
+    financialAssert($orderData['inflight']===false,'Failed provider check releases inflight order lease');
+    // Legitimate confirmation for the same order succeeds immediately without lease or cooldown block.
+    $verified=verificationCallback($id,'good');
+    financialAssert($verified['outcome']==='verified' && $verified['correct'],'Legitimate confirmation succeeds after forged attempt');
+    financialAssert(verificationCalls()===2,'Legitimate confirmation performed remote verification');
+
+    verificationSetup(); $ids=[];
+    for($i=0;$i<10;++$i) {
+        $ids[]=verificationInvoice();
+        verificationCallback($ids[$i],'forged');
+    }
+    // 10 failed unverified attempts must not exhaust the merchant budget for legitimate confirmations.
+    $targetId=verificationInvoice();
+    $verified=verificationCallback($targetId,'good');
+    financialAssert($verified['outcome']==='verified' && $verified['correct'],'Legitimate confirmation succeeds after 10 failed unverified attempts');
+
     echo 'Financial Paykassa verification passed ('.$assertions." checks, 12 concurrent workers).\n";
 } finally { unlink(VerificationPaykassa::$wire); }

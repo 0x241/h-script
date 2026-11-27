@@ -123,10 +123,12 @@ final class PaykassaVerification
             $window=intdiv($now,60)*60;
             if ($m['window']!==$window) $m=['version'=>1,'window'=>$window,'count'=>0];
             if ($m['count']>=$budget) throw new RuntimeException('paykassa_verification_throttled');
+            $previousLast=$o['last'];
             ++$m['count']; $o['last']=$now; $o['claim']=bin2hex(random_bytes(16)); $o['inflight']=true;
             self::save($db,$merchant['id'],$m);
             self::save($db,$order['id'],$o,$now+self::CACHE_TTL);
-            return ['cached'=>false,'id'=>$order['id'],'claim'=>$o['claim'],'token_hash'=>$tokenHash];
+            return ['cached'=>false,'id'=>$order['id'],'claim'=>$o['claim'],'token_hash'=>$tokenHash,
+                'merchant_id'=>$merchant['id'],'window'=>$window,'last'=>$previousLast];
         });
     }
 
@@ -160,6 +162,39 @@ final class PaykassaVerification
                 throw new RuntimeException('paykassa_verification_unavailable');
             $data['inflight']=false; $data['token_hash']=$claim['token_hash']; $data['verified_at']=time();
             self::save($db,$claim['id'],$data,time()+self::CACHE_TTL);
+        });
+    }
+
+    /** Release an unverified claim so a failed provider check does not hold the order lease or merchant budget. */
+    public static function release(Connection $db,array $claim): void
+    {
+        self::transaction($db,static function() use($db,$claim): void {
+            $statement=$db->link->prepare('SELECT ikResponse FROM IdempotencyKeys WHERE ikID=? AND ikNamespace=? FOR UPDATE');
+            $statement->execute([$claim['id'],self::ORDER]);
+            $raw=$statement->fetchColumn();
+            if ($raw===false || $raw==='') return;
+            try { $data=json_decode((string)$raw,true,16,JSON_THROW_ON_ERROR); }
+            catch(\Throwable) { return; }
+            if (!is_array($data) || ($data['claim'] ?? null)!==$claim['claim'] || ($data['inflight'] ?? null)!==true) return;
+            $data['inflight']=false;
+            if (array_key_exists('last',$claim) && is_int($claim['last'])) {
+                $data['last']=$claim['last'];
+            }
+            self::save($db,$claim['id'],$data,time()+self::CACHE_TTL);
+
+            if (isset($claim['merchant_id']) && is_int($claim['merchant_id'])) {
+                $mStatement=$db->link->prepare('SELECT ikResponse FROM IdempotencyKeys WHERE ikID=? AND ikNamespace=? FOR UPDATE');
+                $mStatement->execute([$claim['merchant_id'],self::MERCHANT]);
+                $mRaw=$mStatement->fetchColumn();
+                if ($mRaw!==false && $mRaw!=='') {
+                    try { $mData=json_decode((string)$mRaw,true,16,JSON_THROW_ON_ERROR); }
+                    catch(\Throwable) { return; }
+                    if (is_array($mData) && ($mData['window'] ?? null)===$claim['window'] && ($mData['count'] ?? 0)>0) {
+                        --$mData['count'];
+                        self::save($db,$claim['merchant_id'],$mData);
+                    }
+                }
+            }
         });
     }
 
