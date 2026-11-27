@@ -54,7 +54,8 @@ try
 	{
 		View::checkFormSecurity('login_frm');
 
-		View::setError($uid = opLoginPrepare(_IN('Login'), _IN('Pass')), 'login_frm');
+		$gaCode = !StringHelper::sEmpty(_IN('GA')) ? _IN('GA') : _IN('GACode');
+		View::setError($uid = opLoginPrepare(_IN('Login'), _IN('Pass'), $gaCode), 'login_frm');
 		View::setError(opLogin($uid, loginReturnUrl(_IN('URL')), false, false, _IN('Remember')), 'login_frm');
 		View::showInfo('*Error');
 	}
