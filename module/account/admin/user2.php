@@ -139,8 +139,11 @@ catch (FormAbortException $e)
 }
 
 if ($uid = _GETN('id'))
+{
+	$require_editable_user((int)$uid);
 	$el = $db->fetch1Row($db->select("$table LEFT JOIN AddInfo ON auID=uID", 
 		'*', "$id_field=?d", array(_GETN('id'))));
+}
 if (!$el)
 	goToURL($out_link);
 View::stampArrayToStr($el, 'aCTS');
