@@ -46,8 +46,7 @@ function chkCaptcha($form = '')
 	if ($t > 0) 
 	{
 		if (function_exists('captchaCheck'))
-			if ($res = captchaCheck($form))
-				$nt = 0;
+			$res = captchaCheck($form);
 	} 
 	else
 		$res = true;

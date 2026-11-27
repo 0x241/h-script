@@ -108,5 +108,21 @@ foreach (array(1, 100, null) as $personal)
 }
 $assert(opLoginPrepare('unknown-fixture', 'wrong-password') === 'login_not_found', 'Unknown user failure changed');
 $assert(opLoginPrepare('', '') === 'login_empty', 'Empty login failure changed');
+$_cfg['Sec_BFC'] = 3;
+require_once $root . '/module/account/ga/class.GoogleAuthenticator.php';
+$ga = new GoogleAuthenticator();
+$gaSecret = 'JBSWY3DPEHPK3PXP';
+$gaCode = $ga->getCode($gaSecret);
+$gaUid = $db->insert('Users', array('uLogin' => 'fixture-ga', 'uPass' => $hash, 'uMail' => 'fixture-ga@invalid', 'uState' => 1, 'uLang' => 'en', 'uTheme' => 'light', 'uBFC' => 0));
+$db->insert('AddInfo', array('auID' => $gaUid, 'aGA' => $gaSecret));
+$assert(opLoginPrepare('fixture-ga', $gaCode) === 'login_not_found', 'GA code in password accepted');
+$assert((int)opReadUser($gaUid)['uBFC'] === 1, 'GA code in password did not increment counter');
+$assert(opLoginPrepare('fixture-ga', 'wrong-password', $gaCode) === 'login_not_found', 'Wrong password with valid GA accepted');
+$assert((int)opReadUser($gaUid)['uBFC'] === 2, 'Wrong password did not increment counter');
+$assert(opLoginPrepare('fixture-ga', 'synthetic-login-password', '000000') === 'GA_wrong', 'Wrong GA code accepted');
+$assert((int)opReadUser($gaUid)['uBFC'] === 3, 'Wrong GA code did not increment counter');
+$assert(opLoginPrepare('fixture-ga', 'synthetic-login-password', '') === 'GA_wrong', 'Empty GA code accepted');
+$assert((int)opReadUser($gaUid)['uBFC'] === 4, 'Empty GA code did not increment counter');
+$assert(opLoginPrepare('fixture-ga', 'synthetic-login-password', $gaCode) === (int)$gaUid, 'Correct credentials with GA failed');
 ob_end_clean();
 echo "Failed login database integration passed: $checks checks.\n";

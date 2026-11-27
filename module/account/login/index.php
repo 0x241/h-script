@@ -6,6 +6,21 @@ use HScript\Template\View;
 
 require_once('module/auth.php');
 
+if (!function_exists('loginReturnUrl'))
+{
+	function loginReturnUrl($url): string
+	{
+		$url = (string)$url;
+		if (preg_match('/[\x00-\x1f\x7f]/', $url))
+			return '';
+		$url = trim($url);
+		$parts = parse_url($url);
+		if ($url === '' || !is_array($parts) || isset($parts['scheme']) || isset($parts['host']) || str_starts_with($url, '//') || str_contains($url, '\\'))
+			return '';
+		return $url;
+	}
+}
+
 try 
 {
 	if (View::sendedForm('', 'return_admin'))
@@ -33,14 +48,15 @@ try
 	}
 
 	if (_uid())
-		goToURL(StringHelper::exValue(moduleToLink('cabinet'), urldecode((string)_RQ('url'))));
+		goToURL(StringHelper::exValue(moduleToLink('cabinet'), loginReturnUrl(urldecode((string)_RQ('url')))));
 
 	if (View::sendedForm('', 'login_frm'))
 	{
 		View::checkFormSecurity('login_frm');
 
-		View::setError($uid = opLoginPrepare(_IN('Login'), _IN('Pass')), 'login_frm');
-		View::setError(opLogin($uid, _IN('URL'), false, false, _IN('Remember')), 'login_frm');
+		$gaCode = !StringHelper::sEmpty(_IN('GA')) ? _IN('GA') : _IN('GACode');
+		View::setError($uid = opLoginPrepare(_IN('Login'), _IN('Pass'), $gaCode), 'login_frm');
+		View::setError(opLogin($uid, loginReturnUrl(_IN('URL')), false, false, _IN('Remember')), 'login_frm');
 		View::showInfo('*Error');
 	}
 

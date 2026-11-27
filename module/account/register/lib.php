@@ -94,9 +94,8 @@ function opRegisterUserCheck(&$params, $uid = 0, $from_admin = false) // !!! Pas
 	$params['uRef'] = $ruid;
 	if (!$uid) // from reg
 	{
-		if (($_cfg['Account_RegMode'] == 3) and StringHelper::sEmpty($params['Invite']))
-			return 'inv_empty';
-		// ??? check Invite
+		if (!$from_admin and ($_cfg['Account_RegMode'] == 3))
+			return 'inv_empty'; // no invite store exists yet; fail closed until invites are validated
 	}
 	if (($_cfg['Sec_MinSQA'] > 0) and (!$from_admin))
 	{

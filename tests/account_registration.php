@@ -79,4 +79,16 @@ $adminSelfReferrer = $params('self-edit', 'self');
 $adminSelfReferrer['uPass'] = '';
 $assertSame('ref_is_self', opRegisterUserCheck($adminSelfReferrer, 7, true), 'self invitation is rejected');
 
+$_cfg['Account_RegMode'] = 3;
+
+$adminInviteMode = $params('admin-invite');
+$assertSame(true, opRegisterUserCheck($adminInviteMode, 0, true), 'admin can create user in invite-only mode');
+
+$publicWithoutInvite = $params('public-no-invite');
+$assertSame('inv_empty', opRegisterUserCheck($publicWithoutInvite, 0, false), 'public invite-only registration rejected when invite empty');
+
+$publicWithInvite = $params('public-with-invite');
+$publicWithInvite['Invite'] = 'arbitrary-invite-code';
+$assertSame('inv_empty', opRegisterUserCheck($publicWithInvite, 0, false), 'public invite-only registration rejected with arbitrary invite');
+
 echo "Account registration tests passed.\n";

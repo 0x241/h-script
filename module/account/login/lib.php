@@ -4,38 +4,54 @@ use HScript\Util\StringHelper;
 use HScript\Security\FailedLoginPolicy;
 
 use HScript\Template\View;
+
+if (!function_exists('loginReturnUrl'))
+{
+	function loginReturnUrl($url): string
+	{
+		$url = (string)$url;
+		if (preg_match('/[\x00-\x1f\x7f]/', $url))
+			return '';
+		$url = trim($url);
+		$parts = parse_url($url);
+		if ($url === '' || !is_array($parts) || isset($parts['scheme']) || isset($parts['host']) || str_starts_with($url, '//') || str_contains($url, '\\'))
+			return '';
+		return $url;
+	}
+}
 /* 
 	Module: account/login
 */
 
-function opLoginPrepare($login, $pass)
+function opLoginPrepare($login, $pass, $gaCode = '')
 {
 	global $db, $_cfg;
 	if (StringHelper::sEmpty($login) or StringHelper::sEmpty($pass))
 		return 'login_empty';
 	$candidate = $db->fetch1Row($db->select('Users LEFT JOIN AddInfo ON auID=uID',
 		'uID, uLogin, uPass, aGA, aFailedLoginThreshold', 'uLogin=?', array($login)));
-	if (!empty($candidate['aGA']))
+	if (!empty($candidate['uID']) and verifyPasswordWithLegacyDigest($pass, $candidate['uPass'], $_cfg['Const_Salt']))
 	{
-		$a = $candidate;
-		require_once('module/account/ga/class.GoogleAuthenticator.php');
-		$ga = new GoogleAuthenticator();
-		if ($ga->checkCode($a['aGA'], $pass))
-			$usr = $a;
-		else
-			return 'GA_wrong';
-	}
-	else
-	{
-		$usr = $candidate;
-		if (!empty($usr['uID']) and verifyPasswordWithLegacyDigest($pass, $usr['uPass'], $_cfg['Const_Salt']))
+		if (!verifyPassword($pass, $candidate['uPass']) or passwordHashNeedsRehash($candidate['uPass']))
+			$db->update('Users', array('uPass' => hashPassword($pass)), '', 'uID=?d', array($candidate['uID']));
+		if (!empty($candidate['aGA']))
 		{
-			if (!verifyPassword($pass, $usr['uPass']) or passwordHashNeedsRehash($usr['uPass']))
-				$db->update('Users', array('uPass' => hashPassword($pass)), '', 'uID=?d', array($usr['uID']));
+			require_once('module/account/ga/class.GoogleAuthenticator.php');
+			$ga = new GoogleAuthenticator();
+			if (!StringHelper::sEmpty($gaCode) && $ga->checkCode($candidate['aGA'], trim((string)$gaCode)))
+				$usr = $candidate;
+			else
+			{
+				if (!empty($candidate['uID']) && FailedLoginPolicy::effective($_cfg['Sec_BFC'], $candidate['aFailedLoginThreshold']) > 0)
+					$db->update('Users', array('uBFC=' => 'LEAST(uBFC+1,2147483647)'), '', 'uID=?d', array($candidate['uID']));
+				return 'GA_wrong';
+			}
 		}
 		else
-			$usr = array();
+			$usr = $candidate;
 	}
+	else
+		$usr = array();
 	if ((empty($usr['uID'])) or ($usr['uLogin'] != $login))
 	{
 		if (!empty($candidate['uID']) && FailedLoginPolicy::effective($_cfg['Sec_BFC'], $candidate['aFailedLoginThreshold']) > 0)
@@ -137,7 +153,7 @@ function opLogin($uid, $url, $set_new_ip = false, $from_admin = false, $remember
 				opUserConsts($usr)
 			);
 	}
-	View::showInfo('LogIn', StringHelper::exValue(moduleToLink('cabinet'), $url));
+	View::showInfo('LogIn', StringHelper::exValue(moduleToLink('cabinet'), loginReturnUrl($url)));
 }
 
 function opLoginOut($text)

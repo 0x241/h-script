@@ -46,8 +46,10 @@ namespace {
     // Parser/transport units isolate the SQL original-invoice/quota contract.
     // The installed financial matrix exercises the concrete implementation.
     final class OfflinePaykassa extends Paykassa {
+        public int $releases = 0;
         protected function callbackIntent(int $order,array $config): array { return []; }
         protected function verificationClaim(array $context,string $token): array { return ['cached'=>false]; }
+        protected function verificationRelease(array $context,array $claim): void { $this->releases++; }
         protected function verificationComplete(array $context,array $claim,array $verified): void {}
     }
 
@@ -142,7 +144,9 @@ namespace {
         pkAssert(!$gateway->handleCallback($request)['correct'],'missing confirmation field accepted: '.$field);
     }
     pkWire(pkResponse([],true));
+    $releasesBefore = $gateway->releases;
     pkAssert($gateway->handleCallback($request)===['outcome'=>'authentication_failed','reason'=>'paykassa_confirmation_failed','authenticated'=>false,'correct'=>false],'provider error reflected or accepted');
+    pkAssert($gateway->releases===$releasesBefore+1,'provider error releases verification claim');
 
     foreach ([['status'=>301],['status'=>400],['status'=>500],['status'=>204],['errno'=>60],['errno'=>28],
         ['exec_fail'=>true],['set_fail'=>true],['init_fail'=>true],['throw'=>true],

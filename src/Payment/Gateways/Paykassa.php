@@ -126,42 +126,50 @@ class Paykassa extends AbstractGateway
         if(isset($context['verified']['paykassa_system']) && strtolower($payload['system'])!==$context['verified']['paykassa_system'])return CallbackResult::failure('invalid_payload','payment_route_mismatch');
         $claim=$this->verificationClaim($context,$token);
         if ($claim['cached']) return $context['verified'];
-        // Only the exact decoded form token is submitted, never global request state.
-        // Transport failure propagates a fixed exception to the controller's 503.
-        $response = $this->sciRequest($config,['func'=>'sci_confirm_order','private_hash'=>$token]);
-        if ($response['error'])
-            return CallbackResult::failure('authentication_failed','paykassa_confirmation_failed');
-        $data = $response['data'];
-        if(!self::environmentMatches($data))return CallbackResult::failure('invalid_payload','paykassa_environment_mismatch',true);
+        $completed=false;
         try {
-            $merchant = self::positiveId($data['shop_id'] ?? null);
-            if (!hash_equals((string)$config['id'],$merchant))
-                return CallbackResult::failure('authentication_failed','merchant_mismatch');
-            if (self::positiveId($data['order_id'] ?? null) !== $order)
-                return CallbackResult::failure('invalid_payload','paykassa_order_mismatch',true);
-            if (($data['currency'] ?? null) !== $this->getCurrencyId()
-                || !self::matchesSystem($this->id,$data['system'] ?? null))
-                return CallbackResult::failure('invalid_payload','currency_mismatch',true);
-            if (($data['partial'] ?? null) !== 'no')
-                return CallbackResult::failure('unsupported','paykassa_partial_unsupported',true);
-            $amount = self::decimal($data['amount'] ?? null);
-            $batch = self::positiveId($data['transaction'] ?? null);
-            $address = self::address($data['address'] ?? null);
-            $destinationTag = self::destinationTag($data['tag'] ?? null,$this->id);
-            $invoiceHash = self::opaqueHash($data['hash'] ?? null);
-        } catch (InvalidArgumentException) {
-            return CallbackResult::failure('invalid_payload','paykassa_confirmation_invalid',true);
+            // Only the exact decoded form token is submitted, never global request state.
+            // Transport failure propagates a fixed exception to the controller's 503.
+            $response = $this->sciRequest($config,['func'=>'sci_confirm_order','private_hash'=>$token]);
+            if ($response['error'])
+                return CallbackResult::failure('authentication_failed','paykassa_confirmation_failed');
+            $data = $response['data'];
+            if(!self::environmentMatches($data))return CallbackResult::failure('invalid_payload','paykassa_environment_mismatch',true);
+            try {
+                $merchant = self::positiveId($data['shop_id'] ?? null);
+                if (!hash_equals((string)$config['id'],$merchant))
+                    return CallbackResult::failure('authentication_failed','merchant_mismatch');
+                if (self::positiveId($data['order_id'] ?? null) !== $order)
+                    return CallbackResult::failure('invalid_payload','paykassa_order_mismatch',true);
+                if (($data['currency'] ?? null) !== $this->getCurrencyId()
+                    || !self::matchesSystem($this->id,$data['system'] ?? null))
+                    return CallbackResult::failure('invalid_payload','currency_mismatch',true);
+                if (($data['partial'] ?? null) !== 'no')
+                    return CallbackResult::failure('unsupported','paykassa_partial_unsupported',true);
+                $amount = self::decimal($data['amount'] ?? null);
+                $batch = self::positiveId($data['transaction'] ?? null);
+                $address = self::address($data['address'] ?? null);
+                $destinationTag = self::destinationTag($data['tag'] ?? null,$this->id);
+                $invoiceHash = self::opaqueHash($data['hash'] ?? null);
+            } catch (InvalidArgumentException) {
+                return CallbackResult::failure('invalid_payload','paykassa_confirmation_invalid',true);
+            }
+            if(isset($context['verified']['paykassa_system']) && strtolower($data['system'])!==$context['verified']['paykassa_system'])return CallbackResult::failure('invalid_payload','payment_route_mismatch',true);
+            $verified=['outcome'=>'verified','reason'=>'provider_confirmed','authenticated'=>true,'correct'=>true,
+                'sum'=>$amount,'sum2'=>$amount,'curr'=>$this->getCurrencyId(),'tag'=>$order,
+                'accto'=>$address,'destination_tag'=>$destinationTag,'merchant_id'=>$merchant,
+                'provider_invoice_hash'=>hash('sha256',$invoiceHash),'batch'=>$batch,
+                'response'=>$order.'|success','profile_key_hash'=>hash('sha256',$config['key']),'profile_timezone'=>'',
+                ...(isset($context['verified']['payment_route_hash'])?['payment_route_hash'=>$context['verified']['payment_route_hash'],'paykassa_system'=>strtolower($data['system'])]:[]),
+            ];
+            $this->verificationComplete($context,$claim,$verified);
+            $completed=true;
+            return $verified;
+        } finally {
+            if (!$completed) {
+                $this->verificationRelease($context,$claim);
+            }
         }
-        if(isset($context['verified']['paykassa_system']) && strtolower($data['system'])!==$context['verified']['paykassa_system'])return CallbackResult::failure('invalid_payload','payment_route_mismatch',true);
-        $verified=['outcome'=>'verified','reason'=>'provider_confirmed','authenticated'=>true,'correct'=>true,
-            'sum'=>$amount,'sum2'=>$amount,'curr'=>$this->getCurrencyId(),'tag'=>$order,
-            'accto'=>$address,'destination_tag'=>$destinationTag,'merchant_id'=>$merchant,
-            'provider_invoice_hash'=>hash('sha256',$invoiceHash),'batch'=>$batch,
-            'response'=>$order.'|success','profile_key_hash'=>hash('sha256',$config['key']),'profile_timezone'=>'',
-            ...(isset($context['verified']['payment_route_hash'])?['payment_route_hash'=>$context['verified']['payment_route_hash'],'paykassa_system'=>strtolower($data['system'])]:[]),
-        ];
-        $this->verificationComplete($context,$claim,$verified);
-        return $verified;
     }
 
     protected function callbackIntent(int $order,array $config): array
@@ -172,6 +180,11 @@ class Paykassa extends AbstractGateway
     protected function verificationClaim(array $context,string $token): array
     {
         return PaykassaVerification::claim($this->db,$context,$token);
+    }
+
+    protected function verificationRelease(array $context,array $claim): void
+    {
+        PaykassaVerification::release($this->db,$claim);
     }
 
     protected function verificationComplete(array $context,array $claim,array $verified): void
